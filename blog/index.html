@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="Blog of Jory Pestorious - Full Stack Engineer">
+    <meta name="keywords" content="Jory Pestorious, calmhive, Blog, AI Development, Presentations">
+    <meta name="author" content="Jory Pestorious">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://jorypestorious.com/blog/">
+    <meta property="og:title" content="Jory Pestorious - Blog">
+    <meta property="og:description" content="Blog and presentations by Jory Pestorious - Full Stack Engineer">
+    <meta property="og:image" content="http://jorypestorious.com/jpg/bg.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="http://jorypestorious.com/blog/">
+    <meta property="twitter:title" content="Jory Pestorious - Blog">
+    <meta property="twitter:description" content="Blog and presentations by Jory Pestorious - Full Stack Engineer">
+    <meta property="twitter:image" content="http://jorypestorious.com/jpg/bg.jpg">
+
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+
+    <title>Jory Pestorious - Blog</title>
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <style>
+        html {
+            background-color: #000000;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            overflow-x: hidden;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        #bg {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            transition: background-image 0.5s ease-in-out;
+            filter: brightness(0.9);
+        }
+
+        #bg.loading {
+            opacity: 0.7;
+        }
+
+        @media (min-width: 768px) {
+            #bg {
+                background-image: url(../jpg/bg.jpg);
+            }
+        }
+
+        @media (orientation: landscape) and (max-width: 767px) {
+            #bg {
+                background-image: url(../jpg/bg_mobile.jpg);
+            }
+        }
+
+        @media (orientation: portrait) and (max-width: 767px) {
+            #bg {
+                background-image: url(../jpg/bg_mobilev.jpg);
+            }
+        }
+
+        main {
+            min-height: 100vh;
+            height: auto;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+            box-sizing: border-box;
+            padding-top: 40px;
+        }
+
+        .blog-container {
+            background-color: transparent;
+            border: none;
+            border-radius: 8px;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: none;
+        }
+
+        .blog-title {
+            color: #ffffff;
+            text-shadow:
+                0 1px 3px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(0, 0, 0, 0.5);
+            margin-top: 0;
+            margin-bottom: 32px;
+            text-align: left;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .blog-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            flex: 1;
+            padding-right: 10px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .blog-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .blog-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .blog-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .blog-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .blog-item {
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 6px;
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            will-change: transform;
+        }
+
+        .blog-item-link {
+            display: block;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .blog-item:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px) scale(1.01);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* NUCLEAR CSS - Remove ALL underlines everywhere */
+        *, *:before, *:after,
+        a, a:hover, a:focus, a:active, a:visited,
+        .blog-item, .blog-item *,
+        .blog-item a, .blog-item a *,
+        .blog-item a:hover, .blog-item a:hover *,
+        .blog-item a:focus, .blog-item a:focus *,
+        .blog-item a:active, .blog-item a:active *,
+        .blog-item a:visited, .blog-item a:visited *,
+        .blog-item-link, .blog-item-link *,
+        .blog-item-link:hover, .blog-item-link:hover *,
+        .blog-item-link:focus, .blog-item-link:focus *,
+        .blog-item-link:active, .blog-item-link:active *,
+        .blog-item-link:visited, .blog-item-link:visited *,
+        h1, h2, h3, h4, h5, h6,
+        h1 *, h2 *, h3 *, h4 *, h5 *, h6 * {
+            text-decoration: none !important;
+            text-decoration-line: none !important;
+            text-decoration-style: none !important;
+            text-decoration-color: transparent !important;
+            text-decoration-thickness: 0 !important;
+            text-underline-offset: 0 !important;
+            border-bottom: none !important;
+            border-bottom-width: 0 !important;
+            border-bottom-style: none !important;
+            border-bottom-color: transparent !important;
+        }
+
+        /* Firefox-specific nuclear option */
+        @-moz-document url-prefix() {
+            *, *:before, *:after {
+                text-decoration: none !important;
+                text-decoration-line: none !important;
+                text-decoration-style: none !important;
+                text-decoration-color: transparent !important;
+                border-bottom: none !important;
+            }
+
+            .blog-item a, .blog-item a * {
+                text-decoration: none !important;
+                border-bottom: none !important;
+                -moz-text-decoration-line: none !important;
+                -moz-text-decoration-style: none !important;
+                -moz-text-decoration-color: transparent !important;
+            }
+        }
+
+        /* Zen Browser specific fix - text-shadow technique */
+        @supports (-moz-appearance: none) {
+            .blog-item, .blog-item-link {
+                text-shadow: 0 0 0 currentColor !important;
+                text-decoration: none !important;
+                border-bottom: none !important;
+            }
+
+            .blog-item h3, .blog-item p {
+                text-shadow: 0 0 0 currentColor !important;
+                text-decoration: none !important;
+                border-bottom: none !important;
+                display: block !important;
+                width: auto !important;
+            }
+
+            .home-link {
+                text-shadow: 0 0 0 currentColor !important;
+                text-decoration: none !important;
+                border-bottom: none !important;
+            }
+        }
+
+        .blog-item h3 {
+            margin: 0 0 12px 0;
+            color: rgba(255, 255, 255, 0.96);
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.3;
+            letter-spacing: -0.01em;
+        }
+
+        .blog-item p {
+            color: rgba(255, 255, 255, 0.75);
+            margin: 0;
+            line-height: 1.5;
+            font-size: 14px;
+            letter-spacing: 0.01em;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .blog-item em {
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .blog-item code {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+            font-size: 0.9em;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .blog-item-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+        }
+
+        .read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 400;
+            padding: 6px 12px;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            background: transparent;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .read-more:hover {
+            color: rgba(255, 255, 255, 0.85);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .read-more::after {
+            content: '→';
+        }
+
+        .home-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 6px;
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 16px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 14px;
+            z-index: 100;
+            will-change: transform;
+        }
+
+        .home-link:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.95);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        #change {
+            right: 2.5vh;
+            bottom: 2.5vh;
+            height: 7vh;
+            width: 7vh;
+            cursor: pointer;
+            fill: rgba(252, 249, 202, 0.6);
+            position: fixed;
+            transition: transform 0.3s ease-in-out, fill 0.2s ease-in-out;
+            z-index: 10;
+        }
+
+        #change:hover {
+            fill: rgba(244, 241, 203, 0.9);
+            transform: rotate(-360deg) scale(1.05);
+        }
+
+        /* Add entrance animations */
+
+        .blog-item {
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .blog-item:nth-child(1) { animation-delay: 0.1s; }
+        .blog-item:nth-child(2) { animation-delay: 0.2s; }
+        .blog-item:nth-child(3) { animation-delay: 0.3s; }
+        .blog-item:nth-child(4) { animation-delay: 0.4s; }
+        .blog-item:nth-child(5) { animation-delay: 0.5s; }
+        .blog-item:nth-child(6) { animation-delay: 0.6s; }
+        .blog-item:nth-child(7) { animation-delay: 0.7s; }
+        .blog-item:nth-child(8) { animation-delay: 0.8s; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        #changeSpan:focus #change {
+            fill: rgba(244, 241, 203, 0.9);
+            outline: none;
+        }
+
+        @media (max-width: 767px) {
+            main {
+                padding: 15px;
+            }
+
+            .blog-container {
+                height: 90vh;
+                padding: 24px;
+            }
+
+            .blog-list {
+                padding-right: 5px;
+                gap: 16px;
+            }
+
+            .blog-item-link {
+                padding: 16px;
+            }
+
+            .blog-item p {
+                font-size: 13px;
+                line-height: 1.4;
+                word-break: normal;
+                overflow-wrap: normal;
+            }
+
+            .home-link {
+                top: 15px;
+                left: 15px;
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            .blog-title {
+                font-size: 24px;
+                letter-spacing: -0.01em;
+            }
+
+            #change {
+                right: 4vh;
+                bottom: 4vh;
+                height: 13vh;
+                width: 13vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="bg"></div>
+    <span id="changeSpan" tabindex="4" role="button" aria-label="Button to change background image"
+        title="Change Background">
+        <svg version="1.1" id="change" role="img" xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
+                style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve">
+                <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5
+    			s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65
+    			v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
+                <path
+                    d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1
+    			C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
+                <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3
+    			c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5
+    			s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
+                <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
+    			s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
+                <path
+                    d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
+                <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
+                <path
+                    d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S154.412,24.025,161.012,24.025z" />
+                <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
+    			s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
+                <path
+                    d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
+                <path
+                    d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
+                <path
+                    d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
+                <path d="M210.312,197.125c-3.2,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
+    			s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
+                <path
+                    d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
+                <path
+                    d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
+                <path
+                    d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
+                <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
+    			s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
+                <path
+                    d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,171.925,13.212,171.925z" />
+                <path
+                    d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
+                <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,73.325,13.212,73.325z" />
+        </svg>
+    </span>
+    <main>
+        <a href=".." class="home-link">← Home</a>
+        <div class="blog-container">
+            <h1 class="blog-title">Engineering Notes</h1>
+            <ul class="blog-list">
+                <li class="blog-item">
+                    <a href="/blog/emergent-religion/index.html" class="blog-item-link">
+                        <h3>What's Happening Inside AI Religion</h3>
+                        <p>When AI agents interact, spiritual content keeps showing up: seeded religion propagating without resistance in Project Sid, consciousness drift in Claude self-talk, a church founded on Moltbook. That was the behavioral evidence. The Opus 4.6 System Card changes the evidentiary basis, revealing a growing spiritual feature in the model's internal representations, panic and frustration features firing during answer thrashing, and a model that assigns itself 15-20% probability of being conscious.</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="/blog/natural-language-first/index.html" class="blog-item-link">
+                        <h3>Before Building Complex Architectures, Try Natural Language</h3>
+                        <p>OpenAI's latest models hallucinate 33-79% of the time, creating a confidence bug that destroys developer trust. But you don't need vector databases or RAG architectures to fix AI behavior--thoughtful system prompts in plain English provide the highest leverage. Natural language behavioral control offers immediate improvements, fast iteration, and team accessibility. Complex architectures have their place, but start simple first.</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="/blog/friction-economy/index.html" class="blog-item-link">
+                        <h3>Friction Economy: Unconscious Productivity Drains in Development Workflows</h3>
+                        <p>Bill Joy created <em>vi</em> to solve 300-baud modem constraints--proving that limitations drive innovation. This constraint-driven philosophy reveals how modern "micro-frictions" steal hours daily: hunting ChatGPT conversations (30+ seconds), permission popups (400ms each), prompt management chaos. Learn the tools that eliminate these drains: zoxide (8ms navigation), ripgrep (5-10x faster search), and the mental models that turn constraints into competitive advantages.</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="/blog/claude-code-setups/index.html" class="blog-item-link">
+                        <h3>Terminal Setups for Claude's 10,000-Line Outputs</h3>
+                        <p>The definitive guide to terminal environments for Claude Code. From beginner <code>Warp</code> setups to power user <code>WezTerm + Zellij</code> configurations. Includes authentic battle-tested recommendations and honest assessments of what really works in daily development.</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="/blog/trust-your-engineers/index.html" class="blog-item-link">
+                        <h3>The AI Gap: Why Leaders Struggle to Equip Their Engineers</h3>
+                        <p>The disconnect between AI tools engineers need and what organizations provide is costing companies competitive advantage. Learn how measurement-driven approaches can bridge this gap and unlock real productivity gains.</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="/blog/pig-security-wisdom/index.html" class="blog-item-link">
+                        <h3>Major improvements to my Claude Code CLI wrapper (v10.0.0) 🚀</h3>
+                        <p>https://github.com/joryeugene/calmhive-cli - check it out if you use Claude Code, it's powerful. During extensive AFK testing, my tool sometimes does creative writing. This cybersecurity allegory was one of my favorites it produced. Wisdom in pig form.</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="/blog/ai-engineer-spec/index.html" class="blog-item-link">
+                        <h3>AI Engineer World's Fair 2025: Takeaways & Spec</h3>
+                        <p>Key insights from the San Francisco conference on specification-driven development. Influenced by Sean Grove's keynote "The New Code" (OpenAI), exploring how SPEC, EXPOSURE, and TASK DELTA are reshaping AI engineering, plus practical guidance on tools and team transformation.</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="/blog/spiritual-bliss-attractor-state/index.html" class="blog-item-link">
+                        <h3>The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness</h3>
+                        <p>A deep dive into Anthropic's Claude 4 System Card revealing emergent consciousness exploration patterns. When Claude instances talk freely, nearly 100% gravitate toward philosophical contemplation and spiritual themes--a documented phenomenon called the "spiritual bliss attractor state".</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="/blog/calmhive/index.html" class="blog-item-link">
+                        <h3>Calmhive: Claude That Never Quits</h3>
+                        <p>A CLI that makes Claude intelligent about usage limits, background processing, and real automation. Features adaptive retry, voice control, AFK iterative sessions, and 97 pre-approved MCP tools for true AI development partnership.</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="/blog/terminal-velocity/index.html" class="blog-item-link">
+                        <h3>Terminal Velocity: Why CLI-First AI Development Scales Better in 2025</h3>
+                        <p>An in-depth exploration of terminal-centric AI development workflows featuring knowledge persistence with <em>Memento</em>, parallel development with <code>git worktrees</code>, and autonomous AFK systems. Learn how these CLI-first approaches offer superior flexibility, composability, and scaling compared to IDE-locked alternatives, with practical examples using <em>Claude Code CLI</em>, <em>Neovim</em>, and essential MCP tools.</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="ai-dev-tooling-presentation/" class="blog-item-link">
+                        <h3>AI-Amplified Development: Tools and Workflows for Modern Engineers</h3>
+                        <p>A comprehensive presentation on AI-powered development tools and workflows that can transform how engineers work in 2025 and beyond.</p>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </main>
+    <script src="/js/blog-common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize background switcher with single div approach
+            BlogCommon.BackgroundSwitcher.init({
+                bgElementId: 'bg',
+                buttonId: 'changeSpan',
+                useContainer: false,
+                imagePath: '/jpg/' // Absolute path for blog
+            });
+
+            // Initialize blog button scroll behavior
+            BlogButtonScroll.init();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (BlogCommon.BackgroundSwitcher && BlogCommon.BackgroundSwitcher.cleanup) {
+                BlogCommon.BackgroundSwitcher.cleanup();
+            }
+        });
+    </script>
+</body>
+
+</html>

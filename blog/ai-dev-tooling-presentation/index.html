@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="A comprehensive presentation on AI-powered development tools and workflows for modern engineers">
+  <meta name="keywords" content="AI, Development, Tools, Workflows, Engineering">
+  <meta name="author" content="Jory Pestorious">
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://jorypestorious.com/blog/ai-dev-tooling-presentation/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://jorypestorious.com/blog/ai-dev-tooling-presentation">
+  <meta property="og:title" content="AI-Amplified Development: Tools and Workflows for Modern Engineers">
+  <meta property="og:description"
+    content="A comprehensive presentation on AI-powered development tools and workflows for modern engineers">
+  <meta property="og:image" content="https://jorypestorious.com/jpg/bg.jpg">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://jorypestorious.com/blog/ai-dev-tooling-presentation">
+  <meta property="twitter:title" content="AI-Amplified Development: Tools and Workflows for Modern Engineers">
+  <meta property="twitter:description"
+    content="A comprehensive presentation on AI-powered development tools and workflows for modern engineers">
+  <meta property="twitter:image" content="https://jorypestorious.com/jpg/bg.jpg">
+  <title>AI-Amplified Development</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/theme/white.css">
+  <style>
+    body {
+      background-color: #000000;
+    }
+
+    .reveal h1 {
+      color: #0366d6;
+    }
+
+    .reveal h2 {
+      color: #0366d6;
+    }
+
+    .reveal h3 {
+      color: #2188ff;
+    }
+
+    .reveal pre {
+      box-shadow: none;
+    }
+
+    .reveal blockquote {
+      background-color: rgba(246, 248, 250, 0.7);
+      border-left: 4px solid #0366d6;
+      padding: 0.5em 1em;
+      width: 90%;
+    }
+
+    .reveal table {
+      font-size: 0.8em;
+      margin: 0 auto;
+    }
+
+    .reveal .slide-number {
+      font-size: 14px;
+    }
+
+    .reveal .footer {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      font-size: 14px;
+      color: #666;
+      z-index: 100;
+    }
+
+    .home-link {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 16px;
+      color: #0366d6;
+      z-index: 100;
+      text-decoration: none;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: background-color 0.2s ease-out;
+    }
+
+    .home-link:hover {
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+  </style>
+</head>
+
+<body>
+  <a href="/blog/" class="home-link">Blog</a>
+  <div class="reveal">
+    <div class="slides">
+      <section data-markdown="ai-dev-tooling-and-workflows.md" data-separator="^\n---\n"
+        data-separator-vertical="^\n--\n" data-separator-notes="^Note:" data-charset="utf-8">
+      </section>
+
+      <div class="footer">© 2025 Jory Pestorious</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/plugin/zoom/zoom.js"></script>
+
+    <script>
+      Reveal.initialize({
+        hash: true,
+        slideNumber: true,
+        transition: 'slide',
+        plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealZoom]
+      });
+    </script>
+</body>
+
+</html>
