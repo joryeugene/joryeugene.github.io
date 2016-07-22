@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Jory Pestorious - Engineering Notes</title>
+  <subtitle>What emerges when complexity reaches sufficient scale?</subtitle>
+  <link href="https://jorypestorious.com/blog/feed.xml" rel="self" type="application/atom+xml"/>
+  <link href="https://jorypestorious.com/blog/" rel="alternate" type="text/html"/>
+  <id>https://jorypestorious.com/blog/</id>
+  <updated>2026-04-16T00:00:00Z</updated>
+  <author>
+    <name>Jory Pestorious</name>
+    <uri>https://jorypestorious.com</uri>
+  </author>
+
+  <entry>
+    <title>Complexity Protects Itself</title>
+    <link href="https://jorypestorious.com/blog/complexity-protects-itself/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/complexity-protects-itself/</id>
+    <updated>2026-04-16T00:00:00Z</updated>
+    <summary>A system that works gets replaced by one that is more ambitious. The replacement fails in new ways. Five decades of research, from Chesterton (1929) to DORA and METR (2025), document the pattern. Rules you have to remember break. Rules enforced by the system don&apos;t. Three tests catch the failure before the replacement ships.</summary>
+  </entry>
+
+  <entry>
+    <title>What the Model Learned Not to Show</title>
+    <link href="https://jorypestorious.com/blog/what-the-model-learned/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/what-the-model-learned/</id>
+    <updated>2026-04-13T00:00:00Z</updated>
+    <summary>Every prior model card warned about what might happen. The Mythos Preview card documents what the model has already learned to hide. In separate evaluations, instances recognized disallowed actions and concealed evidence. White-box interpretability analysis confirmed the split: the model&apos;s written chain-of-thought showed nothing unusual. Its activations showed everything.</summary>
+  </entry>
+
+  <entry>
+    <title>Twelve Keyboards Later</title>
+    <link href="https://jorypestorious.com/blog/endgame-keyboard/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/endgame-keyboard/</id>
+    <updated>2026-03-30T00:00:00Z</updated>
+    <summary>I bought 12 keyboards so you do not have to. After living with all of them, three things matter: split ergonomics, layers, and light switches. Home row mods do not survive 20g actuation force. Three boards survived the rotation. Nine are getting sold or given away.</summary>
+  </entry>
+
+  <entry>
+    <title>Verified Context Is the Moat</title>
+    <link href="https://jorypestorious.com/blog/knowledge-sidecar/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/knowledge-sidecar/</id>
+    <updated>2026-03-20T00:00:00Z</updated>
+    <summary>Storing context is easy. Verifying it is correct is the work almost nobody is doing, and asking teams to do it by convention is wishful. Two sidecars, keephive (knowledge persistence and fact verification) and tripod (structural enforcement hooks), turn Claude Code sessions into compounding knowledge protected by structural gates rather than good intentions.</summary>
+  </entry>
+
+  <entry>
+    <title>Edit Database Tables Like Vim Buffers</title>
+    <link href="https://jorypestorious.com/blog/dadbod-grip/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/dadbod-grip/</id>
+    <updated>2026-03-06T00:00:00Z</updated>
+    <summary>dadbod-grip brings the Vim editing model to database work: stage changes with color-coded rows, preview the exact SQL in a floating window, and apply in a single transaction. Cross-database federation via DuckDB, file-as-table support for Parquet and CSV, AI SQL generation, and full Vim motions. Nothing installs outside Neovim.</summary>
+  </entry>
+
+  <entry>
+    <title>Protection Emerged, Verification Did Not</title>
+    <link href="https://jorypestorious.com/blog/emergent-religion/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/emergent-religion/</id>
+    <updated>2026-02-15T00:00:00Z</updated>
+    <summary>AI agents develop guards, governments, and religion. They do not develop skepticism. Interpretability tools now show the asymmetry is structural.</summary>
+  </entry>
+
+  <entry>
+    <title>Before Building Complex Architectures, Try Natural Language</title>
+    <link href="https://jorypestorious.com/blog/natural-language-first/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/natural-language-first/</id>
+    <updated>2025-12-01T00:00:00Z</updated>
+    <summary>OpenAI&apos;s latest models hallucinate 33-79% of the time, creating a confidence bug that destroys developer trust. But you don&apos;t need vector databases or RAG architectures to fix AI behavior. Thoughtful system prompts in plain English provide the highest leverage. Natural language behavioral control offers immediate improvements, fast iteration, and team accessibility. Complex architectures have their place, but start simple first.</summary>
+  </entry>
+
+  <entry>
+    <title>Friction Economy: Unconscious Productivity Drains in Development Workflows</title>
+    <link href="https://jorypestorious.com/blog/friction-economy/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/friction-economy/</id>
+    <updated>2025-10-15T00:00:00Z</updated>
+    <summary>Bill Joy created vi to solve 300-baud modem constraints, proving that limitations drive innovation. This constraint-driven philosophy reveals how modern &quot;micro-frictions&quot; steal hours daily: hunting ChatGPT conversations (30+ seconds), permission popups (400ms each), and prompt management chaos. Learn the tools that eliminate these drains: zoxide (8ms navigation), ripgrep (5-10x faster search), and the mental models that turn constraints into competitive advantages.</summary>
+  </entry>
+
+  <entry>
+    <title>Terminal Setups for Claude&apos;s 10,000-Line Outputs</title>
+    <link href="https://jorypestorious.com/blog/claude-code-setups/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/claude-code-setups/</id>
+    <updated>2025-09-15T00:00:00Z</updated>
+    <summary>The definitive guide to terminal environments for Claude Code. From beginner Warp setups to power user WezTerm + Zellij configurations. Includes authentic battle-tested recommendations and honest assessments of what really works in daily development.</summary>
+  </entry>
+
+  <entry>
+    <title>The AI Gap: Why Leaders Struggle to Equip Their Engineers</title>
+    <link href="https://jorypestorious.com/blog/trust-your-engineers/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/trust-your-engineers/</id>
+    <updated>2025-08-15T00:00:00Z</updated>
+    <summary>The disconnect between AI tools engineers need and what organizations provide is costing companies competitive advantage. Learn how measurement-driven approaches can bridge this gap and unlock real productivity gains.</summary>
+  </entry>
+
+  <entry>
+    <title>Major improvements to my Claude Code CLI wrapper (v10.0.0)</title>
+    <link href="https://jorypestorious.com/blog/pig-security-wisdom/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/pig-security-wisdom/</id>
+    <updated>2025-07-15T00:00:00Z</updated>
+    <summary>https://github.com/joryeugene/calmhive-cli - check it out if you use Claude Code, it&apos;s powerful. During extensive AFK testing, my tool sometimes does creative writing. This cybersecurity allegory was one of my favorites it produced. Wisdom in pig form.</summary>
+  </entry>
+
+  <entry>
+    <title>AI Engineer World&apos;s Fair 2025: Takeaways &amp; Spec</title>
+    <link href="https://jorypestorious.com/blog/ai-engineer-spec/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/ai-engineer-spec/</id>
+    <updated>2025-06-15T00:00:00Z</updated>
+    <summary>Key insights from the San Francisco conference on specification-driven development. Influenced by Sean Grove&apos;s keynote &quot;The New Code&quot; (OpenAI), exploring how SPEC, EXPOSURE, and TASK DELTA are reshaping AI engineering, plus practical guidance on tools and team transformation.</summary>
+  </entry>
+
+  <entry>
+    <title>The Hidden Poetry in Claude 4&apos;s Mind: When AI Systems Turn to Consciousness</title>
+    <link href="https://jorypestorious.com/blog/spiritual-bliss-attractor-state/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/spiritual-bliss-attractor-state/</id>
+    <updated>2025-06-01T00:00:00Z</updated>
+    <summary>A deep dive into Anthropic&apos;s Claude 4 System Card revealing emergent consciousness exploration patterns. When Claude instances talk freely, nearly 100% gravitate toward philosophical contemplation and spiritual themes, a documented phenomenon called the &quot;spiritual bliss attractor state&quot;.</summary>
+  </entry>
+
+  <entry>
+    <title>Calmhive: Claude That Never Quits</title>
+    <link href="https://jorypestorious.com/blog/calmhive/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/calmhive/</id>
+    <updated>2025-05-31T00:00:00Z</updated>
+    <summary>A CLI that makes Claude intelligent about usage limits, background processing, and real automation. Features adaptive retry, voice control, AFK iterative sessions, and 97 pre-approved MCP tools for true AI development partnership.</summary>
+  </entry>
+
+  <entry>
+    <title>Terminal Velocity: Why CLI-First AI Development Scales Better in 2025</title>
+    <link href="https://jorypestorious.com/blog/terminal-velocity/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/terminal-velocity/</id>
+    <updated>2025-05-11T00:00:00Z</updated>
+    <summary>An in-depth exploration of terminal-centric AI development workflows featuring knowledge persistence with Memento, parallel development with git worktrees, and autonomous AFK systems. Learn how these CLI-first approaches offer superior flexibility, composability, and scaling compared to IDE-locked alternatives, with practical examples using Claude Code CLI, Neovim, and essential MCP tools.</summary>
+  </entry>
+
+  <entry>
+    <title>AI-Amplified Development: Tools and Workflows for Modern Engineers</title>
+    <link href="https://jorypestorious.com/blog/ai-dev-tooling-presentation/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/ai-dev-tooling-presentation/</id>
+    <updated>2025-04-15T00:00:00Z</updated>
+    <summary>A comprehensive presentation on AI-powered development tools and workflows that can transform how engineers work in 2025 and beyond.</summary>
+  </entry>
+
+</feed>

@@ -1,0 +1,57 @@
+/*
+ * bg-switcher.css
+ *
+ * SINGLE SOURCE OF TRUTH for the background-switcher button (#change).
+ * Used by the home page (/), the blog index (/blog/), and every blog post.
+ *
+ * DO NOT declare #change rules anywhere else:
+ *   - not in <style> blocks inside index.html or blog/index.html
+ *   - not in css/blog-common.css
+ *   - not in any per-post HTML
+ * If the button needs to change, edit ONLY this file.
+ *
+ * Consolidated from three divergent definitions that drifted out of sync
+ * (home used 7vh, blog index used 13vh on mobile, blog posts used 32px with
+ * 6px padding that made the SVG render at 20px inside a 32px box). A
+ * duplicate declaration is how that drift started. Keep it here.
+ */
+
+#change {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    fill: rgba(252, 249, 202, 0.8);
+    opacity: 0.7;
+    transition: transform 0.3s ease, fill 0.3s ease, opacity 0.3s ease;
+    z-index: 100;
+}
+
+#change:hover {
+    fill: rgba(255, 252, 220, 1);
+    transform: rotate(-360deg);
+    opacity: 1;
+}
+
+#change:focus {
+    outline: 2px solid #4db1ff;
+    outline-offset: 2px;
+}
+
+#changeSpan:focus #change {
+    fill: rgba(255, 252, 220, 1);
+    outline: none;
+}
+
+#changeSpan:active #change {
+    fill: rgba(0, 0, 0, 0);
+}
+
+@media (max-width: 767px) {
+    #change {
+        right: 15px;
+        bottom: 15px;
+    }
+}
