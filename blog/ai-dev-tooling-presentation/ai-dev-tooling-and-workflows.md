@@ -258,30 +258,9 @@ cat error.log | grep Exception | claude
 
 ---
 
-<table>
-<tr>
-<td width="60%">
-
-- [**Cursor IDE**](https://cursor.sh/docs): Inline AI chat with Cmd+K for context-aware suggestions
-- [**Zed**](https://zed.dev/): High-performance, collaborative code editor with AI capabilities
-- [**VSCode Neovim**](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim): Efficient VIM navigation in VS Code
-- [**Butterfish Neovim**](https://github.com/charliermarsh/butterfish): OpenAI-powered editing in Neovim
-- [**claude.vim**](https://github.com/pasky/claude.vim): Claude integration for Neovim
-
-</td>
-<td width="40%">
-
-<br>
-<br>
-<br>
-<br>
-
-**Why VIM Matters:**
-VIM motions remain the ultimate force multiplier--letting you edit at the speed of thought while AI handles the complex generation
-
-</td>
-</tr>
-</table>
+| | |
+|-------|-------|
+| - [**Cursor IDE**](https://cursor.sh/docs): Inline AI chat with Cmd+K for context-aware suggestions<br>- [**Zed**](https://zed.dev/): High-performance, collaborative code editor with AI capabilities<br>- [**VSCode Neovim**](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim): Efficient VIM navigation in VS Code | **Why VIM Matters:**<br><br>*» VIM motions remain a powerful force multiplier--letting you edit at the speed of thought while AI handles the complex generation*<br><br>**VIM-Powered Tools:**<br>- [**Butterfish Neovim**](https://github.com/charliermarsh/butterfish): OpenAI-powered editing in Neovim<br>- [**claude.vim**](https://github.com/pasky/claude.vim): Claude integration for Neovim |
 
 ---
 
@@ -291,9 +270,8 @@ VIM motions remain the ultimate force multiplier--letting you edit at the speed 
 
 ---
 
-**In-IDE Tools:**
 - [**Cursor Agent**](https://docs.cursor.com/chat/overview): Multi-file editing, YOLO mode, and MCPs.
-- [**Windsurf**](https://www.windsurf.io/): Emerging IDE with powerful AI-native features and multi-file capabilities.
+- [**Windsurf**](https://windsurf.com/editor): IDE with powerful AI-native features and multi-file capabilities.
 - [**Roo**](https://github.com/RooVetGit/Roo-Code), [**Cline**](https://github.com/cline/cline): Agentic workflow, multi-file editing with transparent token usage and MCP integration. VS Code/Cursor extension.
 - [**augment code**](https://augmentcode.com/): Handles large codebases and complex agentic workflows with MCP integration. VS Code/Cursor/Neovim extension.
 
@@ -340,7 +318,7 @@ VIM motions remain the ultimate force multiplier--letting you edit at the speed 
 ---
 
 **Intermediate Techniques:**
-- **Parallel Dev:** Multiple cloned repos, parallel PRs, [**Cursor**](https://cursor.sh/docs/workspaces)/[**VSCode**](https://code.visualstudio.com/docs/editor/workspaces) workspaces
+- **Parallel Dev:** Multiple cloned repos, parallel PRs, [**VSCode**](https://code.visualstudio.com/docs/editor/workspaces) workspaces
 - **CI/CD Automation:** [**GitHub Actions**](https://github.com/features/actions), [**GitLab CI**](https://docs.gitlab.com/ee/ci/), or [**Jenkins**](https://www.jenkins.io/) for automated workflows
 - *Perfect for:* Feature development, multi-service projects, automated testing
 
