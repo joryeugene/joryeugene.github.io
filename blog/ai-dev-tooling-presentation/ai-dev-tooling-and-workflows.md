@@ -220,9 +220,9 @@ In the coming years, tools, workflows, and even integrated development environme
 **Terminal Tools:**
 - [**Warp**](https://www.warp.dev/): Modern terminal with built-in AI
 - [**Cursor Terminal**](https://cursor.sh/blog/cursor-terminal): Cmd+K for context-aware suggestions
-- [**GitHub Copilot CLI**](https://github.com/github/copilot-cli): Natural language to shell commands
 - [**Butterfish**](https://github.com/charliermarsh/butterfish): Context-aware CLI tool
 - [**LazyGit**](https://github.com/jesseduffield/lazygit): Terminal-based Git interface with lightning-fast keymaps for version control
+- [**Tmux**](https://github.com/tmux/tmux)/[**Zellij**](https://github.com/zellij-org/zellij): Terminal multiplexers for persistent sessions and organizing AI tools side-by-side
 
 ---
 
@@ -326,8 +326,8 @@ cat error.log | grep Exception | claude
 
 **Advanced Techniques:**
 - **Git Worktrees:** Advanced git workflows for parallel feature/refactor streams
-- **Agent Orchestration:** Multi-agent frameworks ([**CrewAI**](https://crewai.com/), more to come)
 - **Parallel Processing:** Running multiple tasks simultaneously across different environments
+- **Agent Orchestration:** Multi-agent frameworks ([**CrewAI**](https://crewai.com/), more to come)
 - *Perfect for:* Complex system refactoring, multi-team coordination
 
 
@@ -746,7 +746,7 @@ We're witnessing a **fundamental shift** in how software is created. One frontie
 ---
 
 <div align="center">
-<p><em>Presentation materials available at: <a href="https://github.com/joryeugene/ai-dev-tooling">github.com/jorypestorious/ai-dev-tooling-presentation</a></em></p>
+<p><em>Presentation materials available at: <a href="https://github.com/joryeugene/ai-dev-tooling">github.com/joryeugene/ai-dev-tooling</a></em></p>
 
 <p><strong>The maelstrom is upon us--learning to pilot in it will define the next generation of Dev+.</strong></p>
 </div>
