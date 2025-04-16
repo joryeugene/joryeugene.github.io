@@ -180,9 +180,9 @@ In the coming years, tools, workflows, and even integrated development environme
 ---
 
 - [**OpenAI ChatGPT**](https://chat.openai.com/): Versatile research assistant with multiple models and Mac app integration.
-- [**Gemini 2.5 Pro**](https://gemini.google.com/): Summarizes content, integrates with Google Workspaces.
+- [**Google Gemini**](https://gemini.google.com/): Summarizes content, integrates with Google Workspaces.
 - [**Perplexity AI**](https://www.perplexity.ai/): Real-time web search with AI reasoning.
-- [**Claude**](https://claude.ai/): Excels in complex reasoning and document analysis.
+- [**Anthropic Claude**](https://claude.ai/): Excels in complex reasoning and document analysis.
 
 ---
 
@@ -196,13 +196,8 @@ In the coming years, tools, workflows, and even integrated development environme
 - [**Claude 3.7 Sonnet**](https://www.anthropic.com/claude): Agentic coding, "thinking mode" (High [SWE-bench](https://swebench.com/) score)
 - [**GPT-4.1**](https://openai.com/index/gpt-4-1/): 1M token context (Medium-High SWE-bench)
 - [**GPT-4o**](https://chat.openai.com/): Multimodal (text, image, audio) (Medium SWE-bench)
-
-</td>
-<td width="50%">
-
-**Specialized:**
+- [**OpenAI O3 / O4-mini**](https://openai.com/index/introducing-o3-and-o4-mini/): Efficient next-gen reasoning models (projected high SWE-bench)
 - [**Gemini 2.5 Pro**](https://gemini.google.com/): Advanced reasoning, multimodal (High SWE-bench score)
-- [**Mercury Coder**](https://platform.inceptionlabs.ai/): Diffusion LLM, 5–10x faster code generation, real-time/edge/CI-CD (beta)
 
 </td>
 </tr>
@@ -280,6 +275,7 @@ cat error.log | grep Exception | claude
 **CLI / Terminal Tools:**
 - [**Claude Code CLI**](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview): Agentic, human-in-the-loop, multi-file approach.
 - [**Aider**](https://github.com/paul-gauthier/aider): Terminal-based, multi-file coding assistant.
+- [**OpenAI Codex CLI**](https://openai.com/index/openai-codex/): Natural‑language‑to‑code assistant powering developer workflows
 
 ---
 
