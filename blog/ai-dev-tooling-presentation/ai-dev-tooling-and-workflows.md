@@ -11,7 +11,7 @@
 
 ### Quick Start: Top 3 Dev+ Wins
 
-1. Try an *agentic workflow* for multi-file implementation/refactor with [**Cursor Composer**](https://cursor.sh/docs/composer), [**Claude Code**](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview), and/or [**Cline**](https://github.com/cline/cline).
+1. Try an *agentic workflow* for multi-file implementation/refactor with [**Cursor Agent**](https://docs.cursor.com/chat/overview), [**Claude Code**](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview), and/or [**Cline**](https://github.com/cline/cline).
 2. Use *model context protocols* ([**MCPs**](https://modelcontextprotocol.io/introduction)) to *orchestrate, gather, and change* data from non-code sources--they're **high leverage**.
 3. *Parallelize your work* with AI to speed up development. (For most, this will be the **next big bottleneck**.)
 
@@ -27,7 +27,7 @@ This playbook is for engineers, tech leads, and builders who wield AI as a *forc
 
 > **We're entering what our CTO calls 'the maelstrom'--a time of extraordinary transformation in software development.**
 >
-> AI-empowered developers at the forefront are already realizing productivity gains of up to **100x** in certain areas.
+> AI-Amplified developers at the forefront are already realizing productivity gains of up to **100x** in certain areas.
 
 ---
 
@@ -38,7 +38,7 @@ In the coming years, tools, workflows, and even integrated development environme
 ---
 
 ### What You'll Discover:
-- 🧩 A **framework** for AI-powered development
+- 🧩 A **framework** for AI-Amplified development
 - 🛠️ **Practical tools** for your daily workflow
 - 🧠 **Strategies** to maintain deep code understanding while accelerating development
 
@@ -46,7 +46,7 @@ In the coming years, tools, workflows, and even integrated development environme
 
 ---
 
-## The Four Core Goals of AI-Powered Development
+## The Four Core Goals of AI-Amplified Development
 
 > ### **M.A.T.H.**
 
@@ -104,7 +104,7 @@ In the coming years, tools, workflows, and even integrated development environme
 - **Master Version Control** 🔄
   - *Commit early, branch often*
   - *Use Git as your safety net*
-  - *Perfect for AI-accelerated exploration with git worktrees or stashes*
+  - *Perfect for AI-Amplified exploration with git worktrees*
 - **Verify Relentlessly** ✅
   - *Console logs, tests, visual checks*
   - *CI/CD pipelines are your friends*
@@ -262,8 +262,8 @@ cat error.log | grep Exception | claude
 <tr>
 <td width="60%">
 
-**Tools:**
 - [**Cursor IDE**](https://cursor.sh/docs): Inline AI chat with Cmd+K for context-aware suggestions
+- [**Zed**](https://zed.dev/): High-performance, collaborative code editor with AI capabilities
 - [**VSCode Neovim**](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim): Efficient VIM navigation in VS Code
 - [**Butterfish Neovim**](https://github.com/charliermarsh/butterfish): OpenAI-powered editing in Neovim
 - [**claude.vim**](https://github.com/pasky/claude.vim): Claude integration for Neovim
@@ -292,9 +292,10 @@ VIM motions remain the ultimate force multiplier--letting you edit at the speed 
 ---
 
 **In-IDE Tools:**
-- [**Cursor Composer**](https://cursor.sh/docs/composer): Multi-file editing, YOLO mode, and MCPs.
-- [**Roo**](https://github.com/RooVetGit/Roo-Code), [**Cline**](https://github.com/cline/cline/blob/main/README.md): Agentic workflow, multi-file editing with transparent token usage and MCP integration. VS Code/Cursor extension.
-- [**AugmentCode**](https://augmentcode.com/): Handles large codebases and complex agentic workflows. VS Code/Cursor/Neovim extension.
+- [**Cursor Agent**](https://docs.cursor.com/chat/overview): Multi-file editing, YOLO mode, and MCPs.
+- [**Windsurf**](https://www.windsurf.io/): Emerging IDE with powerful AI-native features and multi-file capabilities.
+- [**Roo**](https://github.com/RooVetGit/Roo-Code), [**Cline**](https://github.com/cline/cline): Agentic workflow, multi-file editing with transparent token usage and MCP integration. VS Code/Cursor extension.
+- [**augment code**](https://augmentcode.com/): Handles large codebases and complex agentic workflows with MCP integration. VS Code/Cursor/Neovim extension.
 
 ---
 
@@ -443,7 +444,7 @@ VIM motions remain the ultimate force multiplier--letting you edit at the speed 
 <td width="50%">
 
 **Business Impact:**
-- **Competitive necessity**: Teams mastering dev+ will outpace others
+- **Competitive necessity**: Teams mastering Dev+ will outpace others
 - **Enterprise adoption**: Drives formalization of AI tools and practices
 - **Measuring ROI**: Use [**Workhelix**](https://www.workhelix.com/) to track impact
 
@@ -470,7 +471,7 @@ VIM motions remain the ultimate force multiplier--letting you edit at the speed 
 **Metrics & Measurement:**
 - Measure PRs/week, lines changed/day
 - Team velocity trends, time-to-completion for features
-- Code quality scores, defect rates and resolution time
+- Code quality scores, defect rates, and resolution time
 
 </td>
 </tr>
@@ -769,7 +770,7 @@ We're witnessing a **fundamental shift** in how software is created. One frontie
 <div align="center">
 <p><em>Presentation materials available at: <a href="https://github.com/joryeugene/ai-dev-tooling">github.com/jorypestorious/ai-dev-tooling-presentation</a></em></p>
 
-<p><strong>The maelstrom is upon us--learning to pilot in it will define the next generation of dev+.</strong></p>
+<p><strong>The maelstrom is upon us--learning to pilot in it will define the next generation of Dev+.</strong></p>
 </div>
 
 ---
