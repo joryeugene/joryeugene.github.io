@@ -95,7 +95,7 @@ In the coming years, tools, workflows, and even integrated development environme
 
 - **Craft Your Prompts** 🎯
   - *Start broad, iterate, and refine*
-  - *Maintain a personal prompt library*
+  - *Maintain a prompt library*
   - *Learn the [**art of conversation with AI**](https://www.kaggle.com/whitepaper-prompt-engineering)*
 </td>
 <td width="50%">
