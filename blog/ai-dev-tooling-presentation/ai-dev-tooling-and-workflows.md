@@ -291,14 +291,14 @@ VIM motions remain the ultimate force multiplier--letting you edit at the speed 
 
 ---
 
-**IDE Extensions:**
+**In-IDE Tools:**
 - [**Cursor Composer**](https://cursor.sh/docs/composer): Multi-file editing, YOLO mode, and MCPs.
 - [**Roo**](https://github.com/RooVetGit/Roo-Code), [**Cline**](https://github.com/cline/cline/blob/main/README.md): Agentic workflow, multi-file editing with transparent token usage and MCP integration. VS Code/Cursor extension.
 - [**AugmentCode**](https://augmentcode.com/): Handles large codebases and complex agentic workflows. VS Code/Cursor/Neovim extension.
 
 ---
 
-**CLI & Terminal Tools:**
+**CLI / Terminal Tools:**
 - [**Claude Code CLI**](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview): Agentic, human-in-the-loop, multi-file approach.
 - [**Aider**](https://github.com/paul-gauthier/aider): Terminal-based, multi-file coding assistant.
 
