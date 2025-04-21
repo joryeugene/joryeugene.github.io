@@ -275,7 +275,8 @@ cat error.log | grep Exception | claude
 **CLI / Terminal Tools:**
 - [**Claude Code CLI**](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview): Agentic, human-in-the-loop, multi-file approach.
 - [**Aider**](https://github.com/paul-gauthier/aider): Terminal-based, multi-file coding assistant.
-- [**OpenAI Codex CLI**](https://openai.com/index/openai-codex/): Natural‑language‑to‑code assistant powering developer workflows
+- [**RA.Aid**](https://github.com/ai-christianson/RA.Aid): Research assistant and coding CLI tool.
+- [**OpenAI Codex CLI**](https://openai.com/index/openai-codex/): OpenAI's Claude Code copy that needs some work.
 
 ---
 
@@ -517,6 +518,7 @@ cat error.log | grep Exception | claude
 </table>
 
 ---
+
 #### Why Low-Level Skills Will Still Matter
 Even as we move toward agent fleets and higher-level abstractions:
 - **System understanding**: Knowing what's happening *"under the hood"* will enable more nuanced prompting and precise problem-solving.
