@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__memento__semantic_search",
+      "mcp__sequentialthinking__sequentialthinking_tools",
+      "mcp__memento__create_entities",
+      "mcp__memento__create_relations"
+    ],
+    "deny": []
+  }
+}

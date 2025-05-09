@@ -285,6 +285,11 @@
                 <h1 class="blog-title">Jory's Blog & Presentations</h1>
                 <ul class="blog-list">
                     <li class="blog-item">
+                        <h3>Terminal Velocity: Why CLI-First AI Development Scales Better in 2025</h3>
+                        <p>An exploration of terminal-centric AI development workflows and how they offer superior flexibility, composability, and scaling compared to IDE-based approaches.</p>
+                        <a href="/blog/terminal-velocity/index.html">Read Blog Post</a>
+                    </li>
+                    <li class="blog-item">
                         <h3>AI-Amplified Development: Tools and Workflows for Modern Engineers</h3>
                         <p>A comprehensive presentation on AI-powered development tools and workflows that can transform
                             how engineers work in 2025 and beyond.</p>
@@ -358,15 +363,15 @@
                 bg.classList.add('loading');
 
                 // Load and set new image
-                await loadImage(`../jpg/${imageName}`);
-                bg.style.backgroundImage = `url(../jpg/${imageName})`;
+                await loadImage(`/jpg/${imageName}`);
+                bg.style.backgroundImage = `url(/jpg/${imageName})`;
 
                 // Remove loading class
                 bg.classList.remove('loading');
             } catch (error) {
                 console.error('Error changing background:', error);
                 // Fallback to default image
-                bg.style.backgroundImage = `url(../jpg/${getCurrentImageSet()[0]})`;
+                bg.style.backgroundImage = `url(/jpg/${getCurrentImageSet()[0]})`;
             }
         }
 
@@ -377,7 +382,7 @@
                 const nextIndex = (currentImageIndex + 1) % imageSet.length;
                 const nextImage = imageSet[nextIndex];
 
-                await loadImage(`../jpg/${nextImage}`);
+                await loadImage(`/jpg/${nextImage}`);
             } catch (error) {
                 console.error('Error preloading images:', error);
             }
@@ -391,8 +396,8 @@
                 const imageName = imageSet[currentImageIndex];
 
                 bg.classList.add('loading');
-                await loadImage(`../jpg/${imageName}`);
-                bg.style.backgroundImage = `url(../jpg/${imageName})`;
+                await loadImage(`/jpg/${imageName}`);
+                bg.style.backgroundImage = `url(/jpg/${imageName})`;
                 bg.classList.remove('loading');
 
                 // Preload next images
@@ -404,8 +409,8 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            // Update image paths for blog subdirectory
-            bg.style.backgroundImage = bg.style.backgroundImage.replace('url(jpg/', 'url(../jpg/');
+            // Update image paths to use root paths
+            bg.style.backgroundImage = bg.style.backgroundImage.replace('url(jpg/', 'url(/jpg/');
             preloadNextImages();
         });
     </script>
