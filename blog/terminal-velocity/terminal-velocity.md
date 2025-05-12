@@ -451,7 +451,7 @@ The key components that make this work:
 3. **Error recovery** - Continues the sequence even if individual templates fail
 4. **Knowledge persistence** - Uses `create_entities` and `create_relations` in each template to store results in a Neo4j graph
 
-You can run multiple processes simultaneously, limited only by system resources and Claude's rate limits. I routinely run 5+ different AFK processes overnight for complex problems.
+You can run multiple processes simultaneously, limited only by system resources and Claude's rate limits. I routinely run 3+ different AFK processes overnight for complex problems.
 
 ---
 
