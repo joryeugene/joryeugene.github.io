@@ -16,9 +16,10 @@
 - [Must-Use MCP Tools](#must-use-mcp-tools-amplify-your-ai)
 
 ### ⚙️ Claude Configuration and Setup
+- [Keeping Claude Code Up-to-Date](#keeping-claude-code-up-to-date)
+- [Terminal Keyboard Tips](#terminal-keyboard-tips-for-interactive-mode)
 - [The Claude.MD Directive](#the-claudemd-directive-experimental)
 - [MCP Syntax Difference](#mcp-syntax-difference-critical)
-- [Keeping Claude Code Up-to-Date](#keeping-claude-code-up-to-date)
 - [The Claude-Full Alias](#the-claude-full-alias-streamline-your-workflow)
 - [Directive-Based Execution](#directive-based-execution-improving-tool-reliability)
 - [Essential Claude CLI Commands](#essential-claude-cli-commands-your-daily-drivers)
@@ -91,6 +92,34 @@ These findings come from systematic analysis of my templates using mixed-effects
 - [**Context7**](https://github.com/upstash/context7): Library documentation lookups
 - [**OmniSearch**](https://github.com/spences10/mcp-omnisearch): Multi-engine research
 - **Workspace Integrations**: Figma, Asana, GitHub, etc. (use what matches your workflow)
+
+---
+
+## KEEPING CLAUDE CODE UP-TO-DATE
+
+Claude Code CLI is actively being developed, with frequent updates and improvements. Keep your installation current by regularly updating the npm package:
+
+```bash
+# Installation
+npm install -g @anthropic-ai/claude-code
+
+# Update
+npm update -g @anthropic-ai/claude-code
+
+# Verify your version
+claude --version
+# Output: 0.2.107 (Claude Code)
+```
+
+This ensures you have access to the latest features, bug fixes, and performance improvements.
+
+### Terminal Keyboard Tips for Interactive Mode
+
+When working with Claude in interactive terminal mode, remember these helpful keyboard shortcuts:
+
+- **Ctrl+J**: Add a new line in your prompt (since Enter submits the prompt)
+- **Ctrl+C**: Cancel current prompt input
+- **Up/Down arrows**: Navigate through command history
 
 ---
 
@@ -168,26 +197,6 @@ For Claude Desktop to reliably use MCP tools, combine these approaches for more 
    - Include both the CLI (XML format) and Desktop (short-form) versions of each tool chain (you can use this to chain prompts within Claude Code CLI interactive mode, rather than just the single /slash-command)
 
 Combining these approaches yields the most consistent results. The custom style sets a baseline, while the snippet manager lets you quickly switch between specialized tool sequences for different tasks without manually rewriting them each time.
-
----
-
-## KEEPING CLAUDE CODE UP-TO-DATE
-
-Claude Code CLI is actively being developed, with frequent updates and improvements. Keep your installation current by regularly updating the npm package:
-
-```bash
-# Installation
-npm install -g @anthropic-ai/claude-code
-
-# Update
-npm update -g @anthropic-ai/claude-code
-
-# Verify your version
-claude --version
-# Output: 0.2.107 (Claude Code)
-```
-
-This ensures you have access to the latest features, bug fixes, and performance improvements.
 
 ---
 
@@ -296,6 +305,7 @@ claude -p "Generate deployment steps" --output-format stream-json  # Real-time s
 # Pipeline Moves
 cat error.log | claude "Analyze errors. What's causing them?"  # Interactive analysis
 git diff --staged | claude -p "Generate commit message" | xargs git commit -m  # Chained commands
+cat data.json | claude -p "Convert this JSON to CSV format" > data.csv  # JSON to CSV conversion
 ```
 
 ---
@@ -316,7 +326,7 @@ When working with AI agents, source control becomes even more critical. The righ
 - **[GitKraken](https://www.gitkraken.com/)**: Comprehensive GUI with excellent staging capabilities for line/hunk-level control
 - **[Atlassian SourceTree](https://www.sourcetreeapp.com/)**: Robust free GUI with strong staging capabilities for selective inclusion
 
-The key functionality is **stage view** - selective inclusion/exclusion of specific changes at the line or hunk level. This granular control is crucial when reviewing AI-generated code, which often mixes brilliant solutions with unnecessary modifications.
+The key functionality is **stage view**--selective inclusion/exclusion of specific changes at the line or hunk level. This granular control is crucial when reviewing AI-generated code, which often mixes brilliant solutions with unnecessary modifications.
 
 ### Experimental VCS Approaches: Beyond Traditional Staging
 
@@ -349,6 +359,18 @@ git worktree add ../project-bugfix -b bugfix/critical-issue
 
 # Work simultaneously across features with different agent instances
 ```
+
+### The AI Multiplier Effect
+
+Git worktrees create a uniquely powerful synergy with AI agents that dramatically amplifies productivity:
+
+1. **Parallel Problem Solving**: Unlike humans, AI agents don't context-switch—each instance can focus 100% on a different approach to the same problem
+2. **Branch Isolation**: Each worktree has its own branch, creating clean separation for exploring alternative AI-generated implementations
+3. **Multiple Agent Specialization**: Assign different agent templates to each worktree (research expert in one, code optimizer in another)
+4. **Cross-Pollination**: Easily copy successful strategies between worktrees after seeing which AI approach works best
+5. **Risk Management**: Failed AI experiments remain isolated from your main branch
+
+**Simpler Alternative**: For those not ready to learn git worktrees, you can simply maintain multiple full clones of your repository in different directories. While this uses more disk space, it achieves similar parallel workflow benefits with minimal Git expertise required.
 
 ---
 
