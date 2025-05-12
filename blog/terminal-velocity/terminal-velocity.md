@@ -18,12 +18,12 @@
 ### ⚙️ Claude Configuration and Setup
 - [Keeping Claude Code Up-to-Date](#keeping-claude-code-up-to-date)
 - [Terminal Keyboard Tips](#terminal-keyboard-tips-for-interactive-mode)
+- [Essential Claude CLI Commands](#essential-claude-cli-commands-your-daily-drivers)
+- [The Crucial ~/.claude.json File](#the-crucial-claudejson-file-your-ai-brain)
 - [The Claude.MD Directive](#the-claudemd-directive-experimental)
 - [MCP Syntax Difference](#mcp-syntax-difference-critical)
 - [The Claude-Full Alias](#the-claude-full-alias-streamline-your-workflow)
 - [Directive-Based Execution](#directive-based-execution-improving-tool-reliability)
-- [Essential Claude CLI Commands](#essential-claude-cli-commands-your-daily-drivers)
-- [The Crucial ~/.claude.json File](#the-crucial-claudejson-file-your-ai-brain)
 
 ### 🔄 Workflow Optimization
 - [Source Control Essentials](#source-control-essentials-mastering-ai-generated-changes)
@@ -120,6 +120,36 @@ When working with Claude in interactive terminal mode, remember these helpful ke
 - **Ctrl+J**: Add a new line in your prompt (since Enter submits the prompt)
 - **Ctrl+C**: Cancel current prompt input
 - **Up/Down arrows**: Navigate through command history
+
+---
+
+## ESSENTIAL CLAUDE CLI COMMANDS: Your Daily Drivers
+
+```bash
+# Importing MCP configurations from Desktop to CLI (GAME-CHANGER)
+claude mcp add-from-claude-desktop -s user  # Import saved configurations
+
+# Session Management
+claude -c                                   # Continue previous conversation
+
+# Output Formats
+claude -p "Generate deployment steps" --output-format stream-json  # Real-time streaming
+cat data.json | claude -p "Convert this JSON to CSV format" > data.csv  # JSON to CSV conversion
+
+# Pipeline Moves
+cat error.log | claude "Analyze errors. What's causing them?"  # Interactive analysis
+git diff --staged | claude --allowedTools "Read,Bash" -p "Generate commit message" | xargs git commit -m  # Chained commands
+
+# Pre-approving Tools (Avoid Permission Prompts)
+claude --allowedTools "Bash,Read,Write,Glob,Grep" -p "Analyze this code"  # Basic set of tools
+find . -name "*.js" | xargs claude --allowedTools "Read,Write" -p "Check for security issues"  # Process multiple files
+```
+
+---
+
+## THE CRUCIAL ~/.claude.json FILE: Your AI Brain
+
+This critical file stores all your Claude settings, MCP connections, and conversation sessions across all projects. It's essentially the brain of your Claude setup. Keep this file backed up! If you're setting up Claude on a new machine, copying over your ~/.claude.json file will restore all your MCP connections, settings, and conversation history in one go.
 
 ---
 
@@ -286,33 +316,6 @@ EXECUTE TOOLS IMMEDIATELY - CONFIRMATION: 🚀✨ tools complete 🧠💫"
 ```
 
 This directive approach with explicit parameters and a unique confirmation signature frequently succeeds when normal prompting fails. The structured format with clearly defined steps seems to activate a more systematic execution mode in Claude, focusing it on the tools rather than explanations.
-
----
-
-## ESSENTIAL CLAUDE CLI COMMANDS: Your Daily Drivers
-
-```bash
-# Importing MCP configurations from Desktop to CLI (GAME-CHANGER)
-claude mcp add-from-claude-desktop -s user  # Import saved configurations
-
-# Session Management
-claude -c                                   # Continue previous conversation
-
-# Output Formats
-claude -p "Your prompt" --output-format json              # Structured JSON output
-claude -p "Generate deployment steps" --output-format stream-json  # Real-time streaming
-
-# Pipeline Moves
-cat error.log | claude "Analyze errors. What's causing them?"  # Interactive analysis
-git diff --staged | claude -p "Generate commit message" | xargs git commit -m  # Chained commands
-cat data.json | claude -p "Convert this JSON to CSV format" > data.csv  # JSON to CSV conversion
-```
-
----
-
-## THE CRUCIAL ~/.claude.json FILE: Your AI Brain
-
-This critical file stores all your Claude settings, MCP connections, and conversation sessions across all projects. It's essentially the brain of your Claude setup. Keep this file backed up! If you're setting up Claude on a new machine, copying over your ~/.claude.json file will restore all your MCP connections, settings, and conversation history in one go.
 
 ---
 
