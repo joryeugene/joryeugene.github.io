@@ -8,7 +8,7 @@
 ## Table of Contents
 
 ### 📊 Overview and Research
-- [Executive Summary](#executive-summary-ai-workflow-optimization-insights)
+- [Executive Summary](#executive-summary-terminal-centric-ai-development)
 - [Template Efficacy](#template-efficacy-the-science-of-prompt-engineering)
 
 ### 🧰 Core Stack and Tools
@@ -44,18 +44,21 @@
 
 ---
 
-## EXECUTIVE SUMMARY: AI Workflow Optimization Insights
+## EXECUTIVE SUMMARY: Terminal-Centric AI Development
 
-My recent experimentation with different template configurations has revealed some interesting patterns. Through careful tracking and mixed-effects regression analysis of my daily work patterns, I've found:
+This article explores how terminal-based environments can enhance AI-assisted development through five key components:
 
-| Finding | Metric | Comparison | Impact |
-|---------|--------|------------|--------|
-| **Goldilocks Zone** | 5-7 tools = ~84% efficacy | vs. 2-4 tools (68%) and 13+ tools (76%) | Identified optimal tool count range that maximizes efficacy |
-| **Domain Specialization** | 20-30% productivity boost | vs. general-purpose templates (baseline) | Specialized templates consistently outperform generic ones across all domains |
-| **Error Recovery** | ~34% higher task completion | vs. templates without self-correction mechanisms | Most powerful predictor of successful task completion in complex scenarios |
-| **Metacognitive Analysis** | ~23% performance gain | vs. templates with standard reasoning | Self-analysis dramatically improves quality and accuracy of solutions |
+1. **Command Line Flexibility**: Terminal-centric workflows offer adaptability across different projects, languages, and frameworks through standard CLI interfaces.
 
-These findings come from systematic analysis of my templates using mixed-effects regression models with clustered standard errors (detailed further in the Template Efficacy section). Though the sample size is limited to my personal workflow, the consistent patterns point to concrete strategies for improving AI-assisted development workflows, with the terminal-centric approach providing the flexibility to implement them effectively.
+2. **Knowledge Persistence**: Tools like Memento MCP create persistent knowledge graphs that maintain context across development sessions.
+
+3. **Parallel Development**: Git worktrees enable running multiple AI agent instances simultaneously on related tasks with different approaches.
+
+4. **Background Processing**: AFK systems allow automated processing to continue during developer downtime.
+
+5. **Tool Integration**: Claude Code connects specialized MCP tools and system utilities through command chaining and file pipelines.
+
+The article analyzes template patterns and optimization opportunities based on practical implementation experience. Detailed metrics in the [Template Efficacy](#template-efficacy-the-science-of-prompt-engineering) section show how these approaches compare across different development scenarios.
 
 ---
 
