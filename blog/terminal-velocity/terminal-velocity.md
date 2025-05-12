@@ -197,16 +197,26 @@ This ensures you have access to the latest features, bug fixes, and performance 
 Add to your `.bashrc` or `.zshrc`:
 
 ```bash
-# This alias pre-authorizes common tools to avoid permission prompts
-alias claude-full='claude --allowedTools \
-    "Read" "Edit" "Write" "View" "Search" \
-    "Bash(ls:*)" "Bash(cat:*)" "Bash(grep:*)" "Bash(find:*)" \
-    "Bash(git status:*)" "Bash(git diff:*)" "Bash(git log:*)" \
-    "mcp__memento__semantic_search" \
-    "mcp__memento__create_entities" \
-    "mcp__memento__create_relations" \
-    "mcp__sequentialthinking__sequentialthinking_tools" \
-    "perplexity_search" "tavily_search" "web_search"'
+# This function pre-authorizes common tools to avoid permission prompts
+function claude_full() {
+  # Standard list of tools to enable compatibility
+  local allowed_tools="Bash,Batch,Glob,Grep,LS,Read,Edit,MultiEdit,Write,WebFetch,TodoRead,TodoWrite,WebSearch,mcp__memento__create_entities,mcp__memento__create_relations,mcp__memento__semantic_search,mcp__memento__search_nodes,mcp__memento__open_nodes,mcp__memento__add_observations,mcp__sequentialthinking__sequentialthinking_tools,mcp__omnisearch__tavily_search,mcp__omnisearch__perplexity_search"
+
+  # Process flags
+  if [[ "$1" == "-p" ]]; then
+    # Headless/non-interactive mode
+    shift
+    claude -p --allowedTools "$allowed_tools" "$@"
+  elif [[ "$1" == "-c" ]]; then
+    # Continuation mode
+    shift
+    claude -c --allowedTools "$allowed_tools" "$@"
+  else
+    # Normal interactive mode
+    claude --allowedTools "$allowed_tools" "$@"
+  fi
+}
+export -f claude_full
 ```
 
 This alias is crucial for avoiding the endless permission prompts that disrupt flow. Your local project's `/.claude/settings.local.json` will have a list of recently approved commands, providing a good foundation for expanding this alias. Keep updating it as you discover new useful tool combinations.
@@ -218,32 +228,52 @@ This alias is crucial for avoiding the endless permission prompts that disrupt f
 I've discovered that directive-based prompting dramatically improves tool execution reliability. This approach focuses on clear, structured commands rather than relying on a specific "personality":
 
 ```bash
-claude-agent() {
+claude_agent() {
     local task="$*"
     local prompt="# TASK: $task
 
 MANDATORY TOOL EXECUTION SEQUENCE:
 
-1. mcp__memento__semantic_search
-query: \"relevant knowledge for: $task\"
+<function_calls>
+<invoke name=\"mcp__memento__semantic_search\">
+<parameter name=\"query\">relevant knowledge for: $task</parameter>
+</invoke>
+</function_calls>
 
-2. mcp__sequentialthinking__sequentialthinking_tools
-thought: \"Planning approach for: $task\"
-total_thoughts: 3
-thought_number: 1
-next_thought_needed: true
+<function_calls>
+<invoke name=\"mcp__sequentialthinking__sequentialthinking_tools\">
+<parameter name=\"thought\">Planning approach for: $task</parameter>
+<parameter name=\"total_thoughts\">3</parameter>
+<parameter name=\"thought_number\">1</parameter>
+<parameter name=\"next_thought_needed\">true</parameter>
+</invoke>
+</function_calls>
 
-3. [Execute Task]
+[Execute Task]
 
-4. mcp__memento__create_entities
-entities: [{\"name\": \"TaskResult\", \"entityType\": \"Analysis\", \"observations\": [\"Task: $task\"]}]
+<function_calls>
+<invoke name=\"mcp__memento__create_entities\">
+<parameter name=\"entities\">[{\"name\": \"TaskResult\", \"entityType\": \"Analysis\", \"observations\": [\"Task: $task\"]}]</parameter>
+</invoke>
+</function_calls>
 
-5. mcp__memento__create_relations
-relations: [{\"from\": \"TaskResult\", \"to\": \"CurrentProject\", \"relationType\": \"analyzes\"}]
+<function_calls>
+<invoke name=\"mcp__memento__create_relations\">
+<parameter name=\"relations\">[{\"from\": \"TaskResult\", \"to\": \"CurrentProject\", \"relationType\": \"analyzes\"}]</parameter>
+</invoke>
+</function_calls>
 
 EXECUTE TOOLS IMMEDIATELY - CONFIRMATION: 🚀✨ tools complete 🧠💫"
 
-    echo "$prompt" | claude-full
+    # Create a temporary file with the prompt
+    local temp_file=$(mktemp)
+    echo "$prompt" > "$temp_file"
+
+    # Pass the file to claude_full
+    claude_full < "$temp_file"
+
+    # Clean up
+    rm -f "$temp_file"
 }
 ```
 
