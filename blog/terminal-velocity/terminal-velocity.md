@@ -310,19 +310,26 @@ This critical file stores all your Claude settings, MCP connections, and convers
 
 When working with AI agents, source control becomes even more critical. The right tools significantly impact your ability to experiment, review changes, and maintain a clean project history.
 
-### Git with Stage View: Your Essential Interface
+### Traditional Git with Stage View: Essential for AI Code Review
 
 - **[LazyGit](https://github.com/jesseduffield/lazygit)** (recommended): Full-featured Git TUI with powerful staging and interactive rebasing
-- **[JJ](https://github.com/martinvonz/jj)**: Revolutionary "your work is always saved" approach--perfect for AI experimentation
-- **[Git Butler](https://github.com/gitbutlerapp/gitbutler)**: Virtual branches for parallel exploration of AI-generated approaches
+- **[GitKraken](https://www.gitkraken.com/)**: Comprehensive GUI with excellent staging capabilities for line/hunk-level control
+- **[Atlassian SourceTree](https://www.sourcetreeapp.com/)**: Robust free GUI with strong staging capabilities for selective inclusion
 
-The key functionality is **stage view** - selective inclusion/exclusion of specific changes. This granular control is crucial when reviewing AI-generated code, which often mixes brilliant solutions with unnecessary modifications.
+The key functionality is **stage view** - selective inclusion/exclusion of specific changes at the line or hunk level. This granular control is crucial when reviewing AI-generated code, which often mixes brilliant solutions with unnecessary modifications.
+
+### Experimental VCS Approaches: Beyond Traditional Staging
+
+- **[JJ (Jujutsu)](https://github.com/martinvonz/jj)**: Revolutionary "your work is always saved" approach with mutable commits and powerful undo
+- **[GitButler](https://github.com/gitbutlerapp/gitbutler)**: Uses "virtual branches" for parallel exploration without traditional branch switching
 
 AI agents fundamentally change source control workflow:
-- **Multiple approaches simultaneously**: Virtual branches and automatic saving help manage parallel explorations
-- **Need for careful review**: Stage view tooling is essential for selective inclusion
+- **Need for careful review**: Granular stage view tooling is essential for selective inclusion of AI changes
+- **Multiple approaches simultaneously**: Alternative tools like virtual branches help manage parallel explorations
 - **Targeted cross-file changes**: Modern tools help track related modifications across files
 - **Experimental branches**: Testing AI implementations without disrupting main development
+
+For even more powerful parallel development with AI agents, see the upcoming [Git Worktrees section](#parallel-dev-with-git-worktrees-multiply-your-ai-power), which takes these concepts to the next level.
 
 ---
 
