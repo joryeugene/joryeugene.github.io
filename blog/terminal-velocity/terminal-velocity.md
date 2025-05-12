@@ -562,8 +562,8 @@ While these alternative agents are worth experimenting with, none offer the seam
 
 | Plan | Price | Usage Limits | MCP Tools | Claude Code | For |
 |------|-------|--------------|-----------|------------|-----|
-| **Claude Free** | $0 | ~9 msgs/5hrs | Yes (limited) | No | Casual use |
-| **Claude Pro** | $20/mo | 45+ msgs/5hrs | Yes | No | Regular personal use |
+| **Claude Free** | $0 | ~9 msgs/5hrs | Yes (limited) | No (API) | Casual use |
+| **Claude Pro** | $20/mo | 45+ msgs/5hrs | Yes | No (API) | Regular personal use |
 | **Claude Max (Basic)** | $100/mo | 225+ msgs/5hrs (5x Pro) | Yes | Yes | Power users/professionals |
 | **Claude Max (Advanced)** | $200/mo | 900+ msgs/5hrs (20x Pro) | Yes | Yes | Heavy daily dependency |
 
