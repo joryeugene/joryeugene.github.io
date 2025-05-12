@@ -126,7 +126,8 @@ This ensures you have access to the latest features, bug fixes, and performance 
 claude mcp add-from-claude-desktop -s user  # Import saved configurations
 
 # Session Management
-claude -c                                   # Continue previous conversation
+claude -c                                   # Continue most recent conversation
+claude -r                                   # Resume with interactive session picker
 
 # Output Formats
 claude -p "Generate deployment steps" --output-format stream-json  # Real-time streaming
@@ -275,19 +276,8 @@ function claude_full() {
   # Standard list of tools to enable compatibility
   local allowed_tools="Bash,Batch,Glob,Grep,LS,Read,Edit,MultiEdit,Write,WebFetch,TodoRead,TodoWrite,WebSearch,mcp__memento__create_entities,mcp__memento__create_relations,mcp__memento__semantic_search,mcp__memento__search_nodes,mcp__memento__open_nodes,mcp__memento__add_observations,mcp__sequentialthinking__sequentialthinking_tools,mcp__omnisearch__tavily_search,mcp__omnisearch__perplexity_search"
 
-  # Process flags
-  if [[ "$1" == "-p" ]]; then
-    # Headless/non-interactive mode
-    shift
-    claude -p --allowedTools "$allowed_tools" "$@"
-  elif [[ "$1" == "-c" ]]; then
-    # Continuation mode
-    shift
-    claude -c --allowedTools "$allowed_tools" "$@"
-  else
-    # Normal interactive mode
-    claude --allowedTools "$allowed_tools" "$@"
-  fi
+  # Pass all arguments through with pre-approved tools
+  claude --allowedTools "$allowed_tools" "$@"
 }
 export -f claude_full
 ```
