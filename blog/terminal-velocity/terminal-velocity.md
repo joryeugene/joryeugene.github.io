@@ -165,7 +165,7 @@ For Claude Desktop to reliably use MCP tools, combine these approaches for more 
    - Use a snippet manager like [Raycast](https://www.raycast.com/), [TextExpander](https://textexpander.com/), or [Alfred](https://www.alfredapp.com/) to create quick-access templates
    - Store your most effective MCP tool sequences as snippets
    - Create shortcuts for Claude Desktop custom commands from your `/commands/*.md` Claude Code CLI templates
-   - Include both the CLI (XML format) and Desktop (short-form) versions of each tool chain (you can use this to chain prompts within Claude Code CLI interactive mode, rather just the single /slash-command)
+   - Include both the CLI (XML format) and Desktop (short-form) versions of each tool chain (you can use this to chain prompts within Claude Code CLI interactive mode, rather than just the single /slash-command)
 
 Combining these approaches yields the most consistent results. The custom style sets a baseline, while the snippet manager lets you quickly switch between specialized tool sequences for different tasks without manually rewriting them each time.
 
