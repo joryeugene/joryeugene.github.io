@@ -186,10 +186,11 @@ I've found that adding an unusual confirmation phrase or emoji pattern *sometime
 Claude Code's memory management system provides persistent context across sessions and projects--distinct from the Memento MCP tool which provides more sophisticated knowledge graph capabilities:
 
 - **Hierarchical Memory System:** CLAUDE.md files create a project-aware memory structure:
-  - **Global Memory:** `~/.claude/CLAUDE.md` applies to all projects
-  - **Project Memory:** `./CLAUDE.md` in project root for project-specific context
-  - **Directory Memory:** `./subdirectory/CLAUDE.md` for specialized context in specific folders
-  - **Priority Order:** Directory > Project > Global (more specific contexts override broader ones)
+  - **User-Level Global Memory:** `~/.claude/CLAUDE.md` applies to all projects across your system
+  - **Project-Level Memory:** `./CLAUDE.md` in project root provides context specific to the entire project
+  - **Directory-Level Memory:** `./subdirectory/CLAUDE.md` for specialized context in specific folders
+  - **Project-Local Session Memory:** `./CLAUDE.local.md` for creating directives specific to the current project directory
+  - **Priority Order:** Project-Local Session > Directory-Level > Project-Level > User-Level Global (more specific contexts override broader ones)
 
 - **Context Management Commands:**
   - `/memory` to view current conversation memory
