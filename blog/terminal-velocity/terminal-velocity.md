@@ -8,42 +8,41 @@
 ## Table of Contents
 
 ### 📊 Overview and Research
-- [Executive Summary](#-executive-summary-ai-workflow-optimization-insights)
-- [Template Efficacy](#-template-efficacy-the-science-of-prompt-engineering)
+- [Executive Summary](#executive-summary-ai-workflow-optimization-insights)
+- [Template Efficacy](#template-efficacy-the-science-of-prompt-engineering)
 
 ### 🧰 Core Stack and Tools
-- [The Core Stack](#-the-core-stack-your-ai-powered-cli-toolkit)
-- [Must-Use MCP Tools](#-must-use-mcp-tools-amplify-your-ai)
+- [The Core Stack](#the-core-stack-your-ai-powered-cli-toolkit)
+- [Must-Use MCP Tools](#must-use-mcp-tools-amplify-your-ai)
 
 ### ⚙️ Claude Configuration and Setup
-- [The Claude.MD Directive](#-the-claudemd-directive-experimental)
-- [MCP Syntax Difference](#-mcp-syntax-difference-critical)
-- [Keeping Claude Code Up-to-Date](#-keeping-claude-code-up-to-date)
-- [The Claude-Full Alias](#-the-claude-full-alias-streamline-your-workflow)
-- [Personality-Driven Execution](#-personality-driven-execution-improving-tool-reliability)
-- [Essential Claude CLI Commands](#-essential-claude-cli-commands-your-daily-drivers)
-- [The Crucial ~/.claude.json File](#-the-crucial-claudejson-file-your-ai-brain)
+- [The Claude.MD Directive](#the-claudemd-directive-experimental)
+- [MCP Syntax Difference](#mcp-syntax-difference-critical)
+- [Keeping Claude Code Up-to-Date](#keeping-claude-code-up-to-date)
+- [The Claude-Full Alias](#the-claude-full-alias-streamline-your-workflow)
+- [Directive-Based Execution](#directive-based-execution-improving-tool-reliability)
+- [Essential Claude CLI Commands](#essential-claude-cli-commands-your-daily-drivers)
+- [The Crucial ~/.claude.json File](#the-crucial-claudejson-file-your-ai-brain)
 
 ### 🔄 Workflow Optimization
-- [Source Control Essentials](#-source-control-essentials-mastering-ai-generated-changes)
-- [Parallel Dev with Git Worktrees](#-parallel-dev-with-git-worktrees-multiply-your-ai-power)
-- [AFK System](#-afk-system-ai-that-works-while-youre-away)
+- [Source Control Essentials](#source-control-essentials-mastering-ai-generated-changes)
+- [Parallel Dev with Git Worktrees](#parallel-dev-with-git-worktrees-multiply-your-ai-power)
+- [AFK System](#afk-system-ai-that-works-while-youre-away)
 
 ### 🌐 Ecosystem and Comparisons
-- [Agents Beyond Claude](#-agents-beyond-claude-exploring-the-ecosystem)
-- [The Subscription Advantage](#-the-subscription-advantage-why-its-a-steal)
-- [Terminal-Centric vs. IDE-Locked](#-terminal-centric-vs-ide-locked-the-scalability-showdown)
-- [When IDE-Integrated AI Tools Shine](#-when-ide-integrated-ai-tools-shine)
+- [Agents Beyond Claude](#agents-beyond-claude-exploring-the-ecosystem)
+- [The Subscription Advantage](#the-subscription-advantage-why-its-a-steal)
+- [Terminal-Centric vs. IDE-Locked](#terminal-centric-vs-ide-locked-the-scalability-showdown)
+- [When IDE-Integrated AI Tools Shine](#when-ide-integrated-ai-tools-shine)
 
 ### 🚀 Future and Integration
-- [Putting It All Together](#-putting-it-all-together-your-ai-amplified-future)
-- [Future Directions](#-future-directions-whats-next)
-- [The Path Forward](#-the-path-forward-embrace-the-terminal-renaissance)
-- [Multi-Platform Distribution](#-multi-platform-distribution)
+- [Putting It All Together](#putting-it-all-together-your-ai-amplified-future)
+- [Future Directions](#future-directions-whats-next)
+- [The Path Forward](#the-path-forward-embrace-the-terminal-renaissance)
 
 ---
 
-## 📊 EXECUTIVE SUMMARY: AI Workflow Optimization Insights
+## EXECUTIVE SUMMARY: AI Workflow Optimization Insights
 
 My recent experimentation with different template configurations has revealed some interesting patterns. Through careful tracking and mixed-effects regression analysis of my daily work patterns, I've found:
 
@@ -58,7 +57,7 @@ These findings come from systematic analysis of my templates using mixed-effects
 
 ---
 
-## 🧰 THE CORE STACK: Your AI-Powered CLI Toolkit
+## THE CORE STACK: Your AI-Powered CLI Toolkit
 
 | Tool | Purpose |
 |------|---------|
@@ -71,7 +70,7 @@ These findings come from systematic analysis of my templates using mixed-effects
 
 ---
 
-## 🧠 MUST-USE MCP TOOLS: Amplify Your AI
+## MUST-USE MCP TOOLS: Amplify Your AI
 
 ### Knowledge Persistence (Critical)
 - [**Memento**](https://github.com/gannonh/memento-mcp): Neo4j-powered knowledge graph that preserves insights across sessions
@@ -95,7 +94,7 @@ These findings come from systematic analysis of my templates using mixed-effects
 
 ---
 
-## 📝 THE CLAUDE.MD DIRECTIVE (EXPERIMENTAL)
+## THE CLAUDE.MD DIRECTIVE (EXPERIMENTAL)
 
 Creating a CLAUDE.md file in your home directory (~/.claude/CLAUDE.md) provides helpful context for your Claude sessions:
 
@@ -128,7 +127,7 @@ I've found that adding an unusual confirmation phrase or emoji pattern *sometime
 
 ---
 
-## ⚠️ MCP SYNTAX DIFFERENCE (CRITICAL!)
+## MCP SYNTAX DIFFERENCE (CRITICAL!)
 
 | Interface | Command Format | Example | Format Type |
 |-----------|---------------|---------|-------------|
@@ -172,7 +171,7 @@ Combining these approaches yields the most consistent results. The custom style 
 
 ---
 
-## 🔄 KEEPING CLAUDE CODE UP-TO-DATE
+## KEEPING CLAUDE CODE UP-TO-DATE
 
 Claude Code CLI is actively being developed, with frequent updates and improvements. Keep your installation current by regularly updating the npm package:
 
@@ -192,7 +191,7 @@ This ensures you have access to the latest features, bug fixes, and performance 
 
 ---
 
-## 🔧 THE CLAUDE-FULL ALIAS: Streamline Your Workflow
+## THE CLAUDE-FULL ALIAS: Streamline Your Workflow
 
 Add to your `.bashrc` or `.zshrc`:
 
@@ -223,7 +222,7 @@ This alias is crucial for avoiding the endless permission prompts that disrupt f
 
 ---
 
-## 🔮 DIRECTIVE-BASED EXECUTION: Improving Tool Reliability
+## DIRECTIVE-BASED EXECUTION: Improving Tool Reliability
 
 I've discovered that directive-based prompting dramatically improves tool execution reliability. This approach focuses on clear, structured commands rather than relying on a specific "personality":
 
@@ -281,7 +280,7 @@ This directive approach with explicit parameters and a unique confirmation signa
 
 ---
 
-## ⌨️ ESSENTIAL CLAUDE CLI COMMANDS: Your Daily Drivers
+## ESSENTIAL CLAUDE CLI COMMANDS: Your Daily Drivers
 
 ```bash
 # Importing MCP configurations from Desktop to CLI (GAME-CHANGER)
@@ -302,20 +301,20 @@ cat data.json | claude -p "Convert to CSV" --output-format json > data.csv  # JS
 
 ---
 
-## 🔑 THE CRUCIAL ~/.claude.json FILE: Your AI Brain
+## THE CRUCIAL ~/.claude.json FILE: Your AI Brain
 
 This critical file stores all your Claude settings, MCP connections, and conversation sessions across all projects. It's essentially the brain of your Claude setup. Keep this file backed up! If you're setting up Claude on a new machine, copying over your ~/.claude.json file will restore all your MCP connections, settings, and conversation history in one go.
 
 ---
 
-## 🔄 SOURCE CONTROL ESSENTIALS: Mastering AI-Generated Changes
+## SOURCE CONTROL ESSENTIALS: Mastering AI-Generated Changes
 
 When working with AI agents, source control becomes even more critical. The right tools significantly impact your ability to experiment, review changes, and maintain a clean project history.
 
 ### Git with Stage View: Your Essential Interface
 
 - **[LazyGit](https://github.com/jesseduffield/lazygit)** (recommended): Full-featured Git TUI with powerful staging and interactive rebasing
-- **[JJ](https://github.com/martinvonz/jj)**: Revolutionary "your work is always saved" approach—perfect for AI experimentation
+- **[JJ](https://github.com/martinvonz/jj)**: Revolutionary "your work is always saved" approach--perfect for AI experimentation
 - **[Git Butler](https://github.com/gitbutlerapp/gitbutler)**: Virtual branches for parallel exploration of AI-generated approaches
 
 The key functionality is **stage view** - selective inclusion/exclusion of specific changes. This granular control is crucial when reviewing AI-generated code, which often mixes brilliant solutions with unnecessary modifications.
@@ -328,7 +327,7 @@ AI agents fundamentally change source control workflow:
 
 ---
 
-## 🌳 PARALLEL DEV WITH GIT WORKTREES: Multiply Your AI Power
+## PARALLEL DEV WITH GIT WORKTREES: Multiply Your AI Power
 
 The multiplier effect of AI agents becomes even more powerful when combined with git worktrees for parallel development streams:
 
@@ -347,7 +346,7 @@ git worktree add ../project-bugfix -b bugfix/critical-issue
 
 ---
 
-## 🤖 AFK SYSTEM: AI That Works While You're Away
+## AFK SYSTEM: AI That Works While You're Away
 
 I've created a simple yet powerful system that lets Claude continue working even when you're not actively supervising. The approach chains multiple template executions to maintain progress on tasks autonomously.
 
@@ -356,7 +355,7 @@ I've created a simple yet powerful system that lets Claude continue working even
 ~/.claude/tasks/simple_afk.sh "Your task description" &
 ```
 
-The `&` at the end of the command is crucial - it runs the script as a background process, allowing you to close your terminal or work on other tasks while Claude continues processing.
+The `&` at the end of the command is crucial--it runs the script as a background process, allowing you to close your terminal or work on other tasks while Claude continues processing.
 
 ### How to Build Your Own AFK System
 
@@ -456,7 +455,7 @@ You can run multiple processes simultaneously, limited only by system resources 
 
 ---
 
-## 🔬 TEMPLATE EFFICACY: The Science of Prompt Engineering
+## TEMPLATE EFFICACY: The Science of Prompt Engineering
 
 Recent AFK system experiments have yielded valuable insights into what makes AI prompt templates effective. While this research is preliminary, the data suggests some clear patterns worth investigating further.
 
@@ -505,7 +504,7 @@ A template's ability to detect and recover from errors appears to be a strong pr
 
 ---
 
-## 📊 AGENTS BEYOND CLAUDE: Exploring the Ecosystem
+## AGENTS BEYOND CLAUDE: Exploring the Ecosystem
 
 While Claude Code offers excellent MCP integration, several specialized agents provide alternative approaches:
 
@@ -528,7 +527,7 @@ While these alternative agents are worth experimenting with, none offer the seam
 
 ---
 
-## 💰 THE SUBSCRIPTION ADVANTAGE: Why It's a Steal
+## THE SUBSCRIPTION ADVANTAGE: Why It's a Steal
 
 | Plan | Price | Features |
 |------|-------|----------|
@@ -539,11 +538,11 @@ While these alternative agents are worth experimenting with, none offer the seam
 - **Terminal-Based CLI Tools**: Claude Code CLI is far more polished than OpenAI's Codex CLI
 - **MCP Integration**: Connect specialized tools across different workflows
 - **Single Subscription Access**: One sub for Desktop, mobile, and CLI access
-- **Cost-Effective Scaling**: With parallel workflows, pay-per-call API usage could easily hit $100+/day — subscription model creates predictable costs
+- **Cost-Effective Scaling**: With parallel workflows, pay-per-call API usage could easily hit $100+/day (subscription model creates predictable costs)
 
 ---
 
-## 🚀 TERMINAL-CENTRIC VS. IDE-LOCKED: The Scalability Showdown
+## TERMINAL-CENTRIC VS. IDE-LOCKED: The Scalability Showdown
 
 While IDE-centric AI tools like Cursor and Windsurf offer excellent workflows, the terminal-centric approach provides several distinct advantages:
 
@@ -566,7 +565,7 @@ For those who've invested heavily in IDE-specific workflows, the transition may 
 
 ---
 
-## 🤔 WHEN IDE-INTEGRATED AI TOOLS SHINE
+## WHEN IDE-INTEGRATED AI TOOLS SHINE
 
 While terminal-based workflows offer greater power and flexibility, IDE-integrated AI tools have meaningful strengths in specific contexts:
 
@@ -579,7 +578,7 @@ That said, even using a single Claude Code CLI instance as your "background juni
 
 ---
 
-## 🔮 PUTTING IT ALL TOGETHER: Your AI-Amplified Future
+## PUTTING IT ALL TOGETHER: Your AI-Amplified Future
 
 This terminal-centric workflow integrates AI capabilities with flexible CLI tools:
 
@@ -593,7 +592,7 @@ This terminal-centric workflow integrates AI capabilities with flexible CLI tool
 8. **Cross-platform flexibility** with [Claude Desktop](https://claude.ai/download) for deep research
 9. **Mobile continuity** with Claude mobile apps for continuing to build upon project concepts on the go
 
-## 🔭 FUTURE DIRECTIONS: What's Next
+## FUTURE DIRECTIONS: What's Next
 
 I'm currently working on several extensions to this CLI-first approach:
 
@@ -605,12 +604,12 @@ An interesting project to watch in this space is [Claude Squad](https://github.c
 
 ---
 
-## 🛤️ THE PATH FORWARD: Embrace the Terminal Renaissance
+## THE PATH FORWARD: Embrace the Terminal Renaissance
 
 GUI-based tools like [Cursor IDE](https://cursor.sh), [Windsurf](https://windsurf.com/editor), and web-based interfaces have their place in certain workflows and are extremely powerful tools on their own. However, the terminal-centric approach provides a scalable, composable system that offers cutting-edge MCP integration, parallelized workflows, and unique flexibility.
 
-Remote parallel agents may represent the future of development, but this terminal-based methodology delivers exceptional results today - offering massive productivity gains with tools available now and scaling naturally with your development ambitions.
+Remote parallel agents may represent the future of development, but this terminal-based methodology delivers exceptional results today--offering massive productivity gains with tools available now and scaling naturally with your development ambitions.
 
-The fundamental insight here isn't just about productivity—it's about knowledge persistence and workflow composability. By creating a system where insights are systematically stored and retrieved, you're building a constantly evolving AI-amplified development environment uniquely tailored to your needs.
+The fundamental insight here isn't just about productivity--it's about knowledge persistence and workflow composability. By creating a system where insights are systematically stored and retrieved, you're building a constantly evolving AI-amplified development environment uniquely tailored to your needs.
 
 *"Terminal mastery + AI tools = Dev workflows that scale with your ambitions."*
