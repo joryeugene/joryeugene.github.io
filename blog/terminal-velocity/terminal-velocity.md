@@ -296,7 +296,6 @@ claude -p "Generate deployment steps" --output-format stream-json  # Real-time s
 # Pipeline Moves
 cat error.log | claude "Analyze errors. What's causing them?"  # Interactive analysis
 git diff --staged | claude -p "Generate commit message" | xargs git commit -m  # Chained commands
-cat data.json | claude -p "Convert to CSV" --output-format json > data.csv  # JSON output to file
 ```
 
 ---
