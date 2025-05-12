@@ -492,7 +492,7 @@ Recent AFK system experiments have yielded valuable insights into what makes AI 
 
 ### Research Methodology Note
 
-For my statistics and economics colleagues, here's a brief overview of our experimental approach:
+For my statistics and economics colleagues, here's a brief overview of my experimental approach:
 
 - **Sample Selection**: Tested 10 template variations across 3 task domains (n=30)
 - **Control Variables**: Task complexity, input data size, execution environment
@@ -519,7 +519,7 @@ These are initial findings that warrant further investigation with larger sample
 | 8-12 tools | ~89% | Benefits only specialized complex scenarios |
 | 13+ tools | ~76% | Cognitive overload, diminishing returns |
 
-Our data suggests AI systems experience cognitive load limitations similar to humans, with tool effectiveness peaking in the middle range.
+My data suggests AI systems experience cognitive load limitations similar to humans, with tool effectiveness peaking in the middle range.
 
 ### Metacognitive Analysis: The Key Differentiator
 
