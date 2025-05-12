@@ -560,16 +560,22 @@ While these alternative agents are worth experimenting with, none offer the seam
 
 ## THE SUBSCRIPTION ADVANTAGE: Why It's a Steal
 
-| Plan | Price | Features |
-|------|-------|----------|
-| **Claude Max (Basic)** | $100/mo | 5x Pro rate limits |
-| **Claude Max (Advanced)** | $200/mo | 20x Pro rate limits |
+| Plan | Price | Usage Limits | MCP Tools | Claude Code | For |
+|------|-------|--------------|-----------|------------|-----|
+| **Claude Free** | $0 | ~9 msgs/5hrs | Yes (limited) | No | Casual use |
+| **Claude Pro** | $20/mo | 45+ msgs/5hrs | Yes | No | Regular personal use |
+| **Claude Max (Basic)** | $100/mo | 225+ msgs/5hrs (5x Pro) | Yes | Yes | Power users/professionals |
+| **Claude Max (Advanced)** | $200/mo | 900+ msgs/5hrs (20x Pro) | Yes | Yes | Heavy daily dependency |
 
 **Game-Changing Advantages vs Competitors:**
 - **Terminal-Based CLI Tools**: Claude Code CLI is far more polished than OpenAI's Codex CLI
 - **MCP Integration**: Connect specialized tools across different workflows
 - **Single Subscription Access**: One sub for Desktop, mobile, and CLI access
 - **Cost-Effective Scaling**: With parallel workflows, pay-per-call API usage could easily hit $100+/day (subscription model creates predictable costs)
+- **Priority Access**: Max users get early access to new models and features, plus priority during high-traffic periods
+
+**Starting Small Without Max:**
+Try terminal-centric AI without Max: Free/Pro users can use [MCP for Desktop](https://modelcontextprotocol.io/quickstart/user) and [Desktop Commander](https://desktopcommander.app/) to give Claude filesystem access, terminal control, and file editing capabilities. This powerful MCP tool gives you a terminal-centric workflow similar to Claude Code CLI but through the Desktop interface. When ready for dedicated CLI tools and higher rate limits, Max provides the complete professional experience.
 
 ---
 
