@@ -12,15 +12,16 @@
 - [Template Efficacy](#template-efficacy-the-science-of-prompt-engineering)
 
 ### 🧰 Core Stack and Tools
-- [The Core Stack](#the-core-stack-your-ai-powered-cli-toolkit)
+- [The Terminal Dev Stack](#the-terminal-dev-stack-essential-tools)
 - [Must-Use MCP Tools](#must-use-mcp-tools-amplify-your-ai)
 
 ### ⚙️ Claude Configuration and Setup
 - [Keeping Claude Code Up-to-Date](#keeping-claude-code-up-to-date)
-- [Terminal Keyboard Tips](#terminal-keyboard-tips-for-interactive-mode)
 - [Essential Claude CLI Commands](#essential-claude-cli-commands-your-daily-drivers)
 - [The Crucial ~/.claude.json File](#the-crucial-claudejson-file-your-ai-brain)
 - [The Claude.MD Directive](#the-claudemd-directive-experimental)
+  - [Memory Management Features](#memory-management-features)
+  - [Command Shortcuts and Keyboard Controls](#command-shortcuts-and-keyboard-controls)
 - [MCP Syntax Difference](#mcp-syntax-difference-critical)
 - [The Claude-Full Alias](#the-claude-full-alias-streamline-your-workflow)
 - [Directive-Based Execution](#directive-based-execution-improving-tool-reliability)
@@ -58,16 +59,16 @@ These findings come from systematic analysis of my templates using mixed-effects
 
 ---
 
-## THE CORE STACK: Your AI-Powered CLI Toolkit
+## THE TERMINAL DEV STACK: Essential Tools
 
-| Tool | Purpose |
-|------|---------|
-| **TERMINAL** | [Wezterm](https://wezfurlong.org/wezterm/), [Warp](https://www.warp.dev/), [Rio](https://github.com/raphamorim/rio), [Kitty](https://sw.kovidgoyal.net/kitty/) |
-| **MULTIPLEXER** | [Zellij](https://zellij.dev/) or [Tmux](https://github.com/tmux/tmux) for session persistence |
-| **VIM/NEOVIM** | [Neovim](https://neovim.io/) - Modal editing at thought-speed |
-| **AI CLI AGENTS** | [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview), [RA.Aid](https://github.com/ai-christianson/RA.Aid), [Augment](https://github.com/augmentcode/augment-swebench-agent) |
-| **SUPPORT TOOLS** | [LazyGit](https://github.com/jesseduffield/lazygit), [Ripgrep](https://github.com/BurntSushi/ripgrep), [FZF](https://github.com/junegunn/fzf) |
-| **CROSS-PLATFORM** | [Claude Desktop](https://claude.ai/download), [Claude Mobile](https://www.anthropic.com/news/android-app) |
+| Category | Recommended Tools |
+|----------|-------------------|
+| **TERMINAL EMULATORS** | [Wezterm](https://wezfurlong.org/wezterm/), [Warp](https://www.warp.dev/), [Rio](https://github.com/raphamorim/rio), [Kitty](https://sw.kovidgoyal.net/kitty/) |
+| **SESSION MANAGEMENT** | [Zellij](https://zellij.dev/) or [Tmux](https://github.com/tmux/tmux) for persistent workspaces |
+| **TEXT EDITING** | [Neovim](https://neovim.io/) - Modal editing at thought-speed |
+| **AI AGENTS** | [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview), [RA.Aid](https://github.com/ai-christianson/RA.Aid), [Augment](https://github.com/augmentcode/augment-swebench-agent) |
+| **PRODUCTIVITY TOOLS** | [Raycast](https://www.raycast.com/), [LazyGit](https://github.com/jesseduffield/lazygit), [Ripgrep](https://github.com/BurntSushi/ripgrep), [FZF](https://github.com/junegunn/fzf) |
+| **CROSS-PLATFORM ACCESS** | [Claude Desktop](https://claude.ai/download), [Claude Mobile](https://www.anthropic.com/news/android-app) |
 
 ---
 
@@ -112,14 +113,6 @@ claude --version
 ```
 
 This ensures you have access to the latest features, bug fixes, and performance improvements.
-
-### Terminal Keyboard Tips for Interactive Mode
-
-When working with Claude in interactive terminal mode, remember these helpful keyboard shortcuts:
-
-- **Ctrl+J**: Add a new line in your prompt (since Enter submits the prompt)
-- **Ctrl+C**: Cancel current prompt input
-- **Up/Down arrows**: Navigate through command history
 
 ---
 
@@ -183,6 +176,45 @@ Creating a CLAUDE.md file in your home directory (~/.claude/CLAUDE.md) provides 
 ```
 
 I've found that adding an unusual confirmation phrase or emoji pattern *sometimes* increases Claude's likelihood of executing tools rather than just discussing them. This approach isn't foolproof but represents one of several techniques to improve tool execution reliability. Anthropic is actively working on improving Claude's tool-following behavior, as mentioned in their [blog post about the Claude "think" tool](https://www.anthropic.com/engineering/claude-think-tool).
+
+### Memory Management Features
+
+Claude Code's memory management system provides persistent context across sessions and projects--distinct from the Memento MCP tool which provides more sophisticated knowledge graph capabilities:
+
+- **Hierarchical Memory System:** CLAUDE.md files create a project-aware memory structure:
+  - **Global Memory:** `~/.claude/CLAUDE.md` applies to all projects
+  - **Project Memory:** `./CLAUDE.md` in project root for project-specific context
+  - **Directory Memory:** `./subdirectory/CLAUDE.md` for specialized context in specific folders
+  - **Priority Order:** Directory > Project > Global (more specific contexts override broader ones)
+
+- **Context Management Commands:**
+  - `/memory` to view current conversation memory
+  - `/compact` to summarize conversation backlog, freeing up context for new information
+
+### Command Shortcuts and Keyboard Controls
+
+Claude Code offers a comprehensive set of keyboard shortcuts and commands that combine to create a powerful interactive development environment:
+
+#### Terminal Keyboard Controls
+
+- **Ctrl+J**: Add a new line in your prompt (since Enter submits the prompt)
+- **Ctrl+C**: Cancel current prompt input
+- **Up/Down arrows**: Navigate through command history
+
+#### Command Prefixes
+
+- **Slash Commands (/):** Quick access to built-in commands and custom templates:
+  - **Templates:** Start your prompt with `/` to invoke custom commands stored in:
+    - **User Level:** `~/.claude/commands/*.md`
+    - **Project Level:** `/.claude/commands/*.md`
+  - **Built-ins:** `/memory`, `/compact`, `/help`, and others for session management
+
+- **Bang Commands (!):** Execute shell commands directly from Claude's TUI:
+  - `!grep -r "function" .` to search for functions in current directory
+  - `!ls -la` to list files with details
+  - Allows quick shell operations without leaving the Claude interface
+
+- **Hash Tags (#):** Add content to in-session memory that Claude can refer to later
 
 ---
 
