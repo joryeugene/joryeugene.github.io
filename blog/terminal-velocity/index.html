@@ -272,10 +272,8 @@
   <script src="/js/background-switcher.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Direct ID mappings for headers - we've removed emojis from headings
       const headerMappings = {};
-      
-      // Load and process the Markdown content
+
       fetch('/blog/terminal-velocity/terminal-velocity.md')
         .then(response => {
           if (!response.ok) {
@@ -284,25 +282,23 @@
           return response.text();
         })
         .then(markdownText => {
-          // Parse the markdown into HTML
           const html = marked.parse(markdownText);
-          
-          // Create a container to work with the HTML
+
           const container = document.createElement('div');
           container.innerHTML = html;
-          
+
           // Add IDs to all headings
           const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
           headings.forEach(heading => {
             const headingText = heading.textContent;
-            
+
             // Create a clean ID from the heading text
             let id = headingText
               .toLowerCase()
               .replace(/[^\w\s-]/g, '')  // Remove special characters
               .replace(/^\s+|\s+$/g, '') // Trim
               .replace(/\s+/g, '-');     // Replace spaces with hyphens
-            
+
             // Keep emoji if present for the ID
             if (/[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}]/u.test(headingText)) {
               // Extract emoji and add it to ID
@@ -311,37 +307,37 @@
                 id = emojiMatch[0] + '-' + id;
               }
             }
-            
+
             heading.id = id;
           });
-          
+
           // Apply the processed HTML to the content div
           document.getElementById('content').innerHTML = container.innerHTML;
-          
+
           // Fix the anchor links after content is loaded
           setTimeout(() => {
             const links = document.querySelectorAll('a[href^="#"]');
-            
+
             links.forEach(link => {
               const href = link.getAttribute('href').substring(1);
-              
+
               // Check if we have a direct mapping for this anchor
               if (headerMappings[href]) {
                 link.href = '#' + headerMappings[href];
               }
-              
+
               // Add smooth scrolling
               link.addEventListener('click', function(e) {
                 const targetId = this.getAttribute('href').substring(1);
                 const targetElement = document.getElementById(targetId);
-                
+
                 if (targetElement) {
                   e.preventDefault();
                   window.scrollTo({
                     top: targetElement.offsetTop - 80,
                     behavior: 'smooth'
                   });
-                  
+
                   history.pushState(null, null, '#' + targetId);
                 }
               });
@@ -352,8 +348,7 @@
           console.error('Error loading markdown:', error);
           document.getElementById('content').innerHTML = '<p>Error loading content. Please try again later.</p>';
         });
-      
-      // Initialize the background switcher
+
       BackgroundSwitcher.init({
         imagePath: '/jpg/',
         useContainer: false,
