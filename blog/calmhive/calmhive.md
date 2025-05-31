@@ -259,14 +259,14 @@ For detailed MCP setup, see my [Terminal Velocity guide](https://github.com/jory
 
 > **💡 Claude Max Advantage**: For serious automation work, Claude Max provides 5-20x higher rate limits than Pro, perfect for AFk sessions running 25+ iterations.
 
-## Current Version: V3.0.18
+## Current Version: V3.0.19
 
 The latest Calmhive V3 includes all the critical fixes users requested:
 
 - ✅ **Proper Process Tracking**: Every Claude process tracked by PID
 - ✅ **Working Stop Commands**: `afk stop` actually kills processes
 - ✅ **Orphan Cleanup**: `afk killorphans` finds and terminates stuck processes
-- ✅ **Fixed Usage Limit Detection**: No longer confused with context limits
+- ✅ **Fixed Usage Limit Detection**: Properly triggers exponential backoff on usage limits
 - ✅ **Auto-Compaction**: Handles "Context low" automatically
 - ✅ **Improved TUI**: All keyboard shortcuts work properly
 - ✅ **Detailed Status View**: `afk status -d` shows full session information
