@@ -1,28 +1,28 @@
 # AI Engineers World Fair 2025: Takeaways & Spec
 
-## The Foundation: Three Core Ideas
+## Foundation: Three Core Ideas
 
-### 1. SPEC (The Ideal State)
-The living documentation that drives everything. The shift: writing specifications that fully capture intent and values becomes the bottleneck, not coding.
+### 1. SPEC (Ideal State)
+Living documentation that drives everything. Key shift: writing specifications that fully capture intent and values becomes the bottleneck, not coding.
 
 **What it looks like:**
 - Markdown files in version control
 - [Google Docs](https://docs.google.com/) or [Notion](https://www.notion.so/) for collaboration
 - [GitHub Wiki](https://docs.github.com/en/communities/documenting-your-project-with-wikis) for team access
 
-### 2. EXPOSURE (The Reality)
+### 2. EXPOSURE (Reality)
 What customers actually experience. Code is temporary; the spec is permanent.
 
 **Key insight:** As foundational models improve, the same spec generates better implementations over time—across languages, frameworks, and paradigms.
 
-**The spec becomes everything:**
+**Spec becomes everything:**
 - Source of truth for development
 - Marketing materials generator
 - Onboarding documentation
 - Demo and content foundation
 
-### 3. TASK DELTA (The Work)
-The continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into actionable tasks.
+### 3. TASK DELTA (Work)
+Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into actionable tasks.
 
 ## Development Spec Emerging
 
@@ -63,7 +63,7 @@ The continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into ac
 - [OpenCode CLI](https://github.com/sst/opencode) + OpenRouter (multi-model)
 
 **IDE-Integrated:**
-- [Cursor](https://cursor.com/), [Windsurf](https://codeium.com/windsurf)
+- [Cursor](https://cursor.com/), [Windsurf](https://codeium.com/windsurf), [Zed](https://zed.dev/)
 - [VS Code](https://code.visualstudio.com/) + [GitHub Copilot](https://copilot.github.com/)
 - [Augment Code](https://augmentcode.com/) (massive codebase context)
 - [Kilocode.ai](https://kilocode.ai/) (Roo/Cline alternative)
@@ -112,7 +112,7 @@ The continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into ac
 
 ## Critical Anti-Patterns to Avoid
 
-### The "AI Whisperer" Trap
+### "AI Whisperer" Trap
 - **Problem:** One person becomes the go-to for all AI tools
 - **Solution:** Mandatory team rotation on AI experiments
 - **Goal:** Distributed AI literacy across entire team
@@ -122,7 +122,7 @@ The continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into ac
 - **Solution:** Documentation IS the spec—write structured communication first
 - **Reality:** In a spec-first world, clear written communication becomes the core skill
 
-**The Review Bottleneck**
+**Review Bottleneck**
 - **Problem:** Human review becomes the constraint
 - **Solution:** Tiered review system—AI for patterns, humans for logic
 
@@ -137,9 +137,9 @@ The continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into ac
 - Bridging conversation gaps with AI agents
 - Start with shared markdown files (temporal, graph relational, vector... other types of memory you'll find need for depending on use cases)
 
-### The Missing Piece: Team-Wide AI Context Systems
-**The Problem:** MCP tools and AI context live on individual developer machines
-**The Solution:** Centralized intelligence platforms where one integration benefits all
+### Missing Piece: Team-Wide AI Context Systems
+**Problem:** MCP tools and AI context live on individual developer machines
+**Solution:** Centralized intelligence platforms where one integration benefits all
 
 **Leading Options for Shared Context** (none of these were represented at the conference—the AI infra on display was underwhelming):
 - **[Dify.ai](https://dify.ai/)**: Visual RAG builder, production-ready workflows
@@ -148,9 +148,9 @@ The continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into ac
 - **[Dust.tt](https://dust.tt/)**: Team-focused, fastest deployment
 - **[Latenode](https://latenode.com/)**: AI-driven with custom JavaScript flexibility
 
-The integration platform space is getting crowded, with foundational models increasingly building these features directly into their tools (see Claude Desktop). Team context and auth/authorization remain critical challenges.
+Integration platform space is getting crowded, with foundational models increasingly building these features directly into their tools (see Claude Desktop). Team context and auth/authorization remain critical challenges.
 
-## The Next Frontier: From Collaboration to Federation
+## Next Frontier: From Collaboration to Federation
 
 **Current State - Collaboration:**
 - Teams working together within organizations
@@ -166,14 +166,14 @@ The integration platform space is getting crowded, with foundational models incr
 **Why This Matters:**
 Parallelization solved individual productivity. Collaboration solved team productivity. Federation will solve ecosystem productivity.
 
-## The Reality Check: What Actually Matters
+## Reality Check: What Actually Matters
 
 ### Missing from Most AI Dev Discussions
 
 **Human Bottlenecks > Tool Limitations**
 - Context switching capacity remains the biggest constraint
 - Parallelization helps but requires new mental models
-- The best tools can't fix unclear specifications
+- Best tools can't fix unclear specifications
 
 **Cost Reality (May 2025)**
 - API usage for heavy development: $50-200/day easily
@@ -185,7 +185,7 @@ Parallelization solved individual productivity. Collaboration solved team produc
 - Container isolation isn't optional anymore
 - Auth tokens in AI context = eventual breach
 
-### The 90-Day Transformation Path
+### 90-Day Transformation Path
 
 **Days 1-30: Foundation**
 - Pick ONE terminal-based AI tool and master it
@@ -206,14 +206,14 @@ Parallelization solved individual productivity. Collaboration solved team produc
 
 In the AI era, teams that excel at building shared context and collective specifications will dominate. Success isn't about individual AI mastery—it's about raising the entire team's capability together through shared understanding and continuous learning.
 
-## Final Insight: The Specification as North Star
+## Final Insight: Specification as North Star
 
-The future belongs to teams that rally around living specifications—documents that capture not just what to build, but why it matters. When documentation becomes the primary artifact, when every team member contributes to the spec, when AI amplifies collective intelligence rather than individual productivity—that's when sustainable velocity emerges.
+Future belongs to teams that rally around living specifications—documents that capture not just what to build, but why it matters. When documentation becomes the primary artifact, when every team member contributes to the spec, when AI amplifies collective intelligence rather than individual productivity—that's when sustainable velocity emerges.
 
-**The new engineering excellence:**
+**New engineering excellence:**
 - Writing specifications so clear that both humans and AI execute flawlessly
 - Creating context so rich that any team member can own any task
 - Building review systems that elevate everyone's capabilities
 - Maintaining educatability as a core team value
 
-In 2025, your competitive advantage isn't keeping knowledge siloed—it's how fast your entire team learns, adapts, and ships quality together. The specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.
+In 2025, your competitive advantage isn't keeping knowledge siloed—it's how fast your entire team learns, adapts, and ships quality together. Specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.
