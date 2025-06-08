@@ -210,3 +210,9 @@ The future belongs to teams that rally around living specifications. When docume
 
 Your competitive advantage isn't keeping knowledge siloed—it's how fast your entire team learns, adapts, and ships quality together. Specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.
 
+---
+
+**TL;DR: engineering excellence = articulation excellence**
+
+Write specs so clear that implementation becomes mechanical. Use living documents that evolve. Compare spec to reality constantly. Parallelize everything. Share context obsessively. Clear thinking beats fast typing.
+
