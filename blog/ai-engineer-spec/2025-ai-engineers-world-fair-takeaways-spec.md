@@ -13,7 +13,7 @@ Living documentation that drives everything. Key shift: writing specifications t
 ### 2. EXPOSURE (Reality)
 What customers actually experience. Code is temporary; the spec is permanent.
 
-**Key insight:** As foundational models improve, the same spec generates better implementations over time—across languages, frameworks, and paradigms.
+**Key insight:** As foundational models improve, the same spec generates better implementations over time--across languages, frameworks, and paradigms.
 
 **Spec becomes everything:**
 - Source of truth for development
@@ -119,12 +119,17 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 
 ### Documentation Debt Explosion
 - **Problem:** Code generation accelerates, documentation lags
-- **Solution:** Documentation IS the spec—write structured communication first
+- **Solution:** Documentation IS the spec--write structured communication first
 - **Reality:** In a spec-first world, clear written communication becomes the core skill
 
 ### Review Bottleneck
-- **Problem:** Human review becomes the constraint
-- **Solution:** Tiered review system—AI for patterns, humans for logic
+- **Problem:** Human review becomes the constraint when AI generates code 10x faster
+- **Solution:** Tiered review system--AI for patterns, humans for logic
+- **Key practices:**
+  - Batch similar changes for efficient review sessions
+  - Focus human review on architecture decisions and business logic
+  - Use AI to summarize large PRs before human review
+- **Warning:** Don't let unreviewed code accumulate--technical debt compounds faster with AI
 
 ## Conference Hot Topics
 
@@ -139,10 +144,10 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - Start with shared markdown files (temporal, graph relational, vector... other types of memory you'll find need for depending on use cases)
 
 ### Missing Piece: Team-Wide AI Context Systems
-**Problem:** MCP tools and AI context live on individual developer machines  
+**Problem:** MCP tools and AI context live on individual developer machines
 **Solution:** Centralized intelligence platforms where one integration benefits all
 
-**Leading Options for Shared Context** (none of these were represented at the conference—the AI infra on display was underwhelming):
+**Leading Options for Shared Context** (none of these were represented at the conference--the AI infra on display was underwhelming):
 - **[Dify.ai](https://dify.ai/)**: Visual RAG builder, production-ready workflows
 - **[Kestra](https://kestra.io/)**: Code-first orchestration, Git-native approach
 - **[n8n](https://n8n.io/)**: Self-hosted automation with AI capabilities
@@ -165,7 +170,7 @@ Integration platform space is getting crowded, with foundational models increasi
 - Deep orchestrations requiring formal agreements
 
 **Why This Matters:**
-Parallelization solved individual productivity. Collaboration solved team productivity. Federation will solve ecosystem productivity.
+Parallelization solves individual productivity. Collaboration solves team productivity. Federation could solve ecosystem productivity.
 
 ## Reality Check: What Actually Matters
 
@@ -176,10 +181,10 @@ Parallelization solved individual productivity. Collaboration solved team produc
 - Parallelization helps but requires new mental models
 - Best tools can't fix unclear specifications
 
-**Cost Reality (May 2025)**
+**Cost Reality (June 2025)**
 - API usage for heavy development: $50-200/day easily
 - Subscription models create predictability
-- ROI positive within weeks for most teams
+- Most teams see positive returns within weeks (shipping 3-5x faster outweighs tool costs)
 
 **Security Blind Spots**
 - AI agents with full file system access = nuclear option
@@ -205,11 +210,11 @@ Parallelization solved individual productivity. Collaboration solved team produc
 
 ## Key Takeaway
 
-In the AI era, teams that excel at building shared context and collective specifications will dominate. Success isn't about individual AI mastery—it's about raising the entire team's capability together through shared understanding and continuous learning.
+In the AI era, teams that excel at building shared context and collective specifications will dominate. Success isn't about individual AI mastery--it's about raising the entire team's capability together through shared understanding and continuous learning.
 
 ## Final Insight: Specification as North Star
 
-Future belongs to teams that rally around living specifications—documents that capture not just what to build, but why it matters. When documentation becomes the primary artifact, when every team member contributes to the spec, when AI amplifies collective intelligence rather than individual productivity—that's when sustainable velocity emerges.
+Future belongs to teams that rally around living specifications--documents that capture not just what to build, but why it matters. When documentation becomes the primary artifact, when every team member contributes to the spec, when AI amplifies collective intelligence rather than individual productivity--that's when sustainable velocity emerges.
 
 **New engineering excellence:**
 - Writing specifications so clear that both humans and AI execute flawlessly
@@ -217,4 +222,4 @@ Future belongs to teams that rally around living specifications—documents that
 - Building review systems that elevate everyone's capabilities
 - Maintaining educatability as a core team value
 
-In 2025, your competitive advantage isn't keeping knowledge siloed—it's how fast your entire team learns, adapts, and ships quality together. Specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.
+In 2025, your competitive advantage isn't keeping knowledge siloed--it's how fast your entire team learns, adapts, and ships quality together. Specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.
