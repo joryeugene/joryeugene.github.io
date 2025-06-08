@@ -10,7 +10,7 @@ Living documentation that drives everything. Key shift: writing specifications t
 
 **What it looks like:**
 - Markdown files in version control
-- [Google Docs](https://docs.google.com/) or [Notion](https://www.notion.so/) for collaboration
+- [Google Docs](https://docs.google.com/) / [Notion](https://www.notion.so/) for collaboration
 - [GitHub Wiki](https://docs.github.com/en/communities/documenting-your-project-with-wikis) for team access
 
 ### 2. EXPOSURE (Reality)
@@ -94,10 +94,9 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - Create your first autonomous workflows
 
 **Scale:**
-- Container isolation for AI agents
 - Context ingestion pipelines
 - Team-wide knowledge sharing
-
+- Container isolation for AI agents
 
 ## Critical Anti-Patterns to Avoid
 
@@ -126,14 +125,19 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - Code review automation overload (market saturation)
 - Safe spaces for AI agents ([Gitpod](https://gitpod.io/), containers)
 - Memory systems and team-wide context platforms
+- Creative evaluation methods (*See Simon Willison's ["The Last Six Months in LLMs, Illustrated by Pelicans on Bicycles"](https://simonwillison.net/2025/Jun/6/six-months-in-llms/) for an innovative approach to model evaluation through creative benchmarks*)
 
 ### Memory Systems (Extremely Popular)
 - Mimic human memory architectures
 - Bridging conversation gaps with AI agents
-- Start with shared markdown files (temporal, graph relational, vector... other types of memory you'll find need for depending on use cases)
+- **Start simple**: As foundational models get smarter, they can coordinate through shared markdown files
+- **Scale as needed**: More structured approaches become useful for specific use cases:
+  - **Temporal memory**: For time-based context and history
+  - **Semantic search**: Through vector embeddings of your knowledge base
+  - **Graph relationships**: For complex entity connections
 
 ### Missing Piece: Team-Wide AI Context Systems
-**Problem:** MCP tools and AI context live on individual developer machines  
+**Problem:** MCP tools and AI context live on individual developer machines
 **Solution:** Centralized intelligence platforms where one integration benefits all
 
 **Platform Comparison** (focusing on MCP support + team features):
