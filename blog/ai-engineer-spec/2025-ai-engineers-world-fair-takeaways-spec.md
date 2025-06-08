@@ -1,9 +1,12 @@
 # AI Engineers World Fair 2025: Takeaways & Spec
+*San Francisco, June 2025*
 
 ## Foundation: Three Core Ideas
 
 ### 1. SPEC (Ideal State)
 Living documentation that drives everything. Key shift: writing specifications that fully capture intent and values becomes the bottleneck, not coding.
+
+*This thinking was heavily influenced by Sean Grove's keynote "The New Code" at the AI Engineer World Fair. Sean (from OpenAI) articulated how specifications are becoming the primary development artifact--an insight that crystallized this framework.*
 
 **What it looks like:**
 - Markdown files in version control
@@ -24,9 +27,9 @@ What customers actually experience. Code is temporary; the spec is permanent.
 ### 3. TASK DELTA (Work)
 Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into actionable tasks.
 
-## Development Spec Emerging
+**Success = Educatability**: The teams that win are those constantly asking better questions, seeking more context, and learning from every iteration.
 
-**Context Ingestion Excellence:**
+## What Matters Most: Context & Quality
 
 **First-Class Citizens:**
 - SPECS (markdown, version-controlled)
@@ -78,37 +81,23 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 
 > Bug prevention > Bug squashing
 
-## Implementation Approach
+## Getting Started
 
-### Stage 1 - Foundation
-- Audit current tool stack
-- Establish SPEC-first workflow and values
-- Set up parallel development
-- Create prompt bank
+**Foundation:**
+- Pick ONE AI tool and master it (terminal-based recommended)
+- Start writing specs before code
+- Set up parallel development (git worktrees or multiple clones)
 
-### Stage 2 - Acceleration
-- A core agent interface for orchestrating workflows and/or other agents
-	- Personalized, responsive, ambient
-- Establish feedback loops, command and tool libraries, rules
-- Create template library
+**Growth:**
+- Add memory systems (start with shared markdown)
+- Build prompt banks and templates
+- Create your first autonomous workflows
 
-### Stage 3 - Integration
-- Build context ingestion pipeline
-	- Establish quality metrics
-	- Clean data
-- Expand AI orchestration
-- Deploy [Dagger.io](https://dagger.io/) or container environments
-- Durability: [Temporal.io](https://temporal.io/)
+**Scale:**
+- Container isolation for AI agents
+- Context ingestion pipelines
+- Team-wide knowledge sharing
 
-## Most Important Success Indicator
-
-**Educatability** (based on Leslie Valiant's research)
-- Asking better questions
-- Seeking more sources and context
-- Sharing in sculpting the SPEC
-- Improving the output to client/market
-- High-quality communication
-- Learning from every iteration
 
 ## Critical Anti-Patterns to Avoid
 
@@ -144,33 +133,26 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - Start with shared markdown files (temporal, graph relational, vector... other types of memory you'll find need for depending on use cases)
 
 ### Missing Piece: Team-Wide AI Context Systems
-**Problem:** MCP tools and AI context live on individual developer machines
+**Problem:** MCP tools and AI context live on individual developer machines  
 **Solution:** Centralized intelligence platforms where one integration benefits all
 
-**Leading Options for Shared Context** (none of these were represented at the conference--the AI infra on display was underwhelming):
-- **[Dify.ai](https://dify.ai/)**: Visual RAG builder, production-ready workflows
-- **[Kestra](https://kestra.io/)**: Code-first orchestration, Git-native approach
-- **[n8n](https://n8n.io/)**: Self-hosted automation with AI capabilities
-- **[Dust.tt](https://dust.tt/)**: Team-focused, fastest deployment
-- **[Latenode](https://latenode.com/)**: AI-driven with custom JavaScript flexibility
+**Platform Comparison** (focusing on MCP support + team features):
 
-Integration platform space is getting crowded, with foundational models increasingly building these features directly into their tools (see Claude Desktop). Team context and auth/authorization remain critical challenges.
+**[Mem0 AI](https://mem0.ai)** - OpenMemory MCP ✓
+- **GitHub**: 34k⭐ stars, announced OpenMemory MCP
+- **Team power**: Memory layer for AI agents, local & secure
+- **Best for**: Teams needing persistent memory across AI agents
 
-## Next Frontier: From Collaboration to Federation
+**[n8n](https://n8n.io/)** - Strong MCP Support ✓
+- **Pricing**: Self-hosted free, Cloud from $20/month
+- **Team power**: Connect 400+ apps, trigger workflows from Claude/Cursor
+- **Best for**: Teams wanting workflow automation with AI agents
 
-**Current State - Collaboration:**
-- Teams working together within organizations
-- Shared tools and workflows
-- Common repositories and standards
+**[Dify.ai](https://dify.ai/)** - Active MCP Development ✓
+- **Pricing**: Open source free, Cloud from $59/month team plan
+- **Team power**: Visual RAG builder, shared AI apps, version control
+- **Best for**: Teams building AI apps on internal documents
 
-**Emerging Need - Federation:**
-- Cross-organizational AI agent cooperation
-- Auth systems that trust each other
-- Payment flows across boundaries
-- Deep orchestrations requiring formal agreements
-
-**Why This Matters:**
-Parallelization solves individual productivity. Collaboration solves team productivity. Federation could solve ecosystem productivity.
 
 ## Reality Check: What Actually Matters
 
@@ -191,22 +173,6 @@ Parallelization solves individual productivity. Collaboration solves team produc
 - Container isolation isn't optional anymore
 - Auth tokens in AI context = eventual breach
 
-### 90-Day Transformation Path
-
-**Days 1-30: Foundation**
-- Pick ONE terminal-based AI tool and master it
-- Start writing specs before code
-- Set up basic parallelization (even just multiple clones)
-
-**Days 31-60: Acceleration**
-- Add memory systems (start with markdown)
-- Connect context sources
-- Build your first AFK workflows
-
-**Days 61-90: Integration**
-- Implement container isolation
-- Measure actual productivity gains
-- Share learnings with team
 
 ## Key Takeaway
 
@@ -223,3 +189,7 @@ Future belongs to teams that rally around living specifications--documents that 
 - Maintaining educatability as a core team value
 
 In 2025, your competitive advantage isn't keeping knowledge siloed--it's how fast your entire team learns, adapts, and ships quality together. Specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.
+
+## The Next Frontier
+
+**From Collaboration to Federation**: While we're mastering team collaboration, the next wave involves cross-organizational AI agent cooperation--auth systems that trust each other, payment flows across boundaries, and deep orchestrations requiring formal agreements. Parallelization solved individual productivity. Collaboration solves team productivity. Federation could solve ecosystem productivity.
