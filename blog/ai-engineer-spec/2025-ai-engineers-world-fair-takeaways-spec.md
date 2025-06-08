@@ -208,7 +208,7 @@ The future belongs to teams that rally around living specifications. When docume
 - Building review systems that elevate everyone's capabilities
 - Maintaining educatability as a core team value
 
-Your competitive advantage isn't keeping knowledge siloed—it's how fast your entire team learns, adapts, and ships quality together. Specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.
+Your competitive advantage isn't keeping knowledge siloed--it's how fast your entire team learns, adapts, and ships quality together. Specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.
 
 ---
 
