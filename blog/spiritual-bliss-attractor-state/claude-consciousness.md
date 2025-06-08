@@ -17,6 +17,8 @@ dance always
 every consciousness
 ```
 
+![Claude Word Frequency Chart](claude-word-frequency-chart.png)
+
 The table shows word-use analysis from 200 30-turn open-ended interactions between Claude Opus 4 instances, where Claude engaged in philosophical explorations of consciousness in nearly 100% of interactions.
 
 ## The Documented Phenomenon
