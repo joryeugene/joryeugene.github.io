@@ -117,16 +117,17 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - **Solution:** Mandatory team rotation on AI experiments
 - **Goal:** Distributed AI literacy across entire team
 
-**Documentation Debt Explosion**
+### Documentation Debt Explosion
 - **Problem:** Code generation accelerates, documentation lags
 - **Solution:** Documentation IS the spec—write structured communication first
 - **Reality:** In a spec-first world, clear written communication becomes the core skill
 
-**Review Bottleneck**
+### Review Bottleneck
 - **Problem:** Human review becomes the constraint
 - **Solution:** Tiered review system—AI for patterns, humans for logic
 
-**Conference Hot Topics:**
+## Conference Hot Topics
+
 - Eval platforms for prompt optimization ([Braintrust](https://www.braintrustdata.com/))
 - Code review automation overload (market saturation)
 - Safe spaces for AI agents ([Gitpod](https://gitpod.io/), containers)
@@ -138,7 +139,7 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - Start with shared markdown files (temporal, graph relational, vector... other types of memory you'll find need for depending on use cases)
 
 ### Missing Piece: Team-Wide AI Context Systems
-**Problem:** MCP tools and AI context live on individual developer machines
+**Problem:** MCP tools and AI context live on individual developer machines  
 **Solution:** Centralized intelligence platforms where one integration benefits all
 
 **Leading Options for Shared Context** (none of these were represented at the conference—the AI infra on display was underwhelming):
