@@ -93,7 +93,7 @@ calmhive voice
 
 Trigger words: "hey friend", "calmhive", "ok friend", "now friend"
 
-### 🏃 AFk Iterative Sessions
+### 🏃 AFK Iterative Sessions
 
 ```bash
 # Start a long task and forget about it
@@ -163,7 +163,7 @@ calmhive/v3/
 
 1. **Wrapper, Not Replacement**: Uses Claude CLI under the hood
 2. **Separation of Concerns**: Clear distinction between interactive, single-run, and iterative modes
-3. **State Management**: SQLite database tracks AFk sessions and iterations
+3. **State Management**: SQLite database tracks AFK sessions and iterations
 4. **Fail-Safe Design**: Graceful handling of API limits, network issues, and interruptions
 
 ## Real-World Usage Examples
@@ -213,7 +213,7 @@ The voice system deserves special attention because it actually works:
 - **Real Speech Recognition**: Uses industry-standard APIs, not browser hacks
 - **Natural Trigger Words**: "hey friend", "calmhive", "ok friend", "now friend"
 - **OpenAI TTS**: High-quality text-to-speech responses
-- **Process Control**: Start AFk tasks, check status, stop processes by voice
+- **Process Control**: Start AFK tasks, check status, stop processes by voice
 - **Sound Effects**: 7 different audio cues for different events
 
 ### Voice Commands
@@ -221,7 +221,7 @@ The voice system deserves special attention because it actually works:
 "Hey friend, start a new task to implement user authentication"
 "Tell me the status of my sessions"
 "Stop the authentication task"
-"Create an AFk task for 15 iterations to analyze the API"
+"Create an AFK task for 15 iterations to analyze the API"
 ```
 
 ### Setup
@@ -257,7 +257,7 @@ For detailed MCP setup, see my [Terminal Velocity guide](https://github.com/jory
 - **Claude CLI with Max/Pro/Teams**: MCP tools require subscription
 - **OpenAI API key**: Voice features only (everything else works without it)
 
-> **💡 Claude Max Advantage**: For serious automation work, Claude Max provides 5-20x higher rate limits than Pro, perfect for AFk sessions running 25+ iterations.
+> **💡 Claude Max Advantage**: For serious automation work, Claude Max provides 5-20x higher rate limits than Pro, perfect for AFK sessions running 25+ iterations.
 
 ## Current Version: V3.0.19
 
@@ -275,7 +275,7 @@ The latest Calmhive V3 includes all the critical fixes users requested:
 
 - **Large Prompts**: Use `calmhive afk "$(cat prompt.md)" -i 30`
 - **CLAUDE.md Setup**: Create `~/.claude/CLAUDE.md` for persistent context across sessions
-- **Continue After AFk**: Use `calmhive chat -c` to pick up context
+- **Continue After AFK**: Use `calmhive chat -c` to pick up context
 - **Monitor Everything**: Keep `calmhive tui` open in a terminal
 - **Clean Shutdown**: Always use `afk stop`, never Ctrl+C
 - **Orphan Cleanup**: Run `calmhive afk killorphans` if processes get stuck
