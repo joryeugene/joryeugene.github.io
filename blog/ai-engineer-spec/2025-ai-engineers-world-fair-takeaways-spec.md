@@ -1,7 +1,7 @@
 # AI Engineers World Fair 2025: Takeaways & Spec
 *San Francisco, June 2025*
 
-Your AI can write 10,000 lines of code per hour. So can your competitor's. The models aren't the differentiator anymore--everyone has access to the same frontier capabilities. What happens when code becomes a commodity? 
+Your AI can write 10,000 lines of code per hour. So can your competitor's. The models aren't the differentiator anymore--everyone has access to the same frontier capabilities. What happens when code becomes a commodity?
 
 At this year's AI Engineers World Fair, we found our answer: engineering excellence = articulation excellence. The bottleneck is no longer implementation--it's imagination, specification, and the ability to articulate exactly what should exist. This isn't just about engineers. Product managers, lawmakers, architects, designers--anyone who shapes systems now faces the same truth: clear thinking beats fast typing. And the teams winning have fundamentally reimagined their development process around this principle.
 
@@ -147,8 +147,8 @@ The ecosystem is exploding with tools, but quality varies wildly:
   - **Graph relationships**: For complex entity connections
 
 ### Missing Piece: Team-Wide AI Context Systems
-**Problem:** MCP tools and AI context live on individual developer machines
-**Solution:** Centralized intelligence platforms where one integration benefits all
+- **Problem:** MCP tools and AI context live on individual developer machines
+- **Solution:** Centralized intelligence platforms where one integration benefits all
 
 **Platform Comparison** (focusing on MCP support + team features):
 
@@ -168,7 +168,7 @@ The ecosystem is exploding with tools, but quality varies wildly:
 
 ### The Next Frontier: Cross-Organization Federation
 
-While we're mastering team collaboration, the next wave involves cross-organizational AI agent cooperation. 
+While we're mastering team collaboration, the next wave involves cross-organizational AI agent cooperation.
 
 **Example**: A bank's compliance agent detects suspicious activity patterns. It securely federates with:
 - Customer's accounting AI to verify legitimate business expenses
