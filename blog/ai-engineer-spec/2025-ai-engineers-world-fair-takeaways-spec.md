@@ -8,7 +8,7 @@ At this year's AI Engineers World Fair, we found our answer: engineering excelle
 ## Foundation: Three Core Ideas
 
 ### 1. SPEC (Ideal State)
-Living documentation that drives everything. Key shift: writing specifications that fully capture intent and values becomes the bottleneck, not coding.
+Key shift: writing specifications that fully capture intent and values becomes the bottleneck, not coding.
 
 *This thinking was heavily influenced by Sean Grove's keynote "The New Code" at the AI Engineer World Fair. Sean (from OpenAI) articulated how specifications are becoming the primary development artifact--an insight that crystallized this framework.*
 
@@ -31,7 +31,7 @@ What customers actually experience. Code is temporary; the spec is permanent.
 ### 3. TASK DELTA (Work)
 Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into actionable tasks.
 
-**Success = Educatability**: The teams that win are those constantly asking better questions, seeking more context, and learning from every iteration.
+**Success = Educatability**: Teams win by constantly asking better questions and learning from every iteration.
 
 ## What Matters Most: Context & Quality
 
@@ -49,13 +49,11 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 
 ## Building Toward This Vision
 
-Moving from theory to practice requires rethinking every aspect of development:
-
 ### Parallelization Strategy
 
 **Project-Level:**
 - Multiple repo clones on different branches
-- Git worktrees (multiple workspace instances)
+- Git worktrees for multiple workspace instances
 - Containers (reliable environments)
 - [1Password](https://1password.com/) secrets management
 
@@ -68,8 +66,8 @@ Moving from theory to practice requires rethinking every aspect of development:
 ### Tool Stack Reality
 
 **Terminal-First:**
-- [Claude Code CLI](https://github.com/anthropics/claude-code) (Pro/Max subscription)
-- [OpenCode CLI](https://github.com/sst/opencode) + OpenRouter (multi-model)
+- [Claude Code CLI](https://github.com/anthropics/claude-code) - Pro/Max subscription
+- [OpenCode CLI](https://github.com/sst/opencode) + OpenRouter - multi-model access
 
 **IDE-Integrated:**
 - [Cursor](https://cursor.com/), [Windsurf](https://codeium.com/windsurf), [Zed](https://zed.dev/)
@@ -80,21 +78,19 @@ Moving from theory to practice requires rethinking every aspect of development:
 ### Quality Philosophy
 
 **Multi-Layer Detection:**
-1. Static Analysis: Lints, type checking
-2. Dynamic Testing: Unit/integration tests in sandboxes
-3. AI Review: LLM-based code review against specs
-4. Production Monitoring: Bug/log analysis
+1. Static Analysis - lints, type checking
+2. Dynamic Testing - sandboxed unit/integration tests
+3. AI Review - LLM validation against specs
+4. Production Monitoring - automated bug/log analysis
 
 > Bug prevention > Bug squashing
 
 ## Getting Started
 
-Transformation happens in stages:
-
 **Foundation:**
-- Pick ONE AI tool and master it (terminal-based recommended)
-- Start writing specs before code
-- Set up parallel development (git worktrees or multiple clones)
+- Pick ONE AI tool and master it - terminal-based recommended
+- Write specs before code
+- Set up parallel development with git worktrees
 
 **Growth:**
 - Add memory systems (start with shared markdown)
@@ -117,12 +113,12 @@ As teams adopt AI-driven development, new failure modes emerge:
 
 ### Documentation Debt Explosion
 - **Problem:** Code generation accelerates, documentation lags
-- **Solution:** Documentation IS the spec--write structured communication first
+- **Solution:** Documentation IS the spec - write it first
 - **Reality:** In a spec-first world, clear written communication becomes the core skill
 
 ### Review Bottleneck
 - **Problem:** Human review becomes the constraint when AI generates code 10x faster
-- **Solution:** Tiered review system--AI for patterns, humans for logic
+- **Solution:** Tiered review - AI for patterns, humans for logic
 - **Key practices:**
   - Batch similar changes for efficient review sessions
   - Focus human review on architecture decisions and business logic
@@ -204,7 +200,7 @@ Beyond the hype, three uncomfortable truths emerged:
 
 ## Final Insight: Specification as North Star
 
-Future belongs to teams that rally around living specifications--documents that capture not just what to build, but why it matters. When documentation becomes the primary artifact, when every team member contributes to the spec, when AI amplifies collective intelligence rather than individual productivity--that's when sustainable velocity emerges.
+The future belongs to teams that rally around living specifications. When documentation becomes the primary artifact and AI amplifies collective intelligence rather than individual productivity, sustainable velocity emerges.
 
 **New engineering excellence:**
 - Writing specifications so clear that both humans and AI execute flawlessly
@@ -212,5 +208,5 @@ Future belongs to teams that rally around living specifications--documents that 
 - Building review systems that elevate everyone's capabilities
 - Maintaining educatability as a core team value
 
-In 2025, your competitive advantage isn't keeping knowledge siloed--it's how fast your entire team learns, adapts, and ships quality together. Specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.
+Your competitive advantage isn't keeping knowledge siloed—it's how fast your entire team learns, adapts, and ships quality together. Specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.
 
