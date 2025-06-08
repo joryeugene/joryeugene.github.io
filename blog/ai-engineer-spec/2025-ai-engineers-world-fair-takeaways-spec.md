@@ -35,9 +35,9 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 
 **Context Sources:**
 - Customer feedback
-- Slack conversations
+- [Slack](https://slack.com/) conversations
 - [Granola](https://www.granola.so/) transcripts
-- Sketches, mockups, screenshots
+- Sketches, mockups ([Figma](https://www.figma.com/)), screenshots
 - Bug reports and [Sentry](https://sentry.io/) logs
 
 ## Building Toward This Vision
