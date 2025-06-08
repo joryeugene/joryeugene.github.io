@@ -31,7 +31,7 @@ What customers actually experience. Code is temporary; the spec is permanent.
 ### 3. TASK DELTA (Work)
 Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into actionable tasks.
 
-**Success = Educatability**: Teams win by constantly asking better questions and learning from every iteration.
+**Success = Educatability**: Teams win by constantly asking better questions and learning from every iteration. Learn from your LLMs, don't just use them. Use the tools, don't let the tools use you.
 
 ## What Matters Most: Context & Quality
 
@@ -46,6 +46,8 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - [Granola](https://www.granola.so/) transcripts
 - Sketches, mockups ([Figma](https://www.figma.com/)), screenshots
 - Bug reports and [Sentry](https://sentry.io/) logs
+
+**Critical:** Share, sync, and consolidate context. One source of truth > scattered documents.
 
 ## Building Toward This Vision
 
@@ -69,11 +71,17 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - [Claude Code CLI](https://github.com/anthropics/claude-code) - Pro/Max subscription
 - [OpenCode CLI](https://github.com/sst/opencode) + [OpenRouter](https://openrouter.ai/) - multi-model access
 
-**IDE-Integrated:**
-- [Cursor](https://cursor.com/), [Windsurf](https://codeium.com/windsurf), [Zed](https://zed.dev/)
-- [VS Code](https://code.visualstudio.com/) + [GitHub Copilot](https://copilot.github.com/)
-- [Augment Code](https://augmentcode.com/) (massive codebase context)
-- [Kilocode.ai](https://kilocode.ai/) (Roo/Cline alternative)
+**IDEs - The Good:**
+- [VS Code](https://code.visualstudio.com/) - tried and true
+- [Zed](https://zed.dev/) - Rust-powered, blazing fast, native vim mode
+
+**IDEs - The Fancy (VS Code forks):**
+- [Cursor](https://cursor.com/), [Windsurf](https://codeium.com/windsurf)
+
+**Extensions:**
+- [GitHub Copilot](https://copilot.github.com/) - enterprise standard
+- [Augment Code](https://augmentcode.com/) - context engine for massive codebases
+- [Kilocode.ai](https://kilocode.ai/) - transparent usage pricing
 
 ### Quality Philosophy
 
@@ -136,6 +144,11 @@ The ecosystem is exploding with tools, but quality varies wildly:
 - Safe spaces for AI agents ([Gitpod](https://gitpod.io/), containers)
 - Memory systems and team-wide context platforms
 - Creative evaluation methods (*See Simon Willison's ["The Last Six Months in LLMs, Illustrated by Pelicans on Bicycles"](https://simonwillison.net/2025/Jun/6/six-months-in-llms/) for an innovative approach to model evaluation through creative benchmarks*)
+
+### The WiFi Reality Check
+What happens when conference WiFi crashes? Workshop presenters learned the hard way--always have failbacks. Local models aren't just nice-to-have anymore. Ollama, LM Studio, and MLX models running on your MacBook Pro are getting surprisingly good. Don't lean 100% on cloud AI without a backup plan. 
+
+The real lesson: learn HOW these tools think, not just WHAT they output. Study the patterns, understand the reasoning, apply the methods. That knowledge stays with you when the API goes down.
 
 ### Memory Systems (Extremely Popular)
 - Mimic human memory architectures
