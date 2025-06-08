@@ -200,7 +200,7 @@ Beyond the hype, three uncomfortable truths emerged:
 **Security Blind Spots**
 - AI agents with full file system access = nuclear option
 - Container isolation isn't optional anymore
-- Auth tokens in AI context = eventual breach
+- Auth tokens in AI context => eventual breach
 
 ## Final Insight: Specification as North Star
 
