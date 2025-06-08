@@ -121,8 +121,10 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 
 ## Conference Hot Topics
 
-- Eval platforms for prompt optimization ([Braintrust](https://www.braintrustdata.com/))
-- Code review automation overload (market saturation)
+- Eval platforms for prompt optimization: enterprise-ready ([Braintrust](https://www.braintrustdata.com/)), open-source leader ([Langfuse](https://langfuse.com/)), standards-based ([Traceloop](https://www.traceloop.com/))
+- Code review automation overload: behavior-focused ([Baz](https://baz.co/)), speed-focused ([CodeRabbit](https://www.coderabbit.ai/)), workflow-focused ([Graphite](https://graphite.dev/)), quality-focused ([Qodo Merge](https://www.qodo.ai/products/qodo-merge/))
+  - **Reality check**: These platforms can be expensive vs simpler alternatives like Claude Code GitHub app or automated pre-commit hooks
+  - Each has special sauce, but cost-benefit analysis is crucial
 - Safe spaces for AI agents ([Gitpod](https://gitpod.io/), containers)
 - Memory systems and team-wide context platforms
 - Creative evaluation methods (*See Simon Willison's ["The Last Six Months in LLMs, Illustrated by Pelicans on Bicycles"](https://simonwillison.net/2025/Jun/6/six-months-in-llms/) for an innovative approach to model evaluation through creative benchmarks*)
