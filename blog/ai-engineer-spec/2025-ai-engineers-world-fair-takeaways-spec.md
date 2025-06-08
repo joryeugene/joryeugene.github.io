@@ -1,7 +1,9 @@
 # AI Engineers World Fair 2025: Takeaways & Spec
 *San Francisco, June 2025*
 
-The shift is complete: specifications now drive development, not code. At this year's AI Engineers World Fair, the message was clear--teams winning with AI have fundamentally reimagined their development process around living documentation, continuous learning, and collective intelligence.
+Your AI can write 10,000 lines of code per hour. So can your competitor's. The models aren't the differentiator anymore--everyone has access to the same frontier capabilities. What happens when code becomes a commodity? 
+
+At this year's AI Engineers World Fair, we found our answer: engineering excellence shifts upstream. The bottleneck is no longer implementation--it's imagination, specification, and the ability to articulate exactly what should exist. Clear thinking beats fast typing. And the teams winning have fundamentally reimagined their development process around this truth.
 
 ## Foundation: Three Core Ideas
 
