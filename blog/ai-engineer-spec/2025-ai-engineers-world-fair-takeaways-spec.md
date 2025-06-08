@@ -1,6 +1,8 @@
 # AI Engineers World Fair 2025: Takeaways & Spec
 *San Francisco, June 2025*
 
+The shift is complete: specifications now drive development, not code. At this year's AI Engineers World Fair, the message was clear--teams winning with AI have fundamentally reimagined their development process around living documentation.
+
 ## Foundation: Three Core Ideas
 
 ### 1. SPEC (Ideal State)
@@ -45,7 +47,9 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 
 ## Building Toward This Vision
 
-**Parallelization Strategy:**
+Moving from theory to practice requires rethinking every aspect of development:
+
+### Parallelization Strategy
 
 **Project-Level:**
 - Multiple repo clones on different branches
@@ -59,7 +63,7 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - One agent updates docs
 - Start by coordinating through shared markdown files
 
-**Tool Stack Reality:**
+### Tool Stack Reality
 
 **Terminal-First:**
 - [Claude Code CLI](https://github.com/anthropics/claude-code) (Pro/Max subscription)
@@ -71,7 +75,7 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - [Augment Code](https://augmentcode.com/) (massive codebase context)
 - [Kilocode.ai](https://kilocode.ai/) (Roo/Cline alternative)
 
-**Quality Philosophy:**
+### Quality Philosophy
 
 **Multi-Layer Detection:**
 1. Static Analysis: Lints, type checking
@@ -82,6 +86,8 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 > Bug prevention > Bug squashing
 
 ## Getting Started
+
+Transformation happens in stages:
 
 **Foundation:**
 - Pick ONE AI tool and master it (terminal-based recommended)
@@ -99,6 +105,8 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - Container isolation for AI agents
 
 ## Critical Anti-Patterns to Avoid
+
+As teams adopt AI-driven development, new failure modes emerge:
 
 ### "AI Whisperer" Trap
 - **Problem:** One person becomes the go-to for all AI tools
@@ -120,6 +128,8 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - **Warning:** Don't let unreviewed code accumulate--technical debt compounds faster with AI
 
 ## Conference Hot Topics
+
+The ecosystem is exploding with tools, but quality varies wildly:
 
 - Eval platforms for prompt optimization: enterprise-ready ([Braintrust](https://www.braintrustdata.com/)), open-source leader ([Langfuse](https://langfuse.com/)), standards-based ([Traceloop](https://www.traceloop.com/))
 - Code review automation overload: behavior-focused ([Baz](https://baz.co/)), speed-focused ([CodeRabbit](https://www.coderabbit.ai/)), workflow-focused ([Graphite](https://graphite.dev/)), quality-focused ([Qodo Merge](https://www.qodo.ai/products/qodo-merge/))
@@ -173,7 +183,7 @@ Parallelization solves individual productivity. Collaboration solves team produc
 
 ## Reality Check: What Actually Matters
 
-### Missing from Most AI Dev Discussions
+Beyond the hype, three uncomfortable truths emerged:
 
 **Human Bottlenecks > Tool Limitations**
 - Context switching capacity remains the biggest constraint
@@ -189,11 +199,6 @@ Parallelization solves individual productivity. Collaboration solves team produc
 - AI agents with full file system access = nuclear option
 - Container isolation isn't optional anymore
 - Auth tokens in AI context = eventual breach
-
-
-## Key Takeaway
-
-In the AI era, teams that excel at building shared context and collective specifications will dominate. Success isn't about individual AI mastery--it's about raising the entire team's capability together through shared understanding and continuous learning.
 
 ## Final Insight: Specification as North Star
 
