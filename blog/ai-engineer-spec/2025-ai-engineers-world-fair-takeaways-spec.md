@@ -200,11 +200,11 @@ Parallelization solves individual productivity. Collaboration solves team produc
 
 **Days 31-60: Acceleration**
 - Add memory systems (start with markdown)
-- Implement container isolation
+- Connect context sources
 - Build your first AFK workflows
 
 **Days 61-90: Integration**
-- Connect context sources
+- Implement container isolation
 - Measure actual productivity gains
 - Share learnings with team
 
