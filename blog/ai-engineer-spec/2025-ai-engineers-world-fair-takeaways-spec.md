@@ -1,7 +1,7 @@
 # AI Engineers World Fair 2025: Takeaways & Spec
 *San Francisco, June 2025*
 
-The shift is complete: specifications now drive development, not code. At this year's AI Engineers World Fair, the message was clear--teams winning with AI have fundamentally reimagined their development process around living documentation.
+The shift is complete: specifications now drive development, not code. At this year's AI Engineers World Fair, the message was clear--teams winning with AI have fundamentally reimagined their development process around living documentation, continuous learning, and collective intelligence.
 
 ## Foundation: Three Core Ideas
 
