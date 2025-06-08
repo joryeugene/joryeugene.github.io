@@ -67,7 +67,7 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 
 **Terminal-First:**
 - [Claude Code CLI](https://github.com/anthropics/claude-code) - Pro/Max subscription
-- [OpenCode CLI](https://github.com/sst/opencode) + OpenRouter - multi-model access
+- [OpenCode CLI](https://github.com/sst/opencode) + [OpenRouter](https://openrouter.ai/) - multi-model access
 
 **IDE-Integrated:**
 - [Cursor](https://cursor.com/), [Windsurf](https://codeium.com/windsurf), [Zed](https://zed.dev/)
