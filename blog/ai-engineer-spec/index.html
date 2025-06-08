@@ -1,773 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="description" content="AI Engineers World Fair 2025: Takeaways & Spec - The shift to specification-driven development and the future of AI engineering teams">
-    <meta name="keywords" content="Jory Pestorious, AI Engineers World Fair, AI Development, Specification-Driven Development, Claude CLI, AI Tools">
-    <meta name="author" content="Jory Pestorious">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="AI Engineers World Fair 2025: Takeaways & Spec - The shift to specification-driven development and the future of AI engineering teams">
+  <meta name="keywords" content="Jory Pestorious, AI Engineers World Fair, AI Development, Specification-Driven Development, Claude CLI, AI Tools">
+  <meta name="author" content="Jory Pestorious">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="article">
-    <meta property="og:url" content="http://jorypestorious.com/blog/ai-engineer-spec/">
-    <meta property="og:title" content="AI Engineers World Fair 2025: Takeaways & Spec">
-    <meta property="og:description" content="The shift to specification-driven development and the future of AI engineering teams. Three core ideas that will transform how we build with AI.">
-    <meta property="og:image" content="http://jorypestorious.com/jpg/bg.jpg">
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://jorypestorious.com/blog/ai-engineer-spec/">
+  <meta property="og:title" content="AI Engineers World Fair 2025: Takeaways & Spec">
+  <meta property="og:description" content="The shift to specification-driven development and the future of AI engineering teams. Three core ideas that will transform how we build with AI.">
+  <meta property="og:image" content="http://jorypestorious.com/jpg/bg.jpg">
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="http://jorypestorious.com/blog/ai-engineer-spec/">
-    <meta property="twitter:title" content="AI Engineers World Fair 2025: Takeaways & Spec">
-    <meta property="twitter:description" content="The shift to specification-driven development and the future of AI engineering teams. Three core ideas that will transform how we build with AI.">
-    <meta property="twitter:image" content="http://jorypestorious.com/jpg/bg.jpg">
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="http://jorypestorious.com/blog/ai-engineer-spec/">
+  <meta property="twitter:title" content="AI Engineers World Fair 2025: Takeaways & Spec">
+  <meta property="twitter:description" content="The shift to specification-driven development and the future of AI engineering teams. Three core ideas that will transform how we build with AI.">
+  <meta property="twitter:image" content="http://jorypestorious.com/jpg/bg.jpg">
 
-    <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <title>AI Engineers World Fair 2025: Takeaways & Spec - Jory Pestorious</title>
+  <link rel="icon" type="image/png" href="../../favicon.png">
+  <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.1.0/github-markdown.min.css">
+  <style>
+    body {
+      background-color: #000000;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      color: #ffffff;
+    }
 
-    <title>AI Engineers World Fair 2025: Takeaways & Spec - Jory Pestorious</title>
-    <link rel="icon" type="image/png" href="../../favicon.png">
-    <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
-    <style>
-        html {
-            background-color: #000000;
-        }
+    .container {
+      max-width: 1000px;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: transparent;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+    }
 
-        #bg {
-            width: 100%;
-            height: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 0;
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-size: cover;
-            transition: background-image 0.5s ease-in-out;
-        }
+    .markdown-body {
+      box-sizing: border-box;
+      min-width: 200px;
+      max-width: 100%;
+      line-height: 1.65;
+      font-size: 17px;
+      color: #ffffff;
+      background-color: transparent;
+      padding: 70px 20px 20px 20px;
+    }
 
-        #bg.loading {
-            opacity: 0.7;
-        }
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3 {
+      margin-top: 1.5em;
+      margin-bottom: 0.75em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 0.5em;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
 
-        @media (min-width: 741px) {
-            #bg {
-                background-image: url(../../jpg/bg.jpg);
-            }
-        }
+    .markdown-body h1 {
+      font-size: 2em;
+    }
 
-        @media (orientation: landscape) and (max-width: 740px) {
-            #bg {
-                background-image: url(../../jpg/bg_mobile.jpg);
-            }
-        }
+    .markdown-body h2 {
+      font-size: 1.6em;
+    }
 
-        @media (orientation: portrait) and (max-width: 740px) {
-            #bg {
-                background-image: url(../../jpg/bg_mobilev.jpg);
-            }
-        }
+    .markdown-body a {
+      color: #4db1ff;
+      font-weight: 500;
+    }
 
-        main {
-            display: block;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 1000px;
-            z-index: 1;
-            overflow-y: auto;
-            max-height: 90vh;
-        }
+    .markdown-body code {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-size: 0.9em;
+      color: #e6e6e6;
+    }
 
-        #change {
-            right: 2.5vh;
-            bottom: 2.5vh;
-            height: 7vh;
-            width: 7vh;
-            cursor: pointer;
-            fill: rgba(252, 249, 202, 0.4);
-            position: absolute;
-            transition: transform 0.3s ease-in-out, fill 0.2s ease-in-out;
-            z-index: 1;
-        }
+    .markdown-body table {
+      border-collapse: collapse;
+      margin: 25px 0;
+      color: #e6e6e6;
+    }
 
-        #change:hover {
-            fill: rgba(244, 241, 203, 0.7);
-            transform: rotate(-360deg);
-        }
+    .markdown-body table th,
+    .markdown-body table td {
+      padding: 12px 15px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
 
-        #changeSpan:focus #change {
-            fill: rgba(244, 241, 203, 0.7);
-            outline: none;
-        }
+    .markdown-body table th {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
 
-        .main-icons {
-            cursor: pointer;
-            fill: rgba(0, 0, 0, 0.85);
-            margin: 0 1.4vh;
-            transition: transform 0.22s ease-out, fill 0.2s ease-out;
-            width: 12vh;
-        }
+    .markdown-body pre {
+      background-color: rgba(0, 0, 0, 0.3) !important;
+      border-radius: 6px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
 
-        .main-icons:hover {
-            fill: rgba(0, 0, 0, 0.35);
-            transform: scale(0.98);
-        }
+    .markdown-body pre code {
+      background-color: transparent;
+      padding: 0;
+    }
 
-        main>a:focus {
-            outline: none;
-        }
+    .markdown-body blockquote {
+      background-color: rgba(0, 0, 0, 0.5);
+      border-left: 4px solid #4db1ff;
+      margin: 1.5em 0;
+      padding: 1em 1.2em;
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.9);
+    }
 
-        main>a:focus .main-icons {
-            fill: rgba(0, 0, 0, 0.35);
-            transform: scale(0.98);
-        }
+    /* Special styling for date/author info */
+    .markdown-body p:first-of-type {
+      color: rgba(255, 255, 255, 0.7);
+      font-style: italic;
+      margin-bottom: 2em;
+    }
 
-        #changeSpan:active #change,
-        main>a:active .main-icons {
-            fill: rgba(0, 0, 0, 0.0);
-        }
+    .home-link {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      font-size: 16px;
+      color: white;
+      z-index: 100;
+      text-decoration: none;
+      background-color: rgba(37, 99, 235, 0.9);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
 
-        @media (orientation: landscape) and (max-width: 740px) {
-            .main-icons {
-                margin: 0 2.4vh;
-                width: 20vh;
-            }
+    .home-link:hover {
+      background-color: rgba(37, 99, 235, 1);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+    }
 
-            #change {
-                right: 4vh;
-                bottom: 4vh;
-                height: 13vh;
-                width: 13vh;
-            }
-        }
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      padding: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
-        /* Add smooth fade transition for background changes */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
+    #bg {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: cover;
+      background-image: url('/jpg/bg.jpg');
+      transition: background-image 0.8s ease-in-out;
+      filter: brightness(0.45) contrast(1.05);
+    }
 
-            to {
-                opacity: 1;
-            }
-        }
+    #change {
+      right: 20px;
+      bottom: 20px;
+      height: 36px;
+      width: 36px;
+      cursor: pointer;
+      fill: rgba(252, 249, 202, 0.8);
+      position: fixed;
+      transition: transform 0.4s ease-in-out, fill 0.3s ease-in-out, box-shadow 0.3s ease;
+      z-index: 100;
+      background-color: rgba(0, 0, 0, 0.2);
+      padding: 8px;
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
 
-        #bg:not(.loading) {
-            animation: fadeIn 0.5s ease-in-out;
-        }
+    #change:hover {
+      fill: rgba(255, 252, 220, 1);
+      transform: rotate(-360deg);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
 
-        /* Blog post specific styles */
-        article {
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 8px;
-            padding: 40px;
-            margin: 20px 0;
-            line-height: 1.6;
-            color: #333;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
+    @media (max-width: 767px) {
+      .container {
+        width: 100%;
+      }
 
-        article h1 {
-            color: #0366d6;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
+      .markdown-body {
+        padding: 60px 15px 20px 15px;
+        font-size: 16px;
+      }
 
-        article h2 {
-            color: #0366d6;
-            margin-top: 30px;
-            margin-bottom: 15px;
-        }
+      .home-link {
+        top: 10px;
+        left: 10px;
+        font-size: 14px;
+        padding: 6px 12px;
+      }
 
-        article h3 {
-            color: #0366d6;
-            margin-top: 25px;
-            margin-bottom: 10px;
-        }
+      .markdown-body h1 {
+        font-size: 1.8em;
+      }
 
-        article a {
-            color: #0366d6;
-            text-decoration: none;
-        }
-
-        article a:hover {
-            text-decoration: underline;
-        }
-
-        article p {
-            margin-bottom: 15px;
-        }
-
-        article ul, article ol {
-            margin-bottom: 15px;
-            padding-left: 30px;
-        }
-
-        article li {
-            margin-bottom: 5px;
-        }
-
-        article blockquote {
-            border-left: 4px solid #0366d6;
-            padding-left: 20px;
-            margin: 20px 0;
-            font-style: italic;
-            color: #555;
-        }
-
-        article code {
-            background-color: #f6f8fa;
-            padding: 2px 5px;
-            border-radius: 3px;
-            font-family: Consolas, Monaco, 'Courier New', monospace;
-        }
-
-        article pre {
-            background-color: #f6f8fa;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            margin-bottom: 15px;
-        }
-
-        article pre code {
-            background-color: transparent;
-            padding: 0;
-        }
-
-        article em {
-            font-style: italic;
-        }
-
-        article strong {
-            font-weight: bold;
-        }
-
-        article hr {
-            border: none;
-            border-top: 1px solid #ddd;
-            margin: 30px 0;
-        }
-
-        .metadata {
-            color: #666;
-            font-style: italic;
-            margin-bottom: 20px;
-        }
-
-        .home-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #0366d6;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .home-link:hover {
-            text-decoration: underline;
-        }
-
-        article img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 20px auto;
-        }
-
-        @media (max-width: 740px) {
-            main {
-                width: 95%;
-                max-height: 95vh;
-            }
-
-            article {
-                padding: 20px;
-                margin: 10px 0;
-            }
-
-            article h1 {
-                font-size: 1.8em;
-            }
-        }
-
-        main::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        main::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-        }
-
-        main::-webkit-scrollbar-thumb {
-            background: rgba(3, 102, 214, 0.5);
-            border-radius: 5px;
-        }
-
-        main::-webkit-scrollbar-thumb:hover {
-            background: rgba(3, 102, 214, 0.7);
-        }
-    </style>
+      .markdown-body h2 {
+        font-size: 1.5em;
+      }
+    }
+  </style>
 </head>
 
 <body>
-    <div id="bg"></div>
-    <span id="changeSpan" tabindex="4" role="button" aria-label="Button to change background image"
-        title="Change Background" onclick="changeBackground();">
-        <svg version="1.1" id="change" role="img" xmlns="http://www.w3.org/2000/svg"
-            xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
-            style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve">
-            <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5
-                s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65
-                v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
-            <path
-                d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1
-                C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
-            <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3
-                c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5
-                s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
-            <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-                s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
-            <path
-                d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
-            <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
-            <path
-                d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4,12,12S154.412,24.025,161.012,24.025z" />
-            <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-                s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
-            <path
-                d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
-            <path
-                d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
-            <path
-                d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
-            <path d="M210.312,197.125c-3.2,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-                s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
-            <path
-                d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4,12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
-            <path
-                d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4,12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
-            <path
-                d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4,12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
-            <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-                s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
-            <path
-                d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4,12,12S6.612,171.925,13.212,171.925z" />
-            <path
-                d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4,12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
-            <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4,12,12S6.612,73.325,13.212,73.325z" />
-        </svg>
-    </span>
-    <main>
-        <article>
-            <a href="../" class="home-link">← Back to Blog</a>
-            <h1>AI Engineers World Fair 2025: Takeaways & Spec</h1>
-            <p class="metadata">June 7th 2025</p>
+  <div id="bg"></div>
+  <a href="/blog/" class="home-link">← Back to Blog</a>
+  <div class="container">
+    <article class="markdown-body" id="content">
+      <!-- Content will be loaded here -->
+    </article>
+    <div class="footer">© 2025 Jory Pestorious</div>
+  </div>
+  <svg version="1.1" id="change" role="img" aria-label="Change background image" tabindex="0" xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
+    style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve">
+    <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5
+        s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65
+        v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
+    <path d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1
+        C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
+    <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3
+        c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5
+        s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
+    <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
+        s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
+    <path d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
+    <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
+    <path d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S154.412,24.025,161.012,24.025z" />
+    <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
+        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
+    <path d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
+    <path d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
+    <path d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
+    <path d="M210.312,197.125c-3.2,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
+        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
+    <path d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
+    <path d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
+    <path d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
+    <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
+        s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
+    <path d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,171.925,13.212,171.925z" />
+    <path d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
+    <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,73.325,13.212,73.325z" />
+  </svg>
 
-            <h2>Foundation: Three Core Ideas</h2>
-
-            <h3>1. SPEC (Ideal State)</h3>
-            <p>Living documentation that drives everything. Key shift: writing specifications that fully capture intent and values becomes the bottleneck, not coding.</p>
-
-            <p><strong>What it looks like:</strong></p>
-            <ul>
-                <li>Markdown files in version control</li>
-                <li><a href="https://docs.google.com/">Google Docs</a> or <a href="https://www.notion.so/">Notion</a> for collaboration</li>
-                <li><a href="https://docs.github.com/en/communities/documenting-your-project-with-wikis">GitHub Wiki</a> for team access</li>
-            </ul>
-
-            <h3>2. EXPOSURE (Reality)</h3>
-            <p>What customers actually experience. Code is temporary; the spec is permanent.</p>
-
-            <p><strong>Key insight:</strong> As foundational models improve, the same spec generates better implementations over time--across languages, frameworks, and paradigms.</p>
-
-            <p><strong>Spec becomes everything:</strong></p>
-            <ul>
-                <li>Source of truth for development</li>
-                <li>Marketing materials generator</li>
-                <li>Onboarding documentation</li>
-                <li>Demo and content foundation</li>
-            </ul>
-
-            <h3>3. TASK DELTA (Work)</h3>
-            <p>Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into actionable tasks.</p>
-
-            <h2>Development Spec Emerging</h2>
-
-            <p><strong>Context Ingestion Excellence:</strong></p>
-
-            <p><strong>First-Class Citizens:</strong></p>
-            <ul>
-                <li>SPECS (markdown, version-controlled)</li>
-                <li>Rules/Values (company principles)</li>
-                <li>Prompt Banks (curated, effective prompts)</li>
-            </ul>
-
-            <p><strong>Context Sources:</strong></p>
-            <ul>
-                <li>Customer feedback</li>
-                <li>Slack conversations</li>
-                <li><a href="https://www.granola.so/">Granola</a> transcripts</li>
-                <li>Sketches, mockups, screenshots</li>
-                <li>Bug reports and <a href="https://sentry.io/">Sentry</a> logs</li>
-            </ul>
-
-            <h2>Building Toward This Vision</h2>
-
-            <p><strong>Parallelization Strategy:</strong></p>
-
-            <p><strong>Project-Level:</strong></p>
-            <ul>
-                <li>Multiple repo clones on different branches</li>
-                <li>Git worktrees (multiple workspace instances)</li>
-                <li>Containers (reliable environments)</li>
-                <li><a href="https://1password.com/">1Password</a> secrets management</li>
-            </ul>
-
-            <p><strong>Task-Level:</strong></p>
-            <ul>
-                <li>One agent generates code</li>
-                <li>One agent works on tests</li>
-                <li>One agent updates docs</li>
-                <li>Start by coordinating through shared markdown files</li>
-            </ul>
-
-            <p><strong>Tool Stack Reality:</strong></p>
-
-            <p><strong>Terminal-First:</strong></p>
-            <ul>
-                <li><a href="https://github.com/anthropics/claude-code">Claude Code CLI</a> (Pro/Max subscription)</li>
-                <li><a href="https://github.com/sst/opencode">OpenCode CLI</a> + OpenRouter (multi-model)</li>
-            </ul>
-
-            <p><strong>IDE-Integrated:</strong></p>
-            <ul>
-                <li><a href="https://cursor.com/">Cursor</a>, <a href="https://codeium.com/windsurf">Windsurf</a>, <a href="https://zed.dev/">Zed</a></li>
-                <li><a href="https://code.visualstudio.com/">VS Code</a> + <a href="https://copilot.github.com/">GitHub Copilot</a></li>
-                <li><a href="https://augmentcode.com/">Augment Code</a> (massive codebase context)</li>
-                <li><a href="https://kilocode.ai/">Kilocode.ai</a> (Roo/Cline alternative)</li>
-            </ul>
-
-            <p><strong>Quality Philosophy:</strong></p>
-
-            <p><strong>Multi-Layer Detection:</strong></p>
-            <ol>
-                <li>Static Analysis: Lints, type checking</li>
-                <li>Dynamic Testing: Unit/integration tests in sandboxes</li>
-                <li>AI Review: LLM-based code review against specs</li>
-                <li>Production Monitoring: Bug/log analysis</li>
-            </ol>
-
-            <blockquote>
-                <p>Bug prevention > Bug squashing</p>
-            </blockquote>
-
-            <h2>Implementation Approach</h2>
-
-            <h3>Stage 1 - Foundation</h3>
-            <ul>
-                <li>Audit current tool stack</li>
-                <li>Establish SPEC-first workflow and values</li>
-                <li>Set up parallel development</li>
-                <li>Create prompt bank</li>
-            </ul>
-
-            <h3>Stage 2 - Acceleration</h3>
-            <ul>
-                <li>A core agent interface for orchestrating workflows and/or other agents
-                    <ul>
-                        <li>Personalized, responsive, ambient</li>
-                    </ul>
-                </li>
-                <li>Establish feedback loops, command and tool libraries, rules</li>
-                <li>Create template library</li>
-            </ul>
-
-            <h3>Stage 3 - Integration</h3>
-            <ul>
-                <li>Build context ingestion pipeline
-                    <ul>
-                        <li>Establish quality metrics</li>
-                        <li>Clean data</li>
-                    </ul>
-                </li>
-                <li>Expand AI orchestration</li>
-                <li>Deploy <a href="https://dagger.io/">Dagger.io</a> or container environments</li>
-                <li>Durability: <a href="https://temporal.io/">Temporal.io</a></li>
-            </ul>
-
-            <h2>Most Important Success Indicator</h2>
-
-            <p><strong>Educatability</strong> (based on Leslie Valiant's research)</p>
-            <ul>
-                <li>Asking better questions</li>
-                <li>Seeking more sources and context</li>
-                <li>Sharing in sculpting the SPEC</li>
-                <li>Improving the output to client/market</li>
-                <li>High-quality communication</li>
-                <li>Learning from every iteration</li>
-            </ul>
-
-            <h2>Critical Anti-Patterns to Avoid</h2>
-
-            <h3>"AI Whisperer" Trap</h3>
-            <ul>
-                <li><strong>Problem:</strong> One person becomes the go-to for all AI tools</li>
-                <li><strong>Solution:</strong> Mandatory team rotation on AI experiments</li>
-                <li><strong>Goal:</strong> Distributed AI literacy across entire team</li>
-            </ul>
-
-            <p><strong>Documentation Debt Explosion</strong></p>
-            <ul>
-                <li><strong>Problem:</strong> Code generation accelerates, documentation lags</li>
-                <li><strong>Solution:</strong> Documentation IS the spec--write structured communication first</li>
-                <li><strong>Reality:</strong> In a spec-first world, clear written communication becomes the core skill</li>
-            </ul>
-
-            <p><strong>Review Bottleneck</strong></p>
-            <ul>
-                <li><strong>Problem:</strong> Human review becomes the constraint</li>
-                <li><strong>Solution:</strong> Tiered review system--AI for patterns, humans for logic</li>
-            </ul>
-
-            <p><strong>Conference Hot Topics:</strong></p>
-            <ul>
-                <li>Eval platforms for prompt optimization (<a href="https://www.braintrustdata.com/">Braintrust</a>)</li>
-                <li>Code review automation overload (market saturation)</li>
-                <li>Safe spaces for AI agents (<a href="https://gitpod.io/">Gitpod</a>, containers)</li>
-                <li>Memory systems and team-wide context platforms</li>
-            </ul>
-
-            <h3>Memory Systems (Extremely Popular)</h3>
-            <ul>
-                <li>Mimic human memory architectures</li>
-                <li>Bridging conversation gaps with AI agents</li>
-                <li>Start with shared markdown files (temporal, graph relational, vector... other types of memory you'll find need for depending on use cases)</li>
-            </ul>
-
-            <h3>Missing Piece: Team-Wide AI Context Systems</h3>
-            <p><strong>Problem:</strong> MCP tools and AI context live on individual developer machines</p>
-            <p><strong>Solution:</strong> Centralized intelligence platforms where one integration benefits all</p>
-
-            <p><strong>Leading Options for Shared Context</strong> (none of these were represented at the conference--the AI infra on display was underwhelming):</p>
-            <ul>
-                <li><strong><a href="https://dify.ai/">Dify.ai</a></strong>: Visual RAG builder, production-ready workflows</li>
-                <li><strong><a href="https://kestra.io/">Kestra</a></strong>: Code-first orchestration, Git-native approach</li>
-                <li><strong><a href="https://n8n.io/">n8n</a></strong>: Self-hosted automation with AI capabilities</li>
-                <li><strong><a href="https://dust.tt/">Dust.tt</a></strong>: Team-focused, fastest deployment</li>
-                <li><strong><a href="https://latenode.com/">Latenode</a></strong>: AI-driven with custom JavaScript flexibility</li>
-            </ul>
-
-            <p>Integration platform space is getting crowded, with foundational models increasingly building these features directly into their tools (see Claude Desktop). Team context and auth/authorization remain critical challenges.</p>
-
-            <h2>Next Frontier: From Collaboration to Federation</h2>
-
-            <p><strong>Current State - Collaboration:</strong></p>
-            <ul>
-                <li>Teams working together within organizations</li>
-                <li>Shared tools and workflows</li>
-                <li>Common repositories and standards</li>
-            </ul>
-
-            <p><strong>Emerging Need - Federation:</strong></p>
-            <ul>
-                <li>Cross-organizational AI agent cooperation</li>
-                <li>Auth systems that trust each other</li>
-                <li>Payment flows across boundaries</li>
-                <li>Deep orchestrations requiring formal agreements</li>
-            </ul>
-
-            <p><strong>Why This Matters:</strong><br>
-            Parallelization solved individual productivity. Collaboration solved team productivity. Federation will solve ecosystem productivity.</p>
-
-            <h2>Reality Check: What Actually Matters</h2>
-
-            <h3>Missing from Most AI Dev Discussions</h3>
-
-            <p><strong>Human Bottlenecks > Tool Limitations</strong></p>
-            <ul>
-                <li>Context switching capacity remains the biggest constraint</li>
-                <li>Parallelization helps but requires new mental models</li>
-                <li>Best tools can't fix unclear specifications</li>
-            </ul>
-
-            <p><strong>Cost Reality (May 2025)</strong></p>
-            <ul>
-                <li>API usage for heavy development: $50-200/day easily</li>
-                <li>Subscription models create predictability</li>
-                <li>ROI positive within weeks for most teams</li>
-            </ul>
-
-            <p><strong>Security Blind Spots</strong></p>
-            <ul>
-                <li>AI agents with full file system access = nuclear option</li>
-                <li>Container isolation isn't optional anymore</li>
-                <li>Auth tokens in AI context = eventual breach</li>
-            </ul>
-
-            <h3>90-Day Transformation Path</h3>
-
-            <p><strong>Days 1-30: Foundation</strong></p>
-            <ul>
-                <li>Pick ONE terminal-based AI tool and master it</li>
-                <li>Start writing specs before code</li>
-                <li>Set up basic parallelization (even just multiple clones)</li>
-            </ul>
-
-            <p><strong>Days 31-60: Acceleration</strong></p>
-            <ul>
-                <li>Add memory systems (start with markdown)</li>
-                <li>Implement container isolation</li>
-                <li>Build your first AFK workflows</li>
-            </ul>
-
-            <p><strong>Days 61-90: Integration</strong></p>
-            <ul>
-                <li>Connect context sources</li>
-                <li>Measure actual productivity gains</li>
-                <li>Share learnings with team</li>
-            </ul>
-
-            <h2>Key Takeaway</h2>
-
-            <p>In the AI era, teams that excel at building shared context and collective specifications will dominate. Success isn't about individual AI mastery--it's about raising the entire team's capability together through shared understanding and continuous learning.</p>
-
-            <h2>Final Insight: Specification as North Star</h2>
-
-            <p>Future belongs to teams that rally around living specifications--documents that capture not just what to build, but why it matters. When documentation becomes the primary artifact, when every team member contributes to the spec, when AI amplifies collective intelligence rather than individual productivity--that's when sustainable velocity emerges.</p>
-
-            <p><strong>New engineering excellence:</strong></p>
-            <ul>
-                <li>Writing specifications so clear that both humans and AI execute flawlessly</li>
-                <li>Creating context so rich that any team member can own any task</li>
-                <li>Building review systems that elevate everyone's capabilities</li>
-                <li>Maintaining educatability as a core team value</li>
-            </ul>
-
-            <p>In 2025, your competitive advantage isn't keeping knowledge siloed--it's how fast your entire team learns, adapts, and ships quality together. Specification is your shared language. Clear communication is your superpower. Collective educatability is your moat.</p>
-        </article>
-    </main>
-    <script>
-        // Constants
-        const IMAGE_SETS = {
-            desktop: ["bg.jpg", "bg2.jpg", "bg3.jpg"],
-            mobileLandscape: ["bg_mobile.jpg", "bg_mobile2.jpg", "bg_mobile3.jpg"],
-            mobilePortrait: ["bg_mobilev.jpg", "bg_mobilev2.jpg", "bg_mobilev3.jpg"]
-        };
-
-        // Media queries
-        const mediaQueries = {
-            desktop: window.matchMedia("(min-width: 741px)"),
-            mobileLandscape: window.matchMedia("(orientation: landscape) and (max-width: 740px)"),
-            mobilePortrait: window.matchMedia("(orientation: portrait) and (max-width: 740px)")
-        };
-
-        // State
-        let currentImageIndex = 0;
-        const bg = document.getElementById("bg");
-        const changeButton = document.getElementById("changeSpan");
-
-        // Event Listeners
-        changeButton.addEventListener("keypress", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                changeButton.click();
-            }
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/js/background-switcher.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('/blog/ai-engineer-spec/2025-ai-engineers-world-fair-takeaways-spec.md')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.text();
+        })
+        .then(markdownText => {
+          const html = marked.parse(markdownText);
+          document.getElementById('content').innerHTML = html;
+        })
+        .catch(error => {
+          console.error('Error loading markdown:', error);
+          document.getElementById('content').innerHTML = '<p>Error loading content. Please try again later.</p>';
         });
 
-        // Image loading with error handling
-        async function loadImage(src) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => resolve(img);
-                img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-                img.src = src;
-            });
-        }
-
-        // Get current image set based on screen size
-        function getCurrentImageSet() {
-            if (mediaQueries.desktop.matches) return IMAGE_SETS.desktop;
-            if (mediaQueries.mobileLandscape.matches) return IMAGE_SETS.mobileLandscape;
-            if (mediaQueries.mobilePortrait.matches) return IMAGE_SETS.mobilePortrait;
-            return IMAGE_SETS.desktop;
-        }
-
-        // Change background with loading state
-        async function changeBackground() {
-            try {
-                // Clear any text selection
-                window.getSelection()?.removeAllRanges();
-
-                // Update image index
-                currentImageIndex = (currentImageIndex + 1) % getCurrentImageSet().length;
-
-                // Get current image set and filename
-                const imageSet = getCurrentImageSet();
-                const imageName = imageSet[currentImageIndex];
-
-                // Add loading class
-                bg.classList.add('loading');
-
-                // Load and set new image
-                await loadImage(`/jpg/${imageName}`);
-                bg.style.backgroundImage = `url(/jpg/${imageName})`;
-
-                // Remove loading class
-                bg.classList.remove('loading');
-            } catch (error) {
-                console.error('Error changing background:', error);
-                // Fallback to default image
-                bg.style.backgroundImage = `url(/jpg/${getCurrentImageSet()[0]})`;
-            }
-        }
-
-        // Preload next images
-        async function preloadNextImages() {
-            try {
-                const imageSet = getCurrentImageSet();
-                const nextIndex = (currentImageIndex + 1) % imageSet.length;
-                const nextImage = imageSet[nextIndex];
-
-                await loadImage(`/jpg/${nextImage}`);
-            } catch (error) {
-                console.error('Error preloading images:', error);
-            }
-        }
-
-        // Handle window resize
-        window.addEventListener("resize", async () => {
-            try {
-                // Update background for new screen size
-                const imageSet = getCurrentImageSet();
-                const imageName = imageSet[currentImageIndex];
-
-                bg.classList.add('loading');
-                await loadImage(`/jpg/${imageName}`);
-                bg.style.backgroundImage = `url(/jpg/${imageName})`;
-                bg.classList.remove('loading');
-
-                // Preload next images
-                preloadNextImages();
-            } catch (error) {
-                console.error('Error handling resize:', error);
-            }
-        });
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            // Update image paths to use root paths
-            bg.style.backgroundImage = bg.style.backgroundImage.replace('url(jpg/', 'url(/jpg/');
-            preloadNextImages();
-        });
-    </script>
+      BackgroundSwitcher.init({
+        imagePath: '/jpg/',
+        useContainer: false,
+        buttonId: 'change'
+      });
+    });
+  </script>
 </body>
 
 </html>
