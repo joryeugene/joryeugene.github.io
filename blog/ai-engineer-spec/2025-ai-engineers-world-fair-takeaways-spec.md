@@ -73,7 +73,7 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 - *Up & coming*: [OpenCode CLI](https://github.com/sst/opencode)
 
 **IDEs - The Good:**
-- [VS Code](https://code.visualstudio.com/) - tried and true
+- [VS Code](https://code.visualstudio.com/) - tried and true, massive extension ecosystem
 - [Zed](https://zed.dev/) - Rust-powered, blazing fast, native vim mode
 
 **IDEs - The Fancy (VS Code forks):**
