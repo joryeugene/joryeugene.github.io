@@ -82,7 +82,7 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 **Extensions:**
 - [GitHub Copilot](https://copilot.github.com/) - enterprise standard
 - [Augment Code](https://augmentcode.com/) - context engine for massive codebases
-- [Kilocode.ai](https://kilocode.ai/) - transparent usage pricing
+- [Kilocode.ai](https://kilocode.ai/) - transparent usage pricing (Cline/Roo alternative)
 
 ### Quality Philosophy
 
@@ -100,7 +100,7 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 **Foundation:**
 - Pick ONE AI tool and master it - terminal-based recommended
 - Write specs before code
-- Set up parallel development with git worktrees
+- Source control mastery and parallel development setup: git worktrees, multiple repos... or maybe even learn Jujutsu (jj)
 
 **Growth:**
 - Add memory systems (start with shared markdown)
@@ -150,7 +150,7 @@ The ecosystem is exploding with tools, but quality varies wildly:
 ### The WiFi Reality Check
 What happens when conference WiFi crashes? Workshop presenters learned the hard way--always have failbacks. Local models aren't just nice-to-have anymore. Ollama, LM Studio, and MLX models running on your MacBook Pro are getting surprisingly good. Don't lean 100% on cloud AI without a backup plan.
 
-The real lesson: learn HOW these tools think, not just WHAT they output. Study the patterns, understand the reasoning, apply the methods. That knowledge stays with you when the API goes down.
+> The real lesson: learn HOW these tools think, not just WHAT they output. Study the patterns, understand the reasoning, apply the methods. That knowledge stays with you when the API goes down.
 
 ### Memory Systems (Extremely Popular)
 - Mimic human memory architectures
@@ -192,7 +192,7 @@ While we're mastering team collaboration, the next wave involves cross-organizat
 
 Each agent maintains its organization's data sovereignty while sharing just enough context to prevent fraud without exposing sensitive internals. Auth tokens expire after specific workflows. Audit trails span organizations. Legal agreements are encoded in the agent handshakes.
 
-Parallelization solves individual productivity. Collaboration solves team productivity. Federation could solve ecosystem productivity--turning entire industries into coordinated, intelligent networks.
+> Parallelization solves individual productivity. Collaboration solves team productivity. Federation could solve ecosystem productivity--turning entire industries into coordinated, intelligent networks.
 
 ## Reality Check: What Actually Matters
 
