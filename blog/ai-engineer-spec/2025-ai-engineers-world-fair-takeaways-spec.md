@@ -1,16 +1,16 @@
-# AI Engineers World Fair 2025: Takeaways & Spec
+# AI Engineer World's Fair 2025: Takeaways & Spec
 *San Francisco, June 2025*
 
 Your AI can write 10,000 lines of code per hour. So can your competitor's. The models aren't the differentiator anymore--everyone has access to the same frontier capabilities. What happens when code becomes a commodity?
 
-At this year's AI Engineers World Fair, we found our answer: engineering excellence = articulation excellence. The bottleneck is no longer implementation--it's imagination, specification, and the ability to articulate exactly what should exist. This isn't just about engineers. Product managers, lawmakers, architects, designers--anyone who shapes systems now faces the same truth: clear thinking beats fast typing. And the teams winning have fundamentally reimagined their development process around this principle.
+At this year's AI Engineer World's Fair, we found our answer: engineering excellence = articulation excellence. The bottleneck is no longer implementation--it's imagination, specification, and the ability to articulate exactly what should exist. This isn't just about engineers. Product managers, lawmakers, architects, designers--anyone who shapes systems now faces the same truth: clear thinking beats fast typing. And the teams winning have fundamentally reimagined their development process around this principle.
 
 ## Foundation: Three Core Ideas
 
 ### 1. SPEC (Ideal State)
 Key shift: writing specifications that fully capture intent and values becomes the bottleneck, not coding.
 
-*This thinking was heavily influenced by Sean Grove's keynote "The New Code" at the AI Engineer World Fair. Sean (from OpenAI) articulated how specifications are becoming the primary development artifact--an insight that crystallized this framework.*
+*This thinking was heavily influenced by Sean Grove's keynote "The New Code" at the AI Engineer World's Fair. Sean (from OpenAI) articulated how specifications are becoming the primary development artifact--an insight that crystallized this framework.*
 
 **What it looks like:**
 - Markdown files in version control
