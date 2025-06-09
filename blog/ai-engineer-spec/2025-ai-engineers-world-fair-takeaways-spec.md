@@ -69,7 +69,8 @@ Continuous loop: evaluate SPEC ↔ PRODUCT, identify gaps, decompose into action
 
 **Terminal-First:**
 - [Claude Code CLI](https://github.com/anthropics/claude-code) - Pro/Max subscription
-- [OpenCode CLI](https://github.com/sst/opencode) + [OpenRouter](https://openrouter.ai/) - multi-model access
+- [Goose CLI](https://github.com/block/goose) + [OpenRouter](https://openrouter.ai/) - autonomous agent, multi-model
+- *Up & coming*: [OpenCode CLI](https://github.com/sst/opencode)
 
 **IDEs - The Good:**
 - [VS Code](https://code.visualstudio.com/) - tried and true
@@ -147,7 +148,7 @@ The ecosystem is exploding with tools, but quality varies wildly:
 - Creative evaluation methods (*See Simon Willison's ["The Last Six Months in LLMs, Illustrated by Pelicans on Bicycles"](https://simonwillison.net/2025/Jun/6/six-months-in-llms/) for an innovative approach to model evaluation through creative benchmarks*)
 
 ### The WiFi Reality Check
-What happens when conference WiFi crashes? Workshop presenters learned the hard way--always have failbacks. Local models aren't just nice-to-have anymore. Ollama, LM Studio, and MLX models running on your MacBook Pro are getting surprisingly good. Don't lean 100% on cloud AI without a backup plan. 
+What happens when conference WiFi crashes? Workshop presenters learned the hard way--always have failbacks. Local models aren't just nice-to-have anymore. Ollama, LM Studio, and MLX models running on your MacBook Pro are getting surprisingly good. Don't lean 100% on cloud AI without a backup plan.
 
 The real lesson: learn HOW these tools think, not just WHAT they output. Study the patterns, understand the reasoning, apply the methods. That knowledge stays with you when the API goes down.
 
