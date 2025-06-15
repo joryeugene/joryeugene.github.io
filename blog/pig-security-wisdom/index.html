@@ -287,6 +287,16 @@
           const container = document.createElement('div');
           container.innerHTML = html;
 
+          // Add the pigs image after the first paragraph
+          const paragraphs = container.querySelectorAll('p');
+          if (paragraphs.length > 0) {
+            const img = document.createElement('img');
+            img.src = '/jpg/pigs.png';
+            img.alt = 'Three pigs illustration';
+            img.style.cssText = 'max-width: 100%; height: auto; margin: 20px auto; display: block; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);';
+            paragraphs[0].parentNode.insertBefore(img, paragraphs[1]);
+          }
+
           // Add IDs to all headings
           const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
           headings.forEach(heading => {
