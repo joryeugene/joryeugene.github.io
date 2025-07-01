@@ -10,6 +10,8 @@ Everyone talks about the AI skills gap. But there's another gap hiding in plain 
 
 Those engineers might be using Claude on personal accounts right now. Not because they're rebels, but because they're doing what they were hired to do: deliver the best possible solutions with the best available tools. And while they do, your competitors with better AI tools ship faster.
 
+*The gap between what's possible and what's permitted keeps widening.*
+
 ![The AI Gap visualization](ai-excellence-optimized.png)
 *A cartoon contrast: Enthusiastic engineers use AI on one side; confused individuals stare at checkboxes on the other.*
 
