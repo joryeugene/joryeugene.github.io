@@ -110,13 +110,16 @@
         }
         
         .blog-title {
-            color: rgba(255, 255, 255, 0.97);
+            color: #ffffff;
+            text-shadow: 
+                0 1px 3px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(0, 0, 0, 0.5);
             margin-top: 0;
             margin-bottom: 32px;
             text-align: left;
             font-size: 28px;
-            font-weight: 500;
-            letter-spacing: -0.015em;
+            font-weight: 600;
+            letter-spacing: -0.02em;
             line-height: 1.2;
         }
         
@@ -341,7 +344,8 @@
             transform: rotate(-360deg) scale(1.05);
         }
         
-        /* Add entrance animation for cards */
+        /* Add entrance animations */
+        
         .blog-item {
             animation: fadeInUp 0.6s ease-out forwards;
             opacity: 0;
@@ -363,6 +367,7 @@
                 transform: translateY(0);
             }
         }
+        
         
         #changeSpan:focus #change {
             fill: rgba(244, 241, 203, 0.9);
@@ -393,6 +398,11 @@
                 left: 15px;
                 padding: 10px 14px;
                 font-size: 13px;
+            }
+            
+            .blog-title {
+                font-size: 24px;
+                letter-spacing: -0.01em;
             }
             
             #change {
