@@ -128,7 +128,7 @@
             padding-right: 10px;
             display: grid;
             grid-template-columns: 1fr;
-            gap: 16px;
+            gap: 20px;
         }
         
         .blog-list::-webkit-scrollbar {
@@ -164,7 +164,7 @@
         
         .blog-item-link {
             display: block;
-            padding: 18px;
+            padding: 20px;
             text-decoration: none;
             color: inherit;
         }
@@ -371,16 +371,28 @@
         
         @media (max-width: 767px) {
             main {
-                padding: 10px;
+                padding: 15px;
             }
             
             .blog-container {
                 height: 90vh;
-                padding: 20px;
+                padding: 24px;
             }
             
             .blog-list {
                 padding-right: 5px;
+                gap: 16px;
+            }
+            
+            .blog-item-link {
+                padding: 16px;
+            }
+            
+            .home-link {
+                top: 15px;
+                left: 15px;
+                padding: 10px 14px;
+                font-size: 13px;
             }
             
             #change {
