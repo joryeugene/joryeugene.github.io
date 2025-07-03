@@ -93,7 +93,6 @@ Command blocks group input/output for easier navigation. AI agents provide natur
 - Native Mac shortcuts and ecosystem integration
 - Split panes, triggers, shell integration
 
-*Sometimes that's exactly what you need.*
 
 ### **WezTerm**
 **Lua config isn't complexity--it's programmability.** Real-time config reloading, dynamic scripting, actual programming capabilities. Cross-platform consistency means identical experience on Mac, Linux, Windows.
@@ -111,7 +110,6 @@ Command blocks group input/output for easier navigation. AI agents provide natur
 - Remote control API lets you script and control Kitty from external programs
 - Advanced graphics and keyboard protocols
 
-*The config syntax fights you until it doesn't.*
 
 ---
 
