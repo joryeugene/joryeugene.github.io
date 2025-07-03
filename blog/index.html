@@ -232,6 +232,12 @@
                 text-decoration: none !important;
                 border-bottom: none !important;
             }
+            
+            .home-link {
+                text-shadow: 0 0 0 currentColor !important;
+                text-decoration: none !important;
+                border-bottom: none !important;
+            }
         }
         
         .blog-item h3 {
@@ -282,24 +288,31 @@
         }
         
         .home-link {
-            display: inline-flex;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 6px;
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            overflow: hidden;
+            display: flex;
             align-items: center;
             gap: 6px;
-            margin-top: 24px;
+            padding: 12px 16px;
             color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             font-weight: 400;
             font-size: 14px;
-            transition: color 0.2s ease;
+            z-index: 100;
         }
         
         .home-link:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.12);
             color: rgba(255, 255, 255, 0.9);
-        }
-        
-        .home-link::before {
-            content: '←';
-            margin-right: 4px;
         }
         
         #change {
@@ -397,6 +410,7 @@
         </svg>
     </span>
     <main>
+        <a href=".." class="home-link">← Home</a>
         <div class="blog-container">
             <h1 class="blog-title">Jory's Blog & Presentations</h1>
             <ul class="blog-list">
@@ -449,7 +463,6 @@
                     </a>
                 </li>
             </ul>
-            <a href=".." class="home-link">Home</a>
         </div>
     </main>
     <script src="/js/blog-common.js"></script>
