@@ -11,7 +11,10 @@ Most developers already have a terminal setup that works. The real question isn'
 
 Tool switching has emotional costs. Your fingers know where the keys are. Your brain has muscle memory. Starting over means being slower for weeks while you retrain reflexes you didn't know you had.
 
-So why change anything? Because some friction points compound. A laggy terminal slows your thinking. Bad copy/paste breaks your flow with Claude. Poor session management loses your work.
+So why change anything? Because some friction points compound:
+- A laggy terminal slows your thinking
+- Bad copy/paste breaks your flow with Claude
+- Poor session management loses your work
 
 > **The best setup is the one you'll actually use. But sometimes a small change eliminates a daily annoyance.**
 
@@ -23,26 +26,33 @@ Before diving into terminal apps, let's talk about what actually runs your comma
 
 | Shell | Why Choose It | Reality Check |
 |-------|---------------|---------------|
-| **bash** | Portability + universal compatibility | Most servers, CI systems, tutorials use bash |
-| **zsh** | Enhanced bash with modern features | Sweet spot for most developers |
-| **fish** | Opinionated excellence | Senior devs choose this for sanity |
+| **`bash`** | Portability + universal compatibility | Most servers, CI systems, tutorials use `bash` |
+| **`zsh`** | Enhanced `bash` with modern features | Sweet spot for most developers |
+| **`fish`** | Opinionated excellence | Senior devs choose this for sanity |
 
-### bash
-Not just "the default"--it's widespread. Most servers, CI systems, and tutorials. **Bash is the lingua franca of shell scripting.**
+### `bash`
+Not just "the default"--it's widespread. Most servers, CI systems, and tutorials. **`bash` is the lingua franca of shell scripting.**
 
-Choose bash when you value portability over features. When you need scripts that run anywhere. When muscle memory from decades of use is worth more than modern conveniences.
+Choose `bash` when you:
+- Value portability over features
+- Need scripts that run anywhere
+- Have muscle memory from decades of use
 
-### zsh
-The sweet spot for most developers. Familiar enough that bash knowledge transfers. Enhanced enough to feel modern.
+### `zsh`
+The sweet spot for most developers. Familiar enough that `bash` knowledge transfers. Enhanced enough to feel modern.
 
-*Oh-my-zsh isn't mandatory.* Many pros use vanilla zsh with minimal config. Plugins can slow you down as much as help--choose carefully.
+*Oh-my-zsh isn't mandatory.* Many pros use vanilla `zsh` with minimal config. Plugins can slow you down as much as help--choose carefully.
 
-### fish
-**Opinionated excellence with great defaults.** Works beautifully out of the box. Experienced developers often choose fish for its sanity.
+### `fish`
+**Opinionated excellence with great defaults.** Works beautifully out of the box. Experienced developers often choose `fish` for its sanity.
 
-Non-POSIX by design. They fixed what was broken: sane variable syntax, intuitive scripting, built-in documentation. The autosuggestions aren't gimmicks--they're efficiency.
+Non-POSIX by design. They fixed what was broken:
+- Sane variable syntax
+- Intuitive scripting
+- Built-in documentation
+- Autosuggestions that boost efficiency
 
-Fish forces you to relearn shell scripting. *For many, that's a feature.*
+`fish` forces you to relearn shell scripting. *For many, that's a feature.*
 
 ---
 
@@ -56,30 +66,52 @@ Fish forces you to relearn shell scripting. *For many, that's a feature.*
 | **WezTerm** | Cross-platform consistency | Lua programmability |
 | **[Kitty](https://sw.kovidgoyal.net/kitty/)** | Terminal innovation | Graphics protocol + keyboard fixes |
 
-### VS Code Terminal
+### **VS Code Terminal**
 **Seamless debug workflow integration.** Set breakpoints, run tasks, see output--all in one place. Shell integration tracks commands and detects errors. Extension ecosystem enhances terminal capabilities.
 
-The friction: can't move to external monitors, no session persistence between restarts, tied to VS Code lifecycle. *If this works for your workflow, there's no shame in staying.*
+**The friction:**
+- Can't move to external monitors
+- No session persistence between restarts
+- Tied to VS Code lifecycle
 
-### Warp
+*If this works for your workflow, there's no shame in staying.*
+
+### **Warp**
 **Revolutionary UX innovation.** Command blocks group input/output for easier navigation--genuinely changes how you work with terminals. AI agents provide natural language command generation, not just autocomplete.
 
-Modern editing experience brings IDE-like features to the command line. Share command blocks with teams for collaboration. This matters when reviewing Claude's multi-step outputs.
+**Key features:**
+- Modern editing experience brings IDE-like features to the command line
+- Share command blocks with teams for collaboration
+- Critical when reviewing Claude's multi-step outputs
 
-### iTerm2
+### **iTerm2**
 **Mac-native power user terminal.** Advanced search across terminal history works well. Triggers automate actions based on text patterns--powerful workflow automation.
 
-Profiles and arrangements manage complex workspaces. Deep tmux integration. Native Mac shortcuts and ecosystem integration. Split panes, triggers, shell integration--it handles most use cases. Sometimes that's exactly what you need.
+**Power features:**
+- Profiles and arrangements manage complex workspaces
+- Deep `tmux` integration
+- Native Mac shortcuts and ecosystem integration
+- Split panes, triggers, shell integration
 
-### WezTerm
+*Sometimes that's exactly what you need.*
+
+### **WezTerm**
 **Lua config isn't complexity--it's programmability.** Real-time config reloading, dynamic scripting, actual programming capabilities. Cross-platform consistency means identical experience on Mac, Linux, Windows.
 
-Built-in multiplexing is excellent if you want fewer moving parts. GPU acceleration handles Claude's large outputs smoothly.
+**Advantages:**
+- Built-in multiplexing (fewer moving parts)
+- GPU acceleration handles Claude's large outputs smoothly
+- True cross-platform consistency
 
-### Kitty
-**Graphics protocol supports 24-bit RGB, animation, and pixel-level positioning**--a significant advance over sixel's 6-pixel-high patterns and limited color depth from the 1970s. The keyboard protocol solves specific ambiguities: Ctrl+Shift+R vs Ctrl+R are now distinguishable, key release events work, and complex modifier combinations that traditionally generated identical escape codes can be differentiated.
+### **Kitty**
+**Graphics protocol supports 24-bit RGB, animation, and pixel-level positioning**--a significant advance over sixel's 6-pixel-high patterns and limited color depth from the 1970s. The keyboard protocol solves specific ambiguities: `Ctrl+Shift+R` vs `Ctrl+R` are now distinguishable, key release events work, and complex modifier combinations that traditionally generated identical escape codes can be differentiated.
 
-Built-in layouts eliminate the need for tmux. Remote control API lets you script and control Kitty from external programs. The config syntax fights you until it doesn't.
+**Technical advantages:**
+- Built-in layouts eliminate the need for `tmux`
+- Remote control API lets you script and control Kitty from external programs
+- Advanced graphics and keyboard protocols
+
+*The config syntax fights you until it doesn't.*
 
 ---
 
@@ -87,30 +119,34 @@ Built-in layouts eliminate the need for tmux. Remote control API lets you script
 
 > **You might not need one if:** your terminal has good native tabs/splits, you don't SSH into remote machines, and you don't need persistent sessions.
 
-### tmux
+### **`tmux`**
 **Battle-tested doesn't mean outdated.** The keybindings are learnable, not archaic. Session persistence saves actual work.
 
-Twenty years of refinement shows. It works across environments, handles edge cases, integrates widely.
+**Why it endures:**
+- Twenty years of refinement shows
+- Works across environments
+- Handles edge cases
+- Integrates widely
 
-### Zellij
+### **Zellij**
 Modern UX principles applied to terminal multiplexing. **Floating panes change workflows.** Intuitive session management.
 
-Yes, Claude output flickers at the bottom of Zellij panes. It's purely visual--functionality isn't affected. For some workflows, the benefits outweigh the annoyance.
+> **Note:** Claude output flickers at the bottom of Zellij panes. It's purely visual--functionality isn't affected. For some workflows, the benefits outweigh the annoyance.
 
 ---
 
 ## Real Stack Patterns
 
 ### The Minimalist
-**Fish + WezTerm**  
-*Why:* Fish's defaults + WezTerm's built-in multiplexing = zero config. Smart autosuggestions meet GPU acceleration.
+**`fish` + WezTerm**  
+*Why:* `fish`'s defaults + WezTerm's built-in multiplexing = zero config. Smart autosuggestions meet GPU acceleration.
 
 ### The Traditionalist
-**Bash + iTerm2 + tmux**  
+**`bash` + iTerm2 + `tmux`**  
 *Why:* Muscle memory is valuable. Everything just works. No surprises.
 
 ### The Modernist
-**Fish + Warp**  
+**`fish` + Warp**  
 *Why:* Rethinking both shell and terminal together. Block-based output meets intelligent suggestions.
 
 ### The Pragmatist
@@ -118,8 +154,8 @@ Yes, Claude output flickers at the bottom of Zellij panes. It's purely visual--f
 *Why:* Tools should reduce friction, not create it.
 
 ### My Setup
-**zsh + WezTerm + Zellij + LazyVim + lazygit + yazi**  
-The GPU acceleration handles Claude's large outputs. Zellij's modern UX despite the flicker. yazi for visual file browsing. *What's yours?*
+**`zsh` + WezTerm + Zellij + LazyVim + `lazygit` + `yazi`**  
+The GPU acceleration handles Claude's large outputs. Zellij's modern UX despite the flicker. `yazi` for visual file browsing. *What's yours?*
 
 ---
 
@@ -129,7 +165,10 @@ The GPU acceleration handles Claude's large outputs. Zellij's modern UX despite 
 **Sub-50ms latency changes how you think.** Your brain notices the delay even when you don't. GPU acceleration isn't about pretty graphics--it's about keeping up with your thoughts.
 
 ### Copy/Paste Ergonomics
-How many keystrokes to get text out of Claude and into your editor? Does selection work like you expect? Can you copy from anywhere in scrollback?
+**Critical questions:**
+- How many keystrokes to get text out of Claude and into your editor?
+- Does selection work like you expect?
+- Can you copy from anywhere in scrollback?
 
 *These micro-interactions happen hundreds of times per day.*
 
@@ -137,7 +176,12 @@ How many keystrokes to get text out of Claude and into your editor? Does selecti
 **Losing work hurts more than any feature helps.** Persistent sessions vs. quick recovery--both solve the same problem differently.
 
 ### Integration
-With your editor. With your version control. With Claude and other AI tools. *Friction between tools multiplies.*
+**Everything must work together:**
+- With your editor
+- With your version control
+- With Claude and other AI tools
+
+*Friction between tools multiplies.*
 
 ---
 
@@ -157,16 +201,17 @@ With your editor. With your version control. With Claude and other AI tools. *Fr
 
 **Start small.** Try a new terminal with your current shell. Give it two weeks minimum--long enough for the novelty to wear off. Don't customize until you know the defaults.
 
-> **The switch that matters most:** VS Code terminal → any standalone terminal. Separation of concerns. Flexibility. Focus.
+> **The switch that matters most:** **VS Code terminal** → **any standalone terminal**. Separation of concerns. Flexibility. Focus.
 
 ---
 
 ## Claude-Specific Considerations
 
-**Output volume:** GPU terminals help with large responses.
-**Session length:** Multiplexer memory usage matters for long conversations.
-**The flicker:** Annoying but not terminal (pun intended).
-**Copy mode:** Critical for reviewing Claude's work and moving code around.
+**Claude-specific requirements:**
+- **Output volume:** GPU terminals help with large responses
+- **Session length:** Multiplexer memory usage matters for long conversations
+- **The flicker:** Annoying but not terminal *(pun intended)*
+- **Copy mode:** Critical for reviewing Claude's work and moving code around
 
 Claude generates a lot of text quickly. Your terminal choice affects how smoothly you can review, copy, and use that output.
 
@@ -200,7 +245,7 @@ git diff | claude "review changes"  # Direct piping
 - Perfect for production code changes
 - Your safety net for experimental ideas
 
-*Pro tip: Use plan mode for any multi-file changes or when working with unfamiliar codebases.*
+> **Pro tip:** Use plan mode for any multi-file changes or when working with unfamiliar codebases.
 
 ### Undocumented Feature: Directory Switching
 **Useful feature:** Claude Code supports changing directories mid-conversation:
@@ -258,8 +303,8 @@ claude "use git to create a feature branch"
 ```
 
 **Why CLI > MCP sometimes:**
-- gh CLI works immediately vs GitHub MCP setup
-- docker commands more reliable than container MCPs
+- `gh` CLI works immediately vs GitHub MCP setup
+- `docker` commands more reliable than container MCPs
 - No configuration overhead, just works
 
 **Terminal integration patterns:**
@@ -277,9 +322,9 @@ claude "use git to create a feature branch"
 
 The most productive setup is whatever you already know plus Claude in a terminal pane. **Don't overthink it.**
 
-If you're comfortable with VS Code's terminal, that's your setup. If you live in tmux, add a Claude pane. The tool adapts to you.
+If you're comfortable with **VS Code's terminal**, that's your setup. If you live in `tmux`, add a Claude pane. The tool adapts to you.
 
-But if you're hitting friction points--slow rendering, poor copy/paste, lost sessions--then maybe it's time for something new. Just remember: changing tools has costs. Make sure the benefits are worth it.
+But if you're hitting friction points--slow rendering, poor copy/paste, lost sessions--then maybe it's time for something new. Just remember: **changing tools has costs**. Make sure the benefits are worth it.
 
 ---
 
@@ -295,6 +340,7 @@ But if you're hitting friction points--slow rendering, poor copy/paste, lost ses
 - [Kitty](https://sw.kovidgoyal.net/kitty/) - GPU terminal with graphics protocol
 
 ### Shells & Multiplexers
+- [Zsh](https://www.zsh.org/) - Extended shell with modern features
 - [Fish Shell](https://fishshell.com/) - User-friendly shell with great defaults
 - [tmux](https://github.com/tmux/tmux) - Terminal multiplexer
 - [Zellij](https://zellij.dev/) - Modern terminal workspace
