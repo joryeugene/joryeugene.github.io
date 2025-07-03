@@ -537,73 +537,6 @@ const ScrollProgress = {
   }
 };
 
-// Copy Code Button
-const CopyCode = {
-  // Add copy buttons to code blocks
-  init() {
-    const codeBlocks = document.querySelectorAll('.markdown-body pre');
-    console.log('[CopyCode] Found code blocks:', codeBlocks.length);
-    
-    codeBlocks.forEach(block => {
-      // Create copy button
-      const button = document.createElement('button');
-      button.className = 'copy-code-button';
-      button.textContent = 'Copy';
-      button.setAttribute('aria-label', 'Copy code to clipboard');
-      
-      // Style the button
-      button.style.cssText = `
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        padding: 4px 8px;
-        font-size: 12px;
-        background-color: var(--code-bg);
-        color: var(--text-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        cursor: pointer;
-        opacity: 0;
-        transition: opacity var(--transition-fast);
-      `;
-      
-      // Make pre position relative
-      block.style.position = 'relative';
-      
-      // Show button on hover
-      block.addEventListener('mouseenter', () => {
-        button.style.opacity = '1';
-      });
-      
-      block.addEventListener('mouseleave', () => {
-        button.style.opacity = '0';
-      });
-      
-      // Copy functionality
-      button.addEventListener('click', async () => {
-        const code = block.querySelector('code');
-        const text = code ? code.textContent : block.textContent;
-        
-        try {
-          await navigator.clipboard.writeText(text);
-          button.textContent = 'Copied!';
-          setTimeout(() => {
-            button.textContent = 'Copy';
-          }, 2000);
-        } catch (err) {
-          console.error('Failed to copy:', err);
-          button.textContent = 'Error';
-          setTimeout(() => {
-            button.textContent = 'Copy';
-          }, 2000);
-        }
-      });
-      
-      // Add button to block
-      block.appendChild(button);
-    });
-  }
-};
 
 // Skeleton Loader Module
 const SkeletonLoader = {
@@ -930,7 +863,6 @@ window.BlogCommon = {
   SkeletonLoader,
   ReadingTime,
   ScrollProgress,
-  CopyCode,
   LazyImageLoader,
   TableOfContents,
   PostNavigation,
@@ -962,9 +894,6 @@ window.BlogCommon = {
       ScrollProgress.init(options.scrollProgress || {});
     }
     
-    if (options.copyCode !== false) {
-      CopyCode.init();
-    }
     
     if (options.lazyImages !== false) {
       LazyImageLoader.init(options.lazyImages || {});
