@@ -164,7 +164,7 @@ The GPU acceleration handles Claude's large outputs. Zellij's modern UX despite 
 
 ### Copy/Paste Ergonomics
 **Critical questions:**
-- How many keystrokes to get text out of your editor and into Claude?
+- How many keystrokes to get text out of your notes and into Claude?
 - Does selection work like you expect?
 - Can you copy from anywhere in scrollback?
 
