@@ -67,7 +67,7 @@ Non-POSIX by design. They fixed what was broken:
 | **[Kitty](https://sw.kovidgoyal.net/kitty/)** | Terminal innovation | Graphics protocol + keyboard fixes |
 
 ### **VS Code Terminal**
-**Seamless debug workflow integration.** Set breakpoints, run tasks, see output--all in one place. Shell integration tracks commands and detects errors. Extension ecosystem enhances terminal capabilities.
+**Seamless debug workflow integration.** Set breakpoints, run tasks, see output--all in one place. Extension ecosystem enhances terminal capabilities.
 
 **The friction:**
 - Can't move to external monitors
@@ -77,15 +77,15 @@ Non-POSIX by design. They fixed what was broken:
 *If this works for your workflow, there's no shame in staying.*
 
 ### **Warp**
-**Revolutionary UX innovation.** Command blocks group input/output for easier navigation--genuinely changes how you work with terminals. AI agents provide natural language command generation, not just autocomplete.
+Command blocks group input/output for easier navigation. AI agents provide natural language command generation, not just autocomplete.
 
 **Key features:**
 - Modern editing experience brings IDE-like features to the command line
 - Share command blocks with teams for collaboration
-- Critical when reviewing Claude's multi-step outputs
+- Command blocks organize large outputs into manageable sections
 
 ### **iTerm2**
-**Mac-native power user terminal.** Advanced search across terminal history works well. Triggers automate actions based on text patterns--powerful workflow automation.
+**Mac-native power user terminal.** Advanced search across terminal history. Triggers automate actions based on text patterns--workflow automation.
 
 **Power features:**
 - Profiles and arrangements manage complex workspaces
