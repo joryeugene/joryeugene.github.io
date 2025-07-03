@@ -129,31 +129,31 @@ Command blocks group input/output for easier navigation. AI agents provide natur
 ### **Zellij**
 Modern UX principles applied to terminal multiplexing. **Floating panes change workflows.** Intuitive session management.
 
-> **Note:** Claude output flickers at the bottom of Zellij panes. It's purely visual--functionality isn't affected. For some workflows, the benefits outweigh the annoyance.
+**Note:** Claude output flickers at the bottom of Zellij panes when used in WezTerm. It's purely visual--functionality isn't affected. For some workflows, the benefits outweigh the annoyance.
 
 ---
 
 ## Real Stack Patterns
 
 ### The Minimalist
-***fish* + WezTerm**  
+***fish* + WezTerm**
 *Why:* *fish*'s defaults + WezTerm's built-in multiplexing = zero config. Smart autosuggestions meet GPU acceleration.
 
 ### The Traditionalist
-***bash* + iTerm2 + *tmux***  
+***bash* + iTerm2 + *tmux***
 *Why:* Muscle memory is valuable. Everything just works. No surprises.
 
 ### The Modernist
-***fish* + Warp**  
+***fish* + Warp**
 *Why:* Rethinking both shell and terminal together. Block-based output meets intelligent suggestions.
 
 ### The Pragmatist
-**Whatever shell you know + whatever terminal you have + Claude in a pane**  
+**Whatever shell you know + whatever terminal you have + Claude in a pane**
 *Why:* Tools should reduce friction, not create it.
 
 ### My Setup
-***zsh* + WezTerm + Zellij + LazyVim + *lazygit* + *yazi***  
-The GPU acceleration handles Claude's large outputs. Zellij's modern UX despite the flicker. *yazi* for visual file browsing. *What's yours?*
+***zsh* + WezTerm + Zellij + LazyVim + *lazygit* + *yazi***
+The GPU acceleration handles Claude's large outputs. Zellij's modern UX despite the WezTerm flicker. *yazi* for visual file browsing. *What's yours?*
 
 ---
 
@@ -208,7 +208,7 @@ The GPU acceleration handles Claude's large outputs. Zellij's modern UX despite 
 **Claude-specific requirements:**
 - **Output volume:** GPU terminals help with large responses
 - **Session length:** Multiplexer memory usage matters for long conversations
-- **The flicker:** Annoying but not terminal *(pun intended)*
+- **The flicker:** Zellij + WezTerm combination causes visual flicker
 - **Copy mode:** Critical for reviewing Claude's work and moving code around
 
 Claude generates a lot of text quickly. Your terminal choice affects how smoothly you can review, copy, and use that output.
