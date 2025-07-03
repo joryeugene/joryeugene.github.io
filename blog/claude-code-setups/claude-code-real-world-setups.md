@@ -136,15 +136,15 @@ Modern UX principles applied to terminal multiplexing. **Floating panes change w
 ## Real Stack Patterns
 
 ### The Minimalist
-***fish* + WezTerm**
+#### *fish* + WezTerm
 *Why:* *fish*'s defaults + WezTerm's built-in multiplexing = zero config. Smart autosuggestions meet GPU acceleration.
 
 ### The Traditionalist
-***bash* + iTerm2 + *tmux***
+#### *bash* + iTerm2 + *tmux*
 *Why:* Muscle memory is valuable. Everything just works. No surprises.
 
 ### The Modernist
-***fish* + Warp**
+#### *fish* + Warp
 *Why:* Rethinking both shell and terminal together. Block-based output meets intelligent suggestions.
 
 ### The Pragmatist
@@ -152,7 +152,7 @@ Modern UX principles applied to terminal multiplexing. **Floating panes change w
 *Why:* Tools should reduce friction, not create it.
 
 ### My Setup
-***zsh* + WezTerm + Zellij + LazyVim + *lazygit* + *yazi***
+#### *zsh* + WezTerm + Zellij + LazyVim + *lazygit* + *yazi*
 The GPU acceleration handles Claude's large outputs. Zellij's modern UX despite the WezTerm flicker. *yazi* for visual file browsing. *What's yours?*
 
 ---
