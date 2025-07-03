@@ -5,7 +5,7 @@
 
 ---
 
-## The Reality Nobody Talks About
+## Real-World Trade-offs
 
 Most developers already have a terminal setup that works. The real question isn't "what's the best setup?" but "what tiny friction points are worth fixing?"
 
@@ -23,12 +23,12 @@ Before diving into terminal apps, let's talk about what actually runs your comma
 
 | Shell | Why Choose It | Reality Check |
 |-------|---------------|---------------|
-| **bash** | Portability + universal compatibility | Every server, CI system, tutorial uses bash |
+| **bash** | Portability + universal compatibility | Most servers, CI systems, tutorials use bash |
 | **zsh** | Enhanced bash with modern features | Sweet spot for most developers |
 | **fish** | Opinionated excellence | Senior devs choose this for sanity |
 
 ### bash
-Not just "the default"--it's everywhere. Every server, every CI system, every tutorial. **Bash is the lingua franca of shell scripting.**
+Not just "the default"--it's widespread. Most servers, CI systems, and tutorials. **Bash is the lingua franca of shell scripting.**
 
 Choose bash when you value portability over features. When you need scripts that run anywhere. When muscle memory from decades of use is worth more than modern conveniences.
 
@@ -38,7 +38,7 @@ The sweet spot for most developers. Familiar enough that bash knowledge transfer
 *Oh-my-zsh isn't mandatory.* Many pros use vanilla zsh with minimal config. Plugins can slow you down as much as help--choose carefully.
 
 ### fish
-**Opinionated excellence with great defaults.** Works beautifully out of the box. Many developers choose fish for its sanity.
+**Opinionated excellence with great defaults.** Works beautifully out of the box. Experienced developers often choose fish for its sanity.
 
 Non-POSIX by design. They fixed what was broken: sane variable syntax, intuitive scripting, built-in documentation. The autosuggestions aren't gimmicks--they're efficiency.
 
@@ -67,9 +67,9 @@ The friction: can't move to external monitors, no session persistence between re
 Modern editing experience brings IDE-like features to the command line. Share command blocks with teams for collaboration. This matters when reviewing Claude's multi-step outputs.
 
 ### iTerm2
-**Mac-native power user terminal.** Advanced search across entire terminal history is genuinely unmatched. Triggers automate actions based on text patterns--powerful workflow automation.
+**Mac-native power user terminal.** Advanced search across terminal history works well. Triggers automate actions based on text patterns--powerful workflow automation.
 
-Profiles and arrangements manage complex workspaces. Deep tmux integration. Native Mac shortcuts and ecosystem integration. Split panes, triggers, shell integration--it does everything. Sometimes that's exactly what you need.
+Profiles and arrangements manage complex workspaces. Deep tmux integration. Native Mac shortcuts and ecosystem integration. Split panes, triggers, shell integration--it handles most use cases. Sometimes that's exactly what you need.
 
 ### WezTerm
 **Lua config isn't complexity--it's programmability.** Real-time config reloading, dynamic scripting, actual programming capabilities. Cross-platform consistency means identical experience on Mac, Linux, Windows.
@@ -77,7 +77,7 @@ Profiles and arrangements manage complex workspaces. Deep tmux integration. Nati
 Built-in multiplexing is excellent if you want fewer moving parts. GPU acceleration handles Claude's large outputs smoothly.
 
 ### Kitty
-**Graphics protocol is genuinely innovative.** Superior to sixel for displaying actual images and plots in terminal. The keyboard protocol fixes fundamental problems that have plagued terminals for decades.
+**Graphics protocol is innovative.** Superior to sixel for displaying actual images and plots in terminal. The keyboard protocol fixes fundamental problems that have plagued terminals for decades.
 
 Built-in layouts eliminate the need for tmux. Remote control API lets you script and control Kitty from external programs. The config syntax fights you until it doesn't.
 
@@ -90,7 +90,7 @@ Built-in layouts eliminate the need for tmux. Remote control API lets you script
 ### tmux
 **Battle-tested doesn't mean outdated.** The keybindings are learnable, not archaic. Session persistence saves actual work.
 
-Twenty years of refinement shows. It works everywhere, handles edge cases, integrates with everything.
+Twenty years of refinement shows. It works across environments, handles edge cases, integrates widely.
 
 ### Zellij
 Modern UX principles applied to terminal multiplexing. **Floating panes change workflows.** Intuitive session management.
@@ -145,9 +145,9 @@ With your editor. With your version control. With Claude and other AI tools. *Fr
 
 - **Switching shells is harder than switching terminals.** Scripts break. Aliases vanish. Muscle memory fights you.
 
-- **Most productivity gains are placebo effects.** The new tool feels faster because you're paying attention to it.
+- **Many productivity gains are placebo effects.** The new tool feels faster because you're paying attention to it.
 
-- **The best developers use wildly different setups.** There's no correlation between terminal choice and code quality.
+- **Skilled developers use different setups.** There's no correlation between terminal choice and code quality.
 
 - **Tool obsession is procrastination.** The perfect setup won't make you a better developer.
 
@@ -174,7 +174,7 @@ Claude generates a lot of text quickly. Your terminal choice affects how smoothl
 
 ## Essential Usage Patterns
 
-Quick commands everyone should know:
+Useful commands to know:
 
 ```bash
 claude -c           # Continue recent conversation
