@@ -7,7 +7,7 @@
 
 ## Real-World Trade-offs
 
-Most developers already have a terminal setup that works. The real question isn't "what's the best setup?" but "what tiny friction points are worth fixing?"
+Most developers already have a terminal setup that works. The real question isn't *what's the best setup?* but *what tiny friction points are worth fixing?*
 
 Tool switching has emotional costs. Your fingers know where the keys are. Your brain has muscle memory. Starting over means being slower for weeks while you retrain reflexes you didn't know you had.
 
@@ -26,25 +26,25 @@ Before diving into terminal apps, let's talk about what actually runs your comma
 
 | Shell | Why Choose It | Reality Check |
 |-------|---------------|---------------|
-| **`bash`** | Portability + universal compatibility | Most servers, CI systems, tutorials use `bash` |
-| **`zsh`** | Enhanced `bash` with modern features | Sweet spot for most developers |
-| **`fish`** | Opinionated excellence | Senior devs choose this for sanity |
+| **[*bash*](https://www.gnu.org/software/bash/)** | Portability + universal compatibility | Most servers, CI systems, tutorials use *bash* |
+| **[*zsh*](https://www.zsh.org/)** | Enhanced *bash* with modern features | Sweet spot for most developers |
+| **[*fish*](https://fishshell.com/)** | Opinionated excellence | Senior devs choose this for sanity |
 
-### `bash`
-Not just "the default"--it's widespread. Most servers, CI systems, and tutorials. **`bash` is the lingua franca of shell scripting.**
+### *bash*
+Not just "the default"--it's widespread. Most servers, CI systems, and tutorials. ***bash* is the lingua franca of shell scripting.**
 
-Choose `bash` when you:
+Choose *bash* when you:
 - Value portability over features
 - Need scripts that run anywhere
 - Have muscle memory from decades of use
 
-### `zsh`
-The sweet spot for most developers. Familiar enough that `bash` knowledge transfers. Enhanced enough to feel modern.
+### *zsh*
+The sweet spot for most developers. Familiar enough that *bash* knowledge transfers. Enhanced enough to feel modern.
 
-*Oh-my-zsh isn't mandatory.* Many pros use vanilla `zsh` with minimal config. Plugins can slow you down as much as help--choose carefully.
+*Oh-my-zsh isn't mandatory.* Many pros use vanilla *zsh* with minimal config. Plugins can slow you down as much as help--choose carefully.
 
-### `fish`
-**Opinionated excellence with great defaults.** Works beautifully out of the box. Experienced developers often choose `fish` for its sanity.
+### *fish*
+**Opinionated excellence with great defaults.** Works beautifully out of the box. Experienced developers often choose *fish* for its sanity.
 
 Non-POSIX by design. They fixed what was broken:
 - Sane variable syntax
@@ -52,7 +52,7 @@ Non-POSIX by design. They fixed what was broken:
 - Built-in documentation
 - Autosuggestions that boost efficiency
 
-`fish` forces you to relearn shell scripting. *For many, that's a feature.*
+*fish* forces you to relearn shell scripting. *For many, that's a feature.*
 
 ---
 
@@ -62,8 +62,8 @@ Non-POSIX by design. They fixed what was broken:
 |----------|----------|--------------|
 | **VS Code Terminal** | Debug workflows + tasks | Editor integration |
 | **[Warp](https://www.warp.dev/)** | AI-powered development | Command blocks + AI agents |
-| **iTerm2** | Mac power users | Advanced search + automation |
-| **WezTerm** | Cross-platform consistency | Lua programmability |
+| **[iTerm2](https://iterm2.com/)** | Mac power users | Advanced search + automation |
+| **[WezTerm](https://wezfurlong.org/wezterm/)** | Cross-platform consistency | Lua programmability |
 | **[Kitty](https://sw.kovidgoyal.net/kitty/)** | Terminal innovation | Graphics protocol + keyboard fixes |
 
 ### **VS Code Terminal**
@@ -89,7 +89,7 @@ Non-POSIX by design. They fixed what was broken:
 
 **Power features:**
 - Profiles and arrangements manage complex workspaces
-- Deep `tmux` integration
+- Deep *tmux* integration
 - Native Mac shortcuts and ecosystem integration
 - Split panes, triggers, shell integration
 
@@ -107,7 +107,7 @@ Non-POSIX by design. They fixed what was broken:
 **Graphics protocol supports 24-bit RGB, animation, and pixel-level positioning**--a significant advance over sixel's 6-pixel-high patterns and limited color depth from the 1970s. The keyboard protocol solves specific ambiguities: `Ctrl+Shift+R` vs `Ctrl+R` are now distinguishable, key release events work, and complex modifier combinations that traditionally generated identical escape codes can be differentiated.
 
 **Technical advantages:**
-- Built-in layouts eliminate the need for `tmux`
+- Built-in layouts eliminate the need for *tmux*
 - Remote control API lets you script and control Kitty from external programs
 - Advanced graphics and keyboard protocols
 
@@ -119,7 +119,7 @@ Non-POSIX by design. They fixed what was broken:
 
 > **You might not need one if:** your terminal has good native tabs/splits, you don't SSH into remote machines, and you don't need persistent sessions.
 
-### **`tmux`**
+### ***tmux***
 **Battle-tested doesn't mean outdated.** The keybindings are learnable, not archaic. Session persistence saves actual work.
 
 **Why it endures:**
@@ -138,15 +138,15 @@ Modern UX principles applied to terminal multiplexing. **Floating panes change w
 ## Real Stack Patterns
 
 ### The Minimalist
-**`fish` + WezTerm**  
-*Why:* `fish`'s defaults + WezTerm's built-in multiplexing = zero config. Smart autosuggestions meet GPU acceleration.
+***fish* + WezTerm**  
+*Why:* *fish*'s defaults + WezTerm's built-in multiplexing = zero config. Smart autosuggestions meet GPU acceleration.
 
 ### The Traditionalist
-**`bash` + iTerm2 + `tmux`**  
+***bash* + iTerm2 + *tmux***  
 *Why:* Muscle memory is valuable. Everything just works. No surprises.
 
 ### The Modernist
-**`fish` + Warp**  
+***fish* + Warp**  
 *Why:* Rethinking both shell and terminal together. Block-based output meets intelligent suggestions.
 
 ### The Pragmatist
@@ -154,8 +154,8 @@ Modern UX principles applied to terminal multiplexing. **Floating panes change w
 *Why:* Tools should reduce friction, not create it.
 
 ### My Setup
-**`zsh` + WezTerm + Zellij + LazyVim + `lazygit` + `yazi`**  
-The GPU acceleration handles Claude's large outputs. Zellij's modern UX despite the flicker. `yazi` for visual file browsing. *What's yours?*
+***zsh* + WezTerm + Zellij + LazyVim + *lazygit* + *yazi***  
+The GPU acceleration handles Claude's large outputs. Zellij's modern UX despite the flicker. *yazi* for visual file browsing. *What's yours?*
 
 ---
 
@@ -223,7 +223,7 @@ Useful commands to know:
 
 ```bash
 # Core commands
-claude -c                           # Continue recent conversation
+claude -c                           # Continue recent conversation (same pwd/dir)
 claude --resume                     # Session picker
 claude "think hard: complex bug"    # Deep analysis (10K tokens)
 claude "ultrathink: architecture"   # Complex design (32K tokens)
@@ -303,8 +303,8 @@ claude "use git to create a feature branch"
 ```
 
 **Why CLI > MCP sometimes:**
-- `gh` CLI works immediately vs GitHub MCP setup
-- `docker` commands more reliable than container MCPs
+- *gh* CLI works immediately vs GitHub MCP setup
+- *docker* commands more reliable than container MCPs
 - No configuration overhead, just works
 
 **Terminal integration patterns:**
@@ -322,7 +322,7 @@ claude "use git to create a feature branch"
 
 The most productive setup is whatever you already know plus Claude in a terminal pane. **Don't overthink it.**
 
-If you're comfortable with **VS Code's terminal**, that's your setup. If you live in `tmux`, add a Claude pane. The tool adapts to you.
+If you're comfortable with **VS Code's terminal**, that's your setup. If you live in *tmux*, add a Claude pane. The tool adapts to you.
 
 But if you're hitting friction points--slow rendering, poor copy/paste, lost sessions--then maybe it's time for something new. Just remember: **changing tools has costs**. Make sure the benefits are worth it.
 
@@ -333,20 +333,17 @@ But if you're hitting friction points--slow rendering, poor copy/paste, lost ses
 ### Documentation
 - [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
 
-### Terminal Emulators
-- [Warp](https://www.warp.dev/) - AI-powered terminal with command blocks
-- [iTerm2](https://iterm2.com/) - Mac power user terminal
-- [WezTerm](https://wezfurlong.org/wezterm/) - Cross-platform GPU-accelerated terminal
-- [Kitty](https://sw.kovidgoyal.net/kitty/) - GPU terminal with graphics protocol
-
-### Shells & Multiplexers
-- [Zsh](https://www.zsh.org/) - Extended shell with modern features
-- [Fish Shell](https://fishshell.com/) - User-friendly shell with great defaults
+### Multiplexers
 - [tmux](https://github.com/tmux/tmux) - Terminal multiplexer
 - [Zellij](https://zellij.dev/) - Modern terminal workspace
 
 ### Development Tools
-- [GitHub CLI](https://cli.github.com/) - Essential for git workflows
+- [GitHub CLI](https://cli.github.com/) - Essential for *git* workflows
+- [LazyVim](https://www.lazyvim.org/) - Neovim configuration
+
+### File Management
+- [yazi](https://github.com/sxyazi/yazi) - Terminal file manager
+- [lazygit](https://github.com/jesseduffield/lazygit) - Git TUI
 
 ---
 
