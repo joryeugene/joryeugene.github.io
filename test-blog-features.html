@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Features Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 20px;
+      background: #111;
+      color: #fff;
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #333;
+      margin: 20px 0;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+    h2 {
+      color: #4db1ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Blog Features Test Suite</h1>
+  
+  <div class="test-section">
+    <h2>Blog Index Test</h2>
+    <p>Testing for underline issues on blog titles</p>
+    <iframe src="/blog/index.html"></iframe>
+  </div>
+  
+  <div class="test-section">
+    <h2>AI Engineer Spec Test</h2>
+    <p>Testing markdown loading and features</p>
+    <iframe src="/blog/ai-engineer-spec/"></iframe>
+  </div>
+  
+  <div class="test-section">
+    <h2>Console Output</h2>
+    <p>Check browser console for debug logs</p>
+  </div>
+  
+  <script>
+    // Listen for console messages from iframes
+    window.addEventListener('message', (e) => {
+      console.log('Message from iframe:', e.data);
+    });
+  </script>
+</body>
+</html>

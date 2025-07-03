@@ -26,7 +26,7 @@
 
 	<!-- Security Headers -->
 	<meta http-equiv="Content-Security-Policy"
-		content="default-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+		content="default-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';">
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta http-equiv="X-Frame-Options" content="DENY">
 	<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -71,19 +71,19 @@
 			z-index: 0;
 		}
 
-		@media (min-width: 741px) {
+		@media (min-width: 768px) {
 			.bg.initial {
 				background-image: url(jpg/bg.jpg);
 			}
 		}
 
-		@media (orientation: landscape) and (max-width: 740px) {
+		@media (orientation: landscape) and (max-width: 767px) {
 			.bg.initial {
 				background-image: url(jpg/bg_mobile.jpg);
 			}
 		}
 
-		@media (orientation: portrait) and (max-width: 740px) {
+		@media (orientation: portrait) and (max-width: 767px) {
 			.bg.initial {
 				background-image: url(jpg/bg_mobilev.jpg);
 			}
@@ -126,16 +126,18 @@
 			cursor: pointer;
 			fill: rgba(0, 0, 0, 0.85);
 			margin: 0 1.4vh;
-			transition: transform 0.22s ease-out, fill 0.2s ease-out;
+			transition: transform 0.22s ease-out, fill 0.2s ease-out, filter 0.2s ease-out;
 			width: 12vh;
 			height: 12vh;
 			display: inline-block;
 			vertical-align: middle;
+			will-change: transform;
 		}
 
 		.main-icons:hover {
 			fill: rgba(0, 0, 0, 0.35);
-			transform: scale(0.98);
+			transform: scale(0.98) translateY(-2px);
+			filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 		}
 
 		main>a:focus {
@@ -144,7 +146,8 @@
 
 		main>a:focus .main-icons {
 			fill: rgba(0, 0, 0, 0.35);
-			transform: scale(0.98);
+			transform: scale(0.98) translateY(-2px);
+			filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 		}
 
 		#changeSpan:active #change,
@@ -152,7 +155,7 @@
 			fill: rgba(0, 0, 0, 0.0);
 		}
 
-		@media (orientation: landscape) and (max-width: 740px) {
+		@media (orientation: landscape) and (max-width: 767px) {
 			.main-icons {
 				margin: 0 2.4vh;
 				width: 20vh;
@@ -232,12 +235,12 @@
 	</style>
 </head>
 
-<body style="overflow: hidden;">
+<body>
 	<div id="bg-container">
-		<div id="bg-1" class="bg active"></div>
+		<div id="bg-1" class="bg active initial"></div>
 		<div id="bg-2" class="bg"></div>
 		<span id="changeSpan" tabindex="4" role="button" aria-label="Button to change background image"
-			title="Change Background" onclick="changeBackground();">
+			title="Change Background">
 			<svg version="1.1" id="change" role="img" xmlns="http://www.w3.org/2000/svg"
 				xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
 				style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve" text-rendering="optimizeSpeed">
@@ -327,113 +330,23 @@
 				</svg></a>
 		</main>
 	</div>
+	<script src="/js/blog-common.js"></script>
 	<script>
-		const IMAGE_SETS = {
-			desktop: ["bg.jpg", "bg2.jpg", "bg3.jpg"],
-			mobileLandscape: ["bg_mobile.jpg", "bg_mobile2.jpg", "bg_mobile3.jpg"],
-			mobilePortrait: ["bg_mobilev.jpg", "bg_mobilev2.jpg", "bg_mobilev3.jpg"]
-		};
-
-		const mediaQueries = {
-			desktop: window.matchMedia("(min-width: 741px)"),
-			mobileLandscape: window.matchMedia("(orientation: landscape) and (max-width: 740px)"),
-			mobilePortrait: window.matchMedia("(orientation: portrait) and (max-width: 740px)")
-		};
-
-		let currentImageIndex = 0;
-		let activeBackground = 1;
-		const bg1 = document.getElementById("bg-1");
-		const bg2 = document.getElementById("bg-2");
-		const changeButton = document.getElementById("changeSpan");
-
-		changeButton.addEventListener("keypress", (event) => {
-			if (event.key === "Enter") {
-				event.preventDefault();
-				changeButton.click();
-			}
-		});
-
-		async function loadImage(src) {
-			return new Promise((resolve, reject) => {
-				const img = new Image();
-				img.onload = () => resolve(img);
-				img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-				img.src = src;
-			});
-		}
-
-		function getCurrentImageSet() {
-			if (mediaQueries.desktop.matches) return IMAGE_SETS.desktop;
-			if (mediaQueries.mobileLandscape.matches) return IMAGE_SETS.mobileLandscape;
-			if (mediaQueries.mobilePortrait.matches) return IMAGE_SETS.mobilePortrait;
-			return IMAGE_SETS.desktop;
-		}
-
-		async function changeBackground() {
-			try {
-				window.getSelection()?.removeAllRanges();
-
-				currentImageIndex = (currentImageIndex + 1) % getCurrentImageSet().length;
-				const imageSet = getCurrentImageSet();
-				const imageName = imageSet[currentImageIndex];
-
-				const inactiveBg = activeBackground === 1 ? bg2 : bg1;
-				const activeBg = activeBackground === 1 ? bg1 : bg2;
-
-				await loadImage(`jpg/${imageName}`);
-
-				inactiveBg.style.backgroundImage = `url(jpg/${imageName})`;
-				inactiveBg.classList.remove('inactive');
-				inactiveBg.classList.add('active');
-
-				activeBg.classList.remove('active');
-				activeBg.classList.add('inactive');
-
-				activeBackground = activeBackground === 1 ? 2 : 1;
-			} catch (error) {
-				console.error('Error changing background:', error);
-				const defaultImage = getCurrentImageSet()[0];
-				if (activeBackground === 1) {
-					bg1.style.backgroundImage = `url(jpg/${defaultImage})`;
-				} else {
-					bg2.style.backgroundImage = `url(jpg/${defaultImage})`;
-				}
-			}
-		}
-
-		async function preloadNextImages() {
-			try {
-				const imageSet = getCurrentImageSet();
-				const nextIndex = (currentImageIndex + 1) % imageSet.length;
-				const nextImage = imageSet[nextIndex];
-				await loadImage(`jpg/${nextImage}`);
-			} catch (error) {
-				console.error('Error preloading images:', error);
-			}
-		}
-
-		async function handleResize() {
-			try {
-				const imageSet = getCurrentImageSet();
-				const imageName = imageSet[currentImageIndex];
-
-				const activeBg = activeBackground === 1 ? bg1 : bg2;
-				await loadImage(`jpg/${imageName}`);
-				activeBg.style.backgroundImage = `url(jpg/${imageName})`;
-
-				preloadNextImages();
-			} catch (error) {
-				console.error('Error handling resize:', error);
-			}
-		}
-
-		window.addEventListener("resize", handleResize);
-
 		document.addEventListener('DOMContentLoaded', () => {
-			const initialImageSet = getCurrentImageSet();
-			bg1.style.backgroundImage = `url(jpg/${initialImageSet[0]})`;
-			bg1.classList.add('initial');
-			preloadNextImages();
+			// Initialize background switcher for the homepage
+			BlogCommon.BackgroundSwitcher.init({
+				buttonId: 'changeSpan',  // The span element, not the SVG
+				bgElementId: 'bg-1',     // Use the first background div  
+				useContainer: false,
+				imagePath: '/jpg/'
+			});
+		});
+		
+		// Cleanup on page unload
+		window.addEventListener('beforeunload', () => {
+			if (BlogCommon.BackgroundSwitcher && BlogCommon.BackgroundSwitcher.cleanup) {
+				BlogCommon.BackgroundSwitcher.cleanup();
+			}
 		});
 	</script>
 

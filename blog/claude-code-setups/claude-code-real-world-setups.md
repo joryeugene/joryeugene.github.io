@@ -1,4 +1,4 @@
-# Claude Code Real-World Setups: What Actually Works
+# Terminal Setups for Claude's 10,000-Line Outputs
 *July 2nd, 2025*
 
 **Most developers switch terminals for the wrong reasons. Here's what actually matters when Claude is generating 10,000 lines of output.**

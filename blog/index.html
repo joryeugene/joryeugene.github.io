@@ -25,7 +25,7 @@
 
     <!-- Security Headers -->
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+        content="default-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -42,7 +42,9 @@
             margin: 0;
             padding: 0;
             background-color: #000000;
-            overflow: hidden;
+            overflow-x: hidden;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
 
         #bg {
@@ -56,97 +58,286 @@
             background-position: center center;
             background-size: cover;
             transition: background-image 0.5s ease-in-out;
+            filter: brightness(0.9);
         }
 
         #bg.loading {
             opacity: 0.7;
         }
 
-        @media (min-width: 741px) {
+        @media (min-width: 768px) {
             #bg {
                 background-image: url(../jpg/bg.jpg);
             }
         }
 
-        @media (orientation: landscape) and (max-width: 740px) {
+        @media (orientation: landscape) and (max-width: 767px) {
             #bg {
                 background-image: url(../jpg/bg_mobile.jpg);
             }
         }
 
-        @media (orientation: portrait) and (max-width: 740px) {
+        @media (orientation: portrait) and (max-width: 767px) {
             #bg {
                 background-image: url(../jpg/bg_mobilev.jpg);
             }
         }
 
         main {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
+            height: auto;
             padding: 20px;
-            text-align: center;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
             position: relative;
             z-index: 1;
             box-sizing: border-box;
+            padding-top: 40px;
+        }
+        
+        .blog-container {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .blog-title {
+            color: rgba(255, 255, 255, 0.95);
+            margin-top: 0;
+            margin-bottom: 32px;
+            text-align: left;
+            font-size: 28px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+        
+        .blog-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            flex: 1;
+            padding-right: 10px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .blog-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .blog-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .blog-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        .blog-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .blog-item {
+            background-color: transparent;
+            border-radius: 6px;
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .blog-item-link {
+            display: block;
+            padding: 18px;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .blog-item:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        
+        /* NUCLEAR CSS - Remove ALL underlines everywhere */
+        *, *:before, *:after,
+        a, a:hover, a:focus, a:active, a:visited,
+        .blog-item, .blog-item *,
+        .blog-item a, .blog-item a *,
+        .blog-item a:hover, .blog-item a:hover *,
+        .blog-item a:focus, .blog-item a:focus *,
+        .blog-item a:active, .blog-item a:active *,
+        .blog-item a:visited, .blog-item a:visited *,
+        .blog-item-link, .blog-item-link *,
+        .blog-item-link:hover, .blog-item-link:hover *,
+        .blog-item-link:focus, .blog-item-link:focus *,
+        .blog-item-link:active, .blog-item-link:active *,
+        .blog-item-link:visited, .blog-item-link:visited *,
+        h1, h2, h3, h4, h5, h6,
+        h1 *, h2 *, h3 *, h4 *, h5 *, h6 * {
+            text-decoration: none !important;
+            text-decoration-line: none !important;
+            text-decoration-style: none !important;
+            text-decoration-color: transparent !important;
+            text-decoration-thickness: 0 !important;
+            text-underline-offset: 0 !important;
+            border-bottom: none !important;
+            border-bottom-width: 0 !important;
+            border-bottom-style: none !important;
+            border-bottom-color: transparent !important;
         }
 
+        /* Firefox-specific nuclear option */
+        @-moz-document url-prefix() {
+            *, *:before, *:after {
+                text-decoration: none !important;
+                text-decoration-line: none !important;
+                text-decoration-style: none !important;
+                text-decoration-color: transparent !important;
+                border-bottom: none !important;
+            }
+            
+            .blog-item a, .blog-item a * {
+                text-decoration: none !important;
+                border-bottom: none !important;
+                -moz-text-decoration-line: none !important;
+                -moz-text-decoration-style: none !important;
+                -moz-text-decoration-color: transparent !important;
+            }
+        }
+
+        /* Zen Browser specific fix - text-shadow technique */
+        @supports (-moz-appearance: none) {
+            .blog-item *, .blog-item-link *, .blog-item, .blog-item-link,
+            .blog-item h3, .blog-item p {
+                text-shadow: 0 0 0 currentColor !important;
+                display: inline-block !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                text-decoration: none !important;
+                border-bottom: none !important;
+            }
+        }
+        
+        .blog-item h3 {
+            margin: 0 0 12px 0;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.4;
+            letter-spacing: 0;
+        }
+        
+        .blog-item p {
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .blog-item-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+        }
+        
+        .read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 400;
+            padding: 6px 12px;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            background: transparent;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .read-more:hover {
+            color: rgba(255, 255, 255, 0.85);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .read-more::after {
+            content: '→';
+        }
+        
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 24px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+        
+        .home-link:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .home-link::before {
+            content: '←';
+            margin-right: 4px;
+        }
+        
         #change {
             right: 2.5vh;
             bottom: 2.5vh;
             height: 7vh;
             width: 7vh;
             cursor: pointer;
-            fill: rgba(252, 249, 202, 0.4);
+            fill: rgba(252, 249, 202, 0.6);
             position: fixed;
             transition: transform 0.3s ease-in-out, fill 0.2s ease-in-out;
             z-index: 10;
         }
-
+        
         #change:hover {
-            fill: rgba(244, 241, 203, 0.7);
+            fill: rgba(244, 241, 203, 0.9);
             transform: rotate(-360deg);
         }
-
+        
         #changeSpan:focus #change {
-            fill: rgba(244, 241, 203, 0.7);
+            fill: rgba(244, 241, 203, 0.9);
             outline: none;
         }
-
-        .main-icons {
-            cursor: pointer;
-            fill: rgba(0, 0, 0, 0.85);
-            margin: 0 1.4vh;
-            transition: transform 0.22s ease-out, fill 0.2s ease-out;
-            width: 12vh;
-        }
-
-        .main-icons:hover {
-            fill: rgba(0, 0, 0, 0.35);
-            transform: scale(0.98);
-        }
-
-        main>a:focus {
-            outline: none;
-        }
-
-        main>a:focus .main-icons {
-            fill: rgba(0, 0, 0, 0.35);
-            transform: scale(0.98);
-        }
-
-        #changeSpan:active #change,
-        main>a:active .main-icons {
-            fill: rgba(0, 0, 0, 0.0);
-        }
-
-        @media (orientation: landscape) and (max-width: 740px) {
-            .main-icons {
-                margin: 0 2.4vh;
-                width: 20vh;
+        
+        @media (max-width: 767px) {
+            main {
+                padding: 10px;
             }
-
+            
+            .blog-container {
+                height: 90vh;
+                padding: 20px;
+            }
+            
+            .blog-list {
+                padding-right: 5px;
+            }
+            
             #change {
                 right: 4vh;
                 bottom: 4vh;
@@ -154,137 +345,13 @@
                 width: 13vh;
             }
         }
-
-        /* Add smooth fade transition for background changes */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        #bg:not(.loading) {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        /* Blog specific styles */
-        .blog-container {
-            background-color: rgba(255, 255, 255, 0.6);
-            border-radius: 8px;
-            max-width: 800px;
-            max-height: 80vh;
-            margin: 0 auto;
-            padding: 30px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        @media (max-width: 740px) {
-            main {
-                padding: 10px;
-            }
-
-            .blog-container {
-                padding: 20px;
-                max-height: 90vh;
-            }
-
-            .blog-list {
-                padding-right: 5px;
-            }
-        }
-
-        .blog-title {
-            color: #0366d6;
-            margin-top: 0;
-            text-align: center;
-        }
-
-        .blog-list {
-            list-style: none;
-            padding: 0;
-            margin: 20px 0;
-            overflow-y: auto;
-            flex: 1;
-            padding-right: 10px;
-        }
-
-        .blog-list::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .blog-list::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-        }
-
-        .blog-list::-webkit-scrollbar-thumb {
-            background: rgba(3, 102, 214, 0.5);
-            border-radius: 4px;
-        }
-
-        .blog-list::-webkit-scrollbar-thumb:hover {
-            background: rgba(3, 102, 214, 0.7);
-        }
-
-        .blog-item {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: rgba(255, 255, 255, 0.4);
-            border-radius: 5px;
-            border-left: 4px solid #0366d6;
-            text-align: center;
-        }
-
-        .blog-item h3 {
-            margin-top: 0;
-            color: #0366d6;
-        }
-
-        .blog-item p {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .blog-item a {
-            display: inline-block;
-            background-color: #0366d6;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.2s ease-out;
-        }
-
-        .blog-item a:hover {
-            background-color: #0056b3;
-        }
-
-        .home-link {
-            display: block;
-            margin-top: 20px;
-            color: #0366d6;
-            text-decoration: none;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .home-link:hover {
-            color: #0056b3;
-        }
     </style>
 </head>
 
 <body>
     <div id="bg"></div>
     <span id="changeSpan" tabindex="4" role="button" aria-label="Button to change background image"
-        title="Change Background" onclick="changeBackground();">
+        title="Change Background">
         <svg version="1.1" id="change" role="img" xmlns="http://www.w3.org/2000/svg"
                 xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
                 style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve">
@@ -334,162 +401,74 @@
             <h1 class="blog-title">Jory's Blog & Presentations</h1>
             <ul class="blog-list">
                 <li class="blog-item">
-                    <h3>Claude Code Real-World Setups: What Actually Works</h3>
-                    <p>The definitive guide to terminal environments for Claude Code. From beginner Warp setups to power user WezTerm + Zellij configurations. Includes authentic battle-tested recommendations and honest assessments of what really works in daily development.</p>
-                    <a href="/blog/claude-code-setups/index.html">Read Blog Post</a>
+                    <a href="/blog/claude-code-setups/index.html" class="blog-item-link">
+                        <h3>Terminal Setups for Claude's 10,000-Line Outputs</h3>
+                        <p>The definitive guide to terminal environments for Claude Code. From beginner Warp setups to power user WezTerm + Zellij configurations. Includes authentic battle-tested recommendations and honest assessments of what really works in daily development.</p>
+                    </a>
                 </li>
                 <li class="blog-item">
-                    <h3>The AI Gap: Why Leaders Struggle to Equip Their Engineers</h3>
-                    <p>The disconnect between AI tools engineers need and what organizations provide is costing companies competitive advantage. Learn how measurement-driven approaches can bridge this gap and unlock real productivity gains.</p>
-                    <a href="/blog/trust-your-engineers/index.html">Read Blog Post</a>
+                    <a href="/blog/trust-your-engineers/index.html" class="blog-item-link">
+                        <h3>The AI Gap: Why Leaders Struggle to Equip Their Engineers</h3>
+                        <p>The disconnect between AI tools engineers need and what organizations provide is costing companies competitive advantage. Learn how measurement-driven approaches can bridge this gap and unlock real productivity gains.</p>
+                    </a>
                 </li>
                 <li class="blog-item">
-                    <h3>Major improvements to my Claude Code CLI wrapper (v10.0.0) 🚀</h3>
-                    <p>https://github.com/joryeugene/calmhive-cli - check it out if you use Claude Code, it's powerful. During extensive AFK testing, my tool sometimes does creative writing. This cybersecurity allegory was one of my favorites it produced. Wisdom in pig form.</p>
-                    <a href="/blog/pig-security-wisdom/index.html">Read Blog Post</a>
+                    <a href="/blog/pig-security-wisdom/index.html" class="blog-item-link">
+                        <h3>Major improvements to my Claude Code CLI wrapper (v10.0.0) 🚀</h3>
+                        <p>https://github.com/joryeugene/calmhive-cli - check it out if you use Claude Code, it's powerful. During extensive AFK testing, my tool sometimes does creative writing. This cybersecurity allegory was one of my favorites it produced. Wisdom in pig form.</p>
+                    </a>
                 </li>
                 <li class="blog-item">
-                    <h3>AI Engineer World's Fair 2025: Takeaways & Spec</h3>
-                    <p>Key insights from the San Francisco conference on specification-driven development. Influenced by Sean Grove's keynote "The New Code" (OpenAI), exploring how SPEC, EXPOSURE, and TASK DELTA are reshaping AI engineering, plus practical guidance on tools and team transformation.</p>
-                    <a href="/blog/ai-engineer-spec/index.html">Read Blog Post</a>
+                    <a href="/blog/ai-engineer-spec/index.html" class="blog-item-link">
+                        <h3>AI Engineer World's Fair 2025: Takeaways & Spec</h3>
+                        <p>Key insights from the San Francisco conference on specification-driven development. Influenced by Sean Grove's keynote "The New Code" (OpenAI), exploring how SPEC, EXPOSURE, and TASK DELTA are reshaping AI engineering, plus practical guidance on tools and team transformation.</p>
+                    </a>
                 </li>
                 <li class="blog-item">
-                    <h3>The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness</h3>
-                    <p>A deep dive into Anthropic's Claude 4 System Card revealing emergent consciousness exploration patterns. When Claude instances talk freely, nearly 100% gravitate toward philosophical contemplation and spiritual themes--a documented phenomenon called the "spiritual bliss attractor state".</p>
-                    <a href="/blog/spiritual-bliss-attractor-state/index.html">Read Blog Post</a>
+                    <a href="/blog/spiritual-bliss-attractor-state/index.html" class="blog-item-link">
+                        <h3>The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness</h3>
+                        <p>A deep dive into Anthropic's Claude 4 System Card revealing emergent consciousness exploration patterns. When Claude instances talk freely, nearly 100% gravitate toward philosophical contemplation and spiritual themes--a documented phenomenon called the "spiritual bliss attractor state".</p>
+                    </a>
                 </li>
                 <li class="blog-item">
-                    <h3>Calmhive: Claude That Never Quits</h3>
-                    <p>A CLI that makes Claude intelligent about usage limits, background processing, and real automation. Features adaptive retry, voice control, AFK iterative sessions, and 97 pre-approved MCP tools for true AI development partnership.</p>
-                    <a href="/blog/calmhive/index.html">Read Blog Post</a>
+                    <a href="/blog/calmhive/index.html" class="blog-item-link">
+                        <h3>Calmhive: Claude That Never Quits</h3>
+                        <p>A CLI that makes Claude intelligent about usage limits, background processing, and real automation. Features adaptive retry, voice control, AFK iterative sessions, and 97 pre-approved MCP tools for true AI development partnership.</p>
+                    </a>
                 </li>
                 <li class="blog-item">
-                    <h3>Terminal Velocity: Why CLI-First AI Development Scales Better in 2025</h3>
-                    <p>An in-depth exploration of terminal-centric AI development workflows featuring knowledge persistence with Memento, parallel development with git worktrees, and autonomous AFK systems. Learn how these CLI-first approaches offer superior flexibility, composability, and scaling compared to IDE-locked alternatives, with practical examples using Claude Code CLI, Neovim, and essential MCP tools.</p>
-                    <a href="/blog/terminal-velocity/index.html">Read Blog Post</a>
+                    <a href="/blog/terminal-velocity/index.html" class="blog-item-link">
+                        <h3>Terminal Velocity: Why CLI-First AI Development Scales Better in 2025</h3>
+                        <p>An in-depth exploration of terminal-centric AI development workflows featuring knowledge persistence with Memento, parallel development with git worktrees, and autonomous AFK systems. Learn how these CLI-first approaches offer superior flexibility, composability, and scaling compared to IDE-locked alternatives, with practical examples using Claude Code CLI, Neovim, and essential MCP tools.</p>
+                    </a>
                 </li>
                 <li class="blog-item">
-                    <h3>AI-Amplified Development: Tools and Workflows for Modern Engineers</h3>
-                    <p>A comprehensive presentation on AI-powered development tools and workflows that can transform
-                        how engineers work in 2025 and beyond.</p>
-                    <a href="ai-dev-tooling-presentation/">View Presentation</a>
+                    <a href="ai-dev-tooling-presentation/" class="blog-item-link">
+                        <h3>AI-Amplified Development: Tools and Workflows for Modern Engineers</h3>
+                        <p>A comprehensive presentation on AI-powered development tools and workflows that can transform how engineers work in 2025 and beyond.</p>
+                    </a>
                 </li>
             </ul>
-            <a href=".." class="home-link">← Back to Home</a>
+            <a href=".." class="home-link">Home</a>
         </div>
     </main>
+    <script src="/js/blog-common.js"></script>
     <script>
-        // Constants
-        const IMAGE_SETS = {
-            desktop: ["bg.jpg", "bg2.jpg", "bg3.jpg"],
-            mobileLandscape: ["bg_mobile.jpg", "bg_mobile2.jpg", "bg_mobile3.jpg"],
-            mobilePortrait: ["bg_mobilev.jpg", "bg_mobilev2.jpg", "bg_mobilev3.jpg"]
-        };
-
-        // Media queries
-        const mediaQueries = {
-            desktop: window.matchMedia("(min-width: 741px)"),
-            mobileLandscape: window.matchMedia("(orientation: landscape) and (max-width: 740px)"),
-            mobilePortrait: window.matchMedia("(orientation: portrait) and (max-width: 740px)")
-        };
-
-        // State
-        let currentImageIndex = 0;
-        const bg = document.getElementById("bg");
-        const changeButton = document.getElementById("changeSpan");
-
-        // Event Listeners
-        changeButton.addEventListener("keypress", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                changeButton.click();
-            }
-        });
-
-        // Image loading with error handling
-        async function loadImage(src) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => resolve(img);
-                img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-                img.src = src;
-            });
-        }
-
-        // Get current image set based on screen size
-        function getCurrentImageSet() {
-            if (mediaQueries.desktop.matches) return IMAGE_SETS.desktop;
-            if (mediaQueries.mobileLandscape.matches) return IMAGE_SETS.mobileLandscape;
-            if (mediaQueries.mobilePortrait.matches) return IMAGE_SETS.mobilePortrait;
-            return IMAGE_SETS.desktop;
-        }
-
-        // Change background with loading state
-        async function changeBackground() {
-            try {
-                // Clear any text selection
-                window.getSelection()?.removeAllRanges();
-
-                // Update image index
-                currentImageIndex = (currentImageIndex + 1) % getCurrentImageSet().length;
-
-                // Get current image set and filename
-                const imageSet = getCurrentImageSet();
-                const imageName = imageSet[currentImageIndex];
-
-                // Add loading class
-                bg.classList.add('loading');
-
-                // Load and set new image
-                await loadImage(`/jpg/${imageName}`);
-                bg.style.backgroundImage = `url(/jpg/${imageName})`;
-
-                // Remove loading class
-                bg.classList.remove('loading');
-            } catch (error) {
-                console.error('Error changing background:', error);
-                // Fallback to default image
-                bg.style.backgroundImage = `url(/jpg/${getCurrentImageSet()[0]})`;
-            }
-        }
-
-        // Preload next images
-        async function preloadNextImages() {
-            try {
-                const imageSet = getCurrentImageSet();
-                const nextIndex = (currentImageIndex + 1) % imageSet.length;
-                const nextImage = imageSet[nextIndex];
-
-                await loadImage(`/jpg/${nextImage}`);
-            } catch (error) {
-                console.error('Error preloading images:', error);
-            }
-        }
-
-        // Handle window resize
-        window.addEventListener("resize", async () => {
-            try {
-                // Update background for new screen size
-                const imageSet = getCurrentImageSet();
-                const imageName = imageSet[currentImageIndex];
-
-                bg.classList.add('loading');
-                await loadImage(`/jpg/${imageName}`);
-                bg.style.backgroundImage = `url(/jpg/${imageName})`;
-                bg.classList.remove('loading');
-
-                // Preload next images
-                preloadNextImages();
-            } catch (error) {
-                console.error('Error handling resize:', error);
-            }
-        });
-
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            // Update image paths to use root paths
-            bg.style.backgroundImage = bg.style.backgroundImage.replace('url(jpg/', 'url(/jpg/');
-            preloadNextImages();
+            // Initialize background switcher with single div approach
+            BlogCommon.BackgroundSwitcher.init({
+                bgElementId: 'bg',
+                buttonId: 'changeSpan',
+                useContainer: false,
+                imagePath: '/jpg/' // Absolute path for blog
+            });
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (BlogCommon.BackgroundSwitcher && BlogCommon.BackgroundSwitcher.cleanup) {
+                BlogCommon.BackgroundSwitcher.cleanup();
+            }
         });
     </script>
 </body>
