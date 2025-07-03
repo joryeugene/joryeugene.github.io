@@ -2,6 +2,8 @@
 
 Once upon a time, in a valley where fiber optic cables ran alongside babbling brooks, there lived three little pigs who had grown tired of their cramped apartment in the city. Each pig had inherited a small plot of land from their grandmother, and they decided it was time to build their own homes.
 
+![The Three Little Pigs](pigs.png)
+
 The first little pig, named Pixel, was always in a hurry. He wanted to build his house as quickly as possible so he could get back to streaming his favorite shows. He gathered some old cardboard boxes from behind the electronics store and built himself a house in just one afternoon. *"Perfect!"* he squealed, as he set up his gaming setup inside. *"Now I can get back to my online tournaments!"*
 
 The second little pig, named Parser, was more thoughtful but still wanted to finish quickly. He collected some wooden pallets from the shipping dock and built a modest house over the weekend. *"This should last a while,"* he said, installing his smart home devices throughout. *"And I've got Wi-Fi in every room!"*
