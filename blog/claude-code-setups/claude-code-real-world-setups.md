@@ -51,10 +51,10 @@ Fish forces you to relearn shell scripting. *For many, that's a feature.*
 | Terminal | Best For | Key Strength |
 |----------|----------|--------------|
 | **VS Code Terminal** | Debug workflows + tasks | Editor integration |
-| **Warp** | AI-powered development | Command blocks + AI agents |
+| **[Warp](https://www.warp.dev/)** | AI-powered development | Command blocks + AI agents |
 | **iTerm2** | Mac power users | Advanced search + automation |
 | **WezTerm** | Cross-platform consistency | Lua programmability |
-| **Kitty** | Terminal innovation | Graphics protocol + keyboard fixes |
+| **[Kitty](https://sw.kovidgoyal.net/kitty/)** | Terminal innovation | Graphics protocol + keyboard fixes |
 
 ### VS Code Terminal
 **Seamless debug workflow integration.** Set breakpoints, run tasks, see output--all in one place. Shell integration tracks commands and detects errors. Extension ecosystem enhances terminal capabilities.
@@ -77,7 +77,7 @@ Profiles and arrangements manage complex workspaces. Deep tmux integration. Nati
 Built-in multiplexing is excellent if you want fewer moving parts. GPU acceleration handles Claude's large outputs smoothly.
 
 ### Kitty
-**Graphics protocol is innovative.** Superior to sixel for displaying actual images and plots in terminal. The keyboard protocol fixes fundamental problems that have plagued terminals for decades.
+**Graphics protocol supports 24-bit RGB, animation, and pixel-level positioning**--a significant advance over sixel's 6-pixel-high patterns and limited color depth from the 1970s. The keyboard protocol solves specific ambiguities: Ctrl+Shift+R vs Ctrl+R are now distinguishable, key release events work, and complex modifier combinations that traditionally generated identical escape codes can be differentiated.
 
 Built-in layouts eliminate the need for tmux. Remote control API lets you script and control Kitty from external programs. The config syntax fights you until it doesn't.
 
@@ -177,17 +177,99 @@ Claude generates a lot of text quickly. Your terminal choice affects how smoothl
 Useful commands to know:
 
 ```bash
-claude -c           # Continue recent conversation
-claude --resume     # Session picker
-claude "prompt"     # One-shot query
-/clear             # Reset context
-/compact           # Intelligent context summary
+# Core commands
+claude -c                           # Continue recent conversation
+claude --resume                     # Session picker
+claude "think hard: complex bug"    # Deep analysis (10K tokens)
+claude "ultrathink: architecture"   # Complex design (32K tokens)
+
+# Shortcuts and workflows
+Ctrl+V          # Paste images from clipboard
+Ctrl+J          # Add new line in prompts
+Shift+Tab       # Cycle: normal → auto-accept → plan mode
+@filename       # Tab completion for files
+git diff | claude "review changes"  # Direct piping
 ```
+
+### Plan Mode: The Game Changer
+**Claude's plan mode lets you review before execution.** Press Shift+Tab twice to cycle into plan mode, where Claude proposes changes and waits for your approval.
+
+**Why plan mode rocks:**
+- Review complex refactoring before it happens
+- Catch potential issues early
+- Perfect for production code changes
+- Your safety net for experimental ideas
+
+*Pro tip: Use plan mode for any multi-file changes or when working with unfamiliar codebases.*
+
+### Undocumented Feature: Directory Switching
+**Useful feature:** Claude Code supports changing directories mid-conversation:
+
+```bash
+! pwd                           # Check current directory
+! cd /path/to/other/project     # Switch projects
+! pwd                           # Verify new location
+```
+
+**Workflow benefits:**
+- Switch between microservices mid-conversation
+- Access project-specific configurations and slash commands
+- Maintain conversation history across codebases
+- True workspace flexibility during development sessions
+
+### Error Recovery Workflows
+When Claude gets stuck or things go wrong:
+
+```bash
+Escape              # Interrupt Claude mid-execution
+Double Escape       # Fork conversation at previous message
+/clear              # Nuclear context reset
+claude --continue   # Resume after terminal crashes
+```
+
+### Log Analysis Patterns
+**Practical approaches for debugging:**
+
+```bash
+# Batch analysis
+tail -n 100 app.log | claude -p "identify critical issues"
+
+# Structured output
+claude -p "analyze this error pattern" --output-format json < error.log
+
+# Performance investigation
+npm run profile | claude -p "identify bottlenecks"
+```
+
+### CLI Tool Integration
+**Claude Code works with your existing tools in two ways:**
+
+```bash
+# Analyzing command output
+gh pr list | claude "prioritize these PRs"
+docker logs app | claude "analyze errors"
+npm audit | claude "fix vulnerabilities"
+
+# Claude using tools directly (often simpler than MCP)
+claude "use gh to create a PR for this feature"
+claude "use docker to containerize this app"
+claude "use curl to test the API endpoints"
+claude "use git to create a feature branch"
+```
+
+**Why CLI > MCP sometimes:**
+- gh CLI works immediately vs GitHub MCP setup
+- docker commands more reliable than container MCPs
+- No configuration overhead, just works
 
 **Terminal integration patterns:**
 - Separate pane for Claude while coding
+- Directory switching for multi-project workflows *(undocumented feature)*
 - Copy/paste workflows between Claude and editor
+- Command output piping: `cmd | claude "analyze"`
+- Claude using CLI tools directly: `claude "use gh to..."`
 - Session persistence for long development cycles
+- Error analysis with structured output
 
 ---
 
@@ -198,6 +280,27 @@ The most productive setup is whatever you already know plus Claude in a terminal
 If you're comfortable with VS Code's terminal, that's your setup. If you live in tmux, add a Claude pane. The tool adapts to you.
 
 But if you're hitting friction points--slow rendering, poor copy/paste, lost sessions--then maybe it's time for something new. Just remember: changing tools has costs. Make sure the benefits are worth it.
+
+---
+
+## Additional Resources
+
+### Documentation
+- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
+
+### Terminal Emulators
+- [Warp](https://www.warp.dev/) - AI-powered terminal with command blocks
+- [iTerm2](https://iterm2.com/) - Mac power user terminal
+- [WezTerm](https://wezfurlong.org/wezterm/) - Cross-platform GPU-accelerated terminal
+- [Kitty](https://sw.kovidgoyal.net/kitty/) - GPU terminal with graphics protocol
+
+### Shells & Multiplexers
+- [Fish Shell](https://fishshell.com/) - User-friendly shell with great defaults
+- [tmux](https://github.com/tmux/tmux) - Terminal multiplexer
+- [Zellij](https://zellij.dev/) - Modern terminal workspace
+
+### Development Tools
+- [GitHub CLI](https://cli.github.com/) - Essential for git workflows
 
 ---
 
