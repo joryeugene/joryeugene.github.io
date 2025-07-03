@@ -373,10 +373,10 @@ const MarkdownLoader = {
       // Process headers
       HeaderIDGenerator.process();
       
-      // Always calculate and display reading time
-      setTimeout(() => {
-        ReadingTime.display();
-      }, 100);
+      // Reading time disabled per user request
+      // setTimeout(() => {
+      //   ReadingTime.display();
+      // }, 100);
       
       // Dispatch custom event
       document.dispatchEvent(new CustomEvent('markdownLoaded', { detail: { content: html } }));
@@ -953,9 +953,10 @@ window.BlogCommon = {
       HeaderIDGenerator.process();
     }
     
-    if (options.readingTime !== false) {
-      ReadingTime.display();
-    }
+    // Reading time disabled per user request
+    // if (options.readingTime !== false) {
+    //   ReadingTime.display();
+    // }
     
     if (options.scrollProgress !== false) {
       ScrollProgress.init(options.scrollProgress || {});
