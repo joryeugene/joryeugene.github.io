@@ -673,7 +673,7 @@ body {
 .table-of-contents {
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  left: 20px;
   background: rgba(0, 0, 0, 0.85);
   border: 0.5px solid var(--border-light);
   border-radius: var(--border-radius-lg);
@@ -784,6 +784,14 @@ body {
 }
 
 @media (max-width: 1200px) {
+  .table-of-contents {
+    max-width: 250px;
+    bottom: 15px;
+    left: 15px;
+  }
+}
+
+@media (max-width: 767px) {
   .table-of-contents {
     display: none;
   }
