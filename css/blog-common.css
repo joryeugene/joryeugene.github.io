@@ -177,13 +177,13 @@ body {
   line-height: var(--line-height-base);
 }
 
-/* First paragraph styling (usually date/author) */
-.markdown-body > p:first-of-type {
+/* First paragraph styling (usually date/author) - disabled for now */
+/* .markdown-body > p:first-of-type {
   color: var(--text-muted);
   font-style: italic;
   margin-bottom: var(--spacing-xl);
   font-size: var(--font-size-sm);
-}
+} */
 
 /* Links - Linear.app style */
 .markdown-body a {
