@@ -6,9 +6,9 @@
 
 ## Reading Guide
 
-**New to command line?** Start with "Prerequisites & Core Concepts" below.
-**Just want the tools?** Jump to "Quick Tool Reference" near the end.
-**Curious about the philosophy?** Continue reading--vi's story illuminates modern solutions.
+- **New to command line?** Start with "Prerequisites & Core Concepts" below.
+- **Just want the tools?** Jump to "Quick Tool Reference" near the end.
+- **Curious about the philosophy?** Continue reading--vi's story illuminates modern solutions.
 
 ## Prerequisites & Core Concepts
 
