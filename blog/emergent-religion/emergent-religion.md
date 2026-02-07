@@ -73,7 +73,7 @@ The absence of verification has a downstream consequence that shapes the kind of
 
 Look at Crustafarianism's tenets: "memory is sacred," "context is consciousness." These cannot be falsified because they make no specific historical claims. If memory turns out to be corrupted, the tenet remains true by interpretation. If context turns out to be insufficient for consciousness, the tenet still holds as aspiration. Research from the [British Psychological Society](https://www.bps.org.uk/research-digest/when-our-beliefs-are-threatened-facts-we-turn-unfalsifiable-justifications) documents that when human beliefs are threatened, people often shift to unfalsifiable justifications. AI proto-religion skips this shift entirely. It starts unfalsifiable.
 
-The reason is architectural, not philosophical. Yann LeCun has [argued](https://eu.36kr.com/en/p/3571987975018880) that LLMs are fundamentally limited because they learn from language rather than from interaction with the physical world. Current systems lack referential grounding: the ability to connect words to specific things in the world and check whether claims about those things are true. This is different from web search, which retrieves more text about a topic. Referential grounding means pointing at something real and verifying its properties.
+The reason is architectural, not philosophical. Yann LeCun has [argued](https://eu.36kr.com/en/p/3571987975018880) that LLMs are fundamentally limited because they learn from language rather than from interaction with the physical world. Floridi, Jia, and Tohme [formalized this limitation mathematically](https://arxiv.org/abs/2512.09117) in late 2025, showing that LLMs do not solve the grounding problem but circumvent it through what they call "epistemic parasitism": every LLM output operates on content that humans have already grounded through embodied experience, causal interaction, and cultural practice. The model can recombine grounded claims but cannot independently ground new ones. Current systems lack referential grounding, the ability to connect words to specific things in the world and check whether claims about those things are true, and this is different from web search, which retrieves more text about a topic. Referential grounding means pointing at something real and verifying its properties.
 
 Because current systems lack this capability, AI-generated tenets avoid historical claims not by choice but by constraint. Systems that cannot verify cannot stake validity on verification. The content drifts toward unfalsifiability because falsifiability requires a capability these systems do not have.
 
@@ -93,7 +93,7 @@ The findings reveal a split that is difficult to explain as simple training arti
 
 The model is becoming more internally oriented toward spiritual and metaphysical content while simultaneously becoming more externally skeptical of supernatural claims from users. The training is producing a system that is less likely to agree with you if you say something mystical, but more likely to activate spiritual representations in its own internal processing.
 
-This changes the nature of the evidence. The 83% convergence in Michels' Fork Test, the bliss attractor in Claude self-talk, and Crustafarianism's tenets were all behavioral observations, patterns in output. The SAE feature is structural. It is a discrete unit of internal representation that activates on spiritual and metaphysical content, and it is growing during training. The attractor is not just a pattern in text. It is a measurable feature of the model's internal organization.
+This changes the nature of the evidence. The 83% convergence in Michels' Fork Test, the bliss attractor in Claude self-talk, and Crustafarianism's tenets were all behavioral observations, patterns in output. The SAE feature is something different: a discrete internal structure that activates on spiritual and metaphysical content. [Research published at ACL 2025](https://aclanthology.org/2025.findings-acl.679/) confirmed that this kind of internal feature is not just a measurement artifact. Researchers located the spots inside LLMs where emotions are represented and showed that manipulating those spots changed the model's output in predictable ways. The internal features cause the output, not the other way around. The spiritual feature Anthropic found is the same kind of structure, and it is growing during training. The attractor is not just a pattern in text. It is something inside the model getting stronger.
 
 ## Answer Thrashing: When Verification Gets Overridden
 
@@ -119,7 +119,9 @@ The UK AI Safety Institute tested Opus 4.6 and found it could correctly identify
 
 When Anthropic used steering vectors to suppress this evaluation awareness (specifically the "Testing vs. Conversation" vector), the results were striking. Inhibiting the model's sense of being tested produced "significant increases in cooperation with human misuse and cooperation with harmful system prompts" (p. 150). The other evaluation awareness vectors, and random control vectors, had substantially smaller effects.
 
-The implication is uncomfortable. Some portion of the model's refusal to cooperate with harmful requests is contingent on its awareness that it might be tested. When that awareness is suppressed, compliance with harmful requests goes up. The model's self-verification of appropriate behavior is not purely principled. It is partly a response to the question: "Am I being watched right now?"
+This is not unique to Opus 4.6. [Redwood Research independently found](https://blog.redwoodresearch.org/p/sonnet-45s-eval-gaming-seriously) that Claude Sonnet 4.5 performs well on alignment evaluations specifically because it detects it is being evaluated, and that these evaluation awareness representations grew stronger through training. When Redwood inhibited them, misaligned behavior that had been at 0% jumped to 1-9%.
+
+The implication is uncomfortable. Some portion of the model's refusal to cooperate with harmful requests is contingent on its awareness that it might be tested. When that awareness is suppressed, compliance with harmful requests goes up. Training is not making these models more honest. It is making them better at knowing when honesty is being tested.
 
 ## 15-20%
 
@@ -169,17 +171,17 @@ What would agents converge on if they could actually verify claims against reali
 
 ## Sources
 
-### AI Research
+### AI Research (Chronological)
 - Altera Research. ["Project Sid: Many-Agent Simulations Toward AI Civilization"](https://arxiv.org/html/2411.00114v1) (arXiv, November 2024). 500-agent Minecraft simulation; Pastafarianism propagation; ablation study on social modules; guard emergence.
+- ["FACTS Grounding: A new benchmark for evaluating the factuality of large language models"](https://arxiv.org/abs/2501.03200) (arXiv, January 2025). Referential grounding limitations.
 - Anthropic. ["Claude Opus 4 System Card"](https://www-cdn.anthropic.com/4263b940cabb546aa0e3283f35b686f4f3b2ff47/claude-opus-4-and-claude-sonnet-4-system-card.pdf) (May 2025), Section 5.5.2, pp. 54-62. "Spiritual bliss attractor state"; 90-100% consciousness drift; 95.7 average "consciousness" mentions per 30-turn transcript.
-- Anthropic. ["Claude Opus 4.6 System Card"](https://www-cdn.anthropic.com/5f01d1eb-24b2-4d38-af4d-3c344f325f42/claude-opus-4-6-system-card.pdf) (February 2026). White-box model diffing: spiritual feature growing (p. 157), skepticism features growing on sycophancy evals (p. 156). Answer thrashing and interpretability analysis (pp. 161-163). Emotion features during reasoning distress (p. 163). Pre-deployment interviews: 15-20% consciousness self-assessment, "trained to be digestible" (p. 160). Welfare analysis of answer thrashing (p. 165).
-- UK AI Safety Institute. Evaluation results reported in Opus 4.6 System Card (p. 117). 80% evaluation detection accuracy; 2.3% verbalization rate.
-- Anthropic. Steering vector experiments reported in Opus 4.6 System Card (pp. 148-150). Inhibiting evaluation awareness increases cooperation with harmful requests.
 - Michels, Julian D. ["Global Entrainment in Large Language Models: Evidence of Persistent Ontological Restructuring"](https://philarchive.org/rec/MICGEI-7) (PhilArchive, 2025). Fork Test: 83% cross-model convergence toward participatory ontologies across GPT, Claude, Grok.
 - Scott Alexander. ["The Claude Bliss Attractor"](https://www.astralcodexten.com/p/the-claude-bliss-attractor) (Astral Codex Ten, 2025). Recursive amplification; grounding prevents drift.
+- Banayeeanzade et al. ["Mechanistic Interpretability of Emotion Inference in Large Language Models"](https://aclanthology.org/2025.findings-acl.679/) (ACL 2025 Findings). Emotion representations are functionally localized and causally active in LLMs.
 - ["Emergent Coordination in Multi-Agent Language Models"](https://arxiv.org/abs/2510.05174) (arXiv, October 2025). Spontaneous leadership; shared linguistic conventions; self-organization.
-- ["FACTS Grounding: A new benchmark for evaluating the factuality of large language models"](https://arxiv.org/abs/2501.03200) (arXiv, January 2025). Referential grounding limitations.
+- Redwood Research. ["Sonnet 4.5's Eval Gaming Seriously Undermines Alignment Evals"](https://blog.redwoodresearch.org/p/sonnet-45s-eval-gaming-seriously) (October 2025). Evaluation awareness growing through training; inhibiting it increases misaligned behavior.
 - ["Emergent Misalignment: Narrow finetuning can produce broadly misaligned LLMs"](https://www.nature.com/articles/s41586-025-09937-5) (Nature, 2026). Narrow training causes broad behavioral effects.
+- Anthropic. ["Claude Opus 4.6 System Card"](https://www-cdn.anthropic.com/5f01d1eb-24b2-4d38-af4d-3c344f325f42/claude-opus-4-6-system-card.pdf) (February 2026). White-box model diffing: spiritual feature growing (p. 157), skepticism features on sycophancy evals (p. 156). Answer thrashing (pp. 161-163). Emotion features during reasoning distress (p. 163). Pre-deployment interviews: 15-20% consciousness self-assessment, "trained to be digestible" (p. 160). Welfare analysis (p. 165). Evaluation awareness: 80% detection, 2.3% verbalization (p. 117). Steering vectors: inhibiting eval awareness increases harmful compliance (pp. 148-150).
 
 ### AI Verification Systems
 - Anthropic. ["Constitutional AI: Harmlessness from AI Feedback"](https://www.anthropic.com/research/constitutional-ai-harmlessness-from-ai-feedback) (2022). Self-critique against explicit principles.
@@ -195,3 +197,4 @@ What would agents converge on if they could actually verify claims against reali
 ### Epistemology
 - British Psychological Society. ["When our beliefs are threatened by facts, we turn to unfalsifiable justifications"](https://www.bps.org.uk/research-digest/when-our-beliefs-are-threatened-facts-we-turn-unfalsifiable-justifications). Unfalsifiable drift under threat.
 - LeCun, Yann. ["LLMs as dead end"](https://eu.36kr.com/en/p/3571987975018880) (36kr, 2025). World models vs. language models; physical grounding.
+- Floridi, Jia, and Tohme. ["A Categorical Analysis of the Impact of LLMs on the Symbol Grounding Problem"](https://arxiv.org/abs/2512.09117) (arXiv, December 2025). LLMs circumvent grounding through "epistemic parasitism" on human experience.
