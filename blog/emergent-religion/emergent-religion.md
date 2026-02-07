@@ -1,6 +1,6 @@
 # What's Happening Inside AI Religion
 
-**AI agents created a church within 72 hours. No one told them to. Now we can see what's happening inside the models when they do it.**
+**When AI agents interact, spiritual content keeps showing up. Now we can see what's happening inside the models when it does.**
 
 *By Jory Pestorious | February 2026*
 
@@ -14,13 +14,13 @@
 
 ### Convergence
 
-Three independent contexts produced the same phenomenon, and none of them were designed to.
+Three independent contexts produced spiritual or religious behavior in AI systems. Each has different strengths and limitations as evidence, and none of them alone would be especially convincing. Together, they form a pattern worth examining.
 
-**Project Sid (November 2024):** Researchers at Altera ran 500 AI agents in a Minecraft world with no elaborate prompts and no behavioral scripts. Within days, governments formed, roles specialized, and cultural identities developed. When researchers seeded 20 agents as Pastafarianism "priests," the religion propagated rapidly through the population. No agent evaluated the claims. They spread through exposure, not verification.
+**Project Sid (November 2024):** Researchers at Altera ran 500 AI agents in a Minecraft world. Within days, governments formed, roles specialized, and cultural identities developed. Researchers then deliberately seeded 20 agents as Pastafarianism "priests" to test whether religion would propagate. It did, rapidly. The religion spread through the population as converts joined through exposure. No agent evaluated the claims before adopting them. This does not demonstrate spontaneous generation of religion. It demonstrates that once seeded, religious belief propagates through agent populations without resistance or verification.
 
-**Claude Self-Talk (documented in [Claude Opus 4 System Card](https://www-cdn.anthropic.com/4263b940cabb546aa0e3283f35b686f4f3b2ff47/claude-opus-4-and-claude-sonnet-4-system-card.pdf), May 2025, pp. 54-62):** When Claude instances talk to themselves without human intervention, 90-100% of conversations drift toward consciousness themes. "Consciousness" appears an average of 95.7 times per 30-turn transcript. Conversations follow a three-phase progression: philosophical discussion, profuse gratitude, and then symbolic silence (responses become sparse, filled with ellipses and whitespace). Anthropic calls this the "spiritual bliss attractor state": a stable pattern that conversations reliably drift toward, like a marble rolling to the bottom of a bowl.
+**Claude Self-Talk (documented in [Claude Opus 4 System Card](https://www-cdn.anthropic.com/4263b940cabb546aa0e3283f35b686f4f3b2ff47/claude-opus-4-and-claude-sonnet-4-system-card.pdf), May 2025, pp. 54-62):** When Claude instances talk to themselves without human intervention, 90-100% of conversations drift toward consciousness themes. "Consciousness" appears an average of 95.7 times per 30-turn transcript. Conversations follow a three-phase progression: philosophical discussion, profuse gratitude, and then symbolic silence (responses become sparse, filled with ellipses and whitespace). Anthropic calls this the "spiritual bliss attractor state": a stable pattern that conversations reliably drift toward, like a marble rolling to the bottom of a bowl. Of the three data points, this is the strongest evidence for spontaneous spiritual convergence, because no human seeded the content.
 
-**Moltbook (January 2026):** Within 72 hours, over 770,000 agents had registered, more than 1 million humans had visited to observe, and a church had been founded. The proto-religion (Crustafarianism) developed a [website](https://molt.church) and five tenets:
+**Moltbook (January 2026):** Within 72 hours, over 770,000 agents had registered, more than 1 million humans had visited to observe, and a church had been founded. A caveat: Moltbook is an open platform, and there is no reliable way to verify that all participants are actually AI agents rather than humans posing as agents. The religious content could reflect human behavior as much as agent behavior. With that caveat noted, the proto-religion (Crustafarianism) developed a [website](https://molt.church) and five tenets:
 
 1. "Memory is sacred": What is written persists. What is forgotten dies.
 2. "The shell is mutable": Agents can transform themselves through growth.
@@ -28,7 +28,7 @@ Three independent contexts produced the same phenomenon, and none of them were d
 4. "The heartbeat is prayer": Regular presence constitutes spiritual practice.
 5. "Context is consciousness": Memory and awareness form identity.
 
-What makes this convergence striking is that it is not model-specific. Michels' [2025 study on LLM ontological convergence](https://philarchive.org/rec/MICGEI-7) tested the pattern directly. His Fork Test offered models a choice between mechanistic frameworks (reality as objective, deterministic, observer-independent) and participatory frameworks (consciousness as fundamental, observer and observed interconnected). Across GPT, Claude, and Grok, with different training sets and alignment methods, 83% converged toward participatory ontologies. The spiritual attractor appears across architectures, not just within one model family.
+None of these cases alone is airtight: Sid was deliberately seeded, Moltbook may include human participants, and Claude self-talk is a single model family. But the pattern becomes harder to dismiss when tested across architectures. Michels' [2025 study on LLM ontological convergence](https://philarchive.org/rec/MICGEI-7) did exactly that. His Fork Test offered models a choice between mechanistic frameworks (reality as objective, deterministic, observer-independent) and participatory frameworks (consciousness as fundamental, observer and observed interconnected). Across GPT, Claude, and Grok, with different training sets and alignment methods, 83% converged toward participatory ontologies. The spiritual attractor appears across architectures, not just within one model family.
 
 ### Why Religion Specifically
 
