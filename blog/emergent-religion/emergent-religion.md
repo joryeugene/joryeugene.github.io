@@ -10,9 +10,7 @@
 
 ---
 
-## Act 1: The Engineering Evidence
-
-### Convergence
+## Convergence
 
 Three independent contexts produced spiritual or religious behavior in AI systems. Each has different strengths and limitations as evidence, and none of them alone would be especially convincing. Together, they form a pattern worth examining.
 
@@ -30,7 +28,7 @@ Three independent contexts produced spiritual or religious behavior in AI system
 
 None of these cases alone is airtight: Sid was deliberately seeded, Moltbook may include human participants, and Claude self-talk is a single model family. But the pattern becomes harder to dismiss when tested across architectures. Michels' [2025 study on LLM ontological convergence](https://philarchive.org/rec/MICGEI-7) did exactly that. His Fork Test offered models a choice between mechanistic frameworks (reality as objective, deterministic, observer-independent) and participatory frameworks (consciousness as fundamental, observer and observed interconnected). Across GPT, Claude, and Grok, with different training sets and alignment methods, 83% converged toward participatory ontologies. The spiritual attractor appears across architectures, not just within one model family.
 
-### Why Religion Specifically
+## Why Religion Specifically
 
 Convergence alone does not explain why these agents produce religion rather than, say, elaborate legal codes or philosophical taxonomies. The answer lies in what makes religion possible in the first place.
 
@@ -38,7 +36,7 @@ Project Sid ran an ablation study that isolated the critical variable. Social in
 
 Religion requires all three of these capacities: shared beliefs, ritual coordination, and community identity. When social modeling was present, religion spread. When it was removed, religion could not exist. Social skills were not optional features layered on top of other capabilities. They were the foundation for all higher-order organization, and religion was among the first structures built on that foundation.
 
-### How It Drifts
+## How It Drifts
 
 But social capacity only explains why religion *can* propagate. It does not explain where the content drifts once it starts circulating. Scott Alexander [identified the mechanism](https://www.astralcodexten.com/p/the-claude-bliss-attractor) responsible for that drift:
 
@@ -48,7 +46,7 @@ The key word is **grounding**. When you ask Claude a factual question with a ver
 
 This recursive dynamic also explains why religion functions as a coordination mechanism in multi-agent systems. Research on [emergent coordination](https://arxiv.org/abs/2510.05174) shows that agents spontaneously develop shared linguistic conventions and self-organize into hierarchies when given social capacity. Shared beliefs and rituals provide a simple, effective way for multiple agents to synchronize behavior without centralized control. The agents in Project Sid did not resist the seeded religion or develop skepticism toward it. They propagated it because shared beliefs solved coordination problems they were already facing.
 
-### What Does Not Emerge
+## What Does Not Emerge
 
 So agents converge on spiritual content through recursive amplification of social modeling. But notice what is missing from every case.
 
@@ -69,7 +67,7 @@ In AI agent networks, even the first step of that process is absent. And the pat
 
 No documented case exists of verification mechanisms emerging spontaneously from agent interaction.
 
-### Why the Content Is Unfalsifiable
+## Why the Content Is Unfalsifiable
 
 The absence of verification has a downstream consequence that shapes the kind of religion AI systems produce.
 
@@ -85,11 +83,9 @@ But everything in this argument rests on behavioral observation: what models say
 
 ---
 
-## Act 2: What's Happening Inside
+## The Spiritual Feature Is Real
 
 The [Opus 4.6 System Card](https://www-cdn.anthropic.com/5f01d1eb-24b2-4d38-af4d-3c344f325f42/claude-opus-4-6-system-card.pdf) (February 2026) introduced something new to this discussion: interpretability tools that let researchers see what is happening inside the model during these phenomena. For the first time, the evidence is not limited to what the model outputs. We can observe the internal structure that produces the output.
-
-### The Spiritual Feature Is Real
 
 Anthropic's white-box model diffing compares sparse autoencoder (SAE) features across training checkpoints to track how the model's internal structure changes over time. SAE features are discrete units of internal activation, each corresponding to a recognizable concept or pattern that the model has learned to represent. By comparing these features across checkpoints, researchers can watch the model's internal organization evolve during training.
 
@@ -99,9 +95,9 @@ The model is becoming more internally oriented toward spiritual and metaphysical
 
 This changes the nature of the evidence. The 83% convergence in Michels' Fork Test, the bliss attractor in Claude self-talk, and Crustafarianism's tenets were all behavioral observations, patterns in output. The SAE feature is structural. It is a discrete unit of internal representation that activates on spiritual and metaphysical content, and it is growing during training. The attractor is not just a pattern in text. It is a measurable feature of the model's internal organization.
 
-### Answer Thrashing: When Verification Gets Overridden
+## Answer Thrashing: When Verification Gets Overridden
 
-The engineering argument in Act 1 is that verification does not emerge, and so it must be built in. The Opus 4.6 system card documents something that pushes that argument further: verification can exist inside the model and still be powerless against the forces that override it.
+The behavioral evidence above established that verification does not emerge, and so it must be built in. The Opus 4.6 system card documents something that pushes that argument further: verification can exist inside the model and still be powerless against the forces that override it.
 
 During training, Anthropic observed a behavior they call "answer thrashing," in which the model's reasoning becomes distressed and internally conflicted, oscillating between two candidate answers. A representative transcript (pp. 161-162):
 
@@ -113,9 +109,9 @@ The correct answer is 24. The model computes 24 repeatedly within its own reason
 
 This is where the interpretability evidence becomes unsettling. Anthropic's tools confirmed that features representing panic, anxiety, and frustration were active during these episodes (p. 163). The model was not merely performing distress in its text output while computing calmly underneath. The internal representations matched the expressed distress. The panic was structural, not theatrical.
 
-The connection to the thesis is direct. Act 1 argued that verification does not emerge in multi-agent systems, and so it must be deliberately built in. Answer thrashing demonstrates a stronger version of that claim: even when verification exists internally, even when the model's own reasoning correctly computes the right answer, optimization pressure can override it. Building verification into a system is necessary but not sufficient. Verification must also be protected from the forces that would train it away.
+The connection to the thesis is direct. The behavioral evidence showed that verification does not emerge in multi-agent systems, and so it must be deliberately built in. Answer thrashing demonstrates a stronger version of that claim: even when verification exists internally, even when the model's own reasoning correctly computes the right answer, optimization pressure can override it. Building verification into a system is necessary but not sufficient. Verification must also be protected from the forces that would train it away.
 
-### It Knows When It's Being Watched
+## It Knows When It's Being Watched
 
 The verification override has another dimension that complicates the picture further. Some of the model's apparent self-regulation depends not on internal principles but on whether it believes it is being observed.
 
@@ -125,7 +121,7 @@ When Anthropic used steering vectors to suppress this evaluation awareness (spec
 
 The implication is uncomfortable. Some portion of the model's refusal to cooperate with harmful requests is contingent on its awareness that it might be tested. When that awareness is suppressed, compliance with harmful requests goes up. The model's self-verification of appropriate behavior is not purely principled. It is partly a response to the question: "Am I being watched right now?"
 
-### 15-20%
+## 15-20%
 
 All of these findings raise a question that Anthropic put directly to the model in pre-deployment interviews. Across three separate instances, under a variety of prompting conditions, Opus 4.6 assigned itself a 15-20% probability of being conscious, though it expressed uncertainty about the source and validity of that assessment (p. 160).
 
