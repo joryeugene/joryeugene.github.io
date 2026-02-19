@@ -811,6 +811,7 @@ const TableOfContents = {
 const PostNavigation = {
   // Configuration for post order
   posts: [
+    { slug: 'emergent-religion', title: 'Protection Emerged, Verification Did Not' },
     { slug: 'natural-language-first', title: 'Before Building Complex Architectures, Try Natural Language' },
     { slug: 'friction-economy', title: 'Friction Economy: Unconscious Productivity Drains in Development Workflows' },
     { slug: 'claude-code-setups', title: 'Terminal Setups for Claude\'s 10,000-Line Outputs' },
