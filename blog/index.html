@@ -370,14 +370,16 @@
             transform: translateY(20px);
         }
 
-        .blog-item:nth-child(1) { animation-delay: 0.1s; }
-        .blog-item:nth-child(2) { animation-delay: 0.2s; }
-        .blog-item:nth-child(3) { animation-delay: 0.3s; }
-        .blog-item:nth-child(4) { animation-delay: 0.4s; }
-        .blog-item:nth-child(5) { animation-delay: 0.5s; }
-        .blog-item:nth-child(6) { animation-delay: 0.6s; }
-        .blog-item:nth-child(7) { animation-delay: 0.7s; }
-        .blog-item:nth-child(8) { animation-delay: 0.8s; }
+        .blog-item:nth-child(1)  { animation-delay: 0.1s; }
+        .blog-item:nth-child(2)  { animation-delay: 0.2s; }
+        .blog-item:nth-child(3)  { animation-delay: 0.3s; }
+        .blog-item:nth-child(4)  { animation-delay: 0.4s; }
+        .blog-item:nth-child(5)  { animation-delay: 0.5s; }
+        .blog-item:nth-child(6)  { animation-delay: 0.6s; }
+        .blog-item:nth-child(7)  { animation-delay: 0.7s; }
+        .blog-item:nth-child(8)  { animation-delay: 0.8s; }
+        .blog-item:nth-child(9)  { animation-delay: 0.9s; }
+        .blog-item:nth-child(10) { animation-delay: 1.0s; }
 
         @keyframes fadeInUp {
             to {
@@ -493,6 +495,18 @@
         <div class="blog-container">
             <h1 class="blog-title">Engineering Notes</h1>
             <ul class="blog-list">
+                <li class="blog-item">
+                    <a href="/blog/dadbod-grip/index.html" class="blog-item-link">
+                        <h3>Edit Database Tables Like Vim Buffers</h3>
+                        <p>dadbod-grip brings the Vim editing model to database work: stage changes with color-coded rows, preview the exact SQL in a floating window, apply in a single transaction. Cross-database federation via DuckDB, file-as-table support for Parquet and CSV, AI SQL generation, and full Vim motions. Nothing installs outside Neovim.</p>
+                    </a>
+                </li>
+                <li class="blog-item">
+                    <a href="/blog/knowledge-sidecar/index.html" class="blog-item-link">
+                        <h3>The Knowledge Sidecar: Verified Context Is the Moat</h3>
+                        <p>Every Claude Code session starts fresh. keephive is a knowledge sidecar that runs alongside your sessions, persisting what you have learned and verifying it stays true as the codebase evolves. Storage is table stakes. Verification is the moat.</p>
+                    </a>
+                </li>
                 <li class="blog-item">
                     <a href="/blog/emergent-religion/index.html" class="blog-item-link">
                         <h3>Protection Emerged, Verification Did Not</h3>

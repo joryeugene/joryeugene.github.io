@@ -810,7 +810,13 @@ const TableOfContents = {
 // Next/Previous Post Navigation
 const PostNavigation = {
   // Configuration for post order
+  // ORDER: newest first (index 0), oldest last.
+  // "← Previous" navigates to index-1 (a newer post).
+  // "Next →" navigates to index+1 (an older post).
+  // Always prepend new posts to the TOP of this list.
   posts: [
+    { slug: 'dadbod-grip', title: 'Edit Database Tables Like Vim Buffers' },
+    { slug: 'knowledge-sidecar', title: 'The Knowledge Sidecar: Verified Context Is the Moat' },
     { slug: 'emergent-religion', title: 'Protection Emerged, Verification Did Not' },
     { slug: 'natural-language-first', title: 'Before Building Complex Architectures, Try Natural Language' },
     { slug: 'friction-economy', title: 'Friction Economy: Unconscious Productivity Drains in Development Workflows' },
