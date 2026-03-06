@@ -4,9 +4,9 @@
 
 > "I don't really like AI."
 
-An AI leader confided at a weekend gathering: "I don't really like AI." They lead AI initiatives for a major enterprise, caught between engineers asking for advanced tools and their own uncertainty about what's truly needed. It's a position many leaders find themselves in--responsible for decisions about technology they struggle to evaluate.
+An AI leader confided at a weekend gathering: "I don't really like AI." They lead AI initiatives for a major enterprise, caught between engineers asking for advanced tools and their own uncertainty about what's truly needed. They carry responsibility for decisions about technology they struggle to evaluate.
 
-That moment crystallized what I call **"the AI gap"**--not the widely discussed skills shortage or talent crisis, but something more fundamental: the disconnect between AI tools engineers need to do their best work and what organizations actually provide them.
+That moment crystallized what I call **"the AI gap"**: not the widely discussed skills shortage or talent crisis, but something more fundamental. The AI gap is the disconnect between the tools engineers need to do their best work and what organizations actually provide them.
 
 Everyone talks about the AI skills gap. But there's another gap hiding in plain sight: talented engineers who know what's possible with AI, constrained by tools that don't match their ambitions.
 
@@ -121,10 +121,10 @@ The AI leader who admitted they "don't like AI" showed remarkable honesty. Many 
 Understanding starts with measurement. What tools are your engineers actually using? Which AI applications drive real value versus checkbox compliance? How do you separate hype from measurable impact?
 
 The AI gap is real, but it's not insurmountable. Bridging it requires:
-- Honest conversations between leaders and engineers
-- Data-driven decisions instead of fear-based restrictions  
-- Measurement frameworks that track actual usage and impact
-- Recognition that different organizations have different needs
+- Leaders and engineers need honest conversations about what tools actually help
+- Data-driven decisions must replace fear-based restrictions
+- Measurement frameworks should track actual usage and impact, not theoretical ROI
+- Different organizations have different needs, and no single approach fits all
 
 **Your engineers know what tools could transform their work. The question is whether your organization is ready to measure, understand, and act on that knowledge.**
 

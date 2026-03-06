@@ -184,7 +184,7 @@ I've found that adding an unusual confirmation phrase or emoji pattern *sometime
 
 ### Memory Management Features
 
-Claude Code's memory management system provides persistent context across sessions and projects--distinct from the Memento MCP tool which provides more sophisticated knowledge graph capabilities:
+Claude Code's memory management system provides persistent context across sessions and projects, distinct from the Memento MCP tool, which provides more sophisticated knowledge graph capabilities:
 
 - **Hierarchical Memory System:** CLAUDE.md files create a project-aware memory structure:
   - **User-Level Global Memory:** `~/.claude/CLAUDE.md` applies to all projects across your system
@@ -672,7 +672,7 @@ An interesting project to watch in this space is [Claude Squad](https://github.c
 
 GUI-based tools like [Cursor IDE](https://cursor.sh), [Windsurf](https://windsurf.com/editor), and web-based interfaces have their place in certain workflows and are extremely powerful tools on their own. However, the terminal-centric approach provides a scalable, composable system that offers cutting-edge MCP integration, parallelized workflows, and unique flexibility.
 
-Remote parallel agents may represent the future of development, but this terminal-based methodology delivers exceptional results today--offering massive productivity gains with tools available now and scaling naturally with your development ambitions.
+Remote parallel agents may represent the future of development, but this terminal-based methodology delivers exceptional results today, offering massive productivity gains with tools available now and scaling naturally with your development ambitions.
 
 The fundamental insight here isn't just about productivity--it's about knowledge persistence and workflow composability. By creating a system where insights are systematically stored and retrieved, you're building a constantly evolving AI-amplified development environment uniquely tailored to your needs.
 

@@ -22,7 +22,7 @@ Claude Code CLI is revolutionary, but it has some fundamental gaps that break re
 4. **No Process Management**: No way to monitor, pause, or resume long-running tasks
 5. **Voice Wishlist**: Everyone wants "hey Claude" but there's no official solution
 
-These aren't minor inconveniences--they're productivity killers that prevent Claude from being a true AI development partner.
+These aren't minor inconveniences. They are productivity killers that prevent Claude from being a true AI development partner.
 
 ## The Solution: Calmhive CLI
 

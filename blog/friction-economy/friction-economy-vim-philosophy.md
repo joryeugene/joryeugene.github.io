@@ -29,9 +29,9 @@ This post assumes basic familiarity with command-line interfaces and text editor
 | "Grep is too slow" | [ripgrep](https://github.com/BurntSushi/ripgrep) | `brew install ripgrep` |
 | "Permission popups interrupt everything" | [CalmHive](https://calmhive.com) | `npm install -g calmhive-cli` |
 
-Developers lose significant time to normalized micro-frictions--those small, repeated delays we've come to accept as normal: hunting for that ChatGPT conversation, copy-paste workflows between browser tabs, approving tool permissions. Each delay might only be seconds, but they compound across hundreds of daily interactions.
+Developers lose significant time to normalized micro-frictions: the small, repeated delays we've come to accept as normal, including hunting for ChatGPT conversations, copy-pasting between browser tabs, and approving tool permissions. Each delay might only be seconds, but they compound across hundreds of daily interactions.
 
-**The insight:** Constraints force innovation. Bill Joy's *vi* editor emerged from severe bandwidth limitations--300-baud modems (about 30 characters per second) that made every keystroke expensive. Rather than working around the constraint, he redesigned the entire interaction model. Today's micro-frictions reveal similar opportunities.
+**The insight:** Constraints force innovation. Bill Joy's *vi* editor emerged from severe bandwidth limitations: 300-baud modems (about 30 characters per second) that made every keystroke expensive. Rather than working around the constraint, he redesigned the entire interaction model. Today's micro-frictions reveal similar opportunities.
 
 ## What You'll Learn
 
@@ -100,14 +100,14 @@ These tools recognize that keyboard navigation often outperforms mouse interacti
 
 ### The Connection: From 1977 to Now
 
-Just as vi's semantic compression solved 1977's bandwidth constraints, today's development workflows suffer from different but analogous friction points. The constraint has shifted from bandwidth to cognition--we think faster than we can interact with our tools.
+Just as vi's semantic compression solved 1977's bandwidth constraints, today's development workflows suffer from different but analogous friction points. The constraint has shifted from bandwidth to cognition. We think faster than we can interact with our tools.
 
 Common friction sources in modern development:
-- Deep directory navigation (`cd ../../../auth/services/validation`)
-- Hunting for AI prompts across ChatGPT conversations
-- Repetitive tool permission approvals
-- Verbose git command syntax
-- Manual search through large codebases
+- Navigating deep directories requires verbose paths like `cd ../../../auth/services/validation`
+- Finding AI prompts requires hunting through ChatGPT conversation history
+- Tool permissions demand repeated approval clicks that interrupt flow
+- Git commands require memorizing verbose syntax for routine operations
+- Searching large codebases takes significant time without the right tools
 
 Each delay compounds across hundreds of daily interactions.
 
