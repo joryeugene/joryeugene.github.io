@@ -1,6 +1,6 @@
 # Edit Database Tables Like Vim Buffers
 
-**dadbod-grip brings the Vim editing model to database work: stage changes, preview the SQL, apply in a single transaction.**
+**dadbod-grip brings the Vim editing model to database work: stage changes, preview the SQL, and apply in a single transaction.**
 
 *By Jory Pestorious | March 2026*
 
@@ -62,7 +62,7 @@ Before a single row changes in your database, you see exactly what SQL will run.
 
 The `gl` keybind toggles a floating window that updates live as you stage changes. Press `gs` to see the full batch. The preview is not a summary. It is the actual parameterized SQL, identical to what the apply step will execute.
 
-For query-pad mutations, it goes further: `<C-CR>` in the query pad stages the affected rows before executing. UPDATE rows appear teal, DELETE rows appear red, INSERT rows appear green. You see the impact before the transaction commits.
+For query-pad mutations, it goes further: `<C-CR>` in the query pad stages the affected rows before executing. UPDATE rows appear teal, DELETE rows appear red, and INSERT rows appear green. You see the impact before the transaction commits.
 
 ### Transaction Safety
 
@@ -99,8 +99,8 @@ Keys `4` through `9` open depth views of the current table from the grid, withou
 | Key | View |
 |-----|------|
 | `4` | ER diagram (all tables, FK tree, navigate with j/k) |
-| `5` | Column statistics (count, distinct, nulls, min/max, top values) |
-| `6` | Column definitions (name, type, default, nullable) |
+| `5` | Column statistics (count, distinct, nulls, min/max, and top values) |
+| `6` | Column definitions (name, type, default, and nullable) |
 | `7` | Foreign keys (outbound and inbound, with referenced table) |
 | `8` | Indexes |
 | `9` | Constraints |
@@ -176,7 +176,7 @@ Surface navigation uses `1`-`9`. Each number has a primary action and a secondar
 | `2` | Query pad | Query history |
 | `3` | Grid / records | Table picker |
 
-Keys `4`-`9` open depth views of the current table without leaving your context (ER diagram, column stats, column definitions, foreign keys, indexes, constraints).
+Keys `4`-`9` open depth views of the current table without leaving your context (ER diagram, column stats, column definitions, foreign keys, indexes, and constraints).
 
 Foreign key navigation works like a browser: `gf` follows a FK to the referenced row. `<C-o>` goes back. The breadcrumb trail updates as you traverse.
 

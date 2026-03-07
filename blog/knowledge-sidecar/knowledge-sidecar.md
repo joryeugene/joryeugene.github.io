@@ -24,7 +24,7 @@ keephive addresses both.
 
 ## The Sidecar Pattern
 
-In microservices architecture, a sidecar is a container that runs alongside a primary service, handling concerns the primary service should not manage directly: logging, security, service discovery, configuration sync. The sidecar does not replace the primary service. It handles the cross-cutting layer so the primary service stays focused.
+In microservices architecture, a sidecar is a container that runs alongside a primary service, handling concerns the primary service should not manage directly: logging, security, service discovery, and configuration sync. The sidecar does not replace the primary service. It handles the cross-cutting layer so the primary service stays focused.
 
 keephive is a knowledge sidecar for Claude Code.
 
