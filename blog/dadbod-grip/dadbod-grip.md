@@ -23,7 +23,7 @@ Filter the active column with `f` or build a compound filter with explicit opera
 
 Open the full ER diagram with `gG`. Navigate it with `j` and `k`, cycle tables with `Tab`, and open any table directly in the editable grid with Enter. From the grid, follow a FK to the referenced row with `gf` and return with `<C-o>`.
 
-View column statistics with `5`. Read the constraint list with `9`. Get the query execution plan in plain English with `gx`.
+View column statistics with `5`. Read the constraint list with `9`. Get the query execution plan in plain English with `gQ`.
 
 The sequence above covers a complete database investigation. Every step is one or two keys.
 
@@ -202,7 +202,7 @@ Press `s` on any column to sort it. Pressing `s` again toggles between ascending
 
 ### Analysis Built In
 
-**Query Doctor** translates EXPLAIN plans into plain English with cost bars and index suggestions. Call it with `gx` or `:GripExplain`. You do not need to read query plans to understand what they say.
+**Query Doctor** translates EXPLAIN plans into plain English with cost bars and index suggestions. Call it with `gQ` or `:GripExplain`. You do not need to read query plans to understand what they say.
 
 **Column profiling** via `gR` shows sparkline distributions, completeness, cardinality, and top values for every column in the table. Understanding your data shape takes one keypress.
 
