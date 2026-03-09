@@ -78,9 +78,21 @@ There is also a local staging undo stack, 50 levels deep, for undoing changes be
 
 **Visual batch editing**: Select rows in visual mode and set, delete, or NULL all of them at once. One keypress affects the whole selection.
 
+**Row diff**: Select exactly two rows in visual mode and press `gd` to open a comparison float. Differing columns are highlighted. Identical values appear normally.
+
+**Visual row inspect**: Select any rows in visual mode and press `K` to open a stacked float with each row's full values rendered vertically. JSON columns are pretty-printed.
+
 **Conditional formatting**: Negative numbers render red, booleans render green or red, past timestamps render dimmed, and URLs render underlined. The grid gives you signal without requiring you to read every value.
 
 **Column hide/show**: Press `-` to hide a column, `g-` to restore all hidden columns, and `gH` to open a visibility picker. Narrow wide tables to what matters without changing the query.
+
+### Cell Editor Extras
+
+The inline cell editor (`i` to open, `<Esc>` to enter NORMAL mode inside it) has two contextual features.
+
+**URL opener**: Press `gx` in NORMAL mode to open the cell value in the browser. Works for `http://`, `https://`, and `ftp://` values. If the value is not a URL, a notification appears.
+
+**Timestamp hint**: When a cell contains an ISO 8601 datetime, virtual text appears inline: `-> 14 months ago  (Monday, Aug 14 2023)`. The relative label updates based on the current date. No extra keypress needed.
 
 ### ER Diagram
 
@@ -197,6 +209,8 @@ Press `s` on any column to sort it. Pressing `s` again toggles between ascending
 **Data diff** via `gD` compares two tables by primary key with color-coded change highlighting. Useful for comparing snapshots, migration outputs, or environment differences.
 
 **AI SQL generation** via `A` in the grid or `gA` in the query pad turns natural language into SQL. It reads existing query pad SQL and modifies it rather than generating from scratch. Schema context is cached per connection. Provider auto-detection uses `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, or local Ollama.
+
+**GripFill** via `gA` in the grid (or `:GripFill N`) stages N AI-generated rows for the current table without leaving the grid. The AI receives the table schema and returns realistic values. Staged rows appear green and apply through the same pipeline as manually inserted rows.
 
 ### Export
 
