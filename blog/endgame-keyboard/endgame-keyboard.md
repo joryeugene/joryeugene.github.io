@@ -16,7 +16,7 @@ Four survived. Eight are getting sold or given away. This is what the rotation t
 
 The progression felt rational at every step. The MacBook keyboard is fine, but what if split ergonomic is better for your wrists? The Kinesis Advantage is great, but what if lighter switches reduce fatigue? Lighter switches are nice, but what if chording lets you type whole words at once? Chording is powerful, but what if stenography is the real speed unlock? Stenography is fast, but the learning curve is two years and you still need a regular keyboard for everything else.
 
-Each purchase solved a real problem. Each purchase also created a new one: now you have two keyboards to maintain, and neither has the perfect layout. So you buy a third.
+Most purchases solved a real problem. Each purchase also created a new one: now you have two keyboards to maintain, and neither has the perfect layout. So you buy a third.
 
 ## What Actually Matters
 
@@ -72,7 +72,7 @@ The whole system is three tools and three modifier domains with no overlap. Alt 
 
 ## What Each Board Taught Me
 
-Every keyboard on this list solved a real problem. Every keyboard also revealed that the problem it solved was not the bottleneck.
+Most keyboards on this list solved a real problem. Every one of them revealed that the problem it solved was not the bottleneck.
 
 **Kinesis Advantage / Advantage Pro.** Two coworkers settled on the Advantage 360 Pro and love it. The board is good. The curved key wells feel substantial, and the adjustable split angle is a genuine ergonomic feature. What moved me off was switch preference: Cherry MX switches have 2.0mm of actuation travel and 4.0mm total travel. Kailh Choc v1 switches have 1.5mm actuation and 3.0mm total, in a housing less than half the height. The MX switches feel hollow compared to Choc linears, and the heavier actuation combined with the extra travel distance makes long sessions noticeably more fatiguing. The Glove80 and ZSA Voyager are the two premium ergo boards that use Choc v1 switches; Kinesis boards (Advantage2, Advantage360) all use full-height MX. The contoured wells look like they should help you hit keys faster, but in practice the speed gain is negligible. The real ergonomic benefit comes from the split angle, which any split board provides.
 
