@@ -24,7 +24,7 @@ After living with all of them, three things matter for programming keyboards:
 
 **Split.** Your shoulders should not be pinched inward eight hours a day. Any split board fixes this. A laptop is a laptop, but at a desk, split is the single biggest ergonomic gain. Tenting (tilting the inner edge upward) reduces forearm pronation, and negative tilt (front edge higher than back) keeps wrists neutral. The Piantor Pro is flat, so tenting requires a 3D-printed stand or a wedge underneath. These are worth experimenting with if you have wrist discomfort, though the split angle alone solves the shoulder problem.
 
-**Layers.** Reaching for the number row, arrow keys, or function keys interrupts flow. A 42-key board with good layers keeps everything under your fingers. The Piantor Pro handles this in Vial firmware. On a MacBook, Karabiner achieves a similar result in software. Either way, the principle is the same: keep your hands on home row.
+**Layers.** Reaching for the number row, arrow keys, or function keys interrupts flow. A 42-key board with good layers keeps everything under your fingers. The Piantor Pro handles this in Vial firmware. On a MacBook, [Karabiner-Elements](https://karabiner-elements.pqrs.org/) achieves a similar result in software. Either way, the principle is the same: keep your hands on home row.
 
 **Light switches.** Heavy switches cause fatigue over long sessions. The Piantor Pro with Nocturnal Silent Linear 20g switches requires almost no force. Your fingers rest on the keys and thoughts become text. This is the one advantage hardware has over software remapping.
 
@@ -34,7 +34,7 @@ Everything else is preference, not performance. Ortholinear versus staggered, cu
 
 Each of the four serves a different purpose. No single keyboard covers all of them.
 
-**Piantor Pro with Nocturnal Silent Linear 20g switches.** This is the desk keyboard and the endpoint of the optimization path: split, columnar, 42 keys, and Vial firmware. The switches require almost no force. Fingers rest on the keys and thoughts become text without conscious effort. It lives on the desk and stays there.
+**Piantor Pro with Nocturnal Silent Linear 20g switches.** This is the desk keyboard and the endpoint of the optimization path: split, columnar, 42 keys, and [Vial](https://get.vial.today/) firmware. The switches require almost no force. Fingers rest on the keys and thoughts become text without conscious effort. It lives on the desk and stays there.
 
 **HHKB Type-S.** This is the all-rounder. Topre switches feel like nothing else. The silenced cups have a soft, rounded bottom-out that rewards slow, deliberate typing. It is not split, has minimal layers built into the DIP switches, and requires no firmware configuration. Ctrl lives where Caps Lock belongs. You plug it in and write. This is the recommendation for anyone who finds 42 keys intimidating or who wants one keyboard that handles everything without customization.
 
@@ -52,7 +52,7 @@ The Piantor Pro sits on the desk with the Mac touchpad centered between the halv
 
 This is the same layout a laptop provides naturally: keyboard with trackpad in the middle. The difference is lighter switches, a split angle, and the ability to adjust spacing to your shoulder width.
 
-The keymap lives on the board itself via Vial firmware. Plug it into any computer and the layout follows. The software stack (skhd, yabai, tmux) still needs to be installed on each machine, but the keyboard layout is self-contained. The full layout is on GitHub: [heavy-handed](https://github.com/joryeugene/heavy-handed).
+The keymap lives on the board itself via Vial firmware. Plug it into any computer and the layout follows. The software stack ([skhd](https://github.com/koekeishiya/skhd), [yabai](https://github.com/koekeishiya/yabai), tmux) still needs to be installed on each machine, but the keyboard layout is self-contained. The full layout is on GitHub: [heavy-handed](https://github.com/joryeugene/heavy-handed).
 
 Modifiers live on the outer pinky columns: Ctrl top left, Cmd home left, Alt top right, Shift on both bottoms. Six thumb keys handle five layers and the five most frequent non-alpha keys: Backspace, Space, Tab, Escape, and mouse click.
 
@@ -69,6 +69,8 @@ The inner column keys (T/G/B and Y/H/N positions) are blank on most layers. Inse
 The keyboard layout is one layer in a stack. Hold Space and the right hand controls all of tmux: split panes, zoom, lazygit, session picker, directory jump, and yazi file manager. Hold Enter and the left hand controls yabai: focus, swap, and resize windows through HJKL in three modifier tiers. Hold Escape and the right outer thumb becomes Hyper (all four modifiers at once), giving skhd a dedicated namespace for app launching that never collides with window management or tmux.
 
 The whole system is three tools and three modifier domains with no overlap. Alt for windows, Ctrl+A for tmux, and Hyper for apps. Each domain maps spatially to vim directions. Learning one teaches the muscle memory for all three.
+
+A fourth layer reduces mouse dependence at the OS level. [Homerow](https://www.homerow.app/) overlays letter labels on every clickable element when triggered. Hyper+J activates click mode: type one or two letters to fire a click without moving your hand. Hyper+K activates scroll mode for areas where reaching the trackpad would break flow. This is the vim jump methodology applied to the entire operating system.
 
 ## What Each Board Taught Me
 
@@ -103,7 +105,7 @@ If you want to skip the rotation and go straight to a split 42-key board:
 
 - [Svalboard](https://svalboard.com/). Where CharaChorder tried to solve speed through chording (press all letters at once), Svalboard solves ergonomics through geometry: each finger rests in its own sculpted pocket and moves in four directions. The two boards solve different problems. CharaChorder optimizes for speed through simultaneous input. Svalboard optimizes for ergonomics through finger geometry. After going deep on steno and chording and learning that the speed bottleneck is thinking, not typing, the Svalboard's ergonomic thesis is more compelling than another speed play. It is also a massive learning curve. After twelve keyboards, this is the one I would try if the itch returns, and the one most likely to restart the whole cycle.
 
-- [ASUS ROG Falcata](https://rog.asus.com/keyboards/keyboards/compact/rog-falcata/). The first prebuilt split keyboard with Hall effect magnetic switches. A 75% layout that joins into one piece or splits down the middle. Wireless at 8kHz polling with adjustable actuation from 0.1mm to 3.5mm per key. Hall effect switches use magnets over sensors instead of metal contact leaves. The key advantage is Rapid Trigger: the switch deactivates the instant you lift your finger and reactivates the instant you press back down, with adjustable actuation per key. In competitive shooters this translates to faster counter-strafing and more precise movement. The Razer Huntsman V3 Pro TKL is used by roughly 17% of CS2 professionals, and the Wooting 80HE is the other dominant board in that space, but neither splits. This is the board that bridges the gap between ergonomic split and competitive gaming, and the first that does not force a choice between the two.
+- [ASUS ROG Falcata](https://rog.asus.com/keyboards/keyboards/compact/rog-falcata/). The first prebuilt split keyboard with Hall effect magnetic switches. A 75% layout that joins into one piece or splits down the middle. Wireless at 8kHz polling with adjustable actuation from 0.1mm to 3.5mm per key. Hall effect switches use magnets over sensors instead of metal contact leaves. The key advantage is Rapid Trigger: the switch deactivates the instant you lift your finger and reactivates the instant you press back down, with adjustable actuation per key. In competitive shooters this translates to faster counter-strafing and more precise movement. The [Razer Huntsman V3 Pro TKL](https://www.razer.com/gaming-keyboards/razer-huntsman-v3-pro-tkl) is used by roughly 17% of CS2 professionals, and the [Wooting 80HE](https://wooting.io/wooting-80he) is the other dominant board in that space, but neither splits. This is the board that bridges the gap between ergonomic split and competitive gaming, and the first that does not force a choice between the two.
 
 ## Or Skip the Keyboard Entirely
 
@@ -135,5 +137,9 @@ The endgame keyboard is the one where you stop thinking about keyboards and star
 
 **Hyper** for app launching (Ctrl+Shift+Alt+Cmd, held on Piantor right thumb):
 - Hyper+Q Chrome, Hyper+W WezTerm, Hyper+E Zen Browser, and Hyper+S Slack
+
+**Homerow for click and scroll:**
+- Hyper+J: click overlay. Letter labels appear over every clickable element. Type one or two letters to click.
+- Hyper+K: scroll mode. Select any scrollable area by letter label.
 
 These tools are all free and all open source. They handle the software side of what the Piantor does in firmware: home row arrows, window management, and app launching. What they cannot replicate is the physical side: split angle, columnar layout, 20g switches, and thumb clusters. Start with the software. The hardware is worth it if you spend eight hours a day at a desk.
