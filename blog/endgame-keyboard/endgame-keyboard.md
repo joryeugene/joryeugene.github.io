@@ -86,7 +86,7 @@ Most keyboards on this list solved a real problem. Every one of them revealed th
 
 **Polyglot.** The Polyglot sits somewhere between a stenograph and a regular keyboard. It has a split-ish layout and is fun to play with, but it never became a daily driver. Some boards are interesting without being practical.
 
-**Alienware.** This one entered the rotation for a specific reason: I needed the physical hardware to program the Alienware SDK RGB lighting for [Totally Reliable Delivery Service](https://totallyreliable.com/), a game I worked on. As a general-purpose keyboard it is fine and unremarkable. It confirmed that conventional layouts are adequate for conventional use and inadequate for eight-hour programming sessions.
+**Alienware.** This one entered the rotation for a specific reason: I needed the physical hardware to program the Alienware SDK RGB lighting for [Totally Reliable Delivery Service](https://totallyreliable.com/), a game I worked on. As a general-purpose keyboard it was reliable. It had a nice volume knob, it never failed, and it never made me think about it. That is a higher bar than most keyboards on this list cleared.
 
 **Small Miryoku board from eBay.** If it is a Corne or Sweep variant, keep it as a travel backup. It shares the same layout philosophy as the Piantor Pro and fits in a jacket pocket. One warning about boards with fewer than 42 keys: they rely on home row mods, where tapping a key types a letter and holding it activates a modifier. Home row mods sound elegant in theory, but they introduce timing ambiguity that slows you down in practice. The firmware has to guess whether you meant to type "a" or start holding Cmd, and that guess is wrong often enough to break your flow. I recommend never going below 42 keys. The dedicated modifier columns on a 42-key board eliminate that ambiguity entirely.
 
@@ -116,6 +116,18 @@ The other endgame is voice. [Wispr Flow](https://wisprflow.ai/) is what I use fo
 Voice does not replace a keyboard for programming. It replaces the keyboard for everything that is not programming: Slack messages, PR descriptions, commit messages, documentation, and emails. The hours spent typing prose at a desk add up. A keyboard optimized for code and a voice layer optimized for natural language cover the full surface.
 
 More on voice as an input layer in [Friction Economy: Unconscious Productivity Drains](/blog/friction-economy/).
+
+## Or Just Use What You Have
+
+There is a version of this article that is one sentence long: stick with whatever keyboard came with your computer.
+
+The Alienware never let me down. It had a nice volume knob, it was reliable, and it did everything I asked of it for years. Reliable. I helped ship a game called [Totally Reliable Delivery Service](https://totallyreliable.com/) and yes, I mean the second word the whole time. The most reliable delivery system for my own typing was a keyboard that came in the box.
+
+The Keychron K2 sounds like a hailstorm. Mechanical switches clacking away for eight hours is maddening when you are trying to think. The loudness that disappears during a gaming session becomes unbearable during a writing session. Every keystroke announces itself to the room.
+
+If your laptop keyboard has a light touch, you already have most of what matters. The bell curve applies: the person who never thought about keyboards and the person who bought twelve of them arrive at the same conclusion. The laptop keyboard is fine. Everyone in the middle is buying the next one, convinced it will be the last.
+
+You do not have to spend the money.
 
 The endgame keyboard is the one where you stop thinking about keyboards and start thinking about the work.
 
