@@ -10,7 +10,7 @@
 
 At one point I owned a Piantor Pro, a CharaChorder, a CharaChorder Forge, a Starboard stenograph, a Kinesis Advantage, a Kinesis Advantage Pro, a Moergo Glove80, a Polyglot, an Alienware, a small Miryoku board from eBay, an HHKB Type-S, and a Keychron K2. That is twelve keyboards, twelve different muscle memories, and twelve keymaps to maintain.
 
-Four survived. Eight are getting sold or given away. This is what the rotation taught me.
+Three survived. Nine are getting sold or given away. This is what the rotation taught me.
 
 ## How I Got Here
 
@@ -30,13 +30,11 @@ After living with all of them, three things matter for programming keyboards:
 
 Everything else is preference, not performance. Ortholinear versus staggered, curved key wells versus flat PCB, trackball versus touchpad, wired versus wireless, and QWERTY versus Colemak-DH. These are real differences that produce approximately zero productivity delta. Switching to Colemak simultaneously with switching to split doubles the learning curve; I stayed on QWERTY because the columnar layout already breaks old muscle memory enough for one transition.
 
-## The Four That Survived
+## The Three That Survived
 
-Each of the four serves a different purpose. No single keyboard covers all of them.
+Each of the three serves a different purpose. No single keyboard covers all of them.
 
 **Piantor Pro with Nocturnal Silent Linear 20g switches.** This is the desk keyboard and the endpoint of the optimization path: split, columnar, 42 keys, and [Vial](https://get.vial.today/) firmware. The switches require almost no force. Fingers rest on the keys and thoughts become text without conscious effort. It lives on the desk and stays there.
-
-**HHKB Type-S.** This one lasted longest before getting sold. Topre switches feel like nothing else: the silenced cups have a soft, rounded bottom-out that rewards slow, deliberate typing. It is not split, has minimal layers built into the DIP switches, and requires no firmware configuration. Ctrl lives where Caps Lock belongs. You plug it in and write. For anyone who does not want to go deeper into the optimization path, it is a genuinely good all-arounder. It just was not the endgame.
 
 **Keychron K2.** This is the gaming keyboard. Games need instant access to number keys, F-keys, and Escape, and cycling through a layer to reach them while strafing and jumping does not work in practice. A 75% mechanical board gives every modifier its own physical key. The switches are loud and clicky, which does not matter for gaming because you are not in a flow state typing prose. If this board ever dies, magnetic Hall effect switches are interesting for the adjustable actuation and rapid trigger.
 
@@ -44,7 +42,7 @@ The mouse matters as much as the keyboard for gaming. The single most important 
 
 **MacBook keyboard with Karabiner.** This is the travel keyboard. It is already attached to the laptop. macOS System Settings swaps Caps Lock and Ctrl so Ctrl sits on the home row. Karabiner then gives it Cmd+HJKL arrow keys and makes that Caps Lock position (now Ctrl) tap for Escape, hold for Ctrl. It requires zero extra gear to carry. It is not the best keyboard for long sessions, but it is the most practical one for meetings and coffee shops. The software layer does most of the work regardless of what hardware sits underneath it.
 
-The other eight are getting sold or given away.
+The other nine are getting sold or given away.
 
 ## The Setup That Works
 
@@ -75,6 +73,8 @@ A fourth layer reduces mouse dependence at the OS level. [Homerow](https://www.h
 ## What Each Board Taught Me
 
 Most keyboards on this list solved a real problem. Every one of them revealed that the problem it solved was not the bottleneck.
+
+**HHKB Type-S.** Topre switches feel like nothing else: the silenced cups have a soft, rounded bottom-out that rewards slow, deliberate typing. It is not split, has minimal layers built into the DIP switches, and requires no firmware configuration. Ctrl lives where Caps Lock belongs. You plug it in and write. It lasted longer than most boards on this list before getting sold, which is its own endorsement. The lesson is that plug-and-play has genuine value, and not every workflow needs firmware, layers, or a 42-key layout. But it is not split, and that matters more than Topre feel once you have spent time on a split board. For anyone who does not want to go deeper into the optimization path, it is a good all-arounder. It just was not the endgame.
 
 **Kinesis Advantage / Advantage Pro.** Two coworkers settled on the Advantage 360 Pro and love it. The board is good. The curved key wells feel substantial, and the adjustable split angle is a genuine ergonomic feature. What moved me off was switch preference: Cherry MX switches have 2.0mm of actuation travel and 4.0mm total travel. Kailh Choc v1 switches have 1.5mm actuation and 3.0mm total, in a housing less than half the height. The MX switches feel hollow compared to Choc linears, and the heavier actuation combined with the extra travel distance makes long sessions noticeably more fatiguing. The Glove80 and ZSA Voyager are the two premium ergo boards that use Choc v1 switches; Kinesis boards (Advantage2, Advantage360) all use full-height MX. The contoured wells look like they should help you hit keys faster, but in practice the speed gain is negligible. The real ergonomic benefit comes from the split angle, which any split board provides.
 
