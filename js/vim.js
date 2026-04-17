@@ -253,44 +253,7 @@
     document.body.removeChild(ta);
   }
 
-  // -------------------------------------------------------------------------
-  // Colorschemes
-  // -------------------------------------------------------------------------
-  var colorschemes = {
-    'default':    { bg: '#1e1e2e', fg: '#cdd6f4', cursor: '#cdd6f4', sel: 'rgba(88,91,112,0.5)', gutter: '#585b70', status: '#181825', statusFg: '#cdd6f4', mark: 'rgba(249,226,175,0.3)' },
-    'gruvbox':    { bg: '#282828', fg: '#ebdbb2', cursor: '#ebdbb2', sel: 'rgba(146,131,116,0.4)', gutter: '#928374', status: '#1d2021', statusFg: '#ebdbb2', mark: 'rgba(250,189,47,0.3)' },
-    'solarized':  { bg: '#002b36', fg: '#839496', cursor: '#93a1a1', sel: 'rgba(7,54,66,0.7)', gutter: '#586e75', status: '#073642', statusFg: '#93a1a1', mark: 'rgba(181,137,0,0.3)' },
-    'nord':       { bg: '#2e3440', fg: '#d8dee9', cursor: '#d8dee9', sel: 'rgba(67,76,94,0.6)', gutter: '#4c566a', status: '#3b4252', statusFg: '#eceff4', mark: 'rgba(235,203,139,0.3)' },
-    'dracula':    { bg: '#282a36', fg: '#f8f8f2', cursor: '#f8f8f2', sel: 'rgba(68,71,90,0.6)', gutter: '#6272a4', status: '#21222c', statusFg: '#f8f8f2', mark: 'rgba(241,250,140,0.3)' },
-    'monokai':    { bg: '#272822', fg: '#f8f8f2', cursor: '#f8f8f2', sel: 'rgba(73,72,62,0.6)', gutter: '#75715e', status: '#1e1f1c', statusFg: '#f8f8f2', mark: 'rgba(230,219,116,0.3)' },
-    'tokyonight': { bg: '#1a1b26', fg: '#c0caf5', cursor: '#c0caf5', sel: 'rgba(41,46,66,0.7)', gutter: '#565f89', status: '#16161e', statusFg: '#c0caf5', mark: 'rgba(224,175,104,0.3)' },
-    'onedark':    { bg: '#282c34', fg: '#abb2bf', cursor: '#abb2bf', sel: 'rgba(62,68,81,0.6)', gutter: '#5c6370', status: '#21252b', statusFg: '#abb2bf', mark: 'rgba(229,192,123,0.3)' },
-    'rosepine':   { bg: '#191724', fg: '#e0def4', cursor: '#e0def4', sel: 'rgba(38,35,53,0.7)', gutter: '#6e6a86', status: '#1f1d2e', statusFg: '#e0def4', mark: 'rgba(246,193,119,0.3)' },
-    'catppuccin': { bg: '#1e1e2e', fg: '#cdd6f4', cursor: '#cdd6f4', sel: 'rgba(88,91,112,0.5)', gutter: '#585b70', status: '#181825', statusFg: '#cdd6f4', mark: 'rgba(249,226,175,0.3)' },
-    // Classic vim built-ins
-    'blue':       { bg: '#0000d4', fg: '#ffff00', cursor: '#ffffff', sel: 'rgba(0,255,255,0.4)', gutter: '#00ffff', status: '#0000aa', statusFg: '#ffffff', mark: 'rgba(255,0,255,0.35)' },
-    'darkblue':   { bg: '#00002a', fg: '#c0c0c0', cursor: '#ffffff', sel: 'rgba(0,0,128,0.6)', gutter: '#808080', status: '#00008b', statusFg: '#ffff00', mark: 'rgba(255,255,0,0.3)' },
-    'desert':     { bg: '#333333', fg: '#ffa0a0', cursor: '#f0e68c', sel: 'rgba(107,107,107,0.5)', gutter: '#808080', status: '#444444', statusFg: '#f0e68c', mark: 'rgba(255,255,0,0.25)' },
-    'elflord':    { bg: '#000000', fg: '#00ffff', cursor: '#00ff00', sel: 'rgba(0,100,0,0.5)', gutter: '#ffff00', status: '#1c1c1c', statusFg: '#00ff00', mark: 'rgba(255,255,0,0.35)' },
-    'evening':    { bg: '#00005f', fg: '#ffffff', cursor: '#00ff00', sel: 'rgba(95,95,175,0.5)', gutter: '#ffd700', status: '#000040', statusFg: '#ffd700', mark: 'rgba(255,255,0,0.3)' },
-    'industry':   { bg: '#000000', fg: '#00ff00', cursor: '#00ff00', sel: 'rgba(0,80,0,0.6)', gutter: '#666666', status: '#1a1a1a', statusFg: '#00ff00', mark: 'rgba(0,255,0,0.25)' },
-    'koehler':    { bg: '#000000', fg: '#ffffff', cursor: '#ff0000', sel: 'rgba(120,120,120,0.5)', gutter: '#808080', status: '#303030', statusFg: '#ffd700', mark: 'rgba(255,255,0,0.3)' },
-    'morning':    { bg: '#ffffff', fg: '#000000', cursor: '#ffffff', sel: 'rgba(135,206,235,0.5)', gutter: '#808080', status: '#e0e0e0', statusFg: '#000080', mark: 'rgba(255,200,0,0.35)' },
-    'murphy':     { bg: '#000050', fg: '#66ff66', cursor: '#ffffff', sel: 'rgba(0,100,0,0.5)', gutter: '#00ff00', status: '#000040', statusFg: '#ffff00', mark: 'rgba(255,255,0,0.3)' },
-    'pablo':      { bg: '#000000', fg: '#c0c0c0', cursor: '#ffffff', sel: 'rgba(80,80,80,0.5)', gutter: '#808080', status: '#262626', statusFg: '#ffffff', mark: 'rgba(255,255,0,0.25)' },
-    'peachpuff':  { bg: '#ffdab9', fg: '#000000', cursor: '#ffffff', sel: 'rgba(180,100,100,0.3)', gutter: '#808080', status: '#eecc99', statusFg: '#000080', mark: 'rgba(255,0,0,0.2)' },
-    'ron':        { bg: '#000000', fg: '#00ffff', cursor: '#ffffff', sel: 'rgba(0,80,120,0.5)', gutter: '#ffff00', status: '#1c1c1c', statusFg: '#00ffff', mark: 'rgba(255,255,0,0.3)' },
-    'shine':      { bg: '#ffffff', fg: '#000000', cursor: '#ffffff', sel: 'rgba(175,215,255,0.6)', gutter: '#808080', status: '#e0e0e0', statusFg: '#5f00af', mark: 'rgba(255,200,0,0.35)' },
-    'slate':      { bg: '#262626', fg: '#d4d4d4', cursor: '#d4d4d4', sel: 'rgba(80,80,80,0.5)', gutter: '#808080', status: '#3a3a3a', statusFg: '#d4d4d4', mark: 'rgba(255,215,0,0.3)' },
-    'torte':      { bg: '#1a1a1a', fg: '#cccccc', cursor: '#ffffff', sel: 'rgba(90,90,90,0.5)', gutter: '#808080', status: '#2d2d2d', statusFg: '#cccccc', mark: 'rgba(255,255,0,0.25)' },
-    'zellner':    { bg: '#ffffff', fg: '#000000', cursor: '#ffffff', sel: 'rgba(175,175,255,0.4)', gutter: '#808080', status: '#dcdcdc', statusFg: '#8b0000', mark: 'rgba(255,200,0,0.4)' },
-    'delek':      { bg: '#ffffff', fg: '#000000', cursor: '#ffffff', sel: 'rgba(175,255,175,0.5)', gutter: '#808080', status: '#d0ffd0', statusFg: '#006400', mark: 'rgba(255,200,0,0.35)' },
-    'habamax':    { bg: '#1c1c1c', fg: '#bcbcbc', cursor: '#bcbcbc', sel: 'rgba(68,68,68,0.6)', gutter: '#767676', status: '#303030', statusFg: '#bcbcbc', mark: 'rgba(215,175,0,0.3)' },
-    'retrobox':   { bg: '#1d2021', fg: '#ebdbb2', cursor: '#fe8019', sel: 'rgba(60,56,54,0.7)', gutter: '#928374', status: '#3c3836', statusFg: '#ebdbb2', mark: 'rgba(250,189,47,0.3)' },
-    'wildcharm':  { bg: '#1a1a2e', fg: '#e0e0ff', cursor: '#ff6eb4', sel: 'rgba(80,60,120,0.5)', gutter: '#7070a0', status: '#16213e', statusFg: '#ff6eb4', mark: 'rgba(255,110,180,0.3)' },
-    'sorbet':     { bg: '#1e1a2e', fg: '#d0c8e0', cursor: '#e8a0bf', sel: 'rgba(80,50,90,0.5)', gutter: '#786090', status: '#2a2040', statusFg: '#e8a0bf', mark: 'rgba(232,160,191,0.3)' },
-    'lunaperche': { bg: '#232136', fg: '#e0def4', cursor: '#eb6f92', sel: 'rgba(57,53,82,0.6)', gutter: '#6e6a86', status: '#2a273f', statusFg: '#ea9a97', mark: 'rgba(246,193,119,0.3)' }
-  };
+  var colorschemes = window.VIM_COLORSCHEMES || {};
   var schemeNames = Object.keys(colorschemes);
 
   function applyColorscheme(name) {
