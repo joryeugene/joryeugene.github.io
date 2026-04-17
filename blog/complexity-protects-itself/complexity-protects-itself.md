@@ -50,7 +50,7 @@ A managed service is antifragile to operational stress. Thousands of customers u
 
 A custom internal platform is fragile to operational stress. Each failure requires the context held by the team that built it. Each fix adds complexity that is understood only inside that context. Each outage deepens the cognitive debt. The feedback loop runs in the wrong direction: stress makes the system weaker because comprehension narrows over time rather than widening.
 
-Brooks quantified the communication dimension of this fragility in 1975. The number of communication channels in a team grows as n(n-1)/2, where n is the number of people. For a team of ten, that is 45 channels. The fragility problem is the inverse: when n equals one (a bus factor of one), there are zero channels. No knowledge transfer occurs. No code review happens. No second opinion exists. When the team holding that context is unavailable, the system cannot be understood, changed, or safely operated.
+Brooks quantified the communication dimension of this fragility in 1975. The number of distinct two-person channels a team of size *n* can hold grows quadratically as *n*(*n* − 1) / 2. A team of ten has 45 channels; a team of a hundred has 4,950. The fragility problem is the inverse. When *n* equals one, the team has what engineers call a *bus factor of one*: if the single person who holds the context is unavailable, the system has no one to explain, review, or second-guess it. Zero channels means zero paths for knowledge transfer, and the system cannot be understood, changed, or safely operated.
 
 Eighty percent of unplanned outages originate from ill-planned changes to the production environment, according to the _Visible Ops Handbook_ (2004). The remaining twenty percent come from external factors the team cannot control. The overwhelming majority of downtime is self-inflicted, and the risk scales with the opacity of the system being changed.
 
@@ -116,7 +116,7 @@ When the failures finally force verification, the correction follows the same tr
 
 The simple system was not replaced because it was insufficient. The replacement is what the research describes: more ambitious, less understood, and more expensive to operate. The replacement inherits the ideas sidetracked the first time. It does not inherit the stress-testing.
 
-Brooks wrote about this in 1975. Hickey formalized it in 2011. Taleb classified it in 2012. The research spans five decades. The complexity protects itself until the replacement breaks. Then the simple option is the obvious choice it always was.
+Brooks wrote about this in 1975, Hickey formalized it in 2011, and Taleb classified it in 2012; the research now spans five decades. The complexity protects itself until the replacement breaks. Then the simple option is the obvious choice it always was.
 
 ---
 

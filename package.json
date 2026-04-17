@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "sync": "node scripts/sync-blog-surfaces.mjs",
-    "check:sync": "node scripts/sync-blog-surfaces.mjs --check"
+    "check:sync": "node scripts/sync-blog-surfaces.mjs --check",
+    "lint:prose": "node scripts/prose-lint.mjs"
   },
   "engines": {
     "node": ">=18"

@@ -189,7 +189,7 @@ Voice input tools like [*WisprFlow*](https://wisprflow.ai) and [*MacWhisper*](ht
 - **WisprFlow**: Hold fn key, speak, release to insert text anywhere
 - **MacWhisper**: System-wide dictation with Whisper models
 
-Single hotkey activation. Direct speech-to-text. Minimal interface overhead. The principle applies across voice tools: minimizing activation friction enables faster thought capture.
+The principle is the same across voice tools: a single hotkey activation, direct speech-to-text, and minimal interface overhead. Minimizing activation friction is what enables faster thought capture.
 
 The real breakthrough: combining voice with meta-prompting. Speak your messy thoughts naturally, then ask Claude to help you articulate them better. Voice captures thought at speaking speed; AI provides structure.
 

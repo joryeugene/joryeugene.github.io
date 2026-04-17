@@ -10,7 +10,7 @@ An earlier essay in this series explored what happens when AI agents form civili
 
 That asymmetry applies closer to home than expected.
 
-Convention accumulates naturally. Style guides appear. CLAUDE.md files grow. Process documentation multiplies. Teams write down what should happen and express the intention that it will. These are forms of protection. They describe intent.
+Convention accumulates naturally: style guides appear, CLAUDE.md files grow, and process documentation multiplies. Teams write down what should happen and express the intention that it will. These are forms of protection, and they describe intent rather than enforcing it.
 
 Conventions degrade under load. As an instruction set grows, each individual instruction competes with every other instruction for attention. Background constraints lose salience when the foreground task demands focus. This is true for human teams following process documentation, and it is equally true for AI agents following system prompts. The phenomenon is not about disobedience. It is about attention as a finite resource.
 
@@ -107,7 +107,7 @@ The moat is the combination: verified context protected by structural gates. Eit
 
 Not every constraint needs the same level of enforcement. A tone preference that drifts occasionally belongs in convention, where flexibility is a feature. A destructive command that silently corrupts shared state belongs in structure, where inflexibility is the point. The cost of a single violation determines where a constraint belongs on that spectrum.
 
-The gap between a fresh Claude Code session and one that starts with months of verified, contextually-matched knowledge is not a model capability gap. It is a knowledge infrastructure gap. Convention emerges naturally. Everyone writes a CLAUDE.md. Structure must be built. Nobody accidentally builds a verification pipeline or a hook-level enforcement layer.
+The gap between a fresh Claude Code session and one that starts with months of verified, contextually-matched knowledge is not a model capability gap. It is a knowledge infrastructure gap. Convention emerges naturally, and everyone eventually writes a CLAUDE.md; structure must be built deliberately, because nobody accidentally builds a verification pipeline or a hook-level enforcement layer.
 
 The central question of this blog is what emerges when complexity reaches sufficient scale. Protection emerges. Verification does not. The tools to build verification exist at every layer of the stack. The pattern is always the same: convention is a form of protection, and structure is a form of verification. Only one of them holds when nobody is watching.
 

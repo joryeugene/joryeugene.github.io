@@ -142,7 +142,7 @@ Modern UX principles applied to terminal multiplexing. **Floating panes change w
 
 ### The Traditionalist
 #### *bash* + iTerm2 + *tmux*
-*Why:* Muscle memory is valuable. Everything just works. No surprises.
+*Why:* Muscle memory is valuable, everything just works, and the stack offers no surprises.
 
 ### The Modernist
 #### *fish* + Warp

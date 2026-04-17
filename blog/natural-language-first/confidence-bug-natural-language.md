@@ -87,7 +87,7 @@ Here's what I've discovered after months of experimentation: complex architectur
 
 You don't need vector databases, RAG architectures, or elaborate multi-agent systems to improve AI behavior. You need thoughtful instructions written in plain English.
 
-This isn't about avoiding complexity. It's about engineering pragmatism. Try the simple solution first.
+This isn't about avoiding complexity; it's about engineering pragmatism, and pragmatism means trying the simple solution first.
 
 ## CLAUDE.md: A Case Study in Behavioral Control
 
@@ -148,7 +148,7 @@ update CLAUDE.md to make this pattern more explicit?
 
 The research backs this up. Microsoft's Semantic Kernel emphasizes "Clear System Prompts" for agent behavior⁶. OpenAI's Swarm framework lets developers define "routines" in natural language⁷. Across the industry, natural language is becoming the primary interface for AI control.
 
-Why? Because it works. Natural language system prompts:
+The reason is that it works in practice. Natural language system prompts:
 - Require no additional infrastructure
 - Can be tested and iterated quickly
 - Are readable by your entire team

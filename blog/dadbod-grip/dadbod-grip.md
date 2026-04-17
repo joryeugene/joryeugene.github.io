@@ -33,7 +33,7 @@ dadbod-grip does.
 
 ## The Core Idea
 
-Open a database table. It renders as a grid in a Neovim buffer. Move with `j`/`k`/`h`/`l`. Press `i` to edit a cell. The row turns violet. A floating preview shows the exact UPDATE statement that will run. Stage more changes. Delete rows with `d` (they turn red). Insert a blank row with `o` (green). Clone an existing row with `c` (copies data, clears PKs, staged as a new INSERT). When you're ready, press `a` to apply the entire batch in a single transaction.
+Open a database table and it renders as a grid in a Neovim buffer. Move with `j`/`k`/`h`/`l`, press `i` to edit a cell, and the row turns violet while a floating preview shows the exact UPDATE statement that will run. Stage more changes the same way: `d` marks a row for deletion (red), `o` inserts a blank row (green), and `c` clones an existing row by copying its data, clearing the primary keys, and staging it as a new INSERT. When you're ready, press `a` to apply the entire batch in a single transaction.
 
 Nothing touches the database until you press `a`.
 
@@ -156,7 +156,7 @@ JOIN legacy.orders ON pg.customers.id = legacy.orders.customer_id
 JOIN cloud.analytics ON pg.customers.id = cloud.analytics.user_id
 ```
 
-Extensions install automatically. Attaching `postgres:` loads `postgres_scanner`. Attaching `sqlite:` loads `sqlite_scanner`. Attachments persist in `.grip/connections.json` and restore on reconnect.
+Extensions install automatically: attaching `postgres:` loads `postgres_scanner`, and attaching `sqlite:` loads `sqlite_scanner`. Attachments persist in `.grip/connections.json` and restore on reconnect.
 
 ```vim
 :GripAttach postgres:dbname=production host=localhost user=me  prod
