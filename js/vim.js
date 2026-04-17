@@ -2561,15 +2561,172 @@
   helpTopics['@'] = helpTopics['q'];
   helpTopics['text-objects'] = ['Text objects select regions of text for operators.',
                                 '',
-                                '  iw    inner word (word characters only)',
-                                '  aw    a word (includes surrounding whitespace)',
-                                '  iW    inner WORD (non-whitespace characters)',
-                                '  aW    a WORD (includes surrounding whitespace)',
-                                '  ip    inner paragraph (contiguous non-blank lines)',
-                                '  ap    a paragraph (includes trailing blank lines)',
+                                'WORDS AND PARAGRAPHS',
+                                '  iw aw    inner / a word',
+                                '  iW aW    inner / a WORD (non-whitespace)',
+                                '  ip ap    inner / a paragraph',
                                 '',
-                                'Compose with any operator: diw, ciw, yiw, >ip, gUiw',
-                                'Also works in visual mode: viw, vap'];
+                                'PAIRED DELIMITERS',
+                                '  i( a(    inner / a parentheses   (alias: ib ab)',
+                                '  i[ a[    inner / a square brackets',
+                                '  i{ a{    inner / a curly braces  (alias: iB aB)',
+                                '  i< a<    inner / a angle brackets',
+                                '  i" a"    inner / a double-quoted string',
+                                "  i' a'    inner / a single-quoted string",
+                                '  i` a`    inner / a backtick string',
+                                '',
+                                'i selects the content between delimiters (exclusive).',
+                                'a selects the content PLUS the delimiters (inclusive).',
+                                'Brackets match across lines using the same algorithm as %.',
+                                'Quotes are line-local; no nesting.',
+                                '',
+                                'Compose with any operator: ci(, da", yi{, >ip, gUiw',
+                                'Also works in visual mode: vi(, va"'];
+  helpTopics['i('] = helpTopics['text-objects'];
+  helpTopics['a('] = helpTopics['text-objects'];
+  helpTopics['i)'] = helpTopics['text-objects'];
+  helpTopics['a)'] = helpTopics['text-objects'];
+  helpTopics['i['] = helpTopics['text-objects'];
+  helpTopics['a['] = helpTopics['text-objects'];
+  helpTopics['i]'] = helpTopics['text-objects'];
+  helpTopics['a]'] = helpTopics['text-objects'];
+  helpTopics['i{'] = helpTopics['text-objects'];
+  helpTopics['a{'] = helpTopics['text-objects'];
+  helpTopics['i}'] = helpTopics['text-objects'];
+  helpTopics['a}'] = helpTopics['text-objects'];
+  helpTopics['i<'] = helpTopics['text-objects'];
+  helpTopics['a<'] = helpTopics['text-objects'];
+  helpTopics['i"'] = helpTopics['text-objects'];
+  helpTopics['a"'] = helpTopics['text-objects'];
+  helpTopics["i'"] = helpTopics['text-objects'];
+  helpTopics["a'"] = helpTopics['text-objects'];
+  helpTopics['i`'] = helpTopics['text-objects'];
+  helpTopics['a`'] = helpTopics['text-objects'];
+  helpTopics['ib'] = helpTopics['text-objects'];
+  helpTopics['ab'] = helpTopics['text-objects'];
+  helpTopics['iB'] = helpTopics['text-objects'];
+  helpTopics['aB'] = helpTopics['text-objects'];
+
+  helpTopics['i_CTRL-H'] = ['CTRL-H in insert mode: same as Backspace.',
+                            'Deletes the character before the cursor, or joins with the',
+                            'previous line if at column 0.'];
+  helpTopics['i_CTRL-W'] = ['CTRL-W in insert mode: delete the word before the cursor.',
+                            '',
+                            'Walks backward past whitespace, then past the run of word or',
+                            'non-word characters, and removes that span. Fast for backing',
+                            'out of a just-typed token without leaving insert mode.'];
+  helpTopics['i_CTRL-U'] = ['CTRL-U in insert mode: delete from column 0 to the cursor.',
+                            '',
+                            'Equivalent to pressing Home, then Shift+End Delete in a',
+                            'regular text field. Useful for discarding a whole line of',
+                            'typed text without leaving insert.'];
+  helpTopics['i_CTRL-O'] = ['CTRL-O in insert mode: run one normal-mode command, then',
+                            'return to insert mode automatically.',
+                            '',
+                            'Example: while typing, press CTRL-O then dw to delete the',
+                            'next word and continue typing. Counts and multi-key commands',
+                            'work: CTRL-O 5j moves five lines, CTRL-O dd deletes a line.',
+                            'Press Escape during the pending state to stay in normal mode.'];
+
+  helpTopics['Ctrl-v'] = ['CTRL-V             Enter block (rectangular) visual mode.',
+                          '',
+                          'Selection is a rectangle bounded by cursor and anchor on',
+                          'each axis independently. Operators apply column-wise.',
+                          '',
+                          'In block visual mode:',
+                          '  d / x     delete the rectangle, shift remainder left',
+                          '  c         delete the rectangle, then enter insert',
+                          '  y         yank the rectangle',
+                          '  I         prepend typed text to every row (Escape replays)',
+                          '  A         append typed text to every row (Escape replays)',
+                          '  v V       convert to char / line visual',
+                          '  CTRL-V    exit back to normal mode',
+                          '  o         swap anchor and cursor'];
+  helpTopics['CTRL-V'] = helpTopics['Ctrl-v'];
+  helpTopics['v_CTRL-V'] = helpTopics['Ctrl-v'];
+
+  helpTopics['gv'] = ['gv             Reselect the last visual range.',
+                      '',
+                      'Works for char, line, and block visual modes. The previous',
+                      'range is remembered across normal-mode commands, so you can',
+                      'operate on a region, look at the result, then gv to reselect',
+                      'and try a different operator.'];
+
+  helpTopics['v_o'] = ['o (in visual mode): swap the anchor and the cursor.',
+                       '',
+                       'Lets you extend either end of the selection. Press o to move',
+                       'the cursor to the other end; cursor motions then grow or',
+                       'shrink the selection from that end instead.'];
+
+  helpTopics[':g'] = [':g/pat/cmd      Run cmd on every line matching pat.',
+                      ':v/pat/cmd      Run cmd on every line NOT matching pat.',
+                      '',
+                      'Supported subcommands:',
+                      '  :g/pat/d              delete matching lines',
+                      '  :v/pat/d              delete non-matching lines',
+                      '  :g/pat/s/from/to/g    substitute only in matching lines',
+                      '  :g/pat/s/from/to/     single substitution per matching line',
+                      '',
+                      'Example: remove all TODO lines:   :g/TODO/d',
+                      'Example: uppercase FIX tokens:    :g/FIX/s/fix/FIX/g'];
+  helpTopics[':v'] = helpTopics[':g'];
+  helpTopics['g'] = helpTopics[':g'];
+
+  helpTopics[':sort'] = [':sort           Sort the whole buffer lexicographically.',
+                         ':%sort          Same as :sort.',
+                         ":'<,'>sort      Sort the last visual selection.",
+                         ':N,Msort        Sort lines N through M (1-indexed).',
+                         ':sort u         Sort and remove duplicate adjacent lines.',
+                         '',
+                         'Sort is stable. Empty buffer is a no-op.'];
+  helpTopics['sort'] = helpTopics[':sort'];
+
+  helpTopics['search-anchors'] = ['Word-boundary and magic-mode anchors for search.',
+                                   '',
+                                   '  \\<word     matches word only when it starts a word',
+                                   '  word\\>     matches word only when it ends a word',
+                                   '  \\<word\\>   whole-word match',
+                                   '',
+                                   'Example: /\\<foo\\> matches foo but not food or foobar.',
+                                   '',
+                                   'Case modifiers (place anywhere in the pattern):',
+                                   '  \\c        force case-insensitive',
+                                   '  \\C        force case-sensitive',
+                                   '',
+                                   'Works with /, ?, :s, :g, and :v.'];
+  helpTopics['\\<'] = helpTopics['search-anchors'];
+  helpTopics['\\>'] = helpTopics['search-anchors'];
+  helpTopics['\\c'] = helpTopics['search-anchors'];
+  helpTopics['\\C'] = helpTopics['search-anchors'];
+
+  helpTopics['expandtab'] = [':set expandtab        Tab inserts spaces instead of a tab.',
+                             ':set noexpandtab      Tab inserts a real tab character.',
+                             '',
+                             'Aliases: :set et / :set noet',
+                             '',
+                             'Pairs with :set tabstop=N to control how many spaces are',
+                             'inserted per Tab.'];
+  helpTopics['noexpandtab'] = helpTopics['expandtab'];
+  helpTopics['et'] = helpTopics['expandtab'];
+  helpTopics['tabstop'] = [':set tabstop=N        Width of a tab in columns. Default 4.',
+                           '',
+                           'Alias: :set ts=N',
+                           '',
+                           'When :set expandtab is on, Tab inserts N spaces.',
+                           'When off, Tab inserts a literal tab character.'];
+  helpTopics['ts'] = helpTopics['tabstop'];
+  helpTopics['shiftwidth'] = [':set shiftwidth=N     Columns per > or < step. Default 4.',
+                              '',
+                              'Alias: :set sw=N',
+                              '',
+                              'Controls the indent depth of the > and < operators.'];
+  helpTopics['sw'] = helpTopics['shiftwidth'];
+  helpTopics['autoindent'] = [':set autoindent       Copy the previous line\'s indent on Enter.',
+                              ':set noautoindent     New lines start at column 0.',
+                              '',
+                              'Aliases: :set ai / :set noai'];
+  helpTopics['ai'] = helpTopics['autoindent'];
+
   helpTopics[':!'] = [':!{cmd}         Run a shell command.',
                        '',
                        'Available commands:',
@@ -2628,6 +2785,10 @@
       '  s S         substitute char / line',
       '  C           change to end of line',
       '  R           replace mode (overwrite characters)',
+      '  Ctrl-h      delete character before cursor (like Backspace)',
+      '  Ctrl-w      delete the word before the cursor',
+      '  Ctrl-u      delete from column 0 to the cursor',
+      '  Ctrl-o      run ONE normal-mode command, then return to insert',
       '  Cmd+V       paste from system clipboard',
       '  Esc         return to normal mode',
       '',
@@ -2655,9 +2816,15 @@
       '  zt          cursor to top     zb      cursor to bottom',
       '',
       'TEXT OBJECTS',
-      '  iw aw       inner / around word',
-      '  iW aW       inner / around WORD',
+      '  iw aw       inner / around word          iW aW   WORD',
       '  ip ap       inner / around paragraph',
+      '  i( a(       inner / around parens        (alias: ib ab)',
+      '  i[ a[       inner / around square brackets',
+      '  i{ a{       inner / around curly braces  (alias: iB aB)',
+      '  i< a<       inner / around angle brackets',
+      '  i" a"       inner / around double-quoted string',
+      "  i' a'       inner / around single-quoted string",
+      '  i` a`       inner / around backtick string',
       '  Works with d, c, y, >, <, g~, gu, gU and visual mode',
       '',
       'MARKS',
@@ -2674,25 +2841,35 @@
       '',
       'VISUAL MODE',
       '  v           character-wise     V       line-wise',
+      '  Ctrl-v      block (rectangular) visual',
+      '  gv          reselect the last visual range',
+      '  o           swap the anchor and the cursor',
       '  d / x       delete selection',
       '  c           change selection',
       '  y           yank selection',
       '  ~ U u       toggle / upper / lower case',
       '  > <         indent / dedent',
+      '  In block visual, I prepends and A appends to every row in the rectangle.',
       '',
       'SEARCH',
       '  /pattern    search forward     ?pattern  search backward',
       '  n N         next / previous match',
       '  * #         word under cursor forward / backward',
-      '  \\c          case-insensitive modifier (e.g. /foo\\c)',
+      '  \\<word\\>    whole-word match (word boundary anchors)',
+      '  \\c \\C       force case-insensitive / case-sensitive',
       '  Ctrl-g      file info (name, lines, position)',
       '',
-      'SUBSTITUTE',
+      'SUBSTITUTE AND FILTER',
       '  :s/old/new/        first on current line',
       '  :s/old/new/g       all on current line',
       '  :%s/old/new/g      all in file',
       '  :#,#s/old/new/g    in line range',
       '  :%s/old/new/gc     with confirmation (y/n/a/q)',
+      '  :g/pat/d           delete every line matching pat',
+      '  :v/pat/d           delete every line NOT matching pat',
+      '  :g/pat/s/a/b/g     substitute only within matching lines',
+      '  :sort              sort buffer lexicographically   :sort u  unique',
+      "  :'<,'>sort         sort the last visual selection",
       '  :nohlsearch        clear search highlighting',
       '',
       'COMMANDS',
@@ -2713,6 +2890,9 @@
       '  :set cul    cursor line        :set nocul  (or :unset cul)',
       '  :set list   show whitespace    :set nolist (or :unset list)',
       '  :set wrap   word wrap          :set nowrap (or :unset wrap)',
+      '  :set et     expand tabs        :set noet   (or :unset et)',
+      '  :set ts=N   tab width          :set sw=N   indent step',
+      '  :set ai     auto indent        :set noai   (or :unset ai)',
       '  :nohlsearch clear highlights',
       '  :intro      return to dashboard',
       '  :zen        toggle zen mode',
@@ -5719,12 +5899,21 @@
     'set cursorline', 'set cul', 'set nocursorline', 'set nocul',
     'set list', 'set nolist',
     'set wrap', 'set nowrap',
+    'set expandtab', 'set et', 'set noexpandtab', 'set noet',
+    'set tabstop=2', 'set tabstop=4', 'set tabstop=8',
+    'set ts=2', 'set ts=4', 'set ts=8',
+    'set shiftwidth=2', 'set shiftwidth=4', 'set shiftwidth=8',
+    'set sw=2', 'set sw=4', 'set sw=8',
+    'set autoindent', 'set ai', 'set noautoindent', 'set noai',
     'unset nu', 'unset number', 'unset rnu', 'unset relativenumber',
     'unset ic', 'unset ignorecase', 'unset hls', 'unset hlsearch',
     'unset is', 'unset incsearch', 'unset scs', 'unset smartcase',
     'unset cul', 'unset cursorline', 'unset list', 'unset wrap',
+    'unset et', 'unset expandtab', 'unset ai', 'unset autoindent',
     'nohlsearch', 'noh', 'nohl',
+    'sort', 'sort u',
     'r', 'zen', 'enew', 'new', 'e', 'intro', 'help', 'h', 'tutor', 'Tutor', 'agents',
+    'marks', 'pray',
     'colorscheme', 'colo', 'color', 'emacs', 'nano'
   ];
   var tabIdx = -1;
