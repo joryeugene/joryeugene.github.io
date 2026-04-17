@@ -870,6 +870,77 @@
       }
       return { startRow: row, startCol: s2, endRow: row, endCol: e2 + 1, linewise: false };
     }
+    // Paired-delimiter text objects: i( a( i[ a[ i{ a{ i< a< i" a" i' a' i` a`
+    // Brackets use balanced outward scanning across lines; quotes are line-local.
+    var pairMap = { '(': ')', ')': '(', '[': ']', ']': '[', '{': '}', '}': '{', '<': '>', '>': '<' };
+    var isBracket = Object.prototype.hasOwnProperty.call(pairMap, obj);
+    var isQuote = obj === '"' || obj === "'" || obj === '`';
+    if (isBracket) {
+      // Find enclosing pair on the current line, or across lines if unbalanced.
+      var openCh = obj in { '(':1, '[':1, '{':1, '<':1 } ? obj : pairMap[obj];
+      var closeCh = pairMap[openCh];
+      // Scan backward from cursor to find the opening delimiter.
+      var brSRow = row, brSCol = -1;
+      var depth = 0;
+      outer_back: for (var r1 = row; r1 >= 0; r1--) {
+        var ln1 = getLine(r1);
+        var cstart = r1 === row ? col : ln1.length - 1;
+        for (var c1 = cstart; c1 >= 0; c1--) {
+          var ch1 = ln1[c1];
+          if (ch1 === closeCh) depth++;
+          else if (ch1 === openCh) {
+            if (depth === 0) { brSRow = r1; brSCol = c1; break outer_back; }
+            depth--;
+          }
+        }
+      }
+      if (brSCol === -1) return null;
+      // Scan forward from cursor to find the matching close.
+      var brERow = row, brECol = -1;
+      depth = 0;
+      outer_fwd: for (var r2 = brSRow; r2 < state.lines.length; r2++) {
+        var ln2 = getLine(r2);
+        var fstart = r2 === brSRow ? brSCol + 1 : 0;
+        for (var c2 = fstart; c2 < ln2.length; c2++) {
+          var ch2 = ln2[c2];
+          if (ch2 === openCh) depth++;
+          else if (ch2 === closeCh) {
+            if (depth === 0) { brERow = r2; brECol = c2; break outer_fwd; }
+            depth--;
+          }
+        }
+      }
+      if (brECol === -1) return null;
+      if (prefix === 'i') {
+        return { startRow: brSRow, startCol: brSCol + 1, endRow: brERow, endCol: brECol, linewise: false };
+      }
+      return { startRow: brSRow, startCol: brSCol, endRow: brERow, endCol: brECol + 1, linewise: false };
+    }
+    if (isQuote) {
+      // Line-local: find the nearest enclosing pair. Track positions on this
+      // line, pick the pair whose start is <= col and whose end is >= col.
+      var qPositions = [];
+      for (var qc = 0; qc < line.length; qc++) {
+        if (line[qc] === obj) qPositions.push(qc);
+      }
+      if (qPositions.length < 2) return null;
+      var qStart = -1, qEnd = -1;
+      for (var qp = 0; qp + 1 < qPositions.length; qp += 2) {
+        var a = qPositions[qp], b = qPositions[qp + 1];
+        if (a <= col && b >= col) { qStart = a; qEnd = b; break; }
+      }
+      // If not strictly enclosed, prefer the nearest pair to the cursor on the
+      // same line (vim behavior: ci" from outside a string still finds one).
+      if (qStart === -1 && qPositions.length >= 2) {
+        qStart = qPositions[0];
+        qEnd = qPositions[1];
+      }
+      if (qStart === -1 || qEnd === -1) return null;
+      if (prefix === 'i') {
+        return { startRow: row, startCol: qStart + 1, endRow: row, endCol: qEnd, linewise: false };
+      }
+      return { startRow: row, startCol: qStart, endRow: row, endCol: qEnd + 1, linewise: false };
+    }
     // ip / ap
     if (obj === 'p') {
       var blank = !line.trim();
@@ -1074,6 +1145,9 @@
     var forceCS = /\\C/.test(pattern);
     pattern = pattern.replace(/\\[cC]/g, '');
     if (!pattern) return;
+    // Vim's \< and \> word boundaries map to JavaScript's \b with lookarounds
+    // to enforce start-of-word and end-of-word specifically.
+    pattern = pattern.replace(/\\</g, '\\b(?=\\w)').replace(/\\>/g, '(?<=\\w)\\b');
     if (forceIC) {
       flags += 'i';
     } else if (!forceCS && state.ignoreCase) {
@@ -1217,8 +1291,35 @@
     return { startRow: startRow, startCol: startCol, endRow: endRow, endCol: endCol };
   }
 
+  // Block (rectangular) selection. Each axis is independent: rows come from
+  // Math.min/Math.max of anchor.row and cursor.row; columns likewise. Callers
+  // must NOT use getVisualRange for block mode because that would treat the
+  // selection as a linear run across rows.
+  function getBlockRange() {
+    var a = state.visualAnchor;
+    var c = state.cursor;
+    if (!a) return null;
+    return {
+      startRow: Math.min(a.row, c.row),
+      endRow:   Math.max(a.row, c.row),
+      startCol: Math.min(a.col, c.col),
+      endCol:   Math.max(a.col, c.col)
+    };
+  }
+
   function exitVisual() {
-    state.lastVisualRange = getVisualRange();
+    if (state.visualMode === 'block') {
+      var br = getBlockRange();
+      if (br) {
+        br.linewise = false;
+        br.blockwise = true;
+        state.lastVisualRange = br;
+      }
+    } else {
+      var lvr = getVisualRange();
+      if (lvr) { lvr.linewise = state.visualMode === 'line'; lvr.blockwise = false; }
+      state.lastVisualRange = lvr;
+    }
     state.visualAnchor = null;
     state.visualMode = null;
   }
@@ -1275,6 +1376,41 @@
     state.cursor.col = clampCol(state.cursor.row, state.cursor.col);
   }
 
+  // Delete / yank the rectangle defined by the current block-visual selection.
+  // Each row is sliced independently at [startCol, endCol+1] clamped to its
+  // length. The register receives the columns joined by newlines (v1 treats
+  // this as linewise for paste; a future revision can honor registerBlockwise).
+  function deleteBlock() {
+    var br = getBlockRange();
+    if (!br) return;
+    pushUndo();
+    var blockLines = [];
+    for (var r = br.startRow; r <= br.endRow; r++) {
+      var ln = getLine(r);
+      var bs = Math.min(br.startCol, ln.length);
+      var be = Math.min(br.endCol + 1, ln.length);
+      blockLines.push(ln.slice(bs, be));
+      state.lines[r] = ln.slice(0, bs) + ln.slice(be);
+    }
+    setRegister(blockLines.join('\n'), false);
+    state.cursor.row = br.startRow;
+    state.cursor.col = clampCol(br.startRow, br.startCol);
+  }
+  function yankBlock() {
+    var br = getBlockRange();
+    if (!br) return;
+    var blockLines = [];
+    for (var r = br.startRow; r <= br.endRow; r++) {
+      var ln = getLine(r);
+      var bs = Math.min(br.startCol, ln.length);
+      var be = Math.min(br.endCol + 1, ln.length);
+      blockLines.push(ln.slice(bs, be));
+    }
+    setRegister(blockLines.join('\n'), false);
+    state.cursor.row = br.startRow;
+    state.cursor.col = clampCol(br.startRow, br.startCol);
+  }
+
   // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
@@ -1288,9 +1424,10 @@
     var escaped = escHtml(displayLine);
     if (!escaped.length) escaped = ' '; // ensure line has height
 
-    var range = (state.mode === 'visual') ? getVisualRange() : null;
+    var range = (state.mode === 'visual' && state.visualMode !== 'block') ? getVisualRange() : null;
+    var blockRange = (state.mode === 'visual' && state.visualMode === 'block') ? getBlockRange() : null;
 
-    // Apply visual selection spans
+    // Apply visual selection spans (char / line).
     if (range && row >= range.startRow && row <= range.endRow) {
       var sc = (row === range.startRow) ? range.startCol : 0;
       var ec = (row === range.endRow) ? range.endCol : line.length;
@@ -1301,6 +1438,21 @@
       var after  = escHtml(line.slice(ec));
       escaped = before + (sel ? '<span class="vsel">' + sel + '</span>' : '') + after;
       if (!escaped.length) escaped = ' ';
+    }
+    // Apply block selection: every row in range gets the same column slice.
+    if (blockRange && row >= blockRange.startRow && row <= blockRange.endRow) {
+      var bsc = Math.max(0, Math.min(blockRange.startCol, line.length));
+      var bec = Math.max(0, Math.min(blockRange.endCol + 1, line.length));
+      if (bsc < bec) {
+        var bBefore = escHtml(line.slice(0, bsc));
+        var bSel    = escHtml(line.slice(bsc, bec));
+        var bAfter  = escHtml(line.slice(bec));
+        escaped = bBefore + '<span class="vsel">' + bSel + '</span>' + bAfter;
+      } else {
+        // row shorter than the rectangle start: render an empty placeholder
+        // so the line keeps its height but has no highlight.
+        escaped = escHtml(line) || ' ';
+      }
     }
 
     // Apply search highlights (only when not in visual mode to avoid nesting)
@@ -1368,7 +1520,7 @@
       normal:  '--NORMAL--',
       insert:  '--INSERT--',
       replace: '--REPLACE--',
-      visual:  state.visualMode === 'line' ? '--VISUAL LINE--' : '--VISUAL--',
+      visual:  state.visualMode === 'block' ? '--VISUAL BLOCK--' : (state.visualMode === 'line' ? '--VISUAL LINE--' : '--VISUAL--'),
       command: '',
       search:  '',
       'confirm-sub': '--CONFIRM--'
@@ -1438,6 +1590,38 @@
     URL.revokeObjectURL(url);
   }
 
+  // Tiny localStorage-backed filesystem so lesson 5 can actually roundtrip
+  // (`:w FOO` followed later by `:r FOO` should receive the saved lines).
+  // Keys are namespaced with vim_file_ so they do not collide with vim-prefs.
+  // Any localStorage failure (private mode, quota) is swallowed silently.
+  var LOCAL_FS_PREFIX = 'vim_file_';
+  function saveToLocalFS(filename, content) {
+    if (!filename) return;
+    try { localStorage.setItem(LOCAL_FS_PREFIX + filename, content); } catch (e) {}
+  }
+  function readFromLocalFS(filename) {
+    if (!filename) return null;
+    try { return localStorage.getItem(LOCAL_FS_PREFIX + filename); } catch (e) { return null; }
+  }
+  function removeFromLocalFS(filename) {
+    if (!filename) return false;
+    try {
+      if (localStorage.getItem(LOCAL_FS_PREFIX + filename) === null) return false;
+      localStorage.removeItem(LOCAL_FS_PREFIX + filename);
+      return true;
+    } catch (e) { return false; }
+  }
+  function listLocalFS() {
+    var out = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf(LOCAL_FS_PREFIX) === 0) out.push(k.slice(LOCAL_FS_PREFIX.length));
+      }
+    } catch (e) {}
+    return out;
+  }
+
   // -------------------------------------------------------------------------
   // Hacker exit (same glitch pattern as fake vim overlay)
   // -------------------------------------------------------------------------
@@ -1492,6 +1676,12 @@
           listing.push('  ' + blogSlugs[si] + '/');
         }
         listing.push('vim/', 'index.html', 'CNAME', 'favicon.png');
+        // Include any files the user saved via :w FOO so `:!ls` after `:w`
+        // shows them and lesson 5.2's verification step actually verifies.
+        var savedFiles = listLocalFS();
+        for (var lsi = 0; lsi < savedFiles.length; lsi++) {
+          listing.push(savedFiles[lsi]);
+        }
         return listing;
       },
       'pwd':      function() { return ['/home/visitor/jorypestorious.com']; },
@@ -1535,7 +1725,13 @@
       'emacs':    function() { return ["I'm sorry, Dave. I'm afraid I can't do that."]; },
       'nano':     function() { return ["We don't do that here."]; },
       'sudo':     function() { return ['visitor is not in the sudoers file.', 'This incident will be reported.']; },
-      'rm':       function() { return ['nice try.']; },
+      'rm':       function() {
+        // Only removes files saved by :w FOO in localStorage. Refuses anything else.
+        var rmTarget = argv[1] || '';
+        if (!rmTarget) return ['rm: missing operand'];
+        if (removeFromLocalFS(rmTarget)) return ['"' + rmTarget + '" removed'];
+        return ['rm: cannot remove "' + rmTarget + '": No such file or nice try.'];
+      },
       'exit':     function() { return ['You are in vim. Quitting is not that simple.']; },
       'clear':    function() { return ['']; },
       'help':     function() { return ['This is a fake shell.', 'Try: ls, pwd, whoami, cat, uname, uptime, fortune']; },
@@ -2550,10 +2746,18 @@
       setTimeout(function() { window.location.href = state.exitTarget; }, 300);
       return;
     }
-    if (cmd === 'w') { downloadText(state.lines.join('\n'), state.filename); return; }
+    if (cmd === 'w') {
+      downloadText(state.lines.join('\n'), state.filename);
+      saveToLocalFS(state.filename, state.lines.join('\n'));
+      return;
+    }
     if (cmd.slice(0, 2) === 'w ') {
       var fname = cmd.slice(2).trim();
-      if (fname) { state.filename = fname; downloadText(state.lines.join('\n'), fname); }
+      if (fname) {
+        state.filename = fname;
+        downloadText(state.lines.join('\n'), fname);
+        saveToLocalFS(fname, state.lines.join('\n'));
+      }
       return;
     }
     // :'<,'>w FILENAME - write visual selection to file
@@ -2563,7 +2767,9 @@
       var vwRange = state.lastVisualRange;
       if (vwRange) {
         var vwLines = state.lines.slice(vwRange.startRow, vwRange.endRow + 1);
-        downloadText(vwLines.join('\n') + '\n', vwName);
+        var vwContent = vwLines.join('\n') + '\n';
+        downloadText(vwContent, vwName);
+        saveToLocalFS(vwName, vwContent);
         setStatus('"' + vwName + '" ' + vwLines.length + 'L written');
       } else {
         setStatus('No visual range');
@@ -2626,6 +2832,32 @@
     }
     if (cmd === 'set nowrap' || cmd === 'unset wrap') {
       state.wordWrap = false; savePrefs(); render(); return;
+    }
+    // :set expandtab / noexpandtab
+    if (cmd === 'set expandtab' || cmd === 'set et') {
+      state.expandtab = true; savePrefs(); setStatus('expandtab on'); return;
+    }
+    if (cmd === 'set noexpandtab' || cmd === 'set noet' || cmd === 'unset et' || cmd === 'unset expandtab') {
+      state.expandtab = false; savePrefs(); setStatus('expandtab off'); return;
+    }
+    // :set tabstop=N / :set ts=N
+    var tsMatch = cmd.match(/^set (?:tabstop|ts)=(\d+)$/);
+    if (tsMatch) {
+      state.tabstop = Math.max(1, parseInt(tsMatch[1], 10));
+      savePrefs(); setStatus('tabstop=' + state.tabstop); return;
+    }
+    // :set shiftwidth=N / :set sw=N
+    var swMatch = cmd.match(/^set (?:shiftwidth|sw)=(\d+)$/);
+    if (swMatch) {
+      state.shiftwidth = Math.max(1, parseInt(swMatch[1], 10));
+      savePrefs(); setStatus('shiftwidth=' + state.shiftwidth); return;
+    }
+    // :set autoindent / noautoindent
+    if (cmd === 'set autoindent' || cmd === 'set ai') {
+      state.autoindent = true; savePrefs(); setStatus('autoindent on'); return;
+    }
+    if (cmd === 'set noautoindent' || cmd === 'set noai' || cmd === 'unset ai' || cmd === 'unset autoindent') {
+      state.autoindent = false; savePrefs(); setStatus('autoindent off'); return;
     }
     if (cmd === 'zen') {
       state.zenMode = !state.zenMode;
@@ -3591,19 +3823,25 @@
         '  Vim has many more features than Vi, but most of them are disabled by',
         '  default.  To start using more features you should create a "vimrc" file.',
         '',
-        '  1. Start editing the "vimrc" file.  This depends on your system:',
-        '        :e ~/.vimrc             for Unix',
-        '        :e ~/_vimrc             for Windows',
+        '  In a real terminal Vim you would edit ~/.vimrc and save it to disk.',
+        '  This browser Vim cannot touch your real filesystem, so the steps below',
+        '  let you see a sample vimrc in a scratch buffer that lives only for this',
+        '  session.',
         '',
-        '  2. Now read the example "vimrc" file contents:',
-        '        :r $VIMRUNTIME/vimrc_example.vim',
+        '  1. Open the sample vimrc (a short example bundled with this tutor):',
+        '        :e .vimrc',
         '',
-        '  3. Write the file with:',
-        '        :w',
+        '  2. Write it out under a name of your choice; the file will stay in your',
+        '     browser\'s localStorage for the session:',
+        '        :w MYVIMRC',
         '',
-        '  The next time you start Vim it will use syntax highlighting.',
-        '  You can add all your preferred settings to this "vimrc" file.',
-        '  For more information type  :help vimrc-intro',
+        '  3. Verify the file is there:',
+        '        :!ls',
+        '',
+        '  In terminal Vim the next time you start it would use syntax highlighting',
+        '  and any other settings in the file.  In this browser the :set commands',
+        '  you already learned (Lesson 6.5) persist across reloads via the same',
+        '  localStorage path.  For real vimrc information type  :help vimrc-intro',
         '',
         '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~',
         '                             Lesson 7.3: COMPLETION',
@@ -3733,6 +3971,25 @@
         render();
         return;
       }
+      // Check localStorage-backed filesystem first (for lesson 5 roundtrip
+      // and any file the user previously wrote via :w FOO).
+      var rLocal = readFromLocalFS(rArg);
+      if (rLocal !== null) {
+        pushUndo();
+        var localLines = rLocal.split('\n');
+        // Strip a single trailing empty line so a saved file that ended in \n
+        // does not inject a blank line on read (matches real vim behavior).
+        if (localLines.length && localLines[localLines.length - 1] === '') localLines.pop();
+        var localInsertAt = state.cursor.row + 1;
+        for (var li = 0; li < localLines.length; li++) {
+          state.lines.splice(localInsertAt + li, 0, localLines[li]);
+        }
+        state.cursor.row = localInsertAt;
+        state.cursor.col = 0;
+        setStatus('"' + rArg + '" ' + localLines.length + ' lines');
+        render();
+        return;
+      }
       var rPath = resolveBlogPath(rArg) || rArg;
       // Ensure path starts with / for fetch
       if (rPath[0] !== '/' && rPath.indexOf('http') !== 0) rPath = '/' + rPath;
@@ -3806,6 +4063,92 @@
       }
       setStatus(subCount + ' substitution' + (subCount !== 1 ? 's' : ''));
       render(); return;
+    }
+    // :g/pat/cmd and :v/pat/cmd - run cmd on matching (or non-matching) lines.
+    // Supported sub-commands: d (delete) and s/from/to/[flags] (substitute).
+    var globalMatch = cmd.match(/^(g|v)\/(.+?)\/(d|s\/.+)?$/);
+    if (globalMatch) {
+      var gNeg = globalMatch[1] === 'v';
+      var gPat = globalMatch[2];
+      var gSub = globalMatch[3] || 'd';
+      var gRe;
+      try { gRe = new RegExp(gPat); }
+      catch (ex) { setStatus('E476: Invalid pattern: ' + gPat); return; }
+      pushUndo();
+      if (gSub === 'd') {
+        var gKept = [];
+        var gRemoved = 0;
+        for (var gi = 0; gi < state.lines.length; gi++) {
+          var gHit = gRe.test(state.lines[gi]);
+          if ((gHit && !gNeg) || (!gHit && gNeg)) { gRemoved++; continue; }
+          gKept.push(state.lines[gi]);
+        }
+        if (!gKept.length) gKept = [''];
+        state.lines = gKept;
+        state.cursor.row = Math.min(state.cursor.row, state.lines.length - 1);
+        state.cursor.col = 0;
+        setStatus(gRemoved + ' lines deleted');
+        render();
+        return;
+      }
+      var gSubMatch = gSub.match(/^s\/(.+?)\/(.*)\/([gc]*)$/);
+      if (gSubMatch) {
+        var gSubPat = gSubMatch[1], gSubRep = gSubMatch[2], gSubFlags = gSubMatch[3] || '';
+        var gSubGlobal = gSubFlags.indexOf('g') !== -1;
+        var gSubRe;
+        try { gSubRe = new RegExp(gSubPat, gSubGlobal ? 'g' : ''); }
+        catch (ex2) { setStatus('E476: Invalid pattern: ' + gSubPat); return; }
+        var gSubCount = 0;
+        for (var gsi = 0; gsi < state.lines.length; gsi++) {
+          var gsHit = gRe.test(state.lines[gsi]);
+          if ((gsHit && !gNeg) || (!gsHit && gNeg)) {
+            var gsNew = state.lines[gsi].replace(gSubRe, gSubRep);
+            if (gsNew !== state.lines[gsi]) { state.lines[gsi] = gsNew; gSubCount++; }
+          }
+        }
+        setStatus(gSubCount + ' substitutions');
+        render();
+        return;
+      }
+      setStatus('Unsupported :g subcommand');
+      return;
+    }
+    // :sort [u] and :%sort - sort buffer (or range) lexicographically.
+    // The `u` flag removes duplicate adjacent lines after sort.
+    var sortMatch = cmd.match(/^(\d+,\d+|%|'<,'>)?sort(\s+u)?$/);
+    if (sortMatch) {
+      var sortRange = sortMatch[1] || '';
+      var sortUnique = !!sortMatch[2];
+      var sortStart = 0, sortEnd = state.lines.length - 1;
+      if (sortRange === '%') {
+        // whole buffer, already default
+      } else if (sortRange === "'<,'>") {
+        if (state.lastVisualRange) {
+          sortStart = state.lastVisualRange.startRow;
+          sortEnd = state.lastVisualRange.endRow;
+        }
+      } else if (sortRange) {
+        var srm = sortRange.match(/^(\d+),(\d+)$/);
+        if (srm) {
+          sortStart = Math.max(0, parseInt(srm[1], 10) - 1);
+          sortEnd = Math.min(state.lines.length - 1, parseInt(srm[2], 10) - 1);
+        }
+      } else {
+        // No range: sort the whole buffer (vim default for bare :sort).
+      }
+      pushUndo();
+      var sortSlice = state.lines.slice(sortStart, sortEnd + 1).sort();
+      if (sortUnique) {
+        var sortDedup = [];
+        for (var sdi = 0; sdi < sortSlice.length; sdi++) {
+          if (sdi === 0 || sortSlice[sdi] !== sortSlice[sdi - 1]) sortDedup.push(sortSlice[sdi]);
+        }
+        sortSlice = sortDedup;
+      }
+      state.lines.splice(sortStart, sortEnd - sortStart + 1, ...sortSlice);
+      setStatus(sortSlice.length + ' lines sorted' + (sortUnique ? ', unique' : ''));
+      render();
+      return;
     }
     // :marks - list all set marks
     if (cmd === 'marks') {
@@ -3968,8 +4311,13 @@
       // text object: i/a prefix was captured, now resolve the object type
       if (op === 'textobj_i' || op === 'textobj_a') {
         var toPrefix = op === 'textobj_i' ? 'i' : 'a';
-        if (e.key === 'w' || e.key === 'W' || e.key === 'p') {
-          var tobj = computeTextObject(toPrefix, e.key, pRow, pCol);
+        var acceptedObjs = { w:1, W:1, p:1, '(':1, ')':1, '[':1, ']':1, '{':1, '}':1, '<':1, '>':1, '"':1, "'":1, '`':1, 'b':1, 'B':1 };
+        // `ib`/`ab` alias for `i(`/`a(`; `iB`/`aB` alias for `i{`/`a{`.
+        var objKey = e.key;
+        if (objKey === 'b') objKey = '(';
+        else if (objKey === 'B') objKey = '{';
+        if (acceptedObjs[e.key]) {
+          var tobj = computeTextObject(toPrefix, objKey, pRow, pCol);
           if (tobj && state.pendingTextObjOp) {
             applyOperator(state.pendingTextObjOp, pRow, pCol, tobj);
           }
@@ -4042,6 +4390,20 @@
       for (var gei = 0; gei < geN; gei++) { var gep = geFn(geR, geC); geR = gep.row; geC = gep.col; }
       state.cursor.row = geR; state.cursor.col = geC; state.curswant = geC;
       render(); return;
+    }
+    // gv: reselect the last visual range.
+    if (e.key === 'v' && gTimer) {
+      clearTimeout(gTimer); gTimer = null;
+      var gvRange = state.lastVisualRange;
+      if (!gvRange) { setStatus('E19: No previous Visual range'); return; }
+      state.mode = 'visual';
+      state.visualMode = gvRange.blockwise ? 'block' : (gvRange.linewise ? 'line' : 'char');
+      state.visualAnchor = { row: gvRange.startRow, col: gvRange.startCol };
+      state.cursor.row = gvRange.endRow;
+      state.cursor.col = gvRange.blockwise ? gvRange.endCol : Math.max(0, gvRange.endCol - 1);
+      state.curswant = state.cursor.col;
+      render();
+      return;
     }
     // gx: open URL under cursor (supports https:// and bare domains)
     if (e.key === 'x' && gTimer) {
@@ -4744,6 +5106,18 @@
 
     if (e.key === 'Escape') {
       if (state.lastChange) state.lastChange.insertText = state.insertText;
+      // Block-insert replay: apply the typed text to every other row in the
+      // saved rectangle at the recorded column. Only replay single-line text;
+      // newlines would desync the rectangle.
+      if (state.blockInsertCols && state.insertText && state.insertText.indexOf('\n') === -1) {
+        var bi = state.blockInsertCols;
+        for (var bri = bi.startRow + 1; bri <= bi.endRow; bri++) {
+          var briLine = getLine(bri);
+          var briCol = Math.min(bi.col, briLine.length);
+          state.lines[bri] = briLine.slice(0, briCol) + state.insertText + briLine.slice(briCol);
+        }
+      }
+      state.blockInsertCols = null;
       state.mode = 'normal';
       state.cursor.col = clampCol(row, col - 1);
       state.curswant = state.cursor.col;
@@ -4781,17 +5155,79 @@
     if (e.key === 'Tab') {
       e.preventDefault();
       pushUndo();
-      var spaces = '    ';
-      state.lines[row] = line.slice(0, col) + spaces + line.slice(col);
-      state.cursor.col = col + spaces.length;
+      // :set expandtab controls tab vs spaces; :set tabstop=N controls width.
+      var tabWidth = state.tabstop || 4;
+      var tabInsert;
+      if (state.expandtab === false) {
+        tabInsert = '\t';
+      } else {
+        tabInsert = '';
+        for (var tabI = 0; tabI < tabWidth; tabI++) tabInsert += ' ';
+      }
+      state.lines[row] = line.slice(0, col) + tabInsert + line.slice(col);
+      state.cursor.col = col + tabInsert.length;
       state.curswant = state.cursor.col;
-      state.insertText += spaces;
+      state.insertText += tabInsert;
       render(); return;
     }
     if (e.key === 'ArrowLeft')  { state.cursor.col = clampCol(row, col - 1); state.curswant = state.cursor.col; render(); return; }
     if (e.key === 'ArrowRight') { state.cursor.col = clampCol(row, col + 1); state.curswant = state.cursor.col; render(); return; }
     if (e.key === 'ArrowUp')    { state.cursor.row = clampRow(row - 1); state.cursor.col = clampCol(state.cursor.row, state.curswant); render(); return; }
     if (e.key === 'ArrowDown')  { state.cursor.row = clampRow(row + 1); state.cursor.col = clampCol(state.cursor.row, state.curswant); render(); return; }
+
+    // Ctrl-h: same as Backspace.
+    if (e.ctrlKey && e.key === 'h') {
+      e.preventDefault();
+      if (col > 0) {
+        pushUndo();
+        state.lines[row] = line.slice(0, col - 1) + line.slice(col);
+        state.cursor.col = col - 1;
+        state.curswant = state.cursor.col;
+        state.insertText = state.insertText.slice(0, -1);
+      } else if (row > 0) {
+        pushUndo();
+        var chPrev = getLine(row - 1);
+        var chJoinCol = chPrev.length;
+        state.lines[row - 1] = chPrev + line;
+        state.lines.splice(row, 1);
+        state.cursor.row = row - 1;
+        state.cursor.col = chJoinCol;
+        state.curswant = chJoinCol;
+        state.insertText = state.insertText.slice(0, -1);
+      }
+      render(); return;
+    }
+    // Ctrl-w: delete the word before the cursor.
+    if (e.ctrlKey && e.key === 'w') {
+      e.preventDefault();
+      if (col === 0) return;
+      pushUndo();
+      // Walk backward past whitespace, then past a run of word/non-word chars
+      // to mimic vim's Ctrl-w boundary.
+      var cwEnd = col;
+      var cwStart = cwEnd;
+      while (cwStart > 0 && /\s/.test(line[cwStart - 1])) cwStart--;
+      if (cwStart > 0) {
+        var cwWord = /\w/.test(line[cwStart - 1]);
+        while (cwStart > 0 && /\w/.test(line[cwStart - 1]) === cwWord && !/\s/.test(line[cwStart - 1])) cwStart--;
+      }
+      state.lines[row] = line.slice(0, cwStart) + line.slice(cwEnd);
+      state.cursor.col = cwStart;
+      state.curswant = cwStart;
+      state.insertText = state.insertText.slice(0, -(cwEnd - cwStart));
+      render(); return;
+    }
+    // Ctrl-u: delete everything from the start of the line to the cursor.
+    if (e.ctrlKey && e.key === 'u') {
+      e.preventDefault();
+      if (col === 0) return;
+      pushUndo();
+      state.lines[row] = line.slice(col);
+      state.cursor.col = 0;
+      state.curswant = 0;
+      state.insertText = state.insertText.slice(0, -col);
+      render(); return;
+    }
 
     if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
       pushUndo();
@@ -5013,8 +5449,12 @@
       // text objects
       if (vop === 'v_textobj_i' || vop === 'v_textobj_a') {
         var vtP = vop === 'v_textobj_i' ? 'i' : 'a';
-        if (e.key === 'w' || e.key === 'W' || e.key === 'p') {
-          var vtobj = computeTextObject(vtP, e.key, row, col);
+        var vAcceptedObjs = { w:1, W:1, p:1, '(':1, ')':1, '[':1, ']':1, '{':1, '}':1, '<':1, '>':1, '"':1, "'":1, '`':1, 'b':1, 'B':1 };
+        var vtKey = e.key;
+        if (vtKey === 'b') vtKey = '(';
+        else if (vtKey === 'B') vtKey = '{';
+        if (vAcceptedObjs[e.key]) {
+          var vtobj = computeTextObject(vtP, vtKey, row, col);
           if (vtobj) {
             state.visualAnchor = { row: vtobj.startRow, col: vtobj.startCol };
             state.cursor.row = vtobj.endRow;
@@ -5044,24 +5484,43 @@
       exitVisual();
       render(); return;
     }
-    if (e.key === 'V' && state.visualMode === 'char') {
+    if (e.key === 'V') {
+      if (state.visualMode === 'line') {
+        state.mode = 'normal'; exitVisual(); render(); return;
+      }
       state.visualMode = 'line';
       state.visualAnchor = { row: state.visualAnchor.row, col: 0 };
       render(); return;
     }
-    if (e.key === 'v' && state.visualMode === 'line') {
+    if (e.key === 'v' && state.visualMode !== 'char') {
       state.visualMode = 'char';
       render(); return;
     }
+    if (e.key === 'v' && state.visualMode === 'char') {
+      state.mode = 'normal'; exitVisual(); render(); return;
+    }
+    // `o` in visual mode swaps anchor and cursor so you can extend the other end.
+    if (e.key === 'o' && state.visualAnchor) {
+      var oRow = state.visualAnchor.row;
+      var oCol = state.visualAnchor.col;
+      state.visualAnchor = { row: state.cursor.row, col: state.cursor.col };
+      state.cursor.row = oRow;
+      state.cursor.col = oCol;
+      state.curswant = oCol;
+      render(); return;
+    }
     if (e.key === 'd' || e.key === 'x') {
-      deleteVisual();
+      if (state.visualMode === 'block') deleteBlock();
+      else deleteVisual();
       state.mode = 'normal';
       exitVisual();
       render(); return;
     }
     if (e.key === 'c') {
-      deleteVisual();
+      if (state.visualMode === 'block') deleteBlock();
+      else deleteVisual();
       state.mode = 'insert';
+      state.insertText = '';
       exitVisual();
       render(); return;
     }
@@ -5133,10 +5592,26 @@
       render(); return;
     }
     if (e.key === 'y') {
-      yankVisual();
+      if (state.visualMode === 'block') yankBlock();
+      else yankVisual();
       state.mode = 'normal';
       exitVisual();
       setStatus('yanked');
+      render(); return;
+    }
+    // Block-visual I / A: prepend or append to every row in the rectangle.
+    // Enter insert mode at the chosen column on the first row; on Escape,
+    // replay the typed text into every other row at the same column.
+    if (state.visualMode === 'block' && (e.key === 'I' || e.key === 'A')) {
+      var biR = getBlockRange();
+      if (!biR) return;
+      var biCol = e.key === 'I' ? biR.startCol : biR.endCol + 1;
+      state.blockInsertCols = { col: biCol, startRow: biR.startRow, endRow: biR.endRow, prepend: e.key === 'I' };
+      state.cursor.row = biR.startRow;
+      state.cursor.col = biCol;
+      state.mode = 'insert';
+      state.insertText = '';
+      exitVisual();
       render(); return;
     }
     // text objects in visual mode: viw, vaw, vip, vap, etc.
@@ -5472,9 +5947,40 @@
     var preJumpCol = state.cursor.col;
 
     if (e.ctrlKey) {
-      var ctrlHandled = { r: 1, R: 1, f: 1, b: 1, u: 1, d: 1, g: 1, a: 1, x: 1, o: 1, i: 1 };
+      var ctrlHandled = { r: 1, R: 1, f: 1, b: 1, u: 1, d: 1, g: 1, a: 1, x: 1, o: 1, i: 1, h: 1, w: 1, v: 1 };
       if (!ctrlHandled[e.key]) return;
       e.preventDefault();
+
+      // Ctrl-o in insert mode: one normal-mode command, then back to insert.
+      if (state.mode === 'insert' && e.key === 'o') {
+        if (state.pendingOneNormal) return; // swallow a second Ctrl-o
+        state.pendingOneNormal = true;
+        state.mode = 'normal';
+        render();
+        return;
+      }
+
+      // Ctrl-v from normal or visual mode enters block-visual selection.
+      if (e.key === 'v' && (state.mode === 'normal' || state.mode === 'visual')) {
+        if (state.mode === 'visual' && state.visualMode === 'block') {
+          // Toggle off: block -> normal.
+          state.mode = 'normal';
+          exitVisual();
+          render();
+          return;
+        }
+        state.mode = 'visual';
+        state.visualMode = 'block';
+        state.visualAnchor = { row: state.cursor.row, col: state.cursor.col };
+        render();
+        return;
+      }
+
+      // Insert mode owns Ctrl-h / Ctrl-w / Ctrl-u for text editing.
+      if (state.mode === 'insert' && (e.key === 'h' || e.key === 'w' || e.key === 'u')) {
+        handleInsert(e);
+        return;
+      }
 
       if (state.mode === 'command' && e.key === 'd') {
         // Ctrl-D in command mode: show matching completions
@@ -5543,6 +6049,20 @@
       case 'command': handleCommand(e); break;
       case 'search':  handleSearch(e); break;
       case 'confirm-sub': handleConfirmSub(e); break;
+    }
+
+    // Ctrl-o one-shot: if we entered normal via insert-mode Ctrl-o and the
+    // normal command fully resolved (no pending operator, count, g-chord, or
+    // text-object state), flip back to insert. Escape while pending cancels.
+    if (state.pendingOneNormal && state.mode === 'normal') {
+      if (e.key === 'Escape') {
+        state.pendingOneNormal = false;
+      } else if (!pendingOperator && !state.pendingOp && !state.pendingTextObjOp && !state.pendingGForOp && countBuf === 0 && !gTimer) {
+        state.pendingOneNormal = false;
+        state.mode = 'insert';
+        state.insertText = state.insertText || '';
+        render();
+      }
     }
 
     autoJump(preJumpRow, preJumpCol);

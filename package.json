@@ -6,9 +6,13 @@
   "scripts": {
     "sync": "node scripts/sync-blog-surfaces.mjs",
     "check:sync": "node scripts/sync-blog-surfaces.mjs --check",
-    "lint:prose": "node scripts/prose-lint.mjs"
+    "lint:prose": "node scripts/prose-lint.mjs",
+    "test": "playwright test"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
   }
 }
