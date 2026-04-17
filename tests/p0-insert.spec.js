@@ -1,37 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-async function open(page) {
-  await page.goto('/vim/?v=' + Date.now());
-  await page.waitForSelector('#vim-content');
-  await page.waitForTimeout(80);
-}
-
-async function press(page, key) {
-  await page.keyboard.press(key);
-  await page.waitForTimeout(10);
-}
-
-async function type(page, text) {
-  for (const ch of text) {
-    if (ch === ' ') await page.keyboard.press('Space');
-    else if (ch === '\n') await page.keyboard.press('Enter');
-    else await page.keyboard.press(ch);
-    await page.waitForTimeout(5);
-  }
-}
-
-async function cmd(page, text) {
-  await press(page, ':');
-  await type(page, text);
-  await press(page, 'Enter');
-}
-
-async function lines(page) {
-  return await page.evaluate(() => {
-    const el = document.querySelector('#vim-content');
-    return el ? el.innerText.split('\n') : [];
-  });
-}
+import { open, press, type, cmd, lines } from './helpers.js';
 
 test.describe('P0.5 insert-mode helpers', () => {
   test('Ctrl-w deletes the previous word', async ({ page }) => {

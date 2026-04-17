@@ -753,8 +753,7 @@ const TableOfContents = {
     
     document.body.appendChild(toc);
     
-    // Toggle functionality
-    const toggle = toc.querySelector('.toc-toggle');
+    // Toggle functionality. Click is bound on the whole header below.
     const header = toc.querySelector('.toc-header');
     const list = toc.querySelector('.toc-list');
     const icon = toc.querySelector('.toc-toggle-icon');

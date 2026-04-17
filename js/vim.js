@@ -239,13 +239,17 @@
     }
   }
 
+  // Last-resort clipboard path used when navigator.clipboard.writeText rejects
+  // (some Safari contexts, private browsing, etc.). document.execCommand is
+  // deprecated but is the only synchronous fallback that still works on older
+  // engines; swallowed errors are intentional because this is best-effort.
   function clipboardFallback(text) {
     var ta = document.createElement('textarea');
     ta.value = text;
     ta.style.cssText = 'position:fixed;left:-9999px';
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand('copy'); } catch(e) {}
+    try { document.execCommand('copy'); } catch(e) { /* best effort */ }
     document.body.removeChild(ta);
   }
 
@@ -6310,7 +6314,8 @@
 
     // Cmd+V paste support: insert clipboard text into buffer
     document.addEventListener('paste', function(e) {
-      var text = (e.clipboardData || window.clipboardData).getData('text');
+      if (!e.clipboardData) return;
+      var text = e.clipboardData.getData('text');
       if (!text) return;
       e.preventDefault();
       var row = state.cursor.row;
