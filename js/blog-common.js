@@ -818,6 +818,7 @@ const PostNavigation = {
   // to blog/index.html and run `npm run sync`.
   posts: [
     //>>>PostNavigation.posts.begin
+    { slug: 'ai-engineer-verification', title: 'AI Engineer World\'s Fair 2026: Takeaways & Verification' },
     { slug: 'complexity-protects-itself', title: 'Complexity Protects Itself' },
     { slug: 'what-the-model-learned', title: 'What the Model Learned Not to Show' },
     { slug: 'endgame-keyboard', title: 'Twelve Keyboards Later' },
