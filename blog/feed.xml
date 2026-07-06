@@ -5,11 +5,19 @@
   <link href="https://jorypestorious.com/blog/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://jorypestorious.com/blog/" rel="alternate" type="text/html"/>
   <id>https://jorypestorious.com/blog/</id>
-  <updated>2026-04-16T00:00:00Z</updated>
+  <updated>2026-07-06T00:00:00Z</updated>
   <author>
     <name>Jory Pestorious</name>
     <uri>https://jorypestorious.com</uri>
   </author>
+
+  <entry>
+    <title>AI Engineer World&apos;s Fair 2026: Takeaways &amp; Verification</title>
+    <link href="https://jorypestorious.com/blog/ai-engineer-verification/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/ai-engineer-verification/</id>
+    <updated>2026-07-06T00:00:00Z</updated>
+    <summary>Second-year takeaways from the San Francisco conference, the sequel to 2025&apos;s spec post. Execution is cheap and proof is expensive: how VERIFICATION, THE FACTORY, and TASTE are repricing AI engineering, from dark software factories and cross-model review to self-learning agents and game feel as the next moat.</summary>
+  </entry>
 
   <entry>
     <title>Complexity Protects Itself</title>

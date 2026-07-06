@@ -6,6 +6,7 @@
 
 ## Writing
 
+- [AI Engineer World's Fair 2026: Takeaways & Verification](https://jorypestorious.com/blog/ai-engineer-verification/) (2026-07-06)
 - [Complexity Protects Itself](https://jorypestorious.com/blog/complexity-protects-itself/) (2026-04-16)
 - [What the Model Learned Not to Show](https://jorypestorious.com/blog/what-the-model-learned/) (2026-04-13)
 - [Twelve Keyboards Later](https://jorypestorious.com/blog/endgame-keyboard/) (2026-03-30)
