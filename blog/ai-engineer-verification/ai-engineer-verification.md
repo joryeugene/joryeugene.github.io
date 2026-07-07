@@ -152,7 +152,7 @@ Suppose the bet works and preference-tuning gets genuinely good. The moat surviv
 
 We can't one-shot design. Start from the question that matters: what emotional territory should the user be in while using this? Plenty of software solves the problem and is still miserable to use.
 
-The Amdahl logic doesn't stop here, either. Verification is getting its year of tooling, so the bottleneck moves again, into the checks only taste can run. Bottleneck and moat are the same thing seen from opposite sides.
+The Amdahl logic doesn't stop here, either. Verification is getting its year of tooling, so the bottleneck moves again, into the checks only taste can run. A bottleneck is what slows you down; a moat is what slows down whoever is chasing you. Same scarce thing, seen from inside and outside the company. So ask where the work jams up today, because that's where the next moat forms: this year it was verification, and next it's taste.
 
 ## Game Feel: The Moat Nobody Is Building
 
@@ -172,7 +172,7 @@ Seamlessness is the work of our time, and almost nobody is thinking big about it
 
 **Value is still the point.** Building is easy now, and generating value is still hard. Who are you empowering? Who gets uplifted rather than just monetized? As building gets cheaper, get less greedy, not more, and start small with the people around you.
 
-We all showed up on this planet as naked little babies, and everything since, the tools and the factories included, has been assembled from what the earth and those before us have made. So make helpful trinkets: charms, not curses. Make the ones that leave people smiling, not bound, tricked, or led astray. That's the one check no factory can run for you.
+We all showed up on this planet as naked little babies, and everything since, the tools and the factories included, has been assembled from what the earth and those before us have made. So please make helpful trinkets: charms, not curses. Make the ones that leave people smiling, not bound, tricked, or led astray. That's the one check no factory can run for you.
 
 ---
 
