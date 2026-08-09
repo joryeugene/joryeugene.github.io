@@ -818,6 +818,7 @@ const PostNavigation = {
   // to blog/index.html and run `npm run sync`.
   posts: [
     //>>>PostNavigation.posts.begin
+    { slug: 'portable-agent-factory', title: 'I Wanted to Own the Harness. Then Codex Desktop Won.' },
     { slug: 'ai-engineer-verification', title: 'AI Engineer World\'s Fair 2026: Takeaways & Verification' },
     { slug: 'complexity-protects-itself', title: 'Complexity Protects Itself' },
     { slug: 'what-the-model-learned', title: 'What the Model Learned Not to Show' },

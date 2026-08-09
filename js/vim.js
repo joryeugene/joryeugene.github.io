@@ -4,71 +4,97 @@
 (function() {
   'use strict';
 
-  var VIM_VERSION = '1.0';
+  var VIM_NAME = 'PHALENE-VIM';
+  var VIM_VERSION = '1.1';
 
   // -------------------------------------------------------------------------
   // Welcome dashboard (editable buffer content, :intro restores it)
   // -------------------------------------------------------------------------
   function buildWelcome() {
-    var content = [
+    var narrow = window.innerWidth < 640;
+    var header = [
       '',
-      'jorypestorious.com/vim v' + VIM_VERSION,
+      '', '', '', '', '', '', '', '',
       '',
-      '',
-      'type  i  to start writing',
-      'type  :w  to save        :e file  open',
-      'type  :q  to exit        :q!      with style',
-      '',
-      '',
-      'hjkl       navigate           /word    search',
-      'w b e      word motions       n N      next/prev match',
-      'f t ; ,    find char          dd yy    delete/yank line',
-      '0 $ ^      line positions     p P      paste after/before',
-      'gg G H M L top/bottom/screen  r ~ J    replace/case/join',
-      'i a o O R  insert/replace     C D S    change/delete/sub',
-      'v V        visual select      .        repeat last change',
-      'g~ gu gU   case operators     u        undo',
-      'Ctrl-a/x   inc/dec number     Ctrl-r   redo',
-      'zz zt zb   scroll to cursor   >> <<    indent/dedent',
-      ':set nu    line numbers       :zen     distraction-free',
-      ':Ex        file browser       :help    all commands',
-      ':color     32 themes          :agents  aquarium',
-      '',
-      'new to vim? type  :tutor  to learn the basics',
-      '',
-      'gx on a URL to open it:',
-      'https://github.com/joryeugene/joryeugene.github.io/blob/master/js/vim.js'
+      VIM_NAME + ' v' + VIM_VERSION,
+      ''
     ];
-    var rows = Math.floor((window.innerHeight - 63) / 21);
+    var movement = [
+      'k  (up)',
+      'h (left)  <  +  >  l (right)',
+      'j  (down)',
+      ''
+    ];
+    var launcher = narrow ? [
+      'Ctrl-P          commands',
+      ':tutor          guided lesson',
+      ':Ex             browse files',
+      ':moth           kinetic field',
+      ':snake          play',
+      ':help           manual'
+    ] : [
+      'Ctrl-P          commands            :tutor        guided lesson',
+      ':Ex             browse files        :snake        play',
+      ':help           manual              :moth         kinetic field'
+    ];
+    var actions = narrow ? [
+      'i               start typing',
+      'Esc             normal mode',
+      '/aquarium Enter  search',
+      'n / N           next / previous',
+      'u / Ctrl-r      undo / redo',
+      ':intro          reset home'
+    ] : [
+      'i               start typing        Esc           normal mode',
+      '/aquarium Enter  search              n / N         next / previous',
+      'u / Ctrl-r      undo / redo         :intro        reset home'
+    ];
+    var guide = movement.concat(launcher, [''], actions);
+    var footer = [
+      '',
+      'read my pick:  :e friction-economy then press Enter',
+      'new to Vim?  type :tutor then press Enter'
+    ];
+    var guideStart = header.length;
+    var guideEnd = guideStart + guide.length;
+    var movementEnd = guideStart + movement.length;
+    var content = header.concat(guide, footer);
+    var lineEstimate = lineH || (narrow ? 18 : 21);
+    var charEstimate = charW || (narrow ? 7.2 : 8.4);
+    var rows = Math.floor((window.innerHeight - 63) / lineEstimate);
     var padTop = Math.max(0, Math.floor((rows - content.length) / 2));
     var zen = state && state.zenMode;
-    var effectiveWidth = zen ? Math.min(window.innerWidth, 65 * 8.4) : window.innerWidth;
-    var cols = Math.floor(effectiveWidth / 8.4);
-    var maxLen = 0;
-    for (var i = 0; i < content.length; i++) {
-      if (content[i].length > maxLen) maxLen = content[i].length;
-    }
-    var padLeft = Math.max(0, Math.floor((cols - maxLen) / 2));
-    var prefix = '';
-    for (var p = 0; p < padLeft; p++) prefix += ' ';
+    var effectiveWidth = zen ? Math.min(window.innerWidth, 65 * charEstimate) : window.innerWidth;
+    var cols = Math.floor(effectiveWidth / charEstimate);
+    var guideWidth = 0;
+    var gridRows = launcher.concat(actions);
+    for (var i = 0; i < gridRows.length; i++) guideWidth = Math.max(guideWidth, gridRows[i].length);
     var lines = [];
     for (var t = 0; t < padTop; t++) lines.push('');
     for (var j = 0; j < content.length; j++) {
-      lines.push(content[j] ? prefix + content[j] : '');
+      var inGrid = j >= movementEnd && j < guideEnd;
+      var width = inGrid ? guideWidth : content[j].length;
+      var linePad = Math.max(0, Math.floor((cols - width) / 2));
+      lines.push(content[j] ? new Array(linePad + 1).join(' ') + content[j] : '');
     }
     // find first non-empty content line for cursor placement
     var fcr = padTop;
+    var fcc = 0;
     for (var fc = 0; fc < content.length; fc++) {
-      if (content[fc]) { fcr = padTop + fc; break; }
+      if (content[fc].indexOf('new to Vim?') !== -1) {
+        fcr = padTop + fc;
+        fcc = Math.max(0, Math.floor((cols - content[fc].length) / 2));
+        break;
+      }
     }
     lines.firstContentRow = fcr;
-    lines.firstContentCol = padLeft;
+    lines.firstContentCol = fcc;
     return lines;
   }
 
   function isWelcomeBuffer() {
     for (var i = 0; i < state.lines.length; i++) {
-      if (state.lines[i].indexOf('jorypestorious.com/vim') !== -1) return true;
+      if (state.lines[i].indexOf(VIM_NAME) !== -1) return true;
     }
     return false;
   }
@@ -135,6 +161,7 @@
   // State
   // -------------------------------------------------------------------------
   var welcomeLines = buildWelcome();
+  var welcomeSnapshot = welcomeLines.join('\n');
   var state = {
     lines: welcomeLines,
     cursor: { row: welcomeLines.firstContentRow || 0, col: welcomeLines.firstContentCol || 0 },
@@ -160,7 +187,7 @@
       ? document.referrer : '/',
     escCount: 0,
     escTimer: null,
-    agentsMode: false,
+    immersiveMode: false,
     pendingOp: null,
     pendingGForOp: false,
     lastFind: null,
@@ -194,8 +221,23 @@
     macroRegisters: {},
     macroRecording: null,
     macroLastPlayed: null,
-    macroDepth: 0
+    macroDepth: 0,
+    expandtab: true,
+    tabstop: 4,
+    shiftwidth: 2,
+    autoindent: false,
+    pendingBracket: null,
+    dashboard: true,
+    paletteOpen: false
   };
+
+  function resetWelcomeLayout() {
+    var lines = buildWelcome();
+    state.lines = lines;
+    state.cursor = { row: lines.firstContentRow || 0, col: lines.firstContentCol || 0 };
+    state.curswant = state.cursor.col;
+    welcomeSnapshot = lines.join('\n');
+  }
 
   // Blog file shortname map (used by :e, :r, :help)
   var blogFiles = {
@@ -312,10 +354,22 @@
     state.cursor.col = clampCol(state.cursor.row, state.cursor.col);
   }
 
+  function triggerTouch() {
+    var editorEl = document.getElementById('vim-editor');
+    editorEl.classList.remove('vim-touch');
+    void editorEl.offsetWidth;
+    editorEl.classList.add('vim-touch');
+    clearTimeout(triggerTouch.timer);
+    triggerTouch.timer = setTimeout(function() {
+      editorEl.classList.remove('vim-touch');
+    }, 220);
+  }
+
   function setStatus(msg, duration) {
     if (state.statusMsgTimer) clearTimeout(state.statusMsgTimer);
     state.statusMsg = msg;
     cmdlineEl.textContent = msg;
+    triggerTouch();
     if (state.zenMode) cmdlineEl.style.display = '';
     state.statusMsgTimer = setTimeout(function() {
       state.statusMsg = null;
@@ -361,7 +415,11 @@
         listMode: state.listMode,
         wordWrap: state.wordWrap,
         hlsearch: state.hlsearch,
-        incsearch: state.incsearch
+        incsearch: state.incsearch,
+        expandtab: state.expandtab,
+        tabstop: state.tabstop,
+        shiftwidth: state.shiftwidth,
+        autoindent: state.autoindent
       }));
     } catch(e) {}
   }
@@ -382,6 +440,10 @@
       if (prefs.wordWrap !== undefined) state.wordWrap = prefs.wordWrap;
       if (prefs.hlsearch !== undefined) state.hlsearch = prefs.hlsearch;
       if (prefs.incsearch !== undefined) state.incsearch = prefs.incsearch;
+      if (prefs.expandtab !== undefined) state.expandtab = prefs.expandtab;
+      if (prefs.tabstop !== undefined) state.tabstop = prefs.tabstop;
+      if (prefs.shiftwidth !== undefined) state.shiftwidth = prefs.shiftwidth;
+      if (prefs.autoindent !== undefined) state.autoindent = prefs.autoindent;
     } catch(e) {}
   }
 
@@ -666,6 +728,23 @@
     return c < line.length ? c : 0;
   }
 
+  function leadingIndent(line) {
+    var match = line.match(/^\s*/);
+    return match ? match[0] : '';
+  }
+
+  function indentUnit() {
+    return state.expandtab === false ? '\t' : ' '.repeat(state.shiftwidth || 2);
+  }
+
+  function dedent(line) {
+    if (line[0] === '\t') return line.slice(1);
+    var width = state.shiftwidth || 2;
+    var count = 0;
+    while (count < width && line[count] === ' ') count++;
+    return line.slice(count);
+  }
+
   // -------------------------------------------------------------------------
   // Paragraph motions
   // -------------------------------------------------------------------------
@@ -685,6 +764,45 @@
     // skip blank lines
     while (r > 0 && getLine(r).trim() === '') r--;
     return r;
+  }
+
+  // Vim section motions: [[/]] seek a { in column one; []/][ seek }.
+  function sectionTarget(row, target, direction, count) {
+    var found = row;
+    for (var n = 0; n < count; n++) {
+      var next = -1;
+      for (var r = found + direction; r >= 0 && r < state.lines.length; r += direction) {
+        if (getLine(r)[0] === target) { next = r; break; }
+      }
+      if (next === -1) break;
+      found = next;
+    }
+    return found;
+  }
+
+  function handleSectionKey(key) {
+    if (key !== '[' && key !== ']') {
+      state.pendingBracket = null;
+      return false;
+    }
+    if (!state.pendingBracket) {
+      state.pendingBracket = key;
+      return true;
+    }
+    var chord = state.pendingBracket + key;
+    state.pendingBracket = null;
+    var directions = { '[[': -1, ']]': 1, '[]': -1, '][': 1 };
+    if (directions[chord] === undefined) return true;
+    var target = chord[0] === chord[1] ? '{' : '}';
+    var nextRow = sectionTarget(state.cursor.row, target, directions[chord], getCount());
+    if (nextRow !== state.cursor.row) {
+      pushJump();
+      state.cursor.row = nextRow;
+      state.cursor.col = firstNonBlank(nextRow);
+      state.curswant = state.cursor.col;
+    }
+    render();
+    return true;
   }
 
   // -------------------------------------------------------------------------
@@ -1008,17 +1126,14 @@
       } else if (op === '>') {
         pushUndo();
         for (var gi = startRow; gi <= endRow; gi++) {
-          state.lines[gi] = '  ' + getLine(gi);
+          state.lines[gi] = indentUnit() + getLine(gi);
         }
         state.cursor.row = startRow;
         state.cursor.col = firstNonBlank(startRow);
       } else if (op === '<') {
         pushUndo();
         for (var li = startRow; li <= endRow; li++) {
-          var ln = getLine(li);
-          if (ln.slice(0, 2) === '  ') state.lines[li] = ln.slice(2);
-          else if (ln[0] === ' ') state.lines[li] = ln.slice(1);
-          else if (ln[0] === '\t') state.lines[li] = ln.slice(1);
+          state.lines[li] = dedent(getLine(li));
         }
         state.cursor.row = startRow;
         state.cursor.col = firstNonBlank(startRow);
@@ -1445,11 +1560,31 @@
       escaped = '<span style="background:rgba(255,255,255,0.06);display:inline-block;width:100%">' + escaped + '</span>';
     }
 
+    if (state.dashboard) {
+      if (line.indexOf(VIM_NAME) !== -1) escaped = '<span class="vim-dashboard-title">' + escaped + '</span>';
+      else if (/h \(left\)|k  \(up\)|j  \(down\)/.test(line)) escaped = '<span class="vim-dashboard-move">' + escaped + '</span>';
+      else if (state.mode === 'normal' && !state.searchPattern && /^(Ctrl-P|:Ex|:help|i\s{2,}|\/aquarium Enter|u \/ Ctrl-r)/.test(line.replace(/^\s+/, ''))) {
+        var trimmed = line.replace(/^\s+/, '');
+        var leading = line.slice(0, line.length - trimmed.length);
+        var cells = trimmed.split(/(\s{2,})/);
+        escaped = escHtml(leading);
+        for (var dc = 0; dc < cells.length; dc++) {
+          if (dc % 2 === 1) escaped += cells[dc];
+          else if (dc % 4 === 0) escaped += '<span class="vim-dashboard-command">' + escHtml(cells[dc]) + '</span>';
+          else escaped += '<span class="vim-dashboard-description">' + escHtml(cells[dc]) + '</span>';
+        }
+      } else if (state.mode === 'normal' && !state.searchPattern && /read my pick:|new to Vim\?/.test(line)) {
+        escaped = escHtml(line)
+          .replace(':e friction-economy', '<span class="vim-dashboard-command">:e friction-economy</span>')
+          .replace(':tutor', '<span class="vim-dashboard-command">:tutor</span>');
+      }
+    }
+
     return escaped;
   }
 
   function renderGutter() {
-    if (state.zenMode) { gutterEl.style.display = 'none'; return; }
+    if (state.zenMode || state.dashboard) { gutterEl.style.display = 'none'; return; }
     gutterEl.style.display = 'block';
     var visibleRows = Math.floor(bodyEl.clientHeight / lineH);
     var extraRows = Math.max(0, visibleRows - state.lines.length);
@@ -1501,7 +1636,9 @@
   }
 
   function render() {
-    if (state.agentsMode) return;
+    if (state.immersiveMode) return;
+    state.dashboard = isWelcomeBuffer();
+    document.getElementById('vim-editor').classList.toggle('dashboard', state.dashboard);
     // Track line text for U (undo all changes on line)
     if (state.cursor.row !== state.lineUndoRow) {
       state.lineUndoRow = state.cursor.row;
@@ -2216,7 +2353,7 @@
     }
 
     // --- Start ---
-    state.agentsMode = true;
+    state.immersiveMode = true;
     cursorEl.style.display = 'none';
     gutterEl.style.display = 'none';
     var statusBar = document.getElementById('vim-statusbar');
@@ -2228,7 +2365,7 @@
         e.preventDefault();
         e.stopPropagation();
         running = false;
-        state.agentsMode = false;
+        state.immersiveMode = false;
         cursorEl.style.display = '';
         if (!state.zenMode) gutterEl.style.display = 'block';
         cmdlineEl.textContent = '';
@@ -2239,6 +2376,366 @@
     document.addEventListener('keydown', stopAgents, true);
 
     tick();
+  }
+
+  // -------------------------------------------------------------------------
+  // Snake (:snake) - a tiny hjkl game that leaves the editor buffer untouched
+  // -------------------------------------------------------------------------
+  function snakeGame() {
+    if (state.immersiveMode) return;
+    var width = Math.max(18, Math.min(48, Math.floor(bodyEl.clientWidth / charW) - 4));
+    var height = Math.max(10, Math.min(22, Math.floor(bodyEl.clientHeight / lineH) - 5));
+    var snake, direction, nextDirection, food, score, timer, gameOver;
+
+    function placeFood() {
+      do {
+        food = { x: Math.floor(Math.random() * width), y: Math.floor(Math.random() * height) };
+      } while (snake.some(function(part) { return part.x === food.x && part.y === food.y; }));
+    }
+
+    function resetSnake() {
+      var x = Math.floor(width / 2);
+      var y = Math.floor(height / 2);
+      snake = [{ x: x, y: y }, { x: x - 1, y: y }, { x: x - 2, y: y }];
+      direction = { x: 1, y: 0 };
+      nextDirection = direction;
+      score = 0;
+      gameOver = false;
+      placeFood();
+      clearInterval(timer);
+      timer = setInterval(stepSnake, 115);
+      drawSnake();
+    }
+
+    function drawSnake() {
+      var rows = ['┌' + '─'.repeat(width) + '┐'];
+      for (var y = 0; y < height; y++) {
+        var cells = ['│'];
+        for (var x = 0; x < width; x++) {
+          var partIndex = -1;
+          for (var i = 0; i < snake.length; i++) {
+            if (snake[i].x === x && snake[i].y === y) { partIndex = i; break; }
+          }
+          if (partIndex === 0) cells.push('<span class="vim-snake-head">◆</span>');
+          else if (partIndex > 0) cells.push('<span class="vim-snake-body">●</span>');
+          else if (food.x === x && food.y === y) cells.push('<span class="vim-snake-food">✦</span>');
+          else cells.push(' ');
+        }
+        cells.push('│');
+        rows.push(cells.join(''));
+      }
+      rows.push('└' + '─'.repeat(width) + '┘');
+      contentEl.innerHTML = rows.join('\n');
+      bodyEl.scrollTop = 0;
+      statusModeEl.textContent = gameOver ? '--GAME OVER--' : '--SNAKE--';
+      statusFileEl.textContent = 'hjkl / arrows';
+      statusPosEl.textContent = 'score ' + score;
+      cmdlineEl.textContent = gameOver ? 'r restart · Esc return to Vim' : 'eat ✦ · avoid walls · Esc quits';
+    }
+
+    function stepSnake() {
+      direction = nextDirection;
+      var head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+      var collision = head.x < 0 || head.x >= width || head.y < 0 || head.y >= height || snake.some(function(part) {
+        return part.x === head.x && part.y === head.y;
+      });
+      if (collision) {
+        gameOver = true;
+        clearInterval(timer);
+        drawSnake();
+        return;
+      }
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        placeFood();
+      } else {
+        snake.pop();
+      }
+      drawSnake();
+    }
+
+    function stopSnake() {
+      clearInterval(timer);
+      state.immersiveMode = false;
+      cursorEl.style.display = '';
+      if (!state.zenMode) gutterEl.style.display = 'block';
+      cmdlineEl.textContent = '';
+      document.removeEventListener('keydown', snakeKey, true);
+      render();
+    }
+
+    function snakeKey(e) {
+      var keys = {
+        h: { x: -1, y: 0 }, ArrowLeft: { x: -1, y: 0 },
+        j: { x: 0, y: 1 }, ArrowDown: { x: 0, y: 1 },
+        k: { x: 0, y: -1 }, ArrowUp: { x: 0, y: -1 },
+        l: { x: 1, y: 0 }, ArrowRight: { x: 1, y: 0 }
+      };
+      if (e.key === 'Escape' || e.key === 'q') {
+        e.preventDefault(); e.stopPropagation(); stopSnake(); return;
+      }
+      if (e.key === 'r' && gameOver) {
+        e.preventDefault(); e.stopPropagation(); resetSnake(); return;
+      }
+      var next = keys[e.key];
+      if (!next) return;
+      e.preventDefault(); e.stopPropagation();
+      if (next.x !== -direction.x || next.y !== -direction.y) nextDirection = next;
+    }
+
+    state.immersiveMode = true;
+    document.getElementById('vim-editor').classList.remove('dashboard');
+    cursorEl.style.display = 'none';
+    gutterEl.style.display = 'none';
+    document.addEventListener('keydown', snakeKey, true);
+    resetSnake();
+  }
+
+  // -------------------------------------------------------------------------
+  // Kinetic moth (:moth) - native SVG depth toy; the buffer stays untouched
+  // -------------------------------------------------------------------------
+  function mothField() {
+    if (state.immersiveMode) return;
+    var overlay = document.getElementById('vim-moth');
+    var tiltX = 0;
+    var tiltY = 0;
+    var tiltZ = 0;
+    var rippleTimer;
+    var pulseTimer;
+    var tiltFrame;
+    var held = {};
+    var closing = false;
+
+    function applyTilt() {
+      overlay.style.setProperty('--moth-rx', tiltX + 'deg');
+      overlay.style.setProperty('--moth-ry', tiltY + 'deg');
+      overlay.style.setProperty('--moth-rz', tiltZ + 'deg');
+    }
+
+    function ripple() {
+      clearTimeout(rippleTimer);
+      overlay.classList.remove('ripple');
+      void overlay.offsetWidth;
+      overlay.classList.add('ripple');
+      rippleTimer = setTimeout(function() { overlay.classList.remove('ripple'); }, 540);
+    }
+
+    function pulse() {
+      clearTimeout(pulseTimer);
+      overlay.classList.remove('pulse');
+      void overlay.offsetWidth;
+      overlay.classList.add('pulse');
+      pulseTimer = setTimeout(function() { overlay.classList.remove('pulse'); }, 780);
+      triggerTouch();
+    }
+
+    function moveMoth(e) {
+      tiltY = ((e.clientX / window.innerWidth) - 0.5) * 20;
+      tiltX = ((e.clientY / window.innerHeight) - 0.5) * -14;
+      applyTilt();
+    }
+
+    function tiltDirection(key) {
+      return {
+        h: [0, -1, 0], ArrowLeft: [0, -1, 0],
+        l: [0, 1, 0], ArrowRight: [0, 1, 0],
+        k: [-1, 0, 0], ArrowUp: [-1, 0, 0],
+        j: [1, 0, 0], ArrowDown: [1, 0, 0],
+        q: [0, 0, -1],
+        e: [0, 0, 1]
+      }[key];
+    }
+
+    function animateTilt() {
+      var x = 0;
+      var y = 0;
+      var z = 0;
+      Object.keys(held).forEach(function(key) {
+        var direction = tiltDirection(key);
+        x += direction[0];
+        y += direction[1];
+        z += direction[2];
+      });
+      tiltX += x * 1.5;
+      tiltY += y * 1.5;
+      tiltZ += z * 1.5;
+      applyTilt();
+      tiltFrame = Object.keys(held).length ? requestAnimationFrame(animateTilt) : null;
+    }
+
+    function releaseMothKey(e) {
+      if (!tiltDirection(e.key)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      delete held[e.key];
+      if (!Object.keys(held).length) overlay.classList.remove('moving');
+    }
+
+    function releaseAllMothKeys() {
+      held = {};
+      overlay.classList.remove('moving');
+    }
+
+    function finishMoth() {
+      clearTimeout(rippleTimer);
+      clearTimeout(pulseTimer);
+      cancelAnimationFrame(tiltFrame);
+      overlay.hidden = true;
+      overlay.classList.remove('closing', 'ripple', 'pulse', 'moving');
+      overlay.style.removeProperty('--moth-rx');
+      overlay.style.removeProperty('--moth-ry');
+      overlay.style.removeProperty('--moth-rz');
+      state.immersiveMode = false;
+      cursorEl.style.display = '';
+      if (!state.zenMode) gutterEl.style.display = 'block';
+      render();
+    }
+
+    function closeMoth() {
+      if (closing) return;
+      closing = true;
+      document.removeEventListener('keydown', mothKey, true);
+      document.removeEventListener('keyup', releaseMothKey, true);
+      window.removeEventListener('blur', releaseAllMothKeys);
+      overlay.removeEventListener('pointermove', moveMoth);
+      releaseAllMothKeys();
+      overlay.classList.add('closing');
+      var instant = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(finishMoth, instant ? 0 : 460);
+    }
+
+    function mothKey(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMoth();
+        return;
+      }
+      var direction = tiltDirection(e.key);
+      e.preventDefault();
+      e.stopPropagation();
+      if (direction && !held[e.key]) {
+        held[e.key] = true;
+        tiltX += direction[0] * 4;
+        tiltY += direction[1] * 4;
+        tiltZ += direction[2] * 4;
+        applyTilt();
+        overlay.classList.add('moving');
+        if (!tiltFrame) tiltFrame = requestAnimationFrame(animateTilt);
+      }
+      if (!e.repeat) ripple();
+      if (e.key === 'Enter') pulse();
+    }
+
+    state.immersiveMode = true;
+    document.getElementById('vim-editor').classList.remove('dashboard');
+    cursorEl.style.display = 'none';
+    gutterEl.style.display = 'none';
+    overlay.hidden = false;
+    overlay.addEventListener('pointermove', moveMoth);
+    document.addEventListener('keydown', mothKey, true);
+    document.addEventListener('keyup', releaseMothKey, true);
+    window.addEventListener('blur', releaseAllMothKeys);
+    triggerTouch();
+  }
+
+  // -------------------------------------------------------------------------
+  // Command palette (Ctrl-P) - a thin launcher over the existing :commands
+  // -------------------------------------------------------------------------
+  var paletteCommands = [
+    { label: 'Return to dashboard', command: 'intro' },
+    { label: 'New empty buffer', command: 'enew' },
+    { label: 'Browse files', command: 'Ex' },
+    { label: 'Open Vim tutor', command: 'tutor' },
+    { label: 'Open command reference', command: 'help' },
+    { label: 'Enter kinetic moth field', command: 'moth' },
+    { label: 'Play Snake', command: 'snake' },
+    { label: 'Watch agent aquarium', command: 'agents' },
+    { label: 'Toggle zen mode', command: 'zen' },
+    { label: 'Enable line numbers', command: 'set number' },
+    { label: 'Enable relative numbers', command: 'set relativenumber' },
+    { label: 'Use Tokyo Night colors', command: 'colorscheme tokyonight' },
+    { label: 'Use Catppuccin colors', command: 'colorscheme catppuccin' }
+  ];
+  var paletteMatches = [];
+  var paletteIndex = 0;
+
+  function renderPalette() {
+    var input = document.getElementById('vim-palette-input');
+    var results = document.getElementById('vim-palette-results');
+    var query = input.value.trim().toLowerCase();
+    paletteMatches = paletteCommands.filter(function(item) {
+      return !query || (item.label + ' ' + item.command).toLowerCase().indexOf(query) !== -1;
+    });
+    if (paletteIndex >= paletteMatches.length) paletteIndex = 0;
+    results.textContent = '';
+    if (!paletteMatches.length) {
+      var empty = document.createElement('div');
+      empty.className = 'vim-palette-empty';
+      empty.textContent = 'No matching command';
+      results.appendChild(empty);
+      return;
+    }
+    paletteMatches.forEach(function(item, index) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'vim-palette-item' + (index === paletteIndex ? ' active' : '');
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', index === paletteIndex ? 'true' : 'false');
+      var label = document.createElement('span');
+      var command = document.createElement('span');
+      label.textContent = item.label;
+      command.textContent = ':' + item.command;
+      button.appendChild(label);
+      button.appendChild(command);
+      button.addEventListener('click', function() { runPalette(index); });
+      results.appendChild(button);
+    });
+  }
+
+  function openPalette() {
+    if (state.immersiveMode) return;
+    var palette = document.getElementById('vim-palette');
+    var input = document.getElementById('vim-palette-input');
+    state.paletteOpen = true;
+    triggerTouch();
+    palette.hidden = false;
+    input.value = '';
+    paletteIndex = 0;
+    renderPalette();
+    input.focus();
+  }
+
+  function closePalette() {
+    state.paletteOpen = false;
+    document.getElementById('vim-palette').hidden = true;
+    document.getElementById('vim-palette-input').blur();
+  }
+
+  function runPalette(index) {
+    var item = paletteMatches[index];
+    if (!item) return;
+    closePalette();
+    if (state.mode === 'visual') exitVisual();
+    state.mode = 'normal';
+    execCommand(item.command);
+    render();
+  }
+
+  function handlePaletteKey(e) {
+    if (e.key === 'Escape') { e.preventDefault(); closePalette(); return; }
+    if (e.key === 'ArrowDown' || (e.ctrlKey && e.key === 'n')) {
+      e.preventDefault();
+      if (paletteMatches.length) paletteIndex = (paletteIndex + 1) % paletteMatches.length;
+      renderPalette(); return;
+    }
+    if (e.key === 'ArrowUp' || (e.ctrlKey && e.key === 'p')) {
+      e.preventDefault();
+      if (paletteMatches.length) paletteIndex = (paletteIndex - 1 + paletteMatches.length) % paletteMatches.length;
+      renderPalette(); return;
+    }
+    if (e.key === 'Enter') { e.preventDefault(); runPalette(paletteIndex); }
   }
 
   // -------------------------------------------------------------------------
@@ -2261,6 +2758,7 @@
   // -------------------------------------------------------------------------
   function execCommand(cmd) {
     cmd = cmd.trim();
+    if (cmd) triggerTouch();
     if (cmd === 'q' || cmd === 'q!') {
       if (cmd === 'q!') { hackerExit(); return; }
       window.location.href = state.exitTarget;
@@ -2389,9 +2887,7 @@
       state.zenMode = !state.zenMode;
       applyZenMode(state.zenMode);
       if (isWelcomeBuffer()) {
-        var w = buildWelcome();
-        state.lines = w;
-        state.cursor = { row: w.firstContentRow || 0, col: w.firstContentCol || 0 };
+        resetWelcomeLayout();
       }
       setStatus(state.zenMode ? 'zen mode on' : 'zen mode off');
       savePrefs(); render(); return;
@@ -2406,8 +2902,17 @@
     }
     if (cmd === 'e' || cmd.slice(0, 2) === 'e ') {
       var eFname = cmd.slice(2).trim();
+      var eStored = readFromLocalFS(eFname);
       var ePath = resolveBlogPath(eFname);
-      if (ePath) {
+      if (eStored !== null) {
+        pushUndo();
+        state.lines = eStored.split('\n');
+        state.cursor = { row: 0, col: 0 };
+        state.curswant = 0;
+        state.filename = eFname;
+        setStatus('"' + eFname + '" ' + state.lines.length + ' lines');
+        render();
+      } else if (ePath) {
         setStatus('Reading "' + eFname + '"...');
         fetch(ePath).then(function(resp) {
           if (!resp.ok) throw new Error(resp.status);
@@ -2445,10 +2950,7 @@
     }
     if (cmd === 'intro') {
       pushUndo();
-      var introLines = buildWelcome();
-      state.lines = introLines;
-      state.cursor = { row: introLines.firstContentRow || 0, col: introLines.firstContentCol || 0 };
-      state.curswant = 0;
+      resetWelcomeLayout();
       render(); return;
     }
     if (cmd === 'help' || cmd === 'h' || cmd.slice(0, 5) === 'help ' || cmd.slice(0, 2) === 'h ') {
@@ -2471,6 +2973,12 @@
     }
     if (cmd === 'agents') {
       agentsAquarium(); return;
+    }
+    if (cmd === 'moth') {
+      mothField(); return;
+    }
+    if (cmd === 'snake') {
+      snakeGame(); return;
     }
     if (cmd === 'emacs') {
       setStatus("I'm sorry, Dave. I'm afraid I can't do that.", 4000); return;
@@ -2744,6 +3252,7 @@
     if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
     if (e.key === 'Escape') {
       countBuf = 0;
+      state.pendingBracket = null;
       pendingOperator = null; operatorCount = 0;
       state.pendingGForOp = false;
       if (state.pendingOp) { state.pendingOp = null; return; }
@@ -2938,6 +3447,14 @@
       state.cursor.row = geR; state.cursor.col = geC; state.curswant = geC;
       render(); return;
     }
+    // g_: last non-blank character of the line.
+    if (e.key === '_' && gTimer) {
+      clearTimeout(gTimer); gTimer = null;
+      var lastNonBlank = getLine(row).search(/\s*$/) - 1;
+      state.cursor.col = Math.max(0, lastNonBlank);
+      state.curswant = state.cursor.col;
+      render(); return;
+    }
     // gv: reselect the last visual range.
     if (e.key === 'v' && gTimer) {
       clearTimeout(gTimer); gTimer = null;
@@ -3114,30 +3631,32 @@
       render(); return;
     }
 
+    if (handleSectionKey(e.key)) return;
+
     // clear gTimer on unrelated keys
     if (gTimer && e.key !== 'g') { clearTimeout(gTimer); gTimer = null; }
 
     // --- navigation (all support count prefix) ---
-    if (e.key === 'h') {
+    if (e.key === 'h' || e.key === 'ArrowLeft' || e.key === 'Backspace') {
       var hN = getCount();
       state.cursor.col = clampCol(row, col - hN);
       state.curswant = state.cursor.col;
       render(); return;
     }
-    if (e.key === 'l') {
+    if (e.key === 'l' || e.key === 'ArrowRight' || e.key === ' ') {
       var lN = getCount();
       state.cursor.col = clampCol(row, col + lN);
       state.curswant = state.cursor.col;
       render(); return;
     }
-    if (e.key === 'j') {
+    if (e.key === 'j' || e.key === 'ArrowDown') {
       var jN = getCount();
       var newRow = clampRow(row + jN);
       state.cursor.row = newRow;
       state.cursor.col = clampCol(newRow, state.curswant);
       render(); return;
     }
-    if (e.key === 'k') {
+    if (e.key === 'k' || e.key === 'ArrowUp') {
       var kN = getCount();
       var newRowK = clampRow(row - kN);
       state.cursor.row = newRowK;
@@ -3157,9 +3676,10 @@
       state.cursor.col = 0; state.curswant = 0; render(); return;
     }
     if (e.key === '$') {
-      getCount(); // consume count (vim: {N}$ goes N-1 lines down then end)
-      var endCol = Math.max(0, getLine(row).length - 1);
-      state.cursor.col = endCol; state.curswant = endCol; render(); return;
+      var dollarN = getCount();
+      var dollarRow = clampRow(row + dollarN - 1);
+      var endCol = Math.max(0, getLine(dollarRow).length - 1);
+      state.cursor.row = dollarRow; state.cursor.col = endCol; state.curswant = endCol; render(); return;
     }
     if (e.key === 'w') {
       var wN = getCount();
@@ -3228,7 +3748,7 @@
     // H/M/L screen-relative jumps
     if (e.key === 'H') {
       getCount();
-      var scrollTop = Math.floor(contentEl.scrollTop / lineH);
+      var scrollTop = Math.floor(bodyEl.scrollTop / lineH);
       state.cursor.row = clampRow(scrollTop);
       state.cursor.col = firstNonBlank(state.cursor.row);
       state.curswant = state.cursor.col;
@@ -3236,7 +3756,7 @@
     }
     if (e.key === 'M') {
       getCount();
-      var scrollTopM = Math.floor(contentEl.scrollTop / lineH);
+      var scrollTopM = Math.floor(bodyEl.scrollTop / lineH);
       var visRowsM = Math.floor(bodyEl.clientHeight / lineH);
       state.cursor.row = clampRow(scrollTopM + Math.floor(visRowsM / 2));
       state.cursor.col = firstNonBlank(state.cursor.row);
@@ -3245,14 +3765,14 @@
     }
     if (e.key === 'L') {
       getCount();
-      var scrollTopL = Math.floor(contentEl.scrollTop / lineH);
+      var scrollTopL = Math.floor(bodyEl.scrollTop / lineH);
       var visRowsL = Math.floor(bodyEl.clientHeight / lineH);
       state.cursor.row = clampRow(scrollTopL + visRowsL - 1);
       state.cursor.col = firstNonBlank(state.cursor.row);
       state.curswant = state.cursor.col;
       render(); return;
     }
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || e.key === '+') {
       if (isExplorerBuffer()) {
         var eLine = state.lines[row].trim();
         if (eLine && resolveBlogPath(eLine)) {
@@ -3268,8 +3788,25 @@
       render(); return;
     }
     if (e.key === '-') {
-      openExplorer();
-      return;
+      var minusN = getCount();
+      var minusRow = clampRow(row - minusN);
+      state.cursor.row = minusRow;
+      state.cursor.col = firstNonBlank(minusRow);
+      state.curswant = state.cursor.col;
+      render(); return;
+    }
+    if (e.key === '_') {
+      var underscoreRow = clampRow(row + getCount() - 1);
+      state.cursor.row = underscoreRow;
+      state.cursor.col = firstNonBlank(underscoreRow);
+      state.curswant = state.cursor.col;
+      render(); return;
+    }
+    if (e.key === '|') {
+      var pipeCol = Math.max(0, getCount() - 1);
+      state.cursor.col = clampCol(row, pipeCol);
+      state.curswant = state.cursor.col;
+      render(); return;
     }
     if (e.key === '{') {
       var pBN = getCount();
@@ -3337,19 +3874,21 @@
     }
     if (e.key === 'o') {
       pushUndo();
-      insertLine(row + 1, '');
+      var openIndent = state.autoindent ? leadingIndent(line) : '';
+      insertLine(row + 1, openIndent);
       state.cursor.row = row + 1;
-      state.cursor.col = 0;
-      state.curswant = 0;
+      state.cursor.col = openIndent.length;
+      state.curswant = state.cursor.col;
       state.mode = 'insert'; state.insertText = '';
       recordChange('o');
       render(); return;
     }
     if (e.key === 'O') {
       pushUndo();
-      insertLine(row, '');
-      state.cursor.col = 0;
-      state.curswant = 0;
+      var openAboveIndent = state.autoindent ? leadingIndent(line) : '';
+      insertLine(row, openAboveIndent);
+      state.cursor.col = openAboveIndent.length;
+      state.curswant = state.cursor.col;
       state.mode = 'insert'; state.insertText = '';
       recordChange('O');
       render(); return;
@@ -3672,11 +4211,12 @@
     }
     if (e.key === 'Enter') {
       pushUndo();
+      var newLineIndent = state.autoindent ? leadingIndent(line) : '';
       state.lines[row] = line.slice(0, col);
-      insertLine(row + 1, line.slice(col));
+      insertLine(row + 1, newLineIndent + line.slice(col));
       state.cursor.row = row + 1;
-      state.cursor.col = 0;
-      state.curswant = 0;
+      state.cursor.col = newLineIndent.length;
+      state.curswant = state.cursor.col;
       state.insertText += '\n';
       render(); return;
     }
@@ -3792,6 +4332,7 @@
     var line = getLine(row);
 
     if (e.key === 'Escape') {
+      state.pendingBracket = null;
       state.mode = 'normal';
       state.cursor.col = clampCol(row, col - 1);
       state.curswant = state.cursor.col;
@@ -3923,14 +4464,12 @@
         break;
       case '>>':
         pushUndo();
-        state.lines[row] = '  ' + line;
+        state.lines[row] = indentUnit() + line;
         state.cursor.col = firstNonBlank(row);
         break;
       case '<<':
         pushUndo();
-        if (line.slice(0, 2) === '  ') state.lines[row] = line.slice(2);
-        else if (line[0] === ' ') state.lines[row] = line.slice(1);
-        else if (line[0] === '\t') state.lines[row] = line.slice(1);
+        state.lines[row] = dedent(line);
         state.cursor.col = firstNonBlank(row);
         break;
       case 'yy':
@@ -4126,12 +4665,9 @@
         pushUndo();
         for (var vii = vri.startRow; vii <= vri.endRow; vii++) {
           if (e.key === '>') {
-            state.lines[vii] = '  ' + getLine(vii);
+            state.lines[vii] = indentUnit() + getLine(vii);
           } else {
-            var viLine = getLine(vii);
-            if (viLine.slice(0, 2) === '  ') state.lines[vii] = viLine.slice(2);
-            else if (viLine[0] === ' ') state.lines[vii] = viLine.slice(1);
-            else if (viLine[0] === '\t') state.lines[vii] = viLine.slice(1);
+            state.lines[vii] = dedent(getLine(vii));
           }
         }
       }
@@ -4188,14 +4724,21 @@
       state.cursor.row = vgep.row; state.cursor.col = vgep.col; state.curswant = vgep.col;
       render(); return;
     }
+    if (e.key === '_' && gTimer) {
+      clearTimeout(gTimer); gTimer = null;
+      var vLastNonBlank = getLine(row).search(/\s*$/) - 1;
+      state.cursor.col = Math.max(0, vLastNonBlank); state.curswant = state.cursor.col;
+      render(); return;
+    }
+    if (handleSectionKey(e.key)) return;
     if (gTimer && e.key !== 'g') { clearTimeout(gTimer); gTimer = null; }
-    if (e.key === 'h') { var hN = getCount(); state.cursor.col = clampCol(row, col - hN); state.curswant = state.cursor.col; render(); return; }
-    if (e.key === 'l') { var lN = getCount(); state.cursor.col = clampCol(row, col + lN); state.curswant = state.cursor.col; render(); return; }
-    if (e.key === 'j') {
+    if (e.key === 'h' || e.key === 'ArrowLeft' || e.key === 'Backspace') { var hN = getCount(); state.cursor.col = clampCol(row, col - hN); state.curswant = state.cursor.col; render(); return; }
+    if (e.key === 'l' || e.key === 'ArrowRight' || e.key === ' ') { var lN = getCount(); state.cursor.col = clampCol(row, col + lN); state.curswant = state.cursor.col; render(); return; }
+    if (e.key === 'j' || e.key === 'ArrowDown') {
       var jN = getCount(); var nr = clampRow(row + jN);
       state.cursor.row = nr; state.cursor.col = clampCol(nr, state.curswant); render(); return;
     }
-    if (e.key === 'k') {
+    if (e.key === 'k' || e.key === 'ArrowUp') {
       var kN = getCount(); var nrk = clampRow(row - kN);
       state.cursor.row = nrk; state.cursor.col = clampCol(nrk, state.curswant); render(); return;
     }
@@ -4279,7 +4822,7 @@
     'unset et', 'unset expandtab', 'unset ai', 'unset autoindent',
     'nohlsearch', 'noh', 'nohl',
     'sort', 'sort u',
-    'r', 'zen', 'enew', 'new', 'e', 'intro', 'help', 'h', 'tutor', 'Tutor', 'agents',
+    'r', 'zen', 'enew', 'new', 'e', 'intro', 'help', 'h', 'tutor', 'Tutor', 'agents', 'moth', 'snake',
     'marks', 'pray',
     'colorscheme', 'colo', 'color', 'emacs', 'nano'
   ];
@@ -4471,6 +5014,11 @@
   }
 
   function handleKey(e) {
+    if (state.paletteOpen) {
+      handlePaletteKey(e);
+      return;
+    }
+
     // Konami code tracking (works across all modes)
     if (e.key === konamiSeq[state.konamiIdx]) {
       state.konamiIdx++;
@@ -4488,6 +5036,12 @@
     // never interfere with browser shortcuts
     if (e.metaKey) return;
 
+    if (e.ctrlKey && e.key.toLowerCase() === 'p' && (state.mode === 'normal' || state.mode === 'visual')) {
+      e.preventDefault();
+      openPalette();
+      return;
+    }
+
     // Macro recording: capture every key except the q that stops recording
     if (state.macroRecording) {
       var isStopQ = (e.key === 'q' && state.mode === 'normal' && !state.pendingOp && !pendingOperator);
@@ -4503,7 +5057,7 @@
     var preJumpCol = state.cursor.col;
 
     if (e.ctrlKey) {
-      var ctrlHandled = { r: 1, R: 1, f: 1, b: 1, u: 1, d: 1, g: 1, a: 1, x: 1, o: 1, i: 1, h: 1, w: 1, v: 1 };
+      var ctrlHandled = { r: 1, R: 1, f: 1, b: 1, u: 1, d: 1, e: 1, y: 1, g: 1, a: 1, x: 1, o: 1, i: 1, h: 1, w: 1, v: 1 };
       if (!ctrlHandled[e.key]) return;
       e.preventDefault();
 
@@ -4578,6 +5132,14 @@
         state.cursor.col = clampCol(state.cursor.row, state.curswant);
         render(); return;
       }
+      if (e.key === 'e') {
+        bodyEl.scrollTop += lineH;
+        return;
+      }
+      if (e.key === 'y') {
+        bodyEl.scrollTop = Math.max(0, bodyEl.scrollTop - lineH);
+        return;
+      }
       if (e.key === 'g') {
         // Ctrl-G: file info
         var pct = state.lines.length > 0 ? Math.round((row + 1) / state.lines.length * 100) : 0;
@@ -4648,6 +5210,13 @@
     statusFileEl = document.getElementById('vim-status-file');
     statusPosEl  = document.getElementById('vim-status-pos');
 
+    var paletteEl = document.getElementById('vim-palette');
+    var paletteInput = document.getElementById('vim-palette-input');
+    paletteInput.addEventListener('input', function() { paletteIndex = 0; renderPalette(); });
+    paletteEl.addEventListener('click', function(e) {
+      if (e.target === paletteEl) closePalette();
+    });
+
     if (!contentEl) return; // not on vim page
 
     // Restore saved preferences
@@ -4659,14 +5228,13 @@
       applyZenMode(true);
       // Rebuild welcome with zen-aware width
       if (isWelcomeBuffer()) {
-        var w = buildWelcome();
-        state.lines = w;
-        state.cursor = { row: w.firstContentRow || 0, col: w.firstContentCol || 0 };
+        resetWelcomeLayout();
       }
     }
 
     document.fonts.ready.then(function() {
       measureFont();
+      if (state.lines.join('\n') === welcomeSnapshot) resetWelcomeLayout();
       render();
     });
 
@@ -4674,6 +5242,36 @@
     render();
 
     document.addEventListener('keydown', handleKey);
+
+    var depthFrame = null;
+    var depthX = 0;
+    var depthY = 0;
+    document.addEventListener('pointermove', function(e) {
+      if (!state.dashboard || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      depthX = e.clientX / window.innerWidth - 0.5;
+      depthY = e.clientY / window.innerHeight - 0.5;
+      if (depthFrame) return;
+      depthFrame = requestAnimationFrame(function() {
+        depthFrame = null;
+        bodyEl.style.setProperty('--vim-far-x', Math.round(depthX * -3) + 'px');
+        bodyEl.style.setProperty('--vim-far-y', Math.round(depthY * -3) + 'px');
+        bodyEl.style.setProperty('--vim-mid-x', Math.round(depthX * -7) + 'px');
+        bodyEl.style.setProperty('--vim-mid-y', Math.round(depthY * -7) + 'px');
+        bodyEl.style.setProperty('--vim-near-x', Math.round(31 + depthX * -13) + 'px');
+        bodyEl.style.setProperty('--vim-near-y', Math.round(47 + depthY * -13) + 'px');
+      });
+    });
+
+    var resizeTimer = null;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        if (state.mode !== 'normal' || state.lines.join('\n') !== welcomeSnapshot) return;
+        measureFont();
+        resetWelcomeLayout();
+        render();
+      }, 100);
+    });
 
     // Cmd+V paste support: insert clipboard text into buffer
     document.addEventListener('paste', function(e) {

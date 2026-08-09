@@ -1,0 +1,15 @@
+import fs from 'fs';
+const p = 'blog/portable-agent-factory/index.html';
+const s = fs.readFileSync(p, 'utf8');
+const og = (s.match(/og:image[^>]*content="([^"]+)"/) || [])[1];
+const tw = (s.match(/twitter:image[^>]*content="([^"]+)"/) || [])[1];
+const exists = fs.existsSync('blog/portable-agent-factory/codex-desktop-won.png');
+const bg = (s.match(/bg\.jpg/g) || []).length;
+const oldHero = (s.match(/harness-control\.png/g) || []).length;
+const oldTitle = (s.match(/Own the Harness, Rent the Intelligence/g) || []).length;
+console.log('og:image        =', og);
+console.log('twitter:image   =', tw);
+console.log('hero on disk    =', exists);
+console.log('leftover bg.jpg =', bg);
+console.log('old hero refs   =', oldHero);
+console.log('old title refs  =', oldTitle);

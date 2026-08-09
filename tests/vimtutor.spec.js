@@ -241,6 +241,17 @@ test.describe('Lesson 5: external commands and files', () => {
     await page.evaluate(() => { try { localStorage.removeItem('vim_file_TUTORTEST'); } catch (e) {} });
   });
 
+  test(':w FOO then :e FOO reopens the saved browser file', async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => { try { localStorage.removeItem('vim_file_TUTOREDIT'); } catch (e) {} });
+    await seed(page, 'open-me-again');
+    await cmd(page, 'w TUTOREDIT');
+    await open(page);
+    await cmd(page, 'e TUTOREDIT');
+    expect((await lines(page))[0]).toBe('open-me-again');
+    await page.evaluate(() => { try { localStorage.removeItem('vim_file_TUTOREDIT'); } catch (e) {} });
+  });
+
   test(':r !date inserts the current date', async ({ page }) => {
     await open(page);
     await seed(page, 'above');
@@ -298,6 +309,18 @@ test.describe('Lesson 6: open lines, yank, paste, set', () => {
 // Lesson 7 --------------------------------------------------------------------
 
 test.describe('Lesson 7: help and completion', () => {
+  test(':tutor contains browser-doable instructions', async ({ page }) => {
+    await open(page);
+    await cmd(page, 'tutor');
+    const text = (await lines(page)).join('\n');
+    expect(text).toContain(':intro <ENTER>');
+    expect(text).toContain(':e friction-economy');
+    expect(text).not.toContain('vimtutor <ENTER>');
+    expect(text).not.toContain('CTRL-W CTRL-W');
+    expect(text).not.toContain('execute any external');
+    expect(text).not.toContain(':set nocp');
+  });
+
   test(':help opens the help buffer', async ({ page }) => {
     await open(page);
     await cmd(page, 'help');
