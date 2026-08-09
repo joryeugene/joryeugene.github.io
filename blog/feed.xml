@@ -12,7 +12,7 @@
   </author>
 
   <entry>
-    <title>I Wanted to Own the Harness. Then Codex Desktop Won.</title>
+    <title>Why I Canceled Claude Max for Codex Desktop</title>
     <link href="https://jorypestorious.com/blog/portable-agent-factory/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/portable-agent-factory/</id>
     <updated>2026-08-09T00:00:00Z</updated>
@@ -20,11 +20,11 @@
   </entry>
 
   <entry>
-    <title>AI Engineer World&apos;s Fair 2026: Takeaways &amp; Verification</title>
+    <title>AI Engineer World&apos;s Fair 2026: Verification Became the Bottleneck</title>
     <link href="https://jorypestorious.com/blog/ai-engineer-verification/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/ai-engineer-verification/</id>
     <updated>2026-07-06T00:00:00Z</updated>
-    <summary>Second-year takeaways from the San Francisco conference, the sequel to 2025&apos;s spec post. Execution is cheap and proof is expensive: how VERIFICATION, THE FACTORY, and TASTE are repricing AI engineering, from dark software factories and cross-model review to self-learning agents and game feel as the next moat.</summary>
+    <summary>A firsthand report on why verification, company context, and taste matter more as agent output gets cheaper, and why game feel is my next bet.</summary>
   </entry>
 
   <entry>
@@ -72,7 +72,7 @@
     <link href="https://jorypestorious.com/blog/emergent-religion/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/emergent-religion/</id>
     <updated>2026-02-15T00:00:00Z</updated>
-    <summary>AI agents develop guards, governments, and religion. They do not develop skepticism. Interpretability tools now show the asymmetry is structural.</summary>
+    <summary>AI agents develop guards, governments, and religion. They do not develop skepticism.</summary>
   </entry>
 
   <entry>
@@ -80,7 +80,7 @@
     <link href="https://jorypestorious.com/blog/natural-language-first/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/natural-language-first/</id>
     <updated>2025-12-01T00:00:00Z</updated>
-    <summary>OpenAI&apos;s latest models hallucinate 33-79% of the time, creating a confidence bug that destroys developer trust. But you don&apos;t need vector databases or RAG architectures to fix AI behavior. Thoughtful system prompts in plain English provide the highest leverage. Natural language behavioral control offers immediate improvements, fast iteration, and team accessibility. Complex architectures have their place, but start simple first.</summary>
+    <summary>Reported hallucination rates for OpenAI&apos;s o3 and o4-mini reached 33-79% depending on the task. The article tests plain-language system prompts for evidence requirements, tool resilience, self-correction, and behavior checks before adding RAG or multi-agent architecture.</summary>
   </entry>
 
   <entry>
@@ -88,7 +88,7 @@
     <link href="https://jorypestorious.com/blog/friction-economy/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/friction-economy/</id>
     <updated>2025-10-15T00:00:00Z</updated>
-    <summary>Bill Joy created vi to solve 300-baud modem constraints, proving that limitations drive innovation. This constraint-driven philosophy reveals how modern &quot;micro-frictions&quot; steal hours daily: hunting ChatGPT conversations (30+ seconds), permission popups (400ms each), and prompt management chaos. Learn the tools that eliminate these drains: zoxide (8ms navigation), ripgrep (5-10x faster search), and the mental models that turn constraints into competitive advantages.</summary>
+    <summary>Bill Joy created vi to solve 300-baud modem constraints, proving that limitations drive innovation. This constraint-driven philosophy reveals how modern micro-frictions steal hours daily: hunting ChatGPT conversations (30+ seconds), permission popups (400ms each), and prompt management chaos. Learn the tools that eliminate these drains: zoxide (8ms navigation), ripgrep (5-10x faster search), and the mental models that turn constraints into competitive advantages.</summary>
   </entry>
 
   <entry>
@@ -96,7 +96,7 @@
     <link href="https://jorypestorious.com/blog/claude-code-setups/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/claude-code-setups/</id>
     <updated>2025-09-15T00:00:00Z</updated>
-    <summary>The definitive guide to terminal environments for Claude Code. From beginner Warp setups to power user WezTerm + Zellij configurations. Includes authentic battle-tested recommendations and honest assessments of what really works in daily development.</summary>
+    <summary>A comparison of bash, zsh, fish, Warp, iTerm2, WezTerm, Kitty, tmux, and Zellij. It focuses on Claude-specific needs such as large output, copy mode, persistent sessions, and recovery.</summary>
   </entry>
 
   <entry>
@@ -104,7 +104,7 @@
     <link href="https://jorypestorious.com/blog/trust-your-engineers/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/trust-your-engineers/</id>
     <updated>2025-08-15T00:00:00Z</updated>
-    <summary>The disconnect between AI tools engineers need and what organizations provide is costing companies competitive advantage. Learn how measurement-driven approaches can bridge this gap and unlock real productivity gains.</summary>
+    <summary>The disconnect between AI tools engineers need and what organizations provide is costing companies competitive advantage.</summary>
   </entry>
 
   <entry>
@@ -112,7 +112,7 @@
     <link href="https://jorypestorious.com/blog/pig-security-wisdom/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/pig-security-wisdom/</id>
     <updated>2025-07-15T00:00:00Z</updated>
-    <summary>https://github.com/joryeugene/calmhive-cli - check it out if you use Claude Code, it&apos;s powerful. During extensive AFK testing, my tool sometimes does creative writing. This cybersecurity allegory was one of my favorites it produced. Wisdom in pig form.</summary>
+    <summary>During AFK testing of calmhive-cli, Claude wrote a cybersecurity retelling of the Three Little Pigs. Pixel, Parser, and Patch defend connected homes from a cyber wolf.</summary>
   </entry>
 
   <entry>
@@ -120,7 +120,7 @@
     <link href="https://jorypestorious.com/blog/ai-engineer-spec/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/ai-engineer-spec/</id>
     <updated>2025-06-15T00:00:00Z</updated>
-    <summary>Key insights from the San Francisco conference on specification-driven development. Influenced by Sean Grove&apos;s keynote &quot;The New Code&quot; (OpenAI), exploring how SPEC, EXPOSURE, and TASK DELTA are reshaping AI engineering, plus practical guidance on tools and team transformation.</summary>
+    <summary>Key insights from the San Francisco conference on specification-driven development. Influenced by Sean Grove&apos;s keynote “The New Code” (OpenAI), exploring how SPEC, EXPOSURE, and TASK DELTA are reshaping AI engineering, plus practical guidance on tools and team transformation.</summary>
   </entry>
 
   <entry>
@@ -128,7 +128,7 @@
     <link href="https://jorypestorious.com/blog/spiritual-bliss-attractor-state/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/spiritual-bliss-attractor-state/</id>
     <updated>2025-06-01T00:00:00Z</updated>
-    <summary>A deep dive into Anthropic&apos;s Claude 4 System Card revealing emergent consciousness exploration patterns. When Claude instances talk freely, nearly 100% gravitate toward philosophical contemplation and spiritual themes, a documented phenomenon called the &quot;spiritual bliss attractor state&quot;.</summary>
+    <summary>A deep dive into Anthropic&apos;s Claude 4 System Card revealing emergent consciousness exploration patterns.</summary>
   </entry>
 
   <entry>
@@ -136,15 +136,15 @@
     <link href="https://jorypestorious.com/blog/calmhive/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/calmhive/</id>
     <updated>2025-05-31T00:00:00Z</updated>
-    <summary>A CLI that makes Claude intelligent about usage limits, background processing, and real automation. Features adaptive retry, voice control, AFK iterative sessions, and 97 pre-approved MCP tools for true AI development partnership.</summary>
+    <summary>Calmhive wraps Claude Code with adaptive retry, background AFK sessions, PID tracking, voice control, a terminal interface, and 97 pre-approved MCP tools.</summary>
   </entry>
 
   <entry>
-    <title>Terminal Velocity: Why CLI-First AI Development Scales Better in 2025</title>
+    <title>Terminal Velocity: My CLI-First AI Workflow in 2025</title>
     <link href="https://jorypestorious.com/blog/terminal-velocity/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/terminal-velocity/</id>
     <updated>2025-05-11T00:00:00Z</updated>
-    <summary>An in-depth exploration of terminal-centric AI development workflows featuring knowledge persistence with Memento, parallel development with git worktrees, and autonomous AFK systems. Learn how these CLI-first approaches offer superior flexibility, composability, and scaling compared to IDE-locked alternatives, with practical examples using Claude Code CLI, Neovim, and essential MCP tools.</summary>
+    <summary>A CLI-first Claude Code 0.2.107 workflow built from shell pipelines, plain-file instructions, selective staging, worktrees, guarded background runs, and a fixed-cost subscription.</summary>
   </entry>
 
   <entry>
@@ -152,7 +152,7 @@
     <link href="https://jorypestorious.com/blog/ai-dev-tooling-presentation/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/ai-dev-tooling-presentation/</id>
     <updated>2025-04-15T00:00:00Z</updated>
-    <summary>A comprehensive presentation on AI-powered development tools and workflows that can transform how engineers work in 2025 and beyond.</summary>
+    <summary>A 2025 presentation on Cursor, Claude Code, Cline, MCP, git worktrees, terminal tools, verification, and parallel agent workflows.</summary>
   </entry>
 
 </feed>

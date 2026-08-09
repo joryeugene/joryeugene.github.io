@@ -6,8 +6,8 @@
 
 ## Writing
 
-- [I Wanted to Own the Harness. Then Codex Desktop Won.](https://jorypestorious.com/blog/portable-agent-factory/) (2026-08-09)
-- [AI Engineer World's Fair 2026: Takeaways & Verification](https://jorypestorious.com/blog/ai-engineer-verification/) (2026-07-06)
+- [Why I Canceled Claude Max for Codex Desktop](https://jorypestorious.com/blog/portable-agent-factory/) (2026-08-09)
+- [AI Engineer World's Fair 2026: Verification Became the Bottleneck](https://jorypestorious.com/blog/ai-engineer-verification/) (2026-07-06)
 - [Complexity Protects Itself](https://jorypestorious.com/blog/complexity-protects-itself/) (2026-04-16)
 - [What the Model Learned Not to Show](https://jorypestorious.com/blog/what-the-model-learned/) (2026-04-13)
 - [Twelve Keyboards Later](https://jorypestorious.com/blog/endgame-keyboard/) (2026-03-30)
@@ -22,7 +22,7 @@
 - [AI Engineer World's Fair 2025: Takeaways & Spec](https://jorypestorious.com/blog/ai-engineer-spec/) (2025-06-15)
 - [The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness](https://jorypestorious.com/blog/spiritual-bliss-attractor-state/) (2025-06-01)
 - [Calmhive: Claude That Never Quits](https://jorypestorious.com/blog/calmhive/) (2025-05-31)
-- [Terminal Velocity: Why CLI-First AI Development Scales Better in 2025](https://jorypestorious.com/blog/terminal-velocity/) (2025-05-11)
+- [Terminal Velocity: My CLI-First AI Workflow in 2025](https://jorypestorious.com/blog/terminal-velocity/) (2025-05-11)
 - [AI-Amplified Development: Tools and Workflows for Modern Engineers](https://jorypestorious.com/blog/ai-dev-tooling-presentation/) (2025-04-15)
 
 <!--WRITING_END-->

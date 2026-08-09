@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How Jory Pestorious works with agents, code, tests, and visual evidence.">
+  <meta name="author" content="Jory Pestorious">
+  <title>Process | Jory Pestorious</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="stylesheet" href="/css/portfolio.css">
+</head>
+<body class="portfolio-page page-process">
+  <a class="skip-link" href="#main">Skip to process</a>
+  <div id="portfolio-bg" class="portfolio-bg" aria-hidden="true"></div>
+
+  <div class="portfolio-shell">
+    <header class="site-header">
+      <a class="site-name" href="/">Jory Pestorious</a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="/">Work</a>
+        <a href="/process/" aria-current="page">Process</a>
+        <a href="/blog/">Writing</a>
+        <a href="/contact/">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <button class="command-trigger" type="button" aria-label="Commands" data-open-palette>Commands</button>
+        <a class="vim-cta" href="/vim/">Open Vim</a>
+      </div>
+    </header>
+
+    <main id="main">
+      <section aria-labelledby="process-title">
+        <h1 id="process-title" class="page-title">Process</h1>
+        <p class="page-lede">Four selected case studies, with their constraints, implementation details, tests, and visual checks.</p>
+
+        <div class="case-navigation">
+          <p class="eyebrow">Choose a case study</p>
+          <div class="case-tabs" role="tablist" aria-label="Process case studies">
+            <a class="case-tab" href="#dadbod-grip" role="tab" data-case-tab data-case-hash="dadbod-grip" aria-controls="case-dadbod" aria-selected="true">Dadbod Grip</a>
+            <a class="case-tab" href="#totally-reliable" role="tab" data-case-tab data-case-hash="totally-reliable" aria-controls="case-totally-reliable" aria-selected="false">Totally Reliable</a>
+            <a class="case-tab" href="#theosis" role="tab" data-case-tab data-case-hash="theosis" aria-controls="case-theosis" aria-selected="false">Theosis</a>
+            <a class="case-tab" href="#workhelix" role="tab" data-case-tab data-case-hash="workhelix" aria-controls="case-workhelix" aria-selected="false">Workhelix</a>
+          </div>
+        </div>
+
+        <section class="process-case-detail" aria-live="polite">
+          <article id="case-dadbod" data-case-panel>
+            <p class="eyebrow">Open source tool</p>
+            <h2>Dadbod Grip keeps database changes inside a familiar editing model.</h2>
+            <p>Dadbod Grip stages each mutation and keeps the exact SQL visible until the user applies it.</p>
+            <div class="case-destinations"><a href="https://github.com/joryeugene/dadbod-grip.nvim" data-jelly>Open source</a><a href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>View the walkthrough</a></div>
+          </article>
+          <article id="case-totally-reliable" data-case-panel hidden>
+            <p class="eyebrow">Shipped at scale</p>
+            <h2>Multiplayer physics across console, PC, and mobile.</h2>
+            <p>I architected the networked backend for a Unity ragdoll sandbox where players, vehicles, joints, and physics objects needed to remain responsive under real network conditions. The game passed 50 million downloads.</p>
+            <div class="case-destinations"><a href="https://www.totallyreliable.com/" data-jelly>Visit the official site</a></div>
+          </article>
+          <article id="case-theosis" data-case-panel hidden>
+            <p class="eyebrow">Product in development</p>
+            <h2>Native stays offline while the web build loads route-sized data on demand.</h2>
+            <p>Theosis now splits delivery by platform: native keeps bundled SQLite and full offline behavior; the public web path removed database and WASM startup, emits immutable route-sized JSON, defers heavy reference routes, and enforces a 650 KB gzip entry cap.</p>
+            <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Theosis</a><a href="https://github.com/joryeugene/theosis" data-jelly>View source</a></div>
+          </article>
+          <article id="case-workhelix" data-case-panel hidden>
+            <p class="eyebrow">Founding engineering</p>
+            <h2>From a pre-seed Bubble prototype to the production platform used through Series A.</h2>
+            <p>I joined as the sole frontend engineer, replaced the prototype with React and TypeScript, then expanded into Python and FastAPI performance, PostgreSQL migrations, AWS and Terraform, release automation, agent workflows, security controls, and production data.</p>
+            <div class="case-destinations"><a href="https://www.workhelix.com/" data-jelly>Visit Workhelix</a></div>
+          </article>
+        </section>
+
+        <div class="process-deep-dive">
+          <p class="eyebrow">Deep dive</p>
+          <h2 data-process-deep-title>How dadbod-grip.nvim stays inspectable</h2>
+        </div>
+
+        <div class="process-stage" data-georgie-surface>
+          <button class="georgie-egg georgie-egg--process" type="button" aria-label="Let Georgie inspect this case study" data-georgie-egg>
+            <span class="georgie-egg__sprite" aria-hidden="true"></span>
+          </button>
+          <div class="layer-rail" role="tablist" aria-label="Project evidence layers">
+            <button class="layer-button" type="button" role="tab" data-layer-button aria-controls="layer-brief" aria-selected="false"><span>01</span><span>Brief<small>Define the user need.</small></span></button>
+            <button class="layer-button" type="button" role="tab" data-layer-button aria-controls="layer-constraints" aria-selected="false"><span>02</span><span>Constraints<small>List the system limits.</small></span></button>
+            <button class="layer-button" type="button" role="tab" data-layer-button aria-controls="layer-changes" aria-selected="true"><span>03</span><span>Changes<small>Review the implementation.</small></span></button>
+            <button class="layer-button" type="button" role="tab" data-layer-button aria-controls="layer-tests" aria-selected="false"><span>04</span><span>Tests<small>Run behavior checks.</small></span></button>
+            <button class="layer-button" type="button" role="tab" data-layer-button aria-controls="layer-visual" aria-selected="false"><span>05</span><span>Visual QA<small>Check what people see.</small></span></button>
+          </div>
+
+          <section class="process-panel" aria-live="polite">
+            <p class="process-kicker" data-process-kicker>Case: dadbod-grip.nvim</p>
+
+            <div id="layer-brief" class="layer-content" role="tabpanel" data-layer-content hidden>
+              <h2>Edit database tables without leaving Vim.</h2>
+              <p>The core job is not “build a database client.” It is preserving editor flow while making mutations reviewable before execution.</p>
+            </div>
+
+            <div id="layer-constraints" class="layer-content" role="tabpanel" data-layer-content hidden>
+              <h2>Use the tools already carrying the hard parts.</h2>
+              <p>Vim provides the interaction model. Dadbod owns connections. The database remains authoritative. New code earns its place only around the missing workflow.</p>
+            </div>
+
+            <div id="layer-changes" class="layer-content" role="tabpanel" data-layer-content>
+              <h2>Keep each mutation inspectable.</h2>
+              <pre class="code-window" aria-label="Example staged SQL change"><code><span class="remove">- ALTER TABLE users ADD last_seen_at TIMESTAMP;</span>
+<span class="add">+ ALTER TABLE users ADD last_seen_at TIMESTAMPTZ;</span>
+<span class="add">+ CREATE INDEX idx_users_last_seen_at</span>
+<span class="add">+   ON users (last_seen_at DESC);</span></code></pre>
+              <div class="decision-note"><strong>Decision</strong>Keep changes staged until the SQL is reviewable.</div>
+              <div class="proof-strip"><span>Staged changes</span><span>SQL preview</span><span>Single transaction</span></div>
+            </div>
+
+            <div id="layer-tests" class="layer-content" role="tabpanel" data-layer-content hidden>
+              <h2>Exercise the change at the level users depend on.</h2>
+              <p>Preview the SQL before execution. Apply the staged mutations inside one transaction. Verify database state after commit and after rollback.</p>
+              <div class="proof-strip"><span>Preview</span><span>Apply</span><span>Verify state</span></div>
+            </div>
+
+            <div id="layer-visual" class="layer-content" role="tabpanel" data-layer-content hidden>
+              <h2>Inspect the real interface.</h2>
+              <p>Tables, diffs, floating SQL previews, focus order, and empty states are checked in Neovim. Screenshots support the review but do not replace interaction.</p>
+            </div>
+          </section>
+
+          <aside class="wrong-turns" aria-labelledby="wrong-turns-title" data-active-case="dadbod-grip">
+            <h2 id="wrong-turns-title">Rejected approaches</h2>
+            <article class="wrong-turn">
+              <h3>Separate desktop app</h3>
+              <p>It breaks editor flow and adds another interface to install, learn, and maintain.</p>
+            </article>
+            <article class="wrong-turn">
+              <h3>Custom database layer</h3>
+              <p>It rebuilds reliable connection and query behavior that existing tools already provide.</p>
+            </article>
+          </aside>
+        </div>
+
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span class="desktop-hints"><strong>j / k</strong> move &nbsp; <strong>Enter</strong> activate &nbsp; <strong>Ctrl K</strong> commands</span>
+    </footer>
+  </div>
+
+  <div id="command-palette" class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+    <div class="palette-panel">
+      <div class="palette-head"><span>Commands</span><button class="palette-close" type="button" data-close-palette>Close</button></div>
+      <div data-site-command-palette></div>
+    </div>
+  </div>
+
+  <script src="/js/blog-common.js"></script>
+  <script src="/js/portfolio.js"></script>
+</body>
+</html>

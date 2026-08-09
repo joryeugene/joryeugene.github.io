@@ -7,25 +7,43 @@
   var VIM_NAME = 'PHALENE-VIM';
   var VIM_VERSION = '1.1';
 
+  function viewportHeight() {
+    return window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  }
+
   // -------------------------------------------------------------------------
   // Welcome dashboard (editable buffer content, :intro restores it)
   // -------------------------------------------------------------------------
   function buildWelcome() {
     var narrow = window.innerWidth < 640;
-    var header = [
+    var touchLayout = narrow || window.matchMedia('(pointer: coarse)').matches;
+    var compact = touchLayout && viewportHeight() < 620;
+    var header = compact ? [
+      VIM_NAME + ' v' + VIM_VERSION,
+      ''
+    ] : [
       '',
       '', '', '', '', '', '', '', '',
       '',
       VIM_NAME + ' v' + VIM_VERSION,
       ''
     ];
-    var movement = [
+    var movement = compact ? [
+      'k (up)',
+      'h  < + >  l',
+      'j (down)',
+      ''
+    ] : [
       'k  (up)',
       'h (left)  <  +  >  l (right)',
       'j  (down)',
       ''
     ];
-    var launcher = narrow ? [
+    var launcher = compact ? [
+      ':tutor          guided lesson',
+      ':Ex             browse files',
+      ':help           manual'
+    ] : narrow ? [
       'Ctrl-P          commands',
       ':tutor          guided lesson',
       ':Ex             browse files',
@@ -37,7 +55,11 @@
       ':Ex             browse files        :snake        play',
       ':help           manual              :moth         kinetic field'
     ];
-    var actions = narrow ? [
+    var actions = compact ? [
+      'i               start typing',
+      'Esc             normal mode',
+      ': commands      / search'
+    ] : narrow ? [
       'i               start typing',
       'Esc             normal mode',
       '/aquarium Enter  search',
@@ -50,7 +72,15 @@
       'u / Ctrl-r      undo / redo         :intro        reset home'
     ];
     var guide = movement.concat(launcher, [''], actions);
-    var footer = [
+    var footer = compact ? [
+      '',
+      'tap anywhere to type'
+    ] : touchLayout ? [
+      '',
+      'tap anywhere to type',
+      'read my pick:  :e friction-economy then press Enter',
+      'new to Vim?  type :tutor then press Enter'
+    ] : [
       '',
       'read my pick:  :e friction-economy then press Enter',
       'new to Vim?  type :tutor then press Enter'
@@ -61,7 +91,7 @@
     var content = header.concat(guide, footer);
     var lineEstimate = lineH || (narrow ? 18 : 21);
     var charEstimate = charW || (narrow ? 7.2 : 8.4);
-    var rows = Math.floor((window.innerHeight - 63) / lineEstimate);
+    var rows = Math.floor((viewportHeight() - (compact ? 111 : 63)) / lineEstimate);
     var padTop = Math.max(0, Math.floor((rows - content.length) / 2));
     var zen = state && state.zenMode;
     var effectiveWidth = zen ? Math.min(window.innerWidth, 65 * charEstimate) : window.innerWidth;
@@ -81,7 +111,7 @@
     var fcr = padTop;
     var fcc = 0;
     for (var fc = 0; fc < content.length; fc++) {
-      if (content[fc].indexOf('new to Vim?') !== -1) {
+      if (content[fc].indexOf('new to Vim?') !== -1 || content[fc].indexOf('tap anywhere') !== -1) {
         fcr = padTop + fc;
         fcc = Math.max(0, Math.floor((cols - content[fc].length) / 2));
         break;
@@ -324,10 +354,12 @@
   // DOM refs
   // -------------------------------------------------------------------------
   var bodyEl, gutterEl, contentEl, cursorEl, cmdlineEl,
-      statusModeEl, statusFileEl, statusPosEl;
+      statusModeEl, statusFileEl, statusPosEl, mobileInputEl, mobileKeysEl;
 
   var charW = 8;
   var lineH = 21;
+  var mobileComposing = false;
+  var mobileCtrlLatched = false;
 
   // -------------------------------------------------------------------------
   // Utility
@@ -487,6 +519,42 @@
   // -------------------------------------------------------------------------
   function getLine(r) {
     return state.lines[r] || '';
+  }
+
+  var graphemeSegmenter = typeof Intl !== 'undefined' && Intl.Segmenter
+    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+    : null;
+
+  function textCharacters(text) {
+    if (!text) return [];
+    if (graphemeSegmenter) {
+      return Array.from(graphemeSegmenter.segment(text), function(part) { return part.segment; });
+    }
+    return Array.from(text);
+  }
+
+  function isTextCharacter(key) {
+    return textCharacters(key).length === 1;
+  }
+
+  function previousCharacterIndex(text, index) {
+    var parts = textCharacters(text.slice(0, index));
+    if (!parts.length) return 0;
+    return index - parts[parts.length - 1].length;
+  }
+
+  function nextCharacterIndex(text, index) {
+    var parts = textCharacters(text.slice(index));
+    return parts.length ? index + parts[0].length : text.length;
+  }
+
+  function moveCharacterIndex(text, index, count, direction) {
+    for (var i = 0; i < count; i++) {
+      index = direction < 0
+        ? previousCharacterIndex(text, index)
+        : nextCharacterIndex(text, index);
+    }
+    return index;
   }
 
   function deleteLine(r) {
@@ -845,8 +913,8 @@
   function computeMotionRange(key, row, col, count, charArg) {
     var r, c, pos, i;
     switch (key) {
-      case 'h': return { endRow: row, endCol: Math.max(0, col - count), linewise: false };
-      case 'l': return { endRow: row, endCol: Math.min(getLine(row).length - 1, col + count), linewise: false };
+      case 'h': return { endRow: row, endCol: moveCharacterIndex(getLine(row), col, count, -1), linewise: false };
+      case 'l': return { endRow: row, endCol: clampCol(row, moveCharacterIndex(getLine(row), col, count, 1)), linewise: false };
       case 'j': return { endRow: Math.min(state.lines.length - 1, row + count), endCol: col, linewise: true };
       case 'k': return { endRow: Math.max(0, row - count), endCol: col, linewise: true };
       case 'w':
@@ -1549,7 +1617,7 @@
         result += escHtml(line.slice(lastIdx, m.index));
         result += '<mark>' + escHtml(m[0]) + '</mark>';
         lastIdx = m.index + m[0].length;
-        if (m[0].length === 0) { result += escHtml(line[lastIdx] || ''); lastIdx++; }
+        if (m[0].length === 0) { result += escHtml(line[lastIdx] || ''); lastIdx++; re.lastIndex++; }
       }
       result += escHtml(line.slice(lastIdx));
       escaped = result || ' ';
@@ -1635,6 +1703,58 @@
     statusPosEl.textContent = (state.cursor.row + 1) + ',' + (state.cursor.col + 1);
   }
 
+  function positionDashboardPet() {
+    var pet = document.getElementById('vim-dashboard-pet');
+    if (!pet) return;
+    pet.style.removeProperty('--vim-dashboard-pet-top');
+    if (!state.dashboard || window.innerWidth > 640) return;
+
+    var title = contentEl.querySelector('.vim-dashboard-title');
+    if (!title || document.getElementById('vim-editor').classList.contains('vim-compact')) return;
+    var wrapTop = document.getElementById('vim-lines-wrap').getBoundingClientRect().top;
+    var titleTop = title.getBoundingClientRect().top;
+    var petHeight = pet.getBoundingClientRect().height;
+    var top = Math.max(0, titleTop - wrapTop - petHeight - 22);
+    pet.style.setProperty('--vim-dashboard-pet-top', top.toFixed(1) + 'px');
+  }
+
+  function bindDashboardPet() {
+    var pet = document.getElementById('vim-dashboard-pet');
+    var editor = document.getElementById('vim-editor');
+    if (!pet || !editor) return;
+    var timer = 0;
+
+    function activate() {
+      if (!state.dashboard) return;
+      window.clearTimeout(timer);
+      pet.classList.add('is-georgie-active');
+      editor.classList.add('is-georgie-active');
+    }
+    function release() {
+      pet.classList.remove('is-georgie-active');
+      editor.classList.remove('is-georgie-active');
+    }
+    function play() {
+      activate();
+      timer = window.setTimeout(release, 720);
+    }
+
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      pet.addEventListener('pointerenter', activate);
+      pet.addEventListener('pointerleave', release);
+    }
+    pet.addEventListener('focus', activate);
+    pet.addEventListener('blur', release);
+    pet.addEventListener('click', function(event) {
+      event.stopPropagation();
+      play();
+    });
+    document.addEventListener('keydown', function(event) {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+      play();
+    });
+  }
+
   function render() {
     if (state.immersiveMode) return;
     state.dashboard = isWelcomeBuffer();
@@ -1647,6 +1767,7 @@
     var html = state.lines.map(renderLine).join('\n');
 
     contentEl.innerHTML = html;
+    positionDashboardPet();
 
     // word wrap CSS toggle
     contentEl.style.whiteSpace = state.wordWrap ? 'pre-wrap' : 'pre';
@@ -2383,9 +2504,34 @@
   // -------------------------------------------------------------------------
   function snakeGame() {
     if (state.immersiveMode) return;
-    var width = Math.max(18, Math.min(48, Math.floor(bodyEl.clientWidth / charW) - 4));
-    var height = Math.max(10, Math.min(22, Math.floor(bodyEl.clientHeight / lineH) - 5));
-    var snake, direction, nextDirection, food, score, timer, gameOver;
+    var overlay = document.getElementById('vim-snake');
+    var boardEl = document.getElementById('vim-snake-board');
+    var boardWrapEl = overlay.querySelector('.vim-snake-board-wrap');
+    var scoreEl = document.getElementById('vim-snake-score');
+    var bestEl = document.getElementById('vim-snake-best');
+    var width, height, snake, direction, turnQueue, food, score, timer;
+    var gameOver, paused, started, resizeTimer, catchTimer;
+    var best = 0;
+    var headTiles = {
+      '-1,0': '<3:',
+      '0,1': 'v3v',
+      '0,-1': '^3^',
+      '1,0': ':3>'
+    };
+
+    try { best = parseInt(localStorage.getItem('vim-snake-best') || '0', 10) || 0; } catch (_) {}
+
+    function measureBoard() {
+      boardEl.textContent = '0000000000';
+      var probe = boardEl.getBoundingClientRect();
+      var cellWidth = probe.width / 10 || charW;
+      var cellHeight = probe.height || lineH;
+      boardEl.textContent = '';
+      var innerColumns = Math.floor(boardWrapEl.clientWidth / cellWidth) - 2;
+      width = Math.max(8, Math.floor(innerColumns / 3));
+      height = Math.max(10, Math.floor(boardWrapEl.clientHeight / cellHeight) - 2);
+      overlay.style.setProperty('--vim-snake-board-width', ((width * 3 + 2) * cellWidth) + 'px');
+    }
 
     function placeFood() {
       do {
@@ -2396,58 +2542,74 @@
     function resetSnake() {
       var x = Math.floor(width / 2);
       var y = Math.floor(height / 2);
-      snake = [{ x: x, y: y }, { x: x - 1, y: y }, { x: x - 2, y: y }];
+      snake = [{ x: x, y: y }, { x: x - 1, y: y }, { x: x - 2, y: y }, { x: x - 3, y: y }];
       direction = { x: 1, y: 0 };
-      nextDirection = direction;
+      turnQueue = [];
       score = 0;
       gameOver = false;
+      paused = false;
+      started = false;
+      clearTimeout(catchTimer);
+      overlay.classList.remove('game-over', 'paused', 'moth-caught');
       placeFood();
       clearInterval(timer);
-      timer = setInterval(stepSnake, 115);
+      timer = setInterval(stepSnake, 90);
       drawSnake();
     }
 
     function drawSnake() {
-      var rows = ['┌' + '─'.repeat(width) + '┐'];
+      var cells = [];
       for (var y = 0; y < height; y++) {
-        var cells = ['│'];
-        for (var x = 0; x < width; x++) {
-          var partIndex = -1;
-          for (var i = 0; i < snake.length; i++) {
-            if (snake[i].x === x && snake[i].y === y) { partIndex = i; break; }
-          }
-          if (partIndex === 0) cells.push('<span class="vim-snake-head">◆</span>');
-          else if (partIndex > 0) cells.push('<span class="vim-snake-body">●</span>');
-          else if (food.x === x && food.y === y) cells.push('<span class="vim-snake-food">✦</span>');
-          else cells.push(' ');
-        }
-        cells.push('│');
-        rows.push(cells.join(''));
+        cells.push(new Array(width).fill('   '));
       }
-      rows.push('└' + '─'.repeat(width) + '┘');
-      contentEl.innerHTML = rows.join('\n');
-      bodyEl.scrollTop = 0;
-      statusModeEl.textContent = gameOver ? '--GAME OVER--' : '--SNAKE--';
-      statusFileEl.textContent = 'hjkl / arrows';
-      statusPosEl.textContent = 'score ' + score;
-      cmdlineEl.textContent = gameOver ? 'r restart · Esc return to Vim' : 'eat ✦ · avoid walls · Esc quits';
+      cells[food.y][food.x] = '<span class="vim-snake-moth">&lt;*&gt;</span>';
+      for (var i = snake.length - 1; i >= 0; i--) {
+        var tile;
+        if (i === 0) tile = '<span class="vim-snake-head">' + headTiles[direction.x + ',' + direction.y] + '</span>';
+        else if (i === snake.length - 1) tile = '<span class="vim-snake-tail">[.]</span>';
+        else tile = '<span class="vim-snake-body">[o]</span>';
+        cells[snake[i].y][snake[i].x] = tile;
+      }
+      var rows = ['+' + '-'.repeat(width * 3) + '+'];
+      for (var row = 0; row < height; row++) rows.push('|' + cells[row].join('') + '|');
+      rows.push('+' + '-'.repeat(width * 3) + '+');
+      boardEl.innerHTML = rows.join('\n');
+      scoreEl.textContent = score;
+      bestEl.textContent = best;
+      var phase = gameOver ? 'NIGHT OVER' : paused ? 'PAUSED' : started ? 'RUNNING' : 'READY';
+      overlay.classList.toggle('paused', paused && !gameOver);
+      document.getElementById('vim-snake-title').textContent = 'GEORGIE // NIGHT FLIGHT · ' + phase;
+      boardEl.setAttribute('aria-label', 'Georgie Night Flight game board. ' + phase + '. Moths ' + score + '.');
     }
 
     function stepSnake() {
-      direction = nextDirection;
+      if (!started || paused || gameOver) return;
+      if (turnQueue.length) direction = turnQueue.shift();
       var head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
-      var collision = head.x < 0 || head.x >= width || head.y < 0 || head.y >= height || snake.some(function(part) {
+      var eating = head.x === food.x && head.y === food.y;
+      var occupied = eating ? snake : snake.slice(0, -1);
+      var collision = head.x < 0 || head.x >= width || head.y < 0 || head.y >= height || occupied.some(function(part) {
         return part.x === head.x && part.y === head.y;
       });
       if (collision) {
         gameOver = true;
         clearInterval(timer);
+        overlay.classList.add('game-over');
         drawSnake();
         return;
       }
       snake.unshift(head);
-      if (head.x === food.x && head.y === food.y) {
+      if (eating) {
         score++;
+        clearTimeout(catchTimer);
+        overlay.classList.remove('moth-caught');
+        void overlay.offsetWidth;
+        overlay.classList.add('moth-caught');
+        catchTimer = setTimeout(function() { overlay.classList.remove('moth-caught'); }, 260);
+        if (score > best) {
+          best = score;
+          try { localStorage.setItem('vim-snake-best', best); } catch (_) {}
+        }
         placeFood();
       } else {
         snake.pop();
@@ -2455,40 +2617,89 @@
       drawSnake();
     }
 
+    function sizeSnake() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        measureBoard();
+        resetSnake();
+      }, 80);
+    }
+
     function stopSnake() {
       clearInterval(timer);
+      clearTimeout(resizeTimer);
+      clearTimeout(catchTimer);
       state.immersiveMode = false;
+      overlay.hidden = true;
+      overlay.classList.remove('game-over', 'paused', 'moth-caught');
       cursorEl.style.display = '';
       if (!state.zenMode) gutterEl.style.display = 'block';
       cmdlineEl.textContent = '';
       document.removeEventListener('keydown', snakeKey, true);
+      window.removeEventListener('resize', sizeSnake);
       render();
+    }
+
+    function queueHairpin(target) {
+      if (turnQueue.length) return false;
+      var pivots = [
+        { x: -direction.y, y: direction.x },
+        { x: direction.y, y: -direction.x }
+      ];
+      var head = snake[0];
+      var body = snake.slice(0, -1);
+      var pivot = pivots.find(function(candidate) {
+        var x = head.x + candidate.x;
+        var y = head.y + candidate.y;
+        return x >= 0 && x < width && y >= 0 && y < height && !body.some(function(part) {
+          return part.x === x && part.y === y;
+        });
+      });
+      if (!pivot) return false;
+      turnQueue.push(pivot, target);
+      return true;
     }
 
     function snakeKey(e) {
       var keys = {
-        h: { x: -1, y: 0 }, ArrowLeft: { x: -1, y: 0 },
-        j: { x: 0, y: 1 }, ArrowDown: { x: 0, y: 1 },
-        k: { x: 0, y: -1 }, ArrowUp: { x: 0, y: -1 },
-        l: { x: 1, y: 0 }, ArrowRight: { x: 1, y: 0 }
+        h: { x: -1, y: 0 }, a: { x: -1, y: 0 }, ArrowLeft: { x: -1, y: 0 },
+        j: { x: 0, y: 1 }, s: { x: 0, y: 1 }, ArrowDown: { x: 0, y: 1 },
+        k: { x: 0, y: -1 }, w: { x: 0, y: -1 }, ArrowUp: { x: 0, y: -1 },
+        l: { x: 1, y: 0 }, d: { x: 1, y: 0 }, ArrowRight: { x: 1, y: 0 }
       };
-      if (e.key === 'Escape' || e.key === 'q') {
+      var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      if (key === 'Escape' || key === 'q') {
         e.preventDefault(); e.stopPropagation(); stopSnake(); return;
       }
-      if (e.key === 'r' && gameOver) {
+      if (key === 'r') {
         e.preventDefault(); e.stopPropagation(); resetSnake(); return;
       }
-      var next = keys[e.key];
+      if (key === ' ') {
+        e.preventDefault(); e.stopPropagation();
+        if (!gameOver && started) paused = !paused;
+        drawSnake(); return;
+      }
+      var next = keys[key];
       if (!next) return;
       e.preventDefault(); e.stopPropagation();
-      if (next.x !== -direction.x || next.y !== -direction.y) nextDirection = next;
+      var queued = turnQueue.length ? turnQueue[turnQueue.length - 1] : direction;
+      var reverses = next.x === -queued.x && next.y === -queued.y;
+      var repeats = next.x === queued.x && next.y === queued.y;
+      if (reverses) queueHairpin(next);
+      else if (!repeats && turnQueue.length < 2) turnQueue.push(next);
+      started = true;
+      paused = false;
+      drawSnake();
     }
 
     state.immersiveMode = true;
     document.getElementById('vim-editor').classList.remove('dashboard');
     cursorEl.style.display = 'none';
     gutterEl.style.display = 'none';
+    overlay.hidden = false;
     document.addEventListener('keydown', snakeKey, true);
+    window.addEventListener('resize', sizeSnake);
+    measureBoard();
     resetSnake();
   }
 
@@ -3639,13 +3850,13 @@
     // --- navigation (all support count prefix) ---
     if (e.key === 'h' || e.key === 'ArrowLeft' || e.key === 'Backspace') {
       var hN = getCount();
-      state.cursor.col = clampCol(row, col - hN);
+      state.cursor.col = clampCol(row, moveCharacterIndex(line, col, hN, -1));
       state.curswant = state.cursor.col;
       render(); return;
     }
     if (e.key === 'l' || e.key === 'ArrowRight' || e.key === ' ') {
       var lN = getCount();
-      state.cursor.col = clampCol(row, col + lN);
+      state.cursor.col = clampCol(row, moveCharacterIndex(line, col, lN, 1));
       state.curswant = state.cursor.col;
       render(); return;
     }
@@ -3678,7 +3889,8 @@
     if (e.key === '$') {
       var dollarN = getCount();
       var dollarRow = clampRow(row + dollarN - 1);
-      var endCol = Math.max(0, getLine(dollarRow).length - 1);
+      var dollarLine = getLine(dollarRow);
+      var endCol = previousCharacterIndex(dollarLine, dollarLine.length);
       state.cursor.row = dollarRow; state.cursor.col = endCol; state.curswant = endCol; render(); return;
     }
     if (e.key === 'w') {
@@ -3869,7 +4081,7 @@
     }
     if (e.key === 'a') {
       state.mode = 'insert'; state.insertText = '';
-      if (col < line.length) state.cursor.col = col + 1;
+      if (col < line.length) state.cursor.col = nextCharacterIndex(line, col);
       recordChange('insert', { entryKey: 'a' }); render(); return;
     }
     if (e.key === 'o') {
@@ -3937,8 +4149,9 @@
     if (e.key === 's') {
       if (line.length > 0) {
         pushUndo();
-        setRegister(line[col], false);
-        state.lines[row] = line.slice(0, col) + line.slice(col + 1);
+        var sEnd = nextCharacterIndex(line, col);
+        setRegister(line.slice(col, sEnd), false);
+        state.lines[row] = line.slice(0, col) + line.slice(sEnd);
         state.mode = 'insert';
         state.insertText = '';
         recordChange('insert');
@@ -3988,7 +4201,7 @@
       var xN = getCount();
       if (line.length > 0) {
         pushUndo();
-        var xEnd = Math.min(col + xN, line.length);
+        var xEnd = moveCharacterIndex(line, col, xN, 1);
         setRegister(line.slice(col, xEnd), false);
         state.lines[row] = line.slice(0, col) + line.slice(xEnd);
         state.cursor.col = clampCol(row, col);
@@ -4205,7 +4418,7 @@
       }
       state.blockInsertCols = null;
       state.mode = 'normal';
-      state.cursor.col = clampCol(row, col - 1);
+      state.cursor.col = clampCol(row, previousCharacterIndex(line, col));
       state.curswant = state.cursor.col;
       render(); return;
     }
@@ -4223,8 +4436,9 @@
     if (e.key === 'Backspace') {
       if (col > 0) {
         pushUndo();
-        state.lines[row] = line.slice(0, col - 1) + line.slice(col);
-        state.cursor.col = col - 1;
+        var previousCol = previousCharacterIndex(line, col);
+        state.lines[row] = line.slice(0, previousCol) + line.slice(col);
+        state.cursor.col = previousCol;
         state.curswant = state.cursor.col;
       } else if (row > 0) {
         pushUndo();
@@ -4236,7 +4450,7 @@
         state.cursor.col = joinCol;
         state.curswant = joinCol;
       }
-      state.insertText = state.insertText.slice(0, -1);
+      state.insertText = state.insertText.slice(0, previousCharacterIndex(state.insertText, state.insertText.length));
       render(); return;
     }
     if (e.key === 'Tab') {
@@ -4257,8 +4471,8 @@
       state.insertText += tabInsert;
       render(); return;
     }
-    if (e.key === 'ArrowLeft')  { state.cursor.col = clampCol(row, col - 1); state.curswant = state.cursor.col; render(); return; }
-    if (e.key === 'ArrowRight') { state.cursor.col = clampCol(row, col + 1); state.curswant = state.cursor.col; render(); return; }
+    if (e.key === 'ArrowLeft')  { state.cursor.col = clampCol(row, previousCharacterIndex(line, col)); state.curswant = state.cursor.col; render(); return; }
+    if (e.key === 'ArrowRight') { state.cursor.col = clampCol(row, nextCharacterIndex(line, col)); state.curswant = state.cursor.col; render(); return; }
     if (e.key === 'ArrowUp')    { state.cursor.row = clampRow(row - 1); state.cursor.col = clampCol(state.cursor.row, state.curswant); render(); return; }
     if (e.key === 'ArrowDown')  { state.cursor.row = clampRow(row + 1); state.cursor.col = clampCol(state.cursor.row, state.curswant); render(); return; }
 
@@ -4267,10 +4481,11 @@
       e.preventDefault();
       if (col > 0) {
         pushUndo();
-        state.lines[row] = line.slice(0, col - 1) + line.slice(col);
-        state.cursor.col = col - 1;
+        var ctrlHCol = previousCharacterIndex(line, col);
+        state.lines[row] = line.slice(0, ctrlHCol) + line.slice(col);
+        state.cursor.col = ctrlHCol;
         state.curswant = state.cursor.col;
-        state.insertText = state.insertText.slice(0, -1);
+        state.insertText = state.insertText.slice(0, previousCharacterIndex(state.insertText, state.insertText.length));
       } else if (row > 0) {
         pushUndo();
         var chPrev = getLine(row - 1);
@@ -4316,10 +4531,10 @@
       render(); return;
     }
 
-    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+    if (isTextCharacter(e.key) && !e.ctrlKey && !e.metaKey) {
       pushUndo();
       state.lines[row] = line.slice(0, col) + e.key + line.slice(col);
-      state.cursor.col = col + 1;
+      state.cursor.col = col + e.key.length;
       state.curswant = state.cursor.col;
       state.insertText += e.key;
       render();
@@ -4334,7 +4549,7 @@
     if (e.key === 'Escape') {
       state.pendingBracket = null;
       state.mode = 'normal';
-      state.cursor.col = clampCol(row, col - 1);
+      state.cursor.col = clampCol(row, previousCharacterIndex(line, col));
       state.curswant = state.cursor.col;
       state.replaceUndo = [];
       render(); return;
@@ -4342,8 +4557,9 @@
     if (e.key === 'Backspace') {
       if (state.replaceUndo.length > 0) {
         var prev = state.replaceUndo.pop();
-        state.cursor.col = col - 1;
-        state.lines[row] = line.slice(0, col - 1) + prev + line.slice(col);
+        var replaceStart = previousCharacterIndex(line, col);
+        state.cursor.col = replaceStart;
+        state.lines[row] = line.slice(0, replaceStart) + prev + line.slice(col);
         render();
       }
       return;
@@ -4358,16 +4574,17 @@
       state.curswant = 0;
       render(); return;
     }
-    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+    if (isTextCharacter(e.key) && !e.ctrlKey && !e.metaKey) {
       pushUndo();
       if (col < line.length) {
-        state.replaceUndo.push(line[col]);
-        state.lines[row] = line.slice(0, col) + e.key + line.slice(col + 1);
+        var replaceEnd = nextCharacterIndex(line, col);
+        state.replaceUndo.push(line.slice(col, replaceEnd));
+        state.lines[row] = line.slice(0, col) + e.key + line.slice(replaceEnd);
       } else {
         state.replaceUndo.push('');
         state.lines[row] = line + e.key;
       }
-      state.cursor.col = col + 1;
+      state.cursor.col = col + e.key.length;
       state.curswant = state.cursor.col;
       render();
     }
@@ -4518,6 +4735,7 @@
     if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
     var row = state.cursor.row;
     var col = state.cursor.col;
+    var visualLine = getLine(row);
 
     // Pending single-char ops in visual mode (vf{char}, vi{w}, etc.)
     if (state.pendingOp) {
@@ -4732,8 +4950,8 @@
     }
     if (handleSectionKey(e.key)) return;
     if (gTimer && e.key !== 'g') { clearTimeout(gTimer); gTimer = null; }
-    if (e.key === 'h' || e.key === 'ArrowLeft' || e.key === 'Backspace') { var hN = getCount(); state.cursor.col = clampCol(row, col - hN); state.curswant = state.cursor.col; render(); return; }
-    if (e.key === 'l' || e.key === 'ArrowRight' || e.key === ' ') { var lN = getCount(); state.cursor.col = clampCol(row, col + lN); state.curswant = state.cursor.col; render(); return; }
+    if (e.key === 'h' || e.key === 'ArrowLeft' || e.key === 'Backspace') { var hN = getCount(); state.cursor.col = clampCol(row, moveCharacterIndex(visualLine, col, hN, -1)); state.curswant = state.cursor.col; render(); return; }
+    if (e.key === 'l' || e.key === 'ArrowRight' || e.key === ' ') { var lN = getCount(); state.cursor.col = clampCol(row, moveCharacterIndex(visualLine, col, lN, 1)); state.curswant = state.cursor.col; render(); return; }
     if (e.key === 'j' || e.key === 'ArrowDown') {
       var jN = getCount(); var nr = clampRow(row + jN);
       state.cursor.row = nr; state.cursor.col = clampCol(nr, state.curswant); render(); return;
@@ -4749,7 +4967,7 @@
     if (e.key === 'B') { var BN = getCount(); var Bp = {row: row, col: col}; for (var Bi = 0; Bi < BN; Bi++) Bp = WORDBackward(Bp.row, Bp.col); state.cursor.row = Bp.row; state.cursor.col = Bp.col; state.curswant = Bp.col; render(); return; }
     if (e.key === 'E') { var EN = getCount(); var Ep = {row: row, col: col}; for (var Ei = 0; Ei < EN; Ei++) Ep = WORDEnd(Ep.row, Ep.col); state.cursor.row = Ep.row; state.cursor.col = Ep.col; state.curswant = Ep.col; render(); return; }
     if (e.key === 'G') { var GN = countBuf > 0 ? clampRow(countBuf - 1) : state.lines.length - 1; countBuf = 0; state.cursor.row = GN; state.cursor.col = clampCol(GN, state.curswant); render(); return; }
-    if (e.key === '$') { var ec = Math.max(0, getLine(row).length - 1); state.cursor.col = ec; state.curswant = ec; render(); return; }
+    if (e.key === '$') { var endLine = getLine(row); var ec = previousCharacterIndex(endLine, endLine.length); state.cursor.col = ec; state.curswant = ec; render(); return; }
     if (e.key === '0') { state.cursor.col = 0; state.curswant = 0; render(); return; }
     if (e.key === '^') { var vfnb = firstNonBlank(row); state.cursor.col = vfnb; state.curswant = vfnb; render(); return; }
     if (e.key === 'f' || e.key === 'F' || e.key === 't' || e.key === 'T') {
@@ -4879,13 +5097,13 @@
     if (e.key === 'Backspace') {
       tabIdx = -1;
       if (state.cmdBuf.length > 0) {
-        state.cmdBuf = state.cmdBuf.slice(0, -1);
+        state.cmdBuf = state.cmdBuf.slice(0, previousCharacterIndex(state.cmdBuf, state.cmdBuf.length));
       } else {
         state.mode = 'normal';
       }
       render(); return;
     }
-    if (e.key.length === 1) {
+    if (isTextCharacter(e.key)) {
       tabIdx = -1;
       state.cmdBuf += e.key; render();
     }
@@ -4938,12 +5156,12 @@
       render(); return;
     }
     if (e.key === 'Backspace') {
-      state.searchBuf = state.searchBuf.slice(0, -1);
+      state.searchBuf = state.searchBuf.slice(0, previousCharacterIndex(state.searchBuf, state.searchBuf.length));
       buildMatches(state.searchBuf);
       if (state.incsearch) incSearchJump();
       render(); return;
     }
-    if (e.key.length === 1) {
+    if (isTextCharacter(e.key)) {
       state.searchBuf += e.key;
       buildMatches(state.searchBuf);
       if (state.incsearch) incSearchJump();
@@ -5186,6 +5404,56 @@
     autoJump(preJumpRow, preJumpCol);
   }
 
+  function sendMobileKey(key, modifiers) {
+    modifiers = modifiers || {};
+    var ctrlKey = !!modifiers.ctrlKey || mobileCtrlLatched;
+    if (mobileCtrlLatched) setMobileCtrl(false);
+    handleKey({
+      key: key,
+      ctrlKey: ctrlKey,
+      shiftKey: !!modifiers.shiftKey,
+      altKey: false,
+      metaKey: false,
+      preventDefault: function() {}
+    });
+  }
+
+  function setMobileCtrl(on) {
+    mobileCtrlLatched = on;
+    if (!mobileKeysEl) return;
+    var button = mobileKeysEl.querySelector('[data-vim-modifier="Control"]');
+    if (button) button.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+
+  function commitMobileText(text) {
+    var characters = textCharacters(text);
+    for (var i = 0; i < characters.length; i++) {
+      var key = characters[i];
+      if (key === '\r' || key === '\r\n') {
+        if (characters[i + 1] === '\n') i++;
+        sendMobileKey('Enter');
+      } else if (key === '\n') {
+        sendMobileKey('Enter');
+      } else {
+        sendMobileKey(key);
+      }
+    }
+  }
+
+  function focusMobileInput(e) {
+    if (!mobileInputEl || state.paletteOpen || state.immersiveMode) return;
+    if (window.innerWidth > 640 && !window.matchMedia('(pointer: coarse)').matches) return;
+    if (e.target.closest('button, input, textarea')) return;
+    mobileInputEl.focus({ preventScroll: true });
+  }
+
+  function syncViewportLayout() {
+    var height = Math.round(viewportHeight());
+    document.documentElement.style.setProperty('--vim-viewport-height', height + 'px');
+    var touchLayout = window.innerWidth < 640 || window.matchMedia('(pointer: coarse)').matches;
+    document.getElementById('vim-editor').classList.toggle('vim-compact', touchLayout && height < 620);
+  }
+
   // -------------------------------------------------------------------------
   // Init
   // -------------------------------------------------------------------------
@@ -5209,6 +5477,10 @@
     statusModeEl = document.getElementById('vim-status-mode');
     statusFileEl = document.getElementById('vim-status-file');
     statusPosEl  = document.getElementById('vim-status-pos');
+    mobileInputEl = document.getElementById('vim-mobile-input');
+    mobileKeysEl = document.getElementById('vim-mobile-keys');
+    bindDashboardPet();
+    syncViewportLayout();
 
     var paletteEl = document.getElementById('vim-palette');
     var paletteInput = document.getElementById('vim-palette-input');
@@ -5243,6 +5515,66 @@
 
     document.addEventListener('keydown', handleKey);
 
+    document.getElementById('vim-editor').addEventListener('click', focusMobileInput);
+    mobileInputEl.addEventListener('keydown', function(e) {
+      e.stopPropagation();
+      if (e.isComposing || e.key === 'Process' || e.keyCode === 229) return;
+      var specialKeys = {
+        Escape: 1,
+        Enter: 1,
+        Backspace: 1,
+        Delete: 1,
+        Tab: 1,
+        ArrowLeft: 1,
+        ArrowRight: 1,
+        ArrowUp: 1,
+        ArrowDown: 1
+      };
+      if (e.ctrlKey || specialKeys[e.key]) {
+        e.preventDefault();
+        handleKey(e);
+      }
+    });
+    mobileInputEl.addEventListener('beforeinput', function(e) {
+      if (e.inputType === 'insertLineBreak' || e.inputType === 'insertParagraph') {
+        e.preventDefault();
+        sendMobileKey('Enter');
+      } else if (e.inputType === 'deleteContentBackward') {
+        e.preventDefault();
+        sendMobileKey('Backspace');
+      }
+    });
+    mobileInputEl.addEventListener('compositionstart', function() {
+      mobileComposing = true;
+    });
+    mobileInputEl.addEventListener('compositionend', function() {
+      mobileComposing = false;
+      var text = mobileInputEl.value;
+      mobileInputEl.value = '';
+      if (text) commitMobileText(text);
+    });
+    mobileInputEl.addEventListener('input', function(e) {
+      if (mobileComposing || e.isComposing) return;
+      var text = mobileInputEl.value;
+      mobileInputEl.value = '';
+      if (text) commitMobileText(text);
+    });
+    mobileKeysEl.addEventListener('pointerdown', function(e) {
+      if (e.target.closest('button')) e.preventDefault();
+    });
+    mobileKeysEl.addEventListener('click', function(e) {
+      var button = e.target.closest('button');
+      if (!button) return;
+      if (button.getAttribute('data-vim-modifier') === 'Control') {
+        setMobileCtrl(!mobileCtrlLatched);
+        mobileInputEl.focus({ preventScroll: true });
+        return;
+      }
+      var key = button.getAttribute('data-vim-key');
+      if (key) sendMobileKey(key);
+      mobileInputEl.focus({ preventScroll: true });
+    });
+
     var depthFrame = null;
     var depthX = 0;
     var depthY = 0;
@@ -5263,7 +5595,8 @@
     });
 
     var resizeTimer = null;
-    window.addEventListener('resize', function() {
+    function handleViewportChange() {
+      syncViewportLayout();
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function() {
         if (state.mode !== 'normal' || state.lines.join('\n') !== welcomeSnapshot) return;
@@ -5271,7 +5604,12 @@
         resetWelcomeLayout();
         render();
       }, 100);
-    });
+    }
+    window.addEventListener('resize', handleViewportChange);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+      window.visualViewport.addEventListener('scroll', syncViewportLayout);
+    }
 
     // Cmd+V paste support: insert clipboard text into buffer
     document.addEventListener('paste', function(e) {

@@ -1,255 +1,5 @@
 /* Blog Common JavaScript - Shared Functionality */
 
-// Background Switcher Module
-const BackgroundSwitcher = {
-  // Configuration
-  config: {
-    imagePath: '/jpg/',
-    useContainer: false,
-    buttonId: 'change',
-    bgElementId: 'bg',
-    useSimpleIcon: false,
-    simpleIconPath: '/svg/refresh-icon.svg',
-    images: {
-      desktop: ['bg.jpg', 'bg2.jpg', 'bg3.jpg'],
-      mobile: ['bg_mobile.jpg', 'bg_mobile2.jpg', 'bg_mobile3.jpg'],
-      portrait: ['bg_mobilev.jpg', 'bg_mobilev2.jpg', 'bg_mobilev3.jpg']
-    }
-  },
-  
-  // State
-  currentIndex: 0,
-  mediaQueries: {},
-  
-  // Initialize the background switcher
-  init(customConfig = {}) {
-    // Merge custom config
-    this.config = { ...this.config, ...customConfig };
-    
-    // Set up media queries
-    this.mediaQueries = {
-      desktop: window.matchMedia('(min-width: 768px)'),
-      mobile: window.matchMedia('(orientation: landscape) and (max-width: 767px)'),
-      portrait: window.matchMedia('(orientation: portrait) and (max-width: 767px)')
-    };
-    
-    // Get DOM elements
-    const button = document.getElementById(this.config.buttonId);
-    const bg = document.getElementById(this.config.bgElementId);
-    
-    if (!button || !bg) return;
-    
-    // Add tooltip
-    this.addTooltip(button);
-    
-    // Replace with simple icon if configured
-    if (this.config.useSimpleIcon) {
-      this.replaceWithSimpleIcon(button);
-    }
-    
-    // Add click handler
-    button.addEventListener('click', () => this.changeBackground());
-    
-    // Add keyboard support
-    button.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        this.changeBackground();
-      }
-    });
-    
-    // Handle responsive changes
-    this.mediaQueryListeners = [];
-    Object.values(this.mediaQueries).forEach(mq => {
-      const listener = () => this.updateBackgroundForViewport();
-      mq.addListener(listener);
-      this.mediaQueryListeners.push({ mq, listener });
-    });
-    
-    // Implement lazy loading for initial background
-    this.lazyLoadInitialBackground(bg);
-    
-    // Add loading state handling
-    this.addLoadingStateHandling(bg);
-  },
-  
-  // Get current image set based on viewport
-  getCurrentImageSet() {
-    if (this.mediaQueries.portrait.matches) return this.config.images.portrait;
-    if (this.mediaQueries.mobile.matches) return this.config.images.mobile;
-    return this.config.images.desktop;
-  },
-  
-  // Change background image
-  changeBackground() {
-    const bg = document.getElementById(this.config.bgElementId);
-    if (!bg) return;
-    
-    // Get current image set
-    const imageSet = this.getCurrentImageSet();
-    
-    // Update index
-    this.currentIndex = (this.currentIndex + 1) % imageSet.length;
-    
-    // Apply new background
-    const imagePath = this.config.useContainer 
-      ? imageSet[this.currentIndex]
-      : `${this.config.imagePath}${imageSet[this.currentIndex]}`;
-    
-    bg.style.backgroundImage = `url('${imagePath}')`;
-    
-    // Preload next image
-    setTimeout(() => this.preloadNextImage(), 100);
-  },
-  
-  // Update background for viewport changes
-  updateBackgroundForViewport() {
-    const bg = document.getElementById(this.config.bgElementId);
-    if (!bg) return;
-    
-    const imageSet = this.getCurrentImageSet();
-    const imagePath = this.config.useContainer 
-      ? imageSet[this.currentIndex]
-      : `${this.config.imagePath}${imageSet[this.currentIndex]}`;
-    
-    bg.style.backgroundImage = `url('${imagePath}')`;
-  },
-  
-  // Preload next image
-  preloadNextImage() {
-    const imageSet = this.getCurrentImageSet();
-    const nextIndex = (this.currentIndex + 1) % imageSet.length;
-    const nextImage = new Image();
-    
-    nextImage.src = this.config.useContainer 
-      ? imageSet[nextIndex]
-      : `${this.config.imagePath}${imageSet[nextIndex]}`;
-  },
-  
-  // Add loading state handling
-  addLoadingStateHandling(bg) {
-    const originalLoad = window.Image;
-    window.Image = function() {
-      const img = new originalLoad();
-      img.addEventListener('load', () => {
-        if (bg.style.backgroundImage.includes(img.src)) {
-          bg.classList.remove('loading');
-        }
-      });
-      return img;
-    };
-  },
-  
-  // Add tooltip to button
-  addTooltip(button) {
-    const tooltip = document.createElement('div');
-    tooltip.className = 'bg-switcher-tooltip';
-    tooltip.textContent = 'Change background';
-    
-    // Insert tooltip after button
-    button.parentNode.insertBefore(tooltip, button.nextSibling);
-    
-    // Update aria-label for accessibility
-    button.setAttribute('aria-label', 'Change background image');
-  },
-  
-  // Replace with simple icon
-  replaceWithSimpleIcon(button) {
-    // Clear existing SVG content
-    button.innerHTML = '';
-    
-    // Fetch and insert simple icon
-    fetch(this.config.simpleIconPath)
-      .then(response => response.text())
-      .then(svgContent => {
-        button.innerHTML = svgContent;
-        // Ensure the SVG inherits the button's styles
-        const svg = button.querySelector('svg');
-        if (svg) {
-          svg.style.width = '100%';
-          svg.style.height = '100%';
-          svg.style.fill = 'inherit';
-        }
-      })
-      .catch(error => {
-        console.error('Failed to load simple icon:', error);
-      });
-  },
-  
-  // Lazy load initial background
-  lazyLoadInitialBackground(bg) {
-    // Check if background is already set
-    const currentBg = window.getComputedStyle(bg).backgroundImage;
-    if (currentBg && currentBg !== 'none') {
-      bg.classList.add('loaded'); // Ensure loaded class is set
-      // Preload next image after initial load  
-      setTimeout(() => this.preloadNextImage(), 500);
-      return;
-    }
-    
-    // Ensure immediate visibility by adding loaded class
-    bg.classList.add('loaded');
-    
-    // Load initial background immediately to prevent black page
-    const loadBackground = () => {
-      const imageSet = this.getCurrentImageSet();
-      const imagePath = this.config.useContainer 
-        ? imageSet[0]
-        : `${this.config.imagePath}${imageSet[0]}`;
-      
-      // Create image element to preload
-      const img = new Image();
-      img.onload = () => {
-        bg.style.backgroundImage = `url('${imagePath}')`;
-        bg.classList.add('loaded');
-        // Preload next image
-        setTimeout(() => this.preloadNextImage(), 500);
-      };
-      img.onerror = () => {
-        // Fallback: add loaded class anyway to prevent black page
-        bg.classList.add('loaded');
-        console.warn('Failed to load background image:', imagePath);
-      };
-      img.src = imagePath;
-    };
-    
-    // Load immediately if element is visible, or use Intersection Observer
-    const rect = bg.getBoundingClientRect();
-    const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-    
-    if (isVisible) {
-      loadBackground();
-    } else if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            loadBackground();
-            // Stop observing
-            observer.unobserve(bg);
-          }
-        });
-      }, {
-        rootMargin: '50px' // Start loading 50px before element is visible
-      });
-      
-      observer.observe(bg);
-    } else {
-      // Fallback for browsers without Intersection Observer
-      loadBackground();
-    }
-  },
-  
-  // Cleanup method for memory leak prevention
-  cleanup() {
-    if (this.mediaQueryListeners) {
-      this.mediaQueryListeners.forEach(({ mq, listener }) => {
-        mq.removeListener(listener);
-      });
-      this.mediaQueryListeners = [];
-    }
-  }
-};
-
 // Markdown Header ID Generator
 const HeaderIDGenerator = {
   // Process all headers and add IDs
@@ -296,27 +46,31 @@ const HeaderIDGenerator = {
   // Add smooth scrolling to anchor links
   addSmoothScrolling() {
     document.querySelectorAll('a[href^="#"]').forEach(link => {
-      link.addEventListener('click', (e) => {
-        const targetId = link.getAttribute('href').substring(1);
-        const targetElement = document.getElementById(targetId);
-        
-        if (targetElement) {
-          e.preventDefault();
-          
-          // Scroll to element with offset for fixed header
-          const offset = 80;
-          const elementPosition = targetElement.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - offset;
-          
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          });
-          
-          // Update URL
-          history.pushState(null, null, `#${targetId}`);
-        }
-      });
+      this.bindSmoothScrolling(link);
+    });
+  },
+
+  bindSmoothScrolling(link, { replaceHistory = false, afterScroll } = {}) {
+    if (link.dataset.smoothScrollBound === 'true') return;
+    link.dataset.smoothScrollBound = 'true';
+    link.addEventListener('click', (event) => {
+      const href = link.getAttribute('href');
+      if (!href || href === '#') return;
+      let targetId;
+      try {
+        targetId = decodeURIComponent(href.slice(1));
+      } catch {
+        return;
+      }
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      event.preventDefault();
+      const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+      target.scrollIntoView({ behavior, block: 'start' });
+      const updateHistory = replaceHistory ? history.replaceState.bind(history) : history.pushState.bind(history);
+      updateHistory(null, '', `#${encodeURIComponent(targetId)}`);
+      afterScroll?.();
     });
   }
 };
@@ -716,93 +470,466 @@ const LazyImageLoader = {
   }
 };
 
-// Floating Table of Contents
-const TableOfContents = {
-  // Initialize floating TOC
-  init() {
-    const headings = document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3');
-    console.log('[TOC] Found headings:', headings.length);
-    if (headings.length < 3) {
-      console.log('[TOC] Not enough headings, skipping TOC');
-      return; // Only show TOC for posts with 3+ headings
+const SiteCommandPalette = {
+  groups: [
+    {
+      name: 'Try',
+      commands: [
+        { id: 'vim', label: 'Open Phalene-Vim', description: 'Interactive browser editor', href: '/vim/', aliases: 'vim editor phalene nvim' },
+        { id: 'essay', label: 'Georgie, pick an essay', description: 'Choose from the current archive', href: '/blog/', aliases: 'essay article writing blog random surprise georgie', action: 'essay' }
+      ]
+    },
+    {
+      name: 'Navigate',
+      commands: [
+        { id: 'work', label: 'Work', description: 'Selected projects', href: '/', aliases: 'home projects portfolio' },
+        { id: 'process', label: 'Process', description: 'Engineering case studies', href: '/process/', aliases: 'process case study engineering evidence' },
+        { id: 'writing', label: 'Writing', description: 'Essay archive', href: '/blog/', aliases: 'writing blog essay articles' },
+        { id: 'contact', label: 'Contact', description: 'Email, profiles, and résumé', href: '/contact/', aliases: 'contact links' }
+      ]
+    },
+    {
+      name: 'Connect',
+      commands: [
+        { id: 'github', label: 'GitHub', description: 'github.com/joryeugene', href: 'https://github.com/joryeugene', aliases: 'github gh code source repository' },
+        { id: 'linkedin', label: 'LinkedIn', description: 'Professional profile', href: 'https://www.linkedin.com/in/jory-fullstack-engineer/', aliases: 'linkedin profile work history' },
+        { id: 'email', label: 'Email Jory', description: 'jory@pestorious.com', href: 'mailto:jory@pestorious.com', aliases: 'email mail message note jory' },
+        { id: 'resume', label: 'Download résumé', description: 'PDF', href: '/resume/Jory-Pestorious-Resume.pdf', aliases: 'resume résumé cv pdf download', download: 'Jory-Pestorious-Resume.pdf' }
+      ]
     }
-    
-    this.createTOC(headings);
-    this.setupScrollSpy(headings);
+  ],
+
+  normalize(value) {
+    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   },
-  
-  // Create TOC element
-  createTOC(headings) {
-    const toc = document.createElement('nav');
-    toc.className = 'table-of-contents collapsed'; // Start collapsed
-    toc.innerHTML = `
-      <div class="toc-header">
-        <span class="toc-title">Contents</span>
-        <button class="toc-toggle" aria-label="Toggle table of contents">
-          <span class="toc-toggle-icon">+</span>
-        </button>
+
+  mount(root, searchId) {
+    const host = root?.querySelector('[data-site-command-palette]');
+    if (!host || host.dataset.commandMounted === 'true') return;
+    host.dataset.commandMounted = 'true';
+    host.className = 'site-command-palette';
+    host.innerHTML = `
+      <div class="site-command-search">
+        <label for="${searchId}">Search commands</label>
+        <input id="${searchId}" type="search" inputmode="search" autocomplete="off" spellcheck="false" placeholder="Type a command" data-command-search>
       </div>
-      <ul class="toc-list" style="display: none;">
-        ${Array.from(headings).map(heading => `
-          <li class="toc-item toc-${heading.tagName.toLowerCase()}">
-            <a href="#${heading.id}" class="toc-link">${heading.textContent}</a>
-          </li>
-        `).join('')}
-      </ul>
-    `;
-    
-    document.body.appendChild(toc);
-    
-    // Toggle functionality. Click is bound on the whole header below.
-    const header = toc.querySelector('.toc-header');
-    const list = toc.querySelector('.toc-list');
-    const icon = toc.querySelector('.toc-toggle-icon');
-    
-    // Make entire header clickable
-    const toggleTOC = () => {
-      const isCollapsed = list.style.display === 'none';
-      list.style.display = isCollapsed ? 'block' : 'none';
-      icon.textContent = isCollapsed ? '−' : '+';
-      toc.classList.toggle('collapsed', !isCollapsed);
-    };
-    
-    header.addEventListener('click', toggleTOC);
-    header.style.cursor = 'pointer';
+      <div class="site-command-groups" data-command-groups>
+        ${this.groups.map((group) => {
+          const groupId = `${searchId}-${group.name.toLowerCase()}`;
+          return `<section class="site-command-group" aria-labelledby="${groupId}" data-command-group>
+            <h3 id="${groupId}">${group.name}</h3>
+            <div class="site-command-list">
+              ${group.commands.map((command) => `<a href="${command.href}" data-site-command data-command-id="${command.id}" data-command-search-text="${this.normalize(`${command.label} ${command.description} ${command.aliases}`)}"${command.action ? ` data-command-action="${command.action}"` : ''}${command.download ? ` download="${command.download}"` : ''} data-jelly>
+                <strong data-command-label>${command.label}</strong><small>${command.description}</small>
+              </a>`).join('')}
+            </div>
+          </section>`;
+        }).join('')}
+        <p class="site-command-empty" role="status" aria-live="polite" data-command-empty hidden>No commands found</p>
+      </div>`;
+
+    host.querySelector('[data-command-search]')?.addEventListener('input', (event) => this.filter(root, event.target.value));
+    host.addEventListener('click', (event) => {
+      const command = event.target.closest('[data-command-action="essay"]');
+      if (!command) return;
+      event.preventDefault();
+      this.pickEssay(command);
+    });
   },
-  
-  // Setup scroll spy to highlight current section
-  setupScrollSpy(headings) {
-    let ticking = false;
-    
-    const updateActive = () => {
-      const scrollPos = window.scrollY + 100;
-      const tocLinks = document.querySelectorAll('.toc-link');
-      
-      let activeIndex = 0;
-      for (let i = headings.length - 1; i >= 0; i--) {
-        if (headings[i].offsetTop <= scrollPos) {
+
+  visibleCommands(root) {
+    return Array.from(root.querySelectorAll('[data-site-command]')).filter((command) => !command.hidden);
+  },
+
+  filter(root, query) {
+    const term = this.normalize(query);
+    root.querySelectorAll('[data-site-command]').forEach((command) => {
+      command.hidden = Boolean(term) && !command.dataset.commandSearchText.includes(term);
+    });
+    root.querySelectorAll('[data-command-group]').forEach((group) => {
+      group.hidden = !group.querySelector('[data-site-command]:not([hidden])');
+    });
+    const empty = root.querySelector('[data-command-empty]');
+    if (empty) empty.hidden = this.visibleCommands(root).length > 0;
+  },
+
+  open(root) {
+    const input = root.querySelector('[data-command-search]');
+    if (!input) return;
+    input.value = '';
+    this.filter(root, '');
+    input.focus({ preventScroll: true });
+  },
+
+  handleKeydown(root, event) {
+    const input = root.querySelector('[data-command-search]');
+    const commands = this.visibleCommands(root);
+    if (!input || !commands.length) return false;
+    const active = document.activeElement;
+
+    if (active === input) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        commands[0].click();
+        return true;
+      }
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        commands[event.key === 'ArrowDown' ? 0 : commands.length - 1].focus();
+        return true;
+      }
+      return false;
+    }
+
+    const current = commands.indexOf(active);
+    if (current === -1 || !['j', 'k', 'ArrowDown', 'ArrowUp'].includes(event.key)) return false;
+    event.preventDefault();
+    const direction = event.key === 'j' || event.key === 'ArrowDown' ? 1 : -1;
+    commands[(current + direction + commands.length) % commands.length].focus();
+    return true;
+  },
+
+  async pickEssay(command) {
+    if (command.dataset.commandBusy === 'true') return;
+    const label = command.querySelector('[data-command-label]');
+    command.dataset.commandBusy = 'true';
+    command.setAttribute('aria-disabled', 'true');
+    if (label) label.textContent = 'Georgie is choosing…';
+
+    try {
+      const response = await fetch('/blog/', { cache: 'no-cache' });
+      if (!response.ok) throw new Error(`Writing index returned ${response.status}`);
+      const index = new DOMParser().parseFromString(await response.text(), 'text/html');
+      const paths = Array.from(index.querySelectorAll('.writing-feature__copy a[href], a.writing-row[href]'))
+        .flatMap((link) => {
+          try {
+            return [new URL(link.getAttribute('href'), window.location.origin)];
+          } catch {
+            return [];
+          }
+        })
+        .filter((url) => url.origin === window.location.origin && /^\/blog\/[^/]+\/$/.test(url.pathname))
+        .map((url) => url.pathname);
+      const uniquePaths = Array.from(new Set(paths));
+      const otherPaths = uniquePaths.filter((path) => path !== window.location.pathname);
+      const choices = otherPaths.length ? otherPaths : uniquePaths;
+      if (!choices.length) throw new Error('Writing index returned no essays');
+      window.location.assign(choices[Math.floor(Math.random() * choices.length)]);
+    } catch (error) {
+      window.location.assign('/blog/');
+    }
+  }
+};
+
+// Shared article shell
+const ReaderShell = {
+  initialized: false,
+
+  isStandardArticle() {
+    return /^\/blog\/[^/]+\/(?:index\.html)?$/.test(window.location.pathname)
+      && !window.location.pathname.includes('/ai-dev-tooling-presentation/')
+      && Boolean(document.querySelector('.markdown-body'));
+  },
+
+  init() {
+    if (this.initialized || !this.isStandardArticle()) return;
+    this.initialized = true;
+
+    const body = document.body;
+    const container = document.querySelector('.container');
+    if (!container) return;
+
+    body.classList.add('reader-page');
+    document.querySelectorAll('#change, #changeSpan, .bg-switcher, .bg-switcher-tooltip').forEach((element) => element.remove());
+
+    const skip = document.createElement('a');
+    skip.className = 'reader-skip';
+    skip.href = '#content';
+    skip.textContent = 'Skip to article';
+
+    const chrome = document.createElement('div');
+    chrome.className = 'reader-chrome';
+    chrome.innerHTML = `
+      <header class="reader-site-header">
+        <a class="reader-brand" href="/">Jory Pestorious</a>
+        <nav class="reader-primary-nav" aria-label="Primary">
+          <a href="/">Work</a>
+          <a href="/process/">Process</a>
+          <a href="/blog/" aria-current="page">Writing</a>
+          <a href="/contact/">Contact</a>
+        </nav>
+        <div class="reader-header-actions">
+          <button class="reader-command-trigger" type="button" aria-label="Open command palette" data-open-reader-palette data-jelly>Commands</button>
+          <a class="reader-vim-link" href="/vim/" data-jelly>Open Vim</a>
+        </div>
+      </header>
+      <div class="reader-context" aria-label="Article context">
+        <a class="reader-back" href="/blog/"><span class="reader-back-full">Back to Writing</span><span class="reader-back-short">Writing</span></a>
+        <span class="reader-context-meta"><strong>Engineering Notes</strong><span class="reader-context-separator"> · </span><span data-reading-time>Reading time</span></span>
+      </div>`;
+
+    const main = document.createElement('main');
+    main.className = 'reader-main';
+    const rail = document.createElement('aside');
+    rail.className = 'reader-rail-slot';
+    const georgie = document.createElement('button');
+    georgie.className = 'reader-georgie';
+    georgie.type = 'button';
+    georgie.setAttribute('aria-label', 'Wake Georgie');
+    georgie.innerHTML = '<span class="reader-georgie__sprite" aria-hidden="true"></span>';
+    container.parentNode.insertBefore(main, container);
+    rail.append(georgie);
+    main.append(container, rail);
+
+    const mobileTrigger = document.createElement('button');
+    mobileTrigger.className = 'reader-mobile-trigger';
+    mobileTrigger.type = 'button';
+    mobileTrigger.setAttribute('aria-label', 'Open article contents');
+    mobileTrigger.setAttribute('aria-controls', 'reader-sheet');
+    mobileTrigger.setAttribute('data-jelly', '');
+    mobileTrigger.innerHTML = 'On this page <span data-reader-progress>0%</span>';
+
+    const palette = document.createElement('dialog');
+    palette.className = 'reader-palette';
+    palette.setAttribute('aria-label', 'Command palette');
+    palette.innerHTML = `
+      <div class="reader-palette-panel">
+        <div class="reader-palette-head">
+          <h2>Commands</h2>
+          <button class="reader-sheet-close" type="button" data-close-reader-palette data-jelly>Close</button>
+        </div>
+        <div data-site-command-palette></div>
+      </div>`;
+
+    const sheet = document.createElement('dialog');
+    sheet.id = 'reader-sheet';
+    sheet.className = 'reader-sheet';
+    sheet.setAttribute('aria-label', 'Article controls');
+    sheet.innerHTML = `
+      <div class="reader-sheet-panel">
+        <div class="reader-sheet-head">
+          <h2>On this page</h2>
+          <button class="reader-sheet-close" type="button" data-close-reader-sheet data-jelly>Close</button>
+        </div>
+        <ol class="reader-sheet-list" data-reader-sheet-list></ol>
+      </div>`;
+
+    body.insertBefore(skip, body.firstChild);
+    body.insertBefore(chrome, main);
+    body.append(mobileTrigger, palette, sheet);
+
+    SiteCommandPalette.mount(palette, 'reader-command-search');
+    this.bindControls(palette, sheet, mobileTrigger);
+    this.bindGeorgie(georgie, main);
+    this.enhanceArticle();
+    document.addEventListener('markdownLoaded', () => this.enhanceArticle());
+  },
+
+  bindGeorgie(georgie, main) {
+    let tapTimer = 0;
+    const sync = () => {
+      const awake = georgie.dataset.pointerAwake === 'true'
+        || georgie.dataset.focusAwake === 'true'
+        || georgie.dataset.tapAwake === 'true';
+      georgie.classList.toggle('is-awake', awake);
+      main.classList.toggle('is-georgie-awake', awake);
+    };
+    const setPointer = (event, awake) => {
+      if (event.pointerType !== 'mouse') return;
+      georgie.dataset.pointerAwake = String(awake);
+      sync();
+    };
+    const setFocus = (awake) => {
+      georgie.dataset.focusAwake = String(awake && georgie.matches(':focus-visible'));
+      sync();
+    };
+    const play = () => {
+      window.clearTimeout(tapTimer);
+      georgie.dataset.tapAwake = 'true';
+      sync();
+      tapTimer = window.setTimeout(() => {
+        georgie.dataset.tapAwake = 'false';
+        sync();
+      }, 720);
+    };
+
+    georgie.addEventListener('pointerenter', (event) => setPointer(event, true));
+    georgie.addEventListener('pointerleave', (event) => setPointer(event, false));
+    georgie.addEventListener('focus', () => setFocus(true));
+    georgie.addEventListener('blur', () => setFocus(false));
+    georgie.addEventListener('click', play);
+    georgie.addEventListener('georgie-wake', play);
+  },
+
+  bindControls(palette, sheet, mobileTrigger) {
+    let palettePreviousFocus = null;
+    const openPalette = () => {
+      palettePreviousFocus = document.activeElement;
+      if (!palette.open) palette.showModal();
+      SiteCommandPalette.open(palette);
+    };
+    const closePalette = () => {
+      if (palette.open) palette.close();
+      palettePreviousFocus?.focus?.();
+    };
+    const openSheet = () => {
+      if (!sheet.open) sheet.showModal();
+      sheet.querySelector('a, button')?.focus();
+    };
+    const closeSheet = () => {
+      if (sheet.open) sheet.close();
+    };
+
+    document.querySelector('[data-open-reader-palette]')?.addEventListener('click', openPalette);
+    document.querySelector('[data-close-reader-palette]')?.addEventListener('click', closePalette);
+    document.querySelector('[data-close-reader-sheet]')?.addEventListener('click', closeSheet);
+    mobileTrigger.addEventListener('click', openSheet);
+
+    palette.addEventListener('click', (event) => {
+      if (event.target === palette) closePalette();
+    });
+    sheet.addEventListener('click', (event) => {
+      if (event.target === sheet) closeSheet();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        palette.open ? closePalette() : openPalette();
+        return;
+      }
+
+      if (palette.open && event.key === 'Escape') {
+        event.preventDefault();
+        closePalette();
+        return;
+      }
+
+      if (palette.open) SiteCommandPalette.handleKeydown(palette, event);
+    });
+
+    document.addEventListener('pointerdown', (event) => {
+      const target = event.target.closest('[data-jelly]');
+      if (!target || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      target.classList.remove('is-jelly');
+      void target.offsetWidth;
+      target.classList.add('is-jelly');
+    });
+    document.addEventListener('animationend', (event) => {
+      if (event.animationName === 'reader-jelly') event.target.classList.remove('is-jelly');
+    });
+  },
+
+  enhanceArticle() {
+    const article = document.querySelector('.markdown-body');
+    if (!article || !article.textContent.trim()) return;
+    const words = article.textContent.trim().split(/\s+/).length;
+    const minutes = Math.max(1, Math.ceil(words / 220));
+    document.querySelectorAll('[data-reading-time]').forEach((element) => {
+      element.textContent = `${minutes} min read`;
+    });
+    document.querySelectorAll('.post-nav-link').forEach((link) => link.setAttribute('data-jelly', ''));
+  }
+};
+
+// Responsive table of contents
+const TableOfContents = {
+  scrollHandler: null,
+
+  init() {
+    if (!ReaderShell.isStandardArticle()) return;
+    const article = document.querySelector('.markdown-body');
+    const headings = Array.from(document.querySelectorAll('.markdown-body h2'));
+    if (!article || !headings.length) {
+      document.querySelector('.reader-mobile-trigger')?.setAttribute('hidden', '');
+      return;
+    }
+    const sections = [article, ...headings];
+    document.querySelector('.reader-toc')?.remove();
+    this.createTOC(sections);
+    this.setupScrollSpy(sections);
+  },
+
+  createTOC(sections) {
+    const rail = document.querySelector('.reader-rail-slot');
+    const sheetList = document.querySelector('[data-reader-sheet-list]');
+    if (!rail || !sheetList) return;
+
+    const toc = document.createElement('nav');
+    toc.className = 'reader-toc';
+    toc.setAttribute('aria-label', 'On this page');
+    toc.innerHTML = `
+      <p class="reader-toc-title">On this page</p>
+      <p class="reader-toc-progress"><span data-reader-progress>0%</span> read</p>
+      <ol class="reader-toc-list"></ol>`;
+
+    const list = toc.querySelector('.reader-toc-list');
+    sheetList.innerHTML = '';
+    sections.forEach((section, index) => {
+      const item = document.createElement('li');
+      item.className = `reader-toc-item ${index === 0 ? 'reader-toc-intro' : 'reader-toc-h2'}`;
+      const link = document.createElement('a');
+      link.className = 'reader-toc-link';
+      link.href = `#${section.id}`;
+      link.textContent = index === 0 ? 'Intro' : section.textContent;
+      HeaderIDGenerator.bindSmoothScrolling(link, { replaceHistory: true });
+      item.append(link);
+      list.append(item);
+
+      const sheetItem = document.createElement('li');
+      const sheetLink = link.cloneNode(true);
+      sheetLink.className = 'reader-sheet-link';
+      sheetLink.removeAttribute('data-smooth-scroll-bound');
+      HeaderIDGenerator.bindSmoothScrolling(sheetLink, { replaceHistory: true, afterScroll: () => {
+        const sheet = document.getElementById('reader-sheet');
+        if (sheet?.open) sheet.close();
+      }});
+      sheetItem.append(sheetLink);
+      sheetList.append(sheetItem);
+    });
+    rail.prepend(toc);
+  },
+
+  setupScrollSpy(sections) {
+    if (this.scrollHandler) window.removeEventListener('scroll', this.scrollHandler);
+    let frame = 0;
+    let wasComplete = false;
+    const update = () => {
+      const article = document.querySelector('.markdown-body');
+      const articleTop = article.offsetTop;
+      const total = Math.max(1, article.scrollHeight - window.innerHeight + 180);
+      const percent = Math.max(0, Math.min(100, Math.round(((window.scrollY - articleTop + 180) / total) * 100)));
+      document.querySelectorAll('[data-reader-progress]').forEach((element) => {
+        element.textContent = `${percent}%`;
+      });
+      const georgie = document.querySelector('.reader-georgie');
+      const complete = percent >= 96;
+      if (georgie && complete && !wasComplete) georgie.dispatchEvent(new Event('georgie-wake'));
+      wasComplete = complete;
+
+      const scrollPos = window.scrollY + 190;
+      let activeIndex = -1;
+      for (let i = sections.length - 1; i >= 0; i--) {
+        if (sections[i].offsetTop <= scrollPos) {
           activeIndex = i;
           break;
         }
       }
-      
-      tocLinks.forEach((link, index) => {
-        link.classList.toggle('active', index === activeIndex);
+      document.querySelectorAll('.reader-toc-link, .reader-sheet-link').forEach((link, index) => {
+        const normalizedIndex = index % sections.length;
+        link.classList.toggle('active', normalizedIndex === activeIndex);
+        if (normalizedIndex === activeIndex) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
       });
+      frame = 0;
     };
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          updateActive();
-          ticking = false;
-        });
-        ticking = true;
-      }
+    this.scrollHandler = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(update);
     };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    updateActive(); // Initial call
+    window.addEventListener('scroll', this.scrollHandler, { passive: true });
+    window.addEventListener('resize', this.scrollHandler, { passive: true });
+    update();
   }
 };
 
@@ -818,8 +945,8 @@ const PostNavigation = {
   // to blog/index.html and run `npm run sync`.
   posts: [
     //>>>PostNavigation.posts.begin
-    { slug: 'portable-agent-factory', title: 'I Wanted to Own the Harness. Then Codex Desktop Won.' },
-    { slug: 'ai-engineer-verification', title: 'AI Engineer World\'s Fair 2026: Takeaways & Verification' },
+    { slug: 'portable-agent-factory', title: 'Why I Canceled Claude Max for Codex Desktop' },
+    { slug: 'ai-engineer-verification', title: 'AI Engineer World\'s Fair 2026: Verification Became the Bottleneck' },
     { slug: 'complexity-protects-itself', title: 'Complexity Protects Itself' },
     { slug: 'what-the-model-learned', title: 'What the Model Learned Not to Show' },
     { slug: 'endgame-keyboard', title: 'Twelve Keyboards Later' },
@@ -834,7 +961,7 @@ const PostNavigation = {
     { slug: 'ai-engineer-spec', title: 'AI Engineer World\'s Fair 2025: Takeaways & Spec' },
     { slug: 'spiritual-bliss-attractor-state', title: 'The Hidden Poetry in Claude 4\'s Mind: When AI Systems Turn to Consciousness' },
     { slug: 'calmhive', title: 'Calmhive: Claude That Never Quits' },
-    { slug: 'terminal-velocity', title: 'Terminal Velocity: Why CLI-First AI Development Scales Better in 2025' },
+    { slug: 'terminal-velocity', title: 'Terminal Velocity: My CLI-First AI Workflow in 2025' },
     { slug: 'ai-dev-tooling-presentation', title: 'AI-Amplified Development: Tools and Workflows for Modern Engineers' },
     //<<<PostNavigation.posts.end
   ],
@@ -907,9 +1034,10 @@ const ViewTransitions = {
     
     // Intercept navigation clicks
     document.addEventListener('click', (e) => {
+      if (e.defaultPrevented) return;
       const link = e.target.closest('a');
       if (!link || link.hostname !== location.hostname) return;
-      if (link.target === '_blank') return;
+      if (link.target === '_blank' || link.hasAttribute('download')) return;
       
       e.preventDefault();
       this.navigate(link.href);
@@ -1045,7 +1173,6 @@ const VimNav = {
       row('g', 'Open GitHub'),
       row('l', 'Open LinkedIn'),
       row('G', 'Scroll to bottom'),
-      row('s', 'Change background'),
       row('?', 'Toggle this help'),
       '</table>',
       '<div style="opacity:0.4;font-size:11px;margin-bottom:12px;letter-spacing:0.1em;text-transform:uppercase">Blog index</div>',
@@ -1137,7 +1264,6 @@ const VimNav = {
   },
 
   _handleGlobalKey: function(e) {
-    const btn = document.getElementById('changeSpan') || document.getElementById('change');
     switch (e.key) {
       case 'h':
         window.location.href = '/';
@@ -1159,13 +1285,6 @@ const VimNav = {
         break;
       case 'G':
         window.scrollTo(0, document.body.scrollHeight);
-        break;
-      case 's':
-        if (typeof BackgroundSwitcher !== 'undefined' && BackgroundSwitcher.changeBackground) {
-          BackgroundSwitcher.changeBackground();
-        } else if (btn) {
-          btn.click();
-        }
         break;
       case '?':
         if (document.getElementById('vim-help')) {
@@ -1461,6 +1580,7 @@ const VimNav = {
     const self = this;
 
     document.addEventListener('keydown', function(e) {
+      if (e.defaultPrevented || document.querySelector('#command-palette:not([hidden]), .reader-palette[open]')) return;
       if (self._guard(e)) return;
 
       const page = self._getPage();
@@ -1580,7 +1700,7 @@ const VimHUD = {
 
   update: function(page, position) {
     if (!this._el) return;
-    const global = 'h  b  v  p  g  l  s  ?';
+    const global = 'h  b  v  p  g  l  ?';
     const sep = '<span style="opacity:0.4">|</span>';
     let html = global;
     if (page === 'blog-index') html += '  ' + sep + '  j  k  gg  G  /  Enter';
@@ -1603,7 +1723,6 @@ const VimHUD = {
 
 // Export modules for use
 window.BlogCommon = {
-  BackgroundSwitcher,
   HeaderIDGenerator,
   MarkdownLoader,
   SkeletonLoader,
@@ -1611,6 +1730,8 @@ window.BlogCommon = {
   ScrollProgress,
   BlogButtonScroll,
   LazyImageLoader,
+  SiteCommandPalette,
+  ReaderShell,
   TableOfContents,
   PostNavigation,
   ViewTransitions,
@@ -1625,11 +1746,10 @@ window.BlogCommon = {
       return;
     }
     
+    // Build the shared reader before the feature modules attach controls.
+    ReaderShell.init();
+
     // Initialize modules
-    if (options.backgroundSwitcher !== false) {
-      BackgroundSwitcher.init(options.backgroundSwitcher || {});
-    }
-    
     if (options.headerIds !== false) {
       HeaderIDGenerator.process();
     }
@@ -1686,7 +1806,7 @@ window.BlogCommon = {
     if (!window.requestAnimationFrame) return;
     
     let ticking = false;
-    const bg = document.getElementById(BackgroundSwitcher.config.bgElementId);
+    const bg = document.getElementById('bg');
     if (!bg) return;
     
     const handleScroll = () => {
@@ -1708,5 +1828,9 @@ window.BlogCommon = {
   }
 };
 
-// Auto-initialize vim navigation on every page that loads blog-common.js
-VimNav.init();
+// Portfolio pages own their keyboard model. Article pages keep the legacy
+// reading motions, but the portfolio shell must not open the fake Vim overlay.
+if (!document.body.classList.contains('portfolio-page')
+    && !/^\/blog\/[^/]+\/(?:index\.html)?$/.test(window.location.pathname)) {
+  VimNav.init();
+}

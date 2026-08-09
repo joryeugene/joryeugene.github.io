@@ -1,8 +1,5 @@
 /* Blog Common Styles - Unified Design System */
 
-/* Shared background-switcher button. Single source of truth. */
-@import url('/css/bg-switcher.css');
-
 /* CSS Custom Properties for Theming */
 :root {
   /* Dark Theme Colors (default) */
@@ -32,11 +29,6 @@
   --nav-bg: transparent;
   --nav-bg-hover: rgba(255, 255, 255, 0.05);
   --nav-border: rgba(255, 255, 255, 0.1);
-  
-  /* Background Switcher */
-  --switcher-fill: rgba(252, 249, 202, 0.8);
-  --switcher-fill-hover: rgba(255, 252, 220, 1);
-  --switcher-bg: rgba(0, 0, 0, 0.2);
   
   /* Theme Toggle */
   
@@ -480,10 +472,7 @@ body {
   /* Fallback background to prevent completely black page */
   background-color: #1a1a1a;
   /* Default background image for immediate display */
-  background-image: url('../jpg/bg.jpg');
-  /* Swap is instant; only opacity crossfades. Transitioning background-image
-     causes browsers to briefly render the new image at intrinsic size before
-     background-size: cover applies, producing a visible shrink on first swap. */
+  background-image: url('../jpg/bg-night.webp');
   transition: opacity var(--transition-bg);
   filter: brightness(0.45) contrast(1.05);
   opacity: 1;
@@ -495,34 +484,6 @@ body {
 
 #bg.loading {
   opacity: 0.7;
-}
-
-/* Background Switcher */
-/* #change rules live in bg-switcher.css (imported above). Do not add them here. */
-
-/* Tooltip for background switcher */
-.bg-switcher-tooltip {
-  position: fixed;
-  right: 70px;
-  bottom: 28px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: var(--text-primary);
-  padding: 6px 12px;
-  border-radius: var(--border-radius);
-  font-size: var(--font-size-sm);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateX(10px);
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-  z-index: 101;
-  border: 0.5px solid var(--border-light);
-}
-
-#change:hover + .bg-switcher-tooltip,
-#change:focus + .bg-switcher-tooltip {
-  opacity: 1;
-  transform: translateX(0);
 }
 
 /* Utility Classes */
@@ -549,18 +510,6 @@ body {
 
 .footnotes ol {
   padding-left: var(--spacing-lg);
-}
-
-/* Custom background override */
-.custom-bg #bg {
-  background-image: var(--custom-bg-image);
-  opacity: 1; /* Show immediately for custom backgrounds */
-}
-
-/* For pages with custom backgrounds, ensure they load */
-.custom-bg #bg.loaded {
-  background-image: var(--custom-bg-image);
-  opacity: 1;
 }
 
 /* Responsive Design */

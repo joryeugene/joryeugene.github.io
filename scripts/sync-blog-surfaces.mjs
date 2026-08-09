@@ -16,9 +16,9 @@
  *     Exit 0 if surfaces already match. Exit 1 with a diff if they drift.
  *     Intended for pre-commit hooks.
  *
- * Dates: each <li class="blog-item"> may carry a data-pub-date="YYYY-MM-DD".
- * If absent, the date is looked up in the existing feed.xml by slug. A slug
- * that exists in blog/index.html but has no date anywhere causes exit 1.
+ * Dates: each feature card and writing row carries a
+ * data-pub-date="YYYY-MM-DD". If absent, the date is looked up in the
+ * existing feed.xml by slug. A slug with no date anywhere causes exit 1.
  */
 
 import { readFile, writeFile } from 'node:fs/promises';
@@ -41,17 +41,20 @@ const CHECK_MODE = process.argv.includes('--check');
 async function readPosts() {
   const html = await readFile(PATHS.blogIndex, 'utf8');
   const posts = [];
-  const itemRe = /<li class="blog-item"[^>]*>[\s\S]*?<\/li>/g;
+  const itemRe = /<(article|a)\b[^>]*class="(?:writing-feature|writing-row)"[^>]*>[\s\S]*?<\/\1>/g;
   const hrefRe = /href="\/blog\/([^/"]+)\/?"/;
-  const titleRe = /<h3>([\s\S]*?)<\/h3>/;
-  const summaryRe = /<p>([\s\S]*?)<\/p>/;
   const dateRe = /data-pub-date="(\d{4}-\d{2}-\d{2})"/;
 
   const items = html.match(itemRe) || [];
   for (const item of items) {
     const href = item.match(hrefRe);
-    const title = item.match(titleRe);
-    const summary = item.match(summaryRe);
+    const isFeature = item.includes('class="writing-feature"');
+    const title = item.match(isFeature
+      ? /<h2>([\s\S]*?)<\/h2>/
+      : /<span class="writing-row__title">([\s\S]*?)<\/span>/);
+    const summary = item.match(isFeature
+      ? /<div class="writing-feature__copy">[\s\S]*?<h2>[\s\S]*?<\/h2>\s*<p>([\s\S]*?)<\/p>/
+      : /<span class="writing-row__excerpt">([\s\S]*?)<\/span>/);
     const date = item.match(dateRe);
     if (!href) continue;
     posts.push({
@@ -185,7 +188,7 @@ async function main() {
   }
   if (missing.length) {
     console.error(`Missing publication dates for slugs: ${missing.join(', ')}`);
-    console.error('Add a data-pub-date="YYYY-MM-DD" attribute to each <li class="blog-item"> in blog/index.html.');
+    console.error('Add a data-pub-date="YYYY-MM-DD" attribute to each writing feature or row in blog/index.html.');
     process.exit(1);
   }
 

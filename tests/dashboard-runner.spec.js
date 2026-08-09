@@ -98,14 +98,203 @@ test.describe('dashboard and runner experience', () => {
     await expect(page.locator('#vim-content')).toContainText('Friction Economy: Unconscious Productivity Drains');
   });
 
-  test('Snake starts and returns to the untouched buffer', async ({ page }) => {
+  test('Snake fills the viewport with aligned ASCII and preserves the buffer', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
     await open(page);
+    await seed(page, 'alpha\nbeta');
     const before = await lines(page);
     await cmd(page, 'snake');
-    await expect(page.locator('#vim-status-mode')).toHaveText('--SNAKE--');
-    await press(page, 'j');
+    await expect(page.locator('#vim-snake')).toBeVisible();
+    await expect(page.locator('#vim-snake-title')).toContainText('GEORGIE // NIGHT FLIGHT · READY');
+    await expect(page.locator('.vim-snake-score')).toContainText('MOTHS 0');
+    await expect(page.locator('.vim-snake-head')).toHaveText(':3>');
+    await expect(page.locator('.vim-snake-body')).toHaveCount(2);
+    await expect(page.locator('.vim-snake-tail')).toHaveText('[.]');
+    await expect(page.locator('.vim-snake-moth')).toHaveText('<*>');
+
+    const readSnake = () => page.locator('#vim-snake-board').evaluate(el => {
+      const headTokens = ['<3:', 'v3v', '^3^', ':3>'];
+      const rows = el.textContent.split('\n');
+      const y = rows.findIndex(row => headTokens.some(token => row.includes(token)));
+      const token = y < 0 ? '' : headTokens.find(candidate => rows[y].includes(candidate));
+      return {
+        rows: rows.length,
+        cols: rows[0].length,
+        lengths: rows.map(row => row.length),
+        text: el.textContent,
+        token,
+        x: token ? rows[y].indexOf(token) : -1,
+        y
+      };
+    });
+
+    const desktop = await page.locator('#vim-snake-board').evaluate(el => {
+      const rows = el.textContent.split('\n');
+      const rect = el.getBoundingClientRect();
+      const logicalCellWidth = (rect.width / rows[0].length) * 3;
+      const rowHeight = rect.height / rows.length;
+      return {
+        rows: rows.length,
+        cols: rows[0].length,
+        lengths: rows.map(row => row.length),
+        text: el.textContent,
+        tileRemainder: (rows[0].length - 2) % 3,
+        aspect: logicalCellWidth / rowHeight
+      };
+    });
+    expect(desktop.rows).toBeGreaterThan(25);
+    expect(desktop.cols).toBeGreaterThan(80);
+    expect(new Set(desktop.lengths).size).toBe(1);
+    expect(desktop.tileRemainder).toBe(0);
+    expect(desktop.aspect).toBeGreaterThan(0.85);
+    expect(desktop.aspect).toBeLessThan(1.25);
+    expect(desktop.text.match(/:3>/g)).toHaveLength(1);
+    expect(desktop.text.match(/<\*>/g)).toHaveLength(1);
+
+    const desktopFrame = await page.locator('#vim-snake').evaluate(el => {
+      const board = el.querySelector('#vim-snake-board').getBoundingClientRect();
+      const header = el.querySelector('.vim-snake-hud').getBoundingClientRect();
+      const footer = el.querySelector('.vim-snake-controls').getBoundingClientRect();
+      const columns = el.querySelector('#vim-snake-board').textContent.split('\n')[0].length;
+      return {
+        charWidth: board.width / columns,
+        gaps: [
+          Math.abs(header.left - board.left),
+          Math.abs(header.right - board.right),
+          Math.abs(footer.left - board.left),
+          Math.abs(footer.right - board.right)
+        ]
+      };
+    });
+    expect(Math.max(...desktopFrame.gaps)).toBeLessThanOrEqual(desktopFrame.charWidth + 1);
+
+    const fill = await page.locator('#vim-snake-board').evaluate(el => {
+      const board = el.getBoundingClientRect();
+      const wrap = el.parentElement.getBoundingClientRect();
+      return { width: board.width / wrap.width, height: board.height / wrap.height };
+    });
+    expect(fill.width).toBeGreaterThan(0.94);
+    expect(fill.height).toBeGreaterThan(0.9);
+
+    const initialHead = await readSnake();
+    expect(initialHead.token).toBe(':3>');
+    await page.keyboard.press('h');
+    await page.waitForTimeout(200);
+    const horizontalHairpin = await readSnake();
+    expect(horizontalHairpin.x).toBeLessThan(initialHead.x);
+    expect(horizontalHairpin.y).not.toBe(initialHead.y);
+    expect(horizontalHairpin.token).toBe('<3:');
+
+    await page.keyboard.press('r');
+    await page.keyboard.press('k');
+    await expect(page.locator('.vim-snake-head')).toHaveText('^3^');
+    const upwardHead = await readSnake();
+    await page.keyboard.press('j');
+    await page.waitForTimeout(200);
+    const verticalHairpin = await readSnake();
+    expect(verticalHairpin.y).toBeGreaterThan(upwardHead.y);
+    expect(verticalHairpin.token).toBe('v3v');
+
+    await page.keyboard.press('r');
+    await page.keyboard.press('j');
+    await page.keyboard.press('h');
+    await page.waitForTimeout(200);
+    const turnedHead = await readSnake();
+    expect(turnedHead.x).toBeLessThan(initialHead.x);
+    expect(turnedHead.y).toBeGreaterThan(initialHead.y);
+    expect(turnedHead.token).toBe('<3:');
+
+    await page.keyboard.press('r');
+    const ready = await readSnake();
+    const logicalWidth = (ready.cols - 2) / 3;
+    const logicalHeight = ready.rows - 2;
+    const logicalHeadX = (ready.x - 1) / 3;
+    const logicalHeadY = ready.y - 1;
+    await page.evaluate(({ foodX, foodY, width, height }) => {
+      window.__snakeOriginalRandom = Math.random;
+      const values = [(foodX + 0.25) / width, (foodY + 0.25) / height];
+      Math.random = () => values.length ? values.shift() : window.__snakeOriginalRandom();
+    }, {
+      foodX: logicalHeadX + 1,
+      foodY: logicalHeadY,
+      width: logicalWidth,
+      height: logicalHeight
+    });
+    await page.keyboard.press('r');
+    await page.keyboard.press('l');
+    await expect(page.locator('#vim-snake-score')).toHaveText('1');
+    await expect(page.locator('#vim-snake')).toHaveClass(/moth-caught/);
+    await page.evaluate(() => {
+      Math.random = window.__snakeOriginalRandom;
+      delete window.__snakeOriginalRandom;
+    });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(150);
+    const mobile = await page.locator('#vim-snake-board').evaluate(el => {
+      const rows = el.textContent.split('\n');
+      return {
+        rows: rows.length,
+        cols: rows[0].length,
+        lengths: rows.map(row => row.length),
+        tileRemainder: (rows[0].length - 2) % 3
+      };
+    });
+    expect(mobile.cols).toBeLessThan(desktop.cols);
+    expect(mobile.rows).not.toBe(desktop.rows);
+    expect(new Set(mobile.lengths).size).toBe(1);
+    expect(mobile.tileRemainder).toBe(0);
+    await expect(page.locator('.vim-snake-fantasy')).toBeVisible();
+
+    const mobileFrame = await page.locator('#vim-snake').evaluate(el => {
+      const board = el.querySelector('#vim-snake-board').getBoundingClientRect();
+      const header = el.querySelector('.vim-snake-hud').getBoundingClientRect();
+      const footer = el.querySelector('.vim-snake-controls').getBoundingClientRect();
+      const columns = el.querySelector('#vim-snake-board').textContent.split('\n')[0].length;
+      return {
+        charWidth: board.width / columns,
+        gaps: [
+          Math.abs(header.left - board.left),
+          Math.abs(header.right - board.right),
+          Math.abs(footer.left - board.left),
+          Math.abs(footer.right - board.right)
+        ]
+      };
+    });
+    expect(Math.max(...mobileFrame.gaps)).toBeLessThanOrEqual(mobileFrame.charWidth + 1);
+
+    await press(page, 'w');
+    await press(page, ' ');
+    await expect(page.locator('#vim-snake-title')).toContainText('PAUSED');
+    await expect(page.locator('#vim-snake')).toHaveClass(/paused/);
     await press(page, 'Escape');
+    await expect(page.locator('#vim-snake')).toBeHidden();
     expect(await lines(page)).toEqual(before);
+  });
+
+  test('Night Flight help explains Georgie, moth-lights, and every control', async ({ page }) => {
+    await open(page);
+    await cmd(page, 'help :snake');
+    await expect(page.locator('#vim-content')).toContainText('Georgie Night Flight');
+    await expect(page.locator('#vim-content')).toContainText('moth-lights');
+    await expect(page.locator('#vim-content')).toContainText('h/j/k/l');
+    await expect(page.locator('#vim-content')).toContainText('Space');
+    await expect(page.locator('#vim-content')).toContainText('r restarts');
+    await expect(page.locator('#vim-content')).toContainText('Escape returns');
+  });
+
+  test('Night Flight runtime assets are cache-versioned as one release', async ({ page }) => {
+    await open(page);
+    const versions = await page.locator('script[src]').evaluateAll(scripts => Object.fromEntries(
+      scripts
+        .map(script => new URL(script.src))
+        .filter(url => ['/js/vim-help.js', '/js/vim.js'].includes(url.pathname))
+        .map(url => [url.pathname, url.searchParams.get('v')])
+    ));
+    expect(versions).toEqual({
+      '/js/vim-help.js': 'georgie-pairs',
+      '/js/vim.js': 'georgie-pairs'
+    });
   });
 
   test('kinetic moth rotates, flaps, and returns to the untouched buffer', async ({ page }) => {

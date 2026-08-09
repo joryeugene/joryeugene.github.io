@@ -21,7 +21,7 @@
     #vim-editor {
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      height: var(--vim-viewport-height, 100vh);
       animation: vim-fadein 0.25s ease-in;
     }
 
@@ -114,19 +114,63 @@
     }
 
     #vim-dashboard-pet {
+      appearance: none;
       display: none;
       position: fixed;
       z-index: 2;
       top: clamp(88px, 13vh, 112px);
       left: calc(50vw + 2px);
       width: clamp(140px, 16vw, 180px);
+      aspect-ratio: 512 / 469;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
       transform: translateX(-50%);
-      image-rendering: pixelated;
       filter: drop-shadow(0 0 18px rgba(199, 120, 69, 0.22));
-      pointer-events: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      transform-origin: 50% 84%;
     }
 
     #vim-editor.dashboard #vim-dashboard-pet { display: block; }
+    #vim-editor.vim-compact.dashboard #vim-dashboard-pet { display: none; }
+
+    #vim-dashboard-pet:focus-visible {
+      outline: none;
+    }
+
+    #vim-dashboard-pet:focus-visible .vim-dashboard-pet__sprite {
+      filter: drop-shadow(0 0 3px #67e8f9) drop-shadow(0 0 12px rgba(103, 232, 249, 0.62));
+    }
+
+    .vim-dashboard-pet__sprite {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: url('/jpg/georgie-vim-pair.webp') 0 0 / 200% 100% no-repeat;
+      image-rendering: pixelated;
+    }
+
+    #vim-dashboard-pet.is-georgie-active {
+      animation: vim-georgie-react 520ms cubic-bezier(0.2, 1.45, 0.42, 1);
+    }
+
+    #vim-dashboard-pet.is-georgie-active .vim-dashboard-pet__sprite {
+      background-position: 100% 0;
+    }
+
+    #vim-editor.is-georgie-active .vim-dashboard-title {
+      color: #67e8f9;
+      text-shadow: 0 0 22px rgba(103, 232, 249, 0.55);
+    }
+
+    @keyframes vim-georgie-react {
+      0% { transform: translateX(-50%) scale(1) rotate(0); }
+      32% { transform: translateX(-50%) scaleX(1.055) scaleY(0.94) rotate(-1.2deg); }
+      64% { transform: translateX(-50%) scaleX(0.985) scaleY(1.025) rotate(0.5deg); }
+      100% { transform: translateX(-50%) scale(1) rotate(0); }
+    }
 
     .vim-dashboard-title { color: #fff; font-weight: 800; text-shadow: 0 0 16px rgba(167, 139, 250, 0.35); }
     .vim-dashboard-command { color: #67e8f9; font-weight: 700; }
@@ -163,6 +207,51 @@
       color: rgba(255,255,255,0.55);
       flex-shrink: 0;
       user-select: none;
+    }
+
+    #vim-mobile-input {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      width: 1px;
+      height: 1px;
+      border: 0;
+      padding: 0;
+      opacity: 0;
+      pointer-events: none;
+      font-size: 16px;
+      resize: none;
+    }
+
+    #vim-mobile-keys {
+      display: none;
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+      min-height: 48px;
+      gap: 4px;
+      padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+      overflow: hidden;
+      background: rgba(13, 13, 20, 0.98);
+      border-top: 1px solid rgba(167, 139, 250, 0.22);
+      flex-shrink: 0;
+    }
+
+    #vim-mobile-keys button {
+      min-width: 0;
+      min-height: 40px;
+      border: 1px solid rgba(205, 214, 244, 0.16);
+      border-radius: 7px;
+      padding: 0 2px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #cdd6f4;
+      font: 700 12px/1 'SF Mono', Monaco, Consolas, 'Courier New', monospace;
+      touch-action: manipulation;
+    }
+
+    #vim-mobile-keys button:active,
+    #vim-mobile-keys button[aria-pressed="true"] {
+      border-color: rgba(103, 232, 249, 0.75);
+      background: rgba(34, 211, 238, 0.16);
+      color: #ecfeff;
     }
 
     mark {
@@ -243,9 +332,121 @@
     .vim-palette-item span:last-child { color: #6f6b82; }
     .vim-palette-item.active { background: rgba(137, 118, 214, 0.2); color: #fff; }
     .vim-palette-empty { padding: 20px 10px; color: #6f6b82; text-align: center; }
-    .vim-snake-head { color: #67e8f9; text-shadow: 0 0 8px #67e8f9; }
-    .vim-snake-body { color: #8b7bd6; }
-    .vim-snake-food { color: #fbbf24; text-shadow: 0 0 8px #fbbf24; }
+    #vim-snake {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: clamp(8px, 1.5vh, 16px);
+      padding: clamp(10px, 2vw, 24px);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(74, 53, 130, 0.18), transparent 46%),
+        linear-gradient(rgba(103, 232, 249, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(103, 232, 249, 0.018) 1px, transparent 1px),
+        #07070b;
+      background-size: auto, 24px 24px, 24px 24px, auto;
+    }
+
+    #vim-snake[hidden] { display: none; }
+
+    .vim-snake-hud,
+    .vim-snake-controls {
+      display: flex;
+      width: min(100%, var(--vim-snake-board-width, 100%));
+      box-sizing: border-box;
+      align-items: center;
+      justify-content: space-between;
+      justify-self: center;
+      gap: 18px;
+      color: #77738b;
+      font-size: clamp(10px, 1vw, 12px);
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .vim-snake-title { color: #f4f1ff; font-weight: 800; letter-spacing: 0.16em; }
+    .vim-snake-score { color: #67e8f9; font-weight: 700; }
+    .vim-snake-best { color: #fbbf24; }
+    .vim-snake-fantasy { color: #c9c4da; }
+
+    .vim-snake-board-wrap {
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    #vim-snake-board {
+      margin: 0;
+      padding: 0;
+      color: #665b9c;
+      font-family: Consolas, 'Courier New', monospace;
+      font-size: clamp(10px, 1.05vw, 15px);
+      font-variant-ligatures: none;
+      font-weight: 400;
+      line-height: 1.7;
+      letter-spacing: 0;
+      text-align: left;
+      white-space: pre;
+      user-select: none;
+      filter: drop-shadow(0 0 8px rgba(139, 123, 214, 0.18));
+    }
+
+    .vim-snake-head { color: #f4f1ff; font-weight: 800; text-shadow: 0 0 5px rgba(103, 232, 249, 0.8); }
+    .vim-snake-body,
+    .vim-snake-tail { color: #8b7bd6; font-weight: 700; text-shadow: 0 0 4px rgba(139, 123, 214, 0.45); }
+    .vim-snake-tail { color: #7165a8; }
+    .vim-snake-moth {
+      position: relative;
+      display: inline-block;
+      width: 3ch;
+      color: transparent;
+      text-shadow: none;
+    }
+    .vim-snake-moth::before {
+      position: absolute;
+      inset: 0;
+      color: #fbbf24;
+      content: '<*>';
+      font-weight: 800;
+      text-shadow: 0 0 5px #fbbf24, 0 0 12px rgba(251, 191, 36, 0.45);
+      animation: vim-snake-moth-flap 420ms steps(1, end) infinite;
+    }
+    .vim-snake-food { color: #fbbf24; font-weight: 800; text-shadow: 0 0 5px #fbbf24; }
+    #vim-snake.paused .vim-snake-title { color: #fbbf24; }
+    #vim-snake.game-over #vim-snake-board { color: #9d5670; }
+    #vim-snake.game-over .vim-snake-title { color: #fb7185; }
+    #vim-snake.moth-caught #vim-snake-board { animation: vim-snake-catch 260ms ease-out; }
+
+    @keyframes vim-snake-moth-flap {
+      50%, 100% { content: '\\*/'; }
+    }
+
+    @keyframes vim-snake-catch {
+      45% { filter: drop-shadow(0 0 16px rgba(251, 191, 36, 0.55)); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .vim-snake-moth::before { animation: none; }
+      #vim-snake.moth-caught #vim-snake-board { animation: none; }
+    }
+
+    @media (max-width: 560px) {
+      .vim-snake-hud {
+        align-content: center;
+        flex-wrap: wrap;
+      }
+      .vim-snake-controls {
+        display: grid;
+        justify-content: center;
+        gap: 4px;
+        text-align: center;
+        white-space: normal;
+      }
+    }
 
     #vim-editor.vim-touch #vim-statusbar,
     #vim-editor.vim-touch #vim-cmdline {
@@ -417,16 +618,30 @@
 
     @media (max-width: 640px) {
       html, body { font-size: 12px; line-height: 18px; }
+      #vim-editor.dashboard #vim-body { overflow-x: hidden; }
+      #vim-dashboard-pet {
+        position: absolute;
+        top: var(--vim-dashboard-pet-top, 0);
+        width: clamp(96px, 26vw, 112px);
+      }
       #vim-statusbar { font-size: 10px; }
+      #vim-mobile-keys { display: grid; }
       #vim-editor.dashboard #vim-body { background-size: 61px 47px, 79px 67px, 101px 83px; }
       .vim-moth-stage { width: 100vw; }
       .vim-moth-model { width: 108vw; margin-left: -4vw; }
       .vim-moth-copy { padding: 0 18px; font-size: 10px; letter-spacing: 0.04em; }
       .vim-moth-copy span { max-width: 310px; margin: 0 auto; }
       .vim-moth-copy strong { font-size: 12px; }
+      .vim-snake-hud,
+      .vim-snake-controls { gap: 8px; font-size: 9px; letter-spacing: 0.03em; }
     }
 
-    @media (max-height: 680px) {
+    @media (hover: none) and (pointer: coarse) {
+      #vim-mobile-keys { display: grid; }
+      #vim-editor.dashboard #vim-body { overflow-x: hidden; }
+    }
+
+    @media (min-width: 641px) and (max-height: 680px) {
       #vim-dashboard-pet { top: 60px; width: 120px; }
     }
 
@@ -442,6 +657,7 @@
       .vim-moth-model,
       .vim-moth-wire,
       .vim-moth-georgie { transition: none; }
+      #vim-dashboard-pet.is-georgie-active { animation: none; }
     }
   </style>
 </head>
@@ -450,16 +666,30 @@
     <div id="vim-body">
       <div id="vim-gutter"></div>
       <div id="vim-lines-wrap">
-        <img id="vim-dashboard-pet" src="/svg/georgie-pixel.svg" alt="">
+        <button id="vim-dashboard-pet" type="button" aria-label="Play with Georgie">
+          <span class="vim-dashboard-pet__sprite" aria-hidden="true"></span>
+        </button>
         <pre id="vim-content"></pre>
         <div id="vim-cursor"></div>
       </div>
     </div>
+    <textarea id="vim-mobile-input" tabindex="-1" aria-label="Vim keyboard input" inputmode="text" enterkeyhint="enter" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
     <div id="vim-cmdline"></div>
     <div id="vim-statusbar">
       <span id="vim-status-mode"></span>
       <span id="vim-status-file"></span>
       <span id="vim-status-pos"></span>
+    </div>
+    <div id="vim-mobile-keys" role="toolbar" aria-label="Vim mobile keys">
+      <button type="button" data-vim-key="Escape">Esc</button>
+      <button type="button" data-vim-modifier="Control" aria-pressed="false">Ctrl</button>
+      <button type="button" data-vim-key="Tab">Tab</button>
+      <button type="button" data-vim-key=":">:</button>
+      <button type="button" data-vim-key="/">/</button>
+      <button type="button" data-vim-key="h">h</button>
+      <button type="button" data-vim-key="j">j</button>
+      <button type="button" data-vim-key="k">k</button>
+      <button type="button" data-vim-key="l">l</button>
     </div>
   </div>
   <div id="vim-palette" hidden role="dialog" aria-modal="true" aria-labelledby="vim-palette-title">
@@ -470,6 +700,17 @@
       <input id="vim-palette-input" type="text" autocomplete="off" spellcheck="false" placeholder="Type an action or Vim command…">
       <div id="vim-palette-results" role="listbox"></div>
     </div>
+  </div>
+  <div id="vim-snake" hidden role="dialog" aria-modal="true" aria-labelledby="vim-snake-title">
+    <header class="vim-snake-hud">
+      <strong class="vim-snake-title" id="vim-snake-title">GEORGIE // NIGHT FLIGHT</strong>
+      <span><span class="vim-snake-score">MOTHS <b id="vim-snake-score">0</b></span> · <span class="vim-snake-best">BEST <b id="vim-snake-best">0</b></span></span>
+    </header>
+    <div class="vim-snake-board-wrap"><pre id="vim-snake-board" role="img" aria-label="Snake game board"></pre></div>
+    <footer class="vim-snake-controls">
+      <span class="vim-snake-fantasy">catch <b class="vim-snake-food">&lt;*&gt;</b> moth-lights · avoid the walls and your trail</span>
+      <span><b>hjkl</b>/<b>WASD</b>/arrows · <b>Space</b> pause · <b>r</b> restart · <b>Esc</b> return</span>
+    </footer>
   </div>
   <div id="vim-moth" hidden role="dialog" aria-modal="true" aria-labelledby="vim-moth-title">
     <div class="vim-moth-stage">
@@ -512,8 +753,8 @@
   </div>
   <script src="/js/vim-themes.js"></script>
   <script src="/js/vim-shell.js"></script>
-  <script src="/js/vim-help.js"></script>
+  <script src="/js/vim-help.js?v=georgie-pairs"></script>
   <script src="/js/vim-tutor.js"></script>
-  <script src="/js/vim.js"></script>
+  <script src="/js/vim.js?v=georgie-pairs"></script>
 </body>
 </html>

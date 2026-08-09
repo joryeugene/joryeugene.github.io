@@ -7,7 +7,8 @@
     "sync": "node scripts/sync-blog-surfaces.mjs",
     "check:sync": "node scripts/sync-blog-surfaces.mjs --check",
     "lint:prose": "node scripts/prose-lint.mjs",
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:motion": "playwright test -c playwright.motion.config.js"
   },
   "engines": {
     "node": ">=18"
