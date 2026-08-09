@@ -5,11 +5,19 @@
   <link href="https://jorypestorious.com/blog/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://jorypestorious.com/blog/" rel="alternate" type="text/html"/>
   <id>https://jorypestorious.com/blog/</id>
-  <updated>2026-07-06T00:00:00Z</updated>
+  <updated>2026-08-09T00:00:00Z</updated>
   <author>
     <name>Jory Pestorious</name>
     <uri>https://jorypestorious.com</uri>
   </author>
+
+  <entry>
+    <title>I Wanted to Own the Harness. Then Codex Desktop Won.</title>
+    <link href="https://jorypestorious.com/blog/portable-agent-factory/" rel="alternate" type="text/html"/>
+    <id>https://jorypestorious.com/blog/portable-agent-factory/</id>
+    <updated>2026-08-09T00:00:00Z</updated>
+    <summary>I staged a manifesto about owning my AI harness. Then I canceled Claude Max and moved into Codex Desktop. Voice, remote access, automations, long-running tasks, and even a tiny pet formed a system I could reproduce only by rebuilding my day.</summary>
+  </entry>
 
   <entry>
     <title>AI Engineer World&apos;s Fair 2026: Takeaways &amp; Verification</title>
