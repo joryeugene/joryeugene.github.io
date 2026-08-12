@@ -449,6 +449,25 @@ test('every Process case updates its summary, destination, deep dive, layers, an
   expect(failures).toEqual([]);
 });
 
+test('Process keyboard selection ignores hover until the pointer moves again', async ({ page }) => {
+  await page.goto('/process/');
+  const changes = page.getByRole('tab', { name: /Changes/ });
+  const tests = page.getByRole('tab', { name: /Tests/ });
+
+  await tests.hover();
+  await expect(tests).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('j');
+  await tests.focus();
+  await page.keyboard.press('Enter');
+
+  await changes.dispatchEvent('pointerenter', { pointerType: 'mouse', isPrimary: true });
+  await expect(tests).toHaveAttribute('aria-selected', 'true');
+
+  await changes.dispatchEvent('pointermove', { pointerType: 'mouse', isPrimary: true, bubbles: true });
+  await changes.dispatchEvent('pointerenter', { pointerType: 'mouse', isPrimary: true });
+  await expect(changes).toHaveAttribute('aria-selected', 'true');
+});
+
 test('mobile contact and cursor passage do not switch tabs before a completed tap', async ({ browser }) => {
   const context = await browser.newContext({
     hasTouch: true,

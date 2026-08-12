@@ -817,7 +817,18 @@ const ReaderShell = {
         return;
       }
 
-      if (palette.open) SiteCommandPalette.handleKeydown(palette, event);
+      if (palette.open) {
+        SiteCommandPalette.handleKeydown(palette, event);
+        return;
+      }
+
+      if (sheet.open || event.defaultPrevented) return;
+      const active = document.activeElement;
+      if (active?.matches('input, textarea, select, [contenteditable="true"]')) return;
+      if (event.key === 'j' || event.key === 'k') {
+        event.preventDefault();
+        window.scrollBy(0, event.key === 'j' ? 120 : -120);
+      }
     });
 
     document.addEventListener('pointerdown', (event) => {
@@ -1889,9 +1900,10 @@ window.BlogCommon = {
   }
 };
 
-// Portfolio pages own their keyboard model. Article pages keep the legacy
-// reading motions, but the portfolio shell must not open the fake Vim overlay.
+// Portfolio pages and standard article readers own their keyboard models. The
+// legacy navigation remains available on the blog index and older static pages.
+const isBlogArticlePath = /^\/blog\/[^/]+\/(?:index\.html)?$/.test(window.location.pathname);
 if (!document.body.classList.contains('portfolio-page')
-    && !/^\/blog\/[^/]+\/(?:index\.html)?$/.test(window.location.pathname)) {
+    && !isBlogArticlePath) {
   VimNav.init();
 }

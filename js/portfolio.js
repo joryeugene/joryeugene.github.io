@@ -57,12 +57,12 @@
       wrongTurns: [['Fake the ragdolls with canned animation', 'It would remove the live grip, chain, collision, and vehicle interactions that define the game.'], ['Synchronize every object equally', 'It spends the same bandwidth on sleeping scenery and the bodies players are actively controlling.']]
     },
     theosis: {
-      title: 'How Theosis turns SQLite content into a versioned CDN data layer',
+      title: 'How Theosis turns calendar and Bible databases into a versioned CDN data layer',
       kicker: 'Case: Theosis',
       layers: {
         brief: '<h2>Put today\'s Orthodox prayer cycle and Scripture in one book-like reader.</h2><p>Theosis follows Orthodox Church in America sources on the New Calendar, with daily prayer, Bible, saints, fasting guidance, chant, and pastoral help.</p>',
-        constraints: '<h2>Load one date or Bible chapter without shipping the full content database.</h2><p>The web reader needs fast access to two SQLite libraries without running SQLite in the browser or maintaining a live API and database.</p>',
-        changes: '<h2>Move database work to the build, then serve versioned files from the edge.</h2><p>Python reads the SQLite libraries and writes hashed JSON files for each day, month, and Bible chapter. The browser revalidates a small manifest, follows its index to the selected file, and downloads about 8 KB for a representative day or 5 KB for John 3. Cloudflare Pages can cache each unchanged, content-addressed file at the edge for one year. When content changes, its hash and URL change, and the manifest points readers to the new file.</p><div class="decision-note"><strong>Decision</strong>Use the CDN as a read-only data layer instead of running an API for deterministic content.</div>',
+        constraints: '<h2>Keep date lookup separate from full-Bible browsing and search.</h2><p><code>theosis.db</code> is keyed by date and includes the exact passages appointed for each day. <code>bible.db</code> is keyed by book, chapter, and verse, with canon and source metadata for unrestricted browsing and search. The web reader should not ship either database or a SQLite runtime.</p>',
+        changes: '<h2>Move both database reads to the build, then serve versioned files from the edge.</h2><p>Python reads 4,017 OCA calendar days and 39,891 Bible verses, then writes hashed JSON files for each day, month, and Bible chapter. The browser revalidates a small manifest, follows its index to the selected file, and downloads about 8 KB for a representative day or 5 KB for John 3. Cloudflare Pages can cache each unchanged, content-addressed file at the edge for one year. When content changes, its hash and URL change, and the manifest points readers to the new file.</p><div class="decision-note"><strong>Decision</strong>Use the CDN as a read-only data layer instead of running an API for deterministic content.</div>',
         tests: '<h2>Test the rules that can silently show the wrong prayer.</h2><p>The office resolver is checked across all 4,017 dates from 2025 through 2035. Tests separate personal prayer rules from Church offices, change the service date at Vespers without moving the selected calendar page, and withhold unverified daily propers.</p><div class="proof-strip"><span>4,017 dates</span><span>275 Jest tests</span><span>69 browser checks</span></div>',
         visual: '<h2>Make a deep Bible reader feel like one continuous reading session.</h2><p>The reader handles Orthodox Psalm numbering, canon filters, search, exact passage links, verse-range selection, discontinuous liturgical readings, and keyboard navigation. Phone, desktop, and 200% zoom checks catch overflow and clipped text.</p>'
       },
@@ -83,8 +83,18 @@
     }
   };
 
+  let hoverSelectionEnabled = true;
+  document.addEventListener('keydown', () => {
+    hoverSelectionEnabled = false;
+  }, true);
+  document.addEventListener('pointermove', (event) => {
+    if (event.pointerType === 'mouse') hoverSelectionEnabled = true;
+  }, { capture: true, passive: true });
+
   function shouldSelectOnHover(event) {
-    return event.pointerType === 'mouse' && !window.matchMedia('(max-width: 760px)').matches;
+    return hoverSelectionEnabled
+      && event.pointerType === 'mouse'
+      && !window.matchMedia('(max-width: 760px)').matches;
   }
 
   function initializeDepthTabs() {

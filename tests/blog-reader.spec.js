@@ -226,6 +226,30 @@ test.describe('shared blog reader', () => {
     await expect(palette).toBeHidden();
   });
 
+  test('scrolls standard article readers with j and k without stealing palette keys', async ({ page }) => {
+    await page.goto('/blog/ai-engineer-verification/');
+    await expect(page.locator('#vim-hud')).toHaveCount(0);
+
+    const start = await page.evaluate(() => window.scrollY);
+    await page.keyboard.press('j');
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(start);
+
+    const afterJ = await page.evaluate(() => window.scrollY);
+    await page.keyboard.press('k');
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(afterJ);
+
+    await page.getByRole('button', { name: 'Open command palette' }).click();
+    const palette = page.getByRole('dialog', { name: 'Command palette' });
+    await page.keyboard.press('ArrowDown');
+    const first = palette.getByRole('link').first();
+    const second = palette.getByRole('link').nth(1);
+    await expect(first).toBeFocused();
+    const beforePaletteKey = await page.evaluate(() => window.scrollY);
+    await page.keyboard.press('j');
+    await expect(second).toBeFocused();
+    expect(await page.evaluate(() => window.scrollY)).toBe(beforePaletteKey);
+  });
+
   test('smooth-scrolls generated contents links without loading the page again', async ({ page }) => {
     const documentRequests = [];
     page.on('request', (request) => {

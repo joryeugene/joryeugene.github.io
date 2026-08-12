@@ -58,8 +58,8 @@
           </article>
           <article id="case-theosis" data-case-panel hidden>
             <p class="eyebrow">Live web product</p>
-            <h2>Turn two SQLite libraries into a versioned CDN data layer.</h2>
-            <p>Theosis brings the daily prayer cycle, Bible, saints, fasting guidance, chant, and pastoral help into a quiet, book-like interface. Before deployment, Python generates hashed JSON files for each date, month, and Bible chapter. Expo exports the React Native Web interface, and Cloudflare Pages serves the application and versioned content through its global CDN. The browser loads only the selected file; no API starts and no live database query runs during a visit.</p>
+            <h2>Turn separate calendar and Bible databases into a versioned CDN data layer.</h2>
+            <p>Theosis keeps two source libraries because they serve different reads. <code>theosis.db</code> organizes 4,017 OCA calendar days and their feasts, fasts, saints, stories, and appointed readings by date. <code>bible.db</code> indexes 39,891 verses across 85 books for chapter browsing and search. Before deployment, Python emits hashed JSON for each day, month, Bible chapter, and search corpus. Expo exports the React Native Web interface, and Cloudflare Pages serves the application and selected data through its global CDN. Serving a visit requires no API process or live database query.</p>
             <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Pray Orthodox</a></div>
           </article>
           <article id="case-workhelix" data-case-panel hidden>

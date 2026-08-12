@@ -49,7 +49,8 @@ test.describe('portfolio shell', () => {
     await expect(page.getByText('Totally Reliable Delivery Service', { exact: true })).toBeVisible();
     await expect(page.getByText('Theosis', { exact: true })).toBeVisible();
     await expect(page.getByText(/four online ragdolls can form a chain and hang from a moving rocket/i)).toBeVisible();
-    await expect(page.getByText(/daily prayer cycle, Bible, saints, fasting guidance/i)).toBeVisible();
+    await expect(page.getByText(/4,017 OCA calendar days with feasts, fasts, saints, stories, and appointed readings/i)).toBeVisible();
+    await expect(page.getByText(/39,891 verses across 85 books for browsing and search/i)).toBeVisible();
     await expect(page.getByText('Live web product', { exact: true })).toBeVisible();
     await expect(page.getByText(/HRIS, AI-usage, and prompt data/i)).toBeVisible();
     await expect(page.getByText(/15\+?.*ECharts|more than 15.*ECharts/i)).toHaveCount(0);
@@ -266,7 +267,7 @@ test.describe('portfolio pages', () => {
     const cases = [
       ['Dadbod Grip', /Neovim into a data workbench/i, 'https://jorypestorious.com/dadbod-grip-web/'],
       ['Totally Reliable', /four live ragdolls stay connected to one rocket/i, 'https://www.totallyreliable.com/'],
-      ['Theosis', /SQLite content into a versioned CDN data layer/i, 'https://prayorthodox.com/'],
+      ['Theosis', /calendar and Bible databases into a versioned CDN data layer/i, 'https://prayorthodox.com/'],
       ['Workhelix', /company AI usage into product decisions/i, 'https://www.workhelix.com/platform']
     ];
 
@@ -284,8 +285,11 @@ test.describe('portfolio pages', () => {
     }
 
     await page.getByRole('tab', { name: 'Theosis' }).click();
-    await expect(page.getByText(/Turn two SQLite libraries into a versioned CDN data layer/i)).toBeVisible();
-    await expect(page.getByText(/no API starts and no live database query runs/i)).toBeVisible();
+    const theosisPanel = page.locator('#case-theosis');
+    await expect(page.getByText(/Turn separate calendar and Bible databases into a versioned CDN data layer/i)).toBeVisible();
+    await expect(theosisPanel).toContainText('4,017 OCA calendar days');
+    await expect(theosisPanel).toContainText('39,891 verses across 85 books');
+    await expect(theosisPanel).toContainText('requires no API process or live database query');
     await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Tests/ }).click();
     await expect(page.getByText(/all 4,017 dates from 2025 through 2035/)).toBeVisible();
     await expect(page.locator('a[href="https://github.com/joryeugene/theosis"]')).toHaveCount(0);
