@@ -291,6 +291,7 @@
     function visibleTargets() {
       const targets = rows.filter((row) => !row.hidden);
       if (featuredLink && !featured.hidden) targets.unshift(featuredLink);
+      if (showAll && !showAll.hidden) targets.push(showAll);
       return targets;
     }
 
@@ -342,6 +343,8 @@
       const firstHidden = rows.find((row) => row.hidden);
       expanded = true;
       filterRows();
+      selectedIndex = visibleTargets().indexOf(firstHidden);
+      firstHidden?.classList.add('is-selected');
       firstHidden?.focus({ preventScroll: true });
       firstHidden?.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     });

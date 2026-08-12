@@ -343,13 +343,20 @@ test.describe('portfolio pages', () => {
     await search.fill('');
     await search.blur();
     await page.keyboard.press('k');
-    await expect(page.locator('.writing-row:visible').last()).toHaveClass(/is-selected/);
+    await expect(showAll).toBeFocused();
     await page.keyboard.press('j');
     await expect(page.locator('.writing-feature')).toHaveClass(/is-selected/);
 
-    await showAll.click();
+    await page.keyboard.press('k');
+    await expect(showAll).toBeFocused();
+    await page.keyboard.press('Enter');
     await expect(page.locator('.writing-row:visible')).toHaveCount(17);
     await expect(showAll).toHaveAttribute('aria-expanded', 'true');
+    await expect(rows.nth(7)).toBeFocused();
+    await expect(rows.nth(7)).toHaveClass(/is-selected/);
+    await page.keyboard.press('k');
+    await expect(rows.nth(6)).toBeFocused();
+    await page.keyboard.press('j');
     await expect(rows.nth(7)).toBeFocused();
 
     await search.focus();

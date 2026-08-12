@@ -578,9 +578,10 @@ test('Writing search, reveal, keyboard selection, and article navigation all wor
   const writingCount = await page.locator('.writing-row').count();
   await page.getByRole('button', { name: /Show \d+ more essays/i }).click();
   await expect(page.locator('.writing-row:visible')).toHaveCount(writingCount);
+  await expect(page.locator('.writing-row').nth(7)).toBeFocused();
   await search.blur();
   await page.keyboard.press('j');
-  await expect(page.locator('.writing-feature')).toHaveClass(/is-selected/);
+  await expect(page.locator('.writing-row').nth(8)).toHaveClass(/is-selected/);
   await page.keyboard.press('j');
   await expect(page.locator('.writing-row.is-selected')).toHaveCount(1);
 
