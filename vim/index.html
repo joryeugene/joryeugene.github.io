@@ -272,7 +272,8 @@
       color: inherit;
     }
 
-    #vim-palette {
+    #vim-palette,
+    #vim-site-palette {
       position: fixed;
       inset: 0;
       z-index: 20;
@@ -283,7 +284,8 @@
       backdrop-filter: blur(4px);
     }
 
-    #vim-palette[hidden] { display: none; }
+    #vim-palette[hidden],
+    #vim-site-palette[hidden] { display: none; }
 
     .vim-palette-panel {
       width: min(620px, calc(100vw - 32px));
@@ -340,6 +342,80 @@
     .vim-palette-item span:last-child { color: #6f6b82; }
     .vim-palette-item.active { background: rgba(137, 118, 214, 0.2); color: #fff; }
     .vim-palette-empty { padding: 20px 10px; color: #6f6b82; text-align: center; }
+
+    #vim-site-palette .vim-palette-panel {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      max-height: min(680px, 72vh);
+    }
+
+    #vim-site-palette .site-command-palette,
+    #vim-site-palette .site-command-groups,
+    #vim-site-palette .site-command-list { display: grid; }
+    #vim-site-palette .site-command-palette { min-height: 0; padding: 0 14px 14px; }
+    #vim-site-palette .site-command-search label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+    #vim-site-palette [data-command-search] {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      outline: 0;
+      padding: 10px 12px;
+      background: rgba(6, 6, 14, 0.92);
+      color: #f4f1ff;
+      caret-color: #67e8f9;
+      font: inherit;
+    }
+    #vim-site-palette [data-command-search]:focus { border-color: #67e8f9; }
+    #vim-site-palette .site-command-groups {
+      gap: 8px;
+      min-height: 0;
+      max-height: min(520px, 55vh);
+      padding-top: 8px;
+      overflow-y: auto;
+      scrollbar-color: rgba(139, 123, 214, 0.55) transparent;
+      scrollbar-width: thin;
+    }
+    #vim-site-palette .site-command-groups::-webkit-scrollbar { width: 8px; }
+    #vim-site-palette .site-command-groups::-webkit-scrollbar-track { background: transparent; }
+    #vim-site-palette .site-command-groups::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      background: rgba(139, 123, 214, 0.55);
+      background-clip: content-box;
+    }
+    #vim-site-palette .site-command-group h3 {
+      margin: 0 0 4px;
+      color: #8b7bd6;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+    }
+    #vim-site-palette .site-command-list { gap: 2px; }
+    #vim-site-palette .site-command-list a {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      padding: 9px 10px;
+      border-radius: 6px;
+      color: #cdd6f4;
+      text-decoration: none;
+    }
+    #vim-site-palette .site-command-list a:hover,
+    #vim-site-palette .site-command-list a:focus-visible {
+      outline: 0;
+      background: rgba(137, 118, 214, 0.2);
+      color: #fff;
+    }
+    #vim-site-palette .site-command-list small { color: #6f6b82; text-align: right; }
+    #vim-site-palette .site-command-empty { margin: 0; padding: 20px 10px; color: #6f6b82; text-align: center; }
+    #vim-site-palette .site-command-list a[hidden],
+    #vim-site-palette .site-command-group[hidden],
+    #vim-site-palette .site-command-empty[hidden] { display: none; }
     #vim-snake {
       position: fixed;
       inset: 0;
@@ -669,8 +745,8 @@
     }
   </style>
 </head>
-<body>
-  <div id="vim-editor">
+<body class="vim-page">
+  <div id="vim-editor" tabindex="-1">
     <div id="vim-body">
       <div id="vim-gutter"></div>
       <div id="vim-lines-wrap">
@@ -703,10 +779,18 @@
   <div id="vim-palette" hidden role="dialog" aria-modal="true" aria-labelledby="vim-palette-title">
     <div class="vim-palette-panel">
       <label class="vim-palette-label" id="vim-palette-title" for="vim-palette-input">
-        <span>COMMAND PALETTE</span><span>CTRL P · ESC</span>
+        <span>VIM COMMANDS</span><span>CTRL P · ESC</span>
       </label>
       <input id="vim-palette-input" type="text" autocomplete="off" spellcheck="false" placeholder="Type an action or Vim command…">
       <div id="vim-palette-results" role="listbox"></div>
+    </div>
+  </div>
+  <div id="vim-site-palette" hidden role="dialog" aria-modal="true" aria-labelledby="vim-site-palette-title">
+    <div class="vim-palette-panel">
+      <div class="vim-palette-label" id="vim-site-palette-title">
+        <span>SITE COMMANDS</span><span>CTRL K · ESC</span>
+      </div>
+      <div data-site-command-palette></div>
     </div>
   </div>
   <div id="vim-snake" hidden role="dialog" aria-modal="true" aria-labelledby="vim-snake-title">
@@ -761,8 +845,9 @@
   </div>
   <script src="/js/vim-themes.js"></script>
   <script src="/js/vim-shell.js"></script>
-  <script src="/js/vim-help.js?v=georgie-pairs"></script>
+  <script src="/js/vim-help.js?v=site-commands"></script>
   <script src="/js/vim-tutor.js"></script>
-  <script src="/js/vim.js?v=georgie-pairs"></script>
+  <script src="/js/blog-common.js?v=foundation-plus-4"></script>
+  <script src="/js/vim.js?v=site-commands"></script>
 </body>
 </html>

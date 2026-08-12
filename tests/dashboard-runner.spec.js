@@ -92,6 +92,24 @@ test.describe('dashboard and runner experience', () => {
     await expect(page.locator('#vim-palette')).toBeHidden();
   });
 
+  test('Ctrl-K opens site commands without replacing Ctrl-P Vim commands', async ({ page }) => {
+    await open(page);
+    await press(page, 'Control+k');
+
+    const sitePalette = page.getByRole('dialog', { name: 'Site commands' });
+    await expect(sitePalette).toBeVisible();
+    await expect(sitePalette.getByText('SITE COMMANDS')).toBeVisible();
+    await sitePalette.getByRole('searchbox', { name: 'Search commands' }).fill('contact');
+    await expect(sitePalette.locator('[data-site-command]:visible')).toHaveCount(1);
+    await expect(sitePalette.getByRole('link', { name: /Contact/ })).toBeVisible();
+
+    await press(page, 'Escape');
+    await expect(sitePalette).toBeHidden();
+    await expect(page.locator('#vim-editor')).toBeFocused();
+    await press(page, 'Control+p');
+    await expect(page.getByRole('dialog', { name: 'Vim commands' })).toBeVisible();
+  });
+
   test('dashboard blog example opens the recommended post', async ({ page }) => {
     await open(page);
     await cmd(page, 'e friction-economy');
@@ -292,8 +310,8 @@ test.describe('dashboard and runner experience', () => {
         .map(url => [url.pathname, url.searchParams.get('v')])
     ));
     expect(versions).toEqual({
-      '/js/vim-help.js': 'georgie-pairs',
-      '/js/vim.js': 'georgie-pairs'
+      '/js/vim-help.js': 'site-commands',
+      '/js/vim.js': 'site-commands'
     });
   });
 

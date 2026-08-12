@@ -20,7 +20,7 @@ The site palette adopts the Vim page's colors and geometry. It does not add the 
 
 ## Implementation boundary
 
-Move the existing site command palette object into a small shared script that exports `window.SiteCommandPalette`. The portfolio, article reader, and Vim page consume that object. Keep the command list in one place and do not add a command registry, shortcut service, dependency, or build step.
+Load the existing shared `blog-common.js` script from the Vim page and consume `window.BlogCommon.SiteCommandPalette`. Keep the command list in one place and do not add a command registry, shortcut service, dependency, or build step. Exclude the Vim page from the script's legacy navigation initializer because Phalene-Vim owns its keyboard model.
 
 The Vim page owns opening, closing, and focus restoration because its keyboard modes are local state. Existing portfolio and reader behavior remains unchanged.
 

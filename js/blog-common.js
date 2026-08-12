@@ -1933,6 +1933,7 @@ window.BlogCommon = {
 // legacy navigation remains available on the blog index and older static pages.
 const isBlogArticlePath = /^\/blog\/[^/]+\/(?:index\.html)?$/.test(window.location.pathname);
 if (!document.body.classList.contains('portfolio-page')
+    && !document.body.classList.contains('vim-page')
     && !isBlogArticlePath) {
   VimNav.init();
 }

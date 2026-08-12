@@ -258,7 +258,8 @@
     autoindent: false,
     pendingBracket: null,
     dashboard: true,
-    paletteOpen: false
+    paletteOpen: false,
+    sitePaletteOpen: false
   };
 
   function resetWelcomeLayout() {
@@ -2922,6 +2923,7 @@
     state.paletteOpen = false;
     document.getElementById('vim-palette').hidden = true;
     document.getElementById('vim-palette-input').blur();
+    document.getElementById('vim-editor').focus({ preventScroll: true });
   }
 
   function runPalette(index) {
@@ -2932,6 +2934,32 @@
     state.mode = 'normal';
     execCommand(item.command);
     render();
+  }
+
+  var sitePaletteCommands = null;
+
+  function openSitePalette() {
+    if (state.immersiveMode || !sitePaletteCommands) return;
+    state.sitePaletteOpen = true;
+    triggerTouch();
+    document.getElementById('vim-site-palette').hidden = false;
+    sitePaletteCommands.open(document.getElementById('vim-site-palette'));
+  }
+
+  function closeSitePalette() {
+    state.sitePaletteOpen = false;
+    document.getElementById('vim-site-palette').hidden = true;
+    document.querySelector('#vim-site-palette [data-command-search]').blur();
+    document.getElementById('vim-editor').focus({ preventScroll: true });
+  }
+
+  function handleSitePaletteKey(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeSitePalette();
+      return;
+    }
+    sitePaletteCommands.handleKeydown(document.getElementById('vim-site-palette'), e);
   }
 
   function handlePaletteKey(e) {
@@ -5232,7 +5260,29 @@
   }
 
   function handleKey(e) {
+    if (state.sitePaletteOpen) {
+      if (e.ctrlKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        closeSitePalette();
+        openPalette();
+        return;
+      }
+      if (e.ctrlKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        closeSitePalette();
+        return;
+      }
+      handleSitePaletteKey(e);
+      return;
+    }
+
     if (state.paletteOpen) {
+      if (e.ctrlKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        closePalette();
+        openSitePalette();
+        return;
+      }
       handlePaletteKey(e);
       return;
     }
@@ -5257,6 +5307,12 @@
     if (e.ctrlKey && e.key.toLowerCase() === 'p' && (state.mode === 'normal' || state.mode === 'visual')) {
       e.preventDefault();
       openPalette();
+      return;
+    }
+
+    if (e.ctrlKey && e.key.toLowerCase() === 'k' && (state.mode === 'normal' || state.mode === 'visual')) {
+      e.preventDefault();
+      openSitePalette();
       return;
     }
 
@@ -5487,6 +5543,13 @@
     paletteInput.addEventListener('input', function() { paletteIndex = 0; renderPalette(); });
     paletteEl.addEventListener('click', function(e) {
       if (e.target === paletteEl) closePalette();
+    });
+
+    var sitePaletteEl = document.getElementById('vim-site-palette');
+    sitePaletteCommands = window.BlogCommon && window.BlogCommon.SiteCommandPalette;
+    sitePaletteCommands.mount(sitePaletteEl, 'vim-site-command-search');
+    sitePaletteEl.addEventListener('click', function(e) {
+      if (e.target === sitePaletteEl) closeSitePalette();
     });
 
     if (!contentEl) return; // not on vim page
