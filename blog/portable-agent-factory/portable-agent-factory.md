@@ -6,7 +6,7 @@
 
 I had a different article staged for this URL. It was called “Own the Harness, Rent the Intelligence.” I argued that my rules, skills, and tools should move with me when I changed models or subscriptions.
 
-I still believe that. The embarrassing part is that I had stopped living that way before I finished the piece: I had canceled [Claude Max](https://support.claude.com/en/articles/11049741-what-is-the-max-plan), which would have sounded impossible a few months earlier.
+I still believe that because portability is what let me cancel [Claude Max](https://support.claude.com/en/articles/11049741-what-is-the-max-plan) without abandoning my rules. Once I moved, I stopped optimizing for the next harness and kept opening Codex Desktop. A few months earlier, leaving Claude would have sounded impossible.
 
 I was a diehard [Claude Code](https://code.claude.com/docs/en/overview) fanboy. Each new feature sent me into another Anthropic rabbit hole, from managed-agent [“dreaming”](https://www.anthropic.com/engineering/managed-agents) to the [J-space paper](https://www.anthropic.com/research/global-workspace). I kept imagining what the next hook, agent mode, or memory idea might make possible. I still wanted Claude to win even as I opened [Codex Desktop](https://learn.chatgpt.com/docs/app) instead.
 
