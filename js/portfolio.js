@@ -57,7 +57,7 @@
       wrongTurns: [['Fake the ragdolls with canned animation', 'It would remove the live grip, chain, collision, and vehicle interactions that define the game.'], ['Synchronize every object equally', 'It spends the same bandwidth on sleeping scenery and the bodies players are actively controlling.']]
     },
     theosis: {
-      title: 'How Theosis turns calendar and Bible databases into a versioned CDN data layer',
+      title: 'How Theosis serves calendar and Bible data from the edge',
       kicker: 'Case: Theosis',
       layers: {
         brief: '<h2>Put today\'s Orthodox prayer cycle and Scripture in one book-like reader.</h2><p>Theosis follows Orthodox Church in America sources on the New Calendar, with daily prayer, Bible, saints, fasting guidance, chant, and pastoral help.</p>',

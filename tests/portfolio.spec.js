@@ -267,7 +267,7 @@ test.describe('portfolio pages', () => {
     const cases = [
       ['Dadbod Grip', /Neovim into a data workbench/i, 'https://jorypestorious.com/dadbod-grip-web/'],
       ['Totally Reliable', /four live ragdolls stay connected to one rocket/i, 'https://www.totallyreliable.com/'],
-      ['Theosis', /calendar and Bible databases into a versioned CDN data layer/i, 'https://prayorthodox.com/'],
+      ['Theosis', /serves calendar and Bible data from the edge/i, 'https://prayorthodox.com/'],
       ['Workhelix', /company AI usage into product decisions/i, 'https://www.workhelix.com/platform']
     ];
 
