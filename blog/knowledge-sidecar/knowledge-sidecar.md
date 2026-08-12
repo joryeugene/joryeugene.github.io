@@ -1,132 +1,97 @@
-# Verified Context Is the Moat
+# When `UNCERTAIN` Becomes `VERIFIED`
 
-**Storing context is easy. Verifying it is correct is the work almost nobody is doing, and asking teams to do it by convention is wishful.**
+**Keephive carries facts across agent sessions. Its current verifier can also put a new verification date on a fact it could not confirm.**
 
 *By Jory Pestorious | March 2026*
 
-## The Protection/Verification Asymmetry
+> **August 2026 note:** The links below pin the March code for keephive and Tripod. Keephive 2.2.1 still has both defects traced here. Claude Code added [auto memory](https://code.claude.com/docs/en/memory) in February 2026; I missed it.
 
-An earlier essay in this series explored what happens when AI agents form civilizations in simulation. The agents developed protection mechanisms with consistency: guards, governments, cultural identities, and religion all emerged spontaneously. Verification did not. Across every experiment in the literature, no simulated agent society developed fact-checking, skepticism, or any mechanism for confirming whether its own beliefs corresponded to reality.
+I built [keephive](https://github.com/joryeugene/keephive) to carry facts and decisions across agent sessions. Its memory path is useful: the CLI writes durable Markdown, session hooks inject selected context, and an MCP server exposes the same store to other compatible agents. The state is persistent/inspectable. I can open it, edit it, delete it, and see what an agent will read.
 
-That asymmetry applies closer to home than expected.
+The verifier does not justify calling all of that context verified. At keephive v2.1.0, an `UNCERTAIN` result receives a new `[verified:DATE]` tag. A separate session-start path can refresh a stale fact when its words overlap with a recent log entry. Neither path proves the fact.
 
-Convention accumulates naturally: style guides appear, CLAUDE.md files grow, and process documentation multiplies. Teams write down what should happen and express the intention that it will. These are forms of protection, and they describe intent rather than enforcing it.
+Persistent memory increases the cost of that mistake. A bad answer in one chat can disappear with the session. A bad fact in working memory can return at every session start.
 
-Conventions degrade under load. As an instruction set grows, each individual instruction competes with every other instruction for attention. Background constraints lose salience when the foreground task demands focus. This is true for human teams following process documentation, and it is equally true for AI agents following system prompts. The phenomenon is not about disobedience. It is about attention as a finite resource.
+In [Protection Emerged, Verification Did Not](../emergent-religion/index.html), I looked at verification through agent simulations. [Project Sid](https://arxiv.org/html/2411.00114v1) seeded Pastafarianism through designated priest agents and supplied roles for some collective tasks. The paper did not test whether a fact-checking role would emerge. The narrower engineering question still matters: when a system keeps beliefs, what can reject one that is wrong?
 
-The software industry has lived through this transition repeatedly. For a decade, the convention around database security was "sanitize your inputs." The teaching was correct. The compliance was inconsistent. SQL injection became one of the most exploited vulnerabilities on the web because the gate depended on every developer, in every handler, remembering to sanitize every input. Parameterized queries moved that constraint into the database driver itself, making the vulnerable pattern structurally impossible. TypeScript did the same for JavaScript's naming conventions and JSDoc annotations, moving type safety from convention into the compiler. The transition is always the same: a convention fails enough times, and the industry builds a structural gate that does not depend on attention.
+## What Keephive Actually Stores
 
-Knowledge management for AI sessions follows the same pattern. Every developer who uses Claude Code long enough writes a CLAUDE.md. That is convention. Whether the facts in that file are still true three months later is a verification problem that convention does not solve.
-
-## Two Sidecars: Knowledge and Enforcement
-
-In microservices architecture, a sidecar is a container that runs alongside a primary service, handling concerns the primary service should not manage directly: logging, security, service discovery, configuration sync. The sidecar does not replace the primary service. It handles the cross-cutting layer so the primary service stays focused.
-
-The convention-to-structure transition requires two distinct layers running alongside the primary tool. One manages what you know. The other blocks what you must not do. These are separate concerns. Braiding them into a single tool conflates two different failure modes: stale knowledge and unconstrained behavior.
-
-[keephive](https://github.com/joryeugene/keephive) is a knowledge sidecar for Claude Code. It runs alongside your sessions, handling the layer Claude Code is not designed to manage: what you have learned, whether that knowledge is still true, and how to surface the right context at the right moment. It does not replace Claude Code or change how Claude works.
-
-[tripod](https://github.com/joryeugene/tripod) is an enforcement sidecar. Its PreToolUse hooks intercept tool calls before execution and block anti-patterns: em-dashes in prose, `--no-verify` on commits, `git stash` destroying working state, writing to `/tmp`. The agent does not choose to comply. The structural gate removes the option. When an agent encounters a failing pre-commit hook, adding `--no-verify` is locally rational: remove the obstacle, complete the task. It is also catastrophic, because it disables the entire enforcement pipeline. A convention that says "never use --no-verify" asks the agent to voluntarily preserve the system that constrains it. A hook that blocks the pattern before execution removes the question entirely. tripod also ships workflow skills (TDD, spec-writing, debugging protocol, security review) that encode the convention layer, but the hooks are what make those conventions safe to rely on.
-
-The division of responsibility is clean:
-
-| Claude Code | keephive | tripod |
-|---|---|---|
-| Task execution | Knowledge persistence | Structural enforcement |
-| Code generation | Fact verification | Anti-pattern blocking |
-| Session reasoning | Cross-session context | Workflow skills |
-| Tool use | Background intelligence | Hook-level gates |
-
-The two sidecars complement each other. keephive tells the agent what is true. tripod prevents the agent from doing what is wrong. Neither replaces Claude Code. Both handle cross-cutting concerns the primary tool is not designed to manage.
-
-## Capture
-
-During and between sessions, you log facts, decisions, and context:
+Keephive separates a daily record from working memory. `hive r` appends an event to a dated log. `hive mem` writes a fact to `working/memory.md`, where the current implementation immediately adds today's verification tag. `hive verify` later reads facts from that working-memory file, plus unreviewed auto-captured facts.
 
 ```bash
+# Append events to today's log
 hive r "FACT: auth service uses JWT with 15-minute expiry"
 hive r "DECISION: chose Postgres over MySQL for JSONB support"
 hive r "TODO: migrate legacy user table to new schema"
-```
 
-keephive operates through Claude Code's hook system. The session start hook injects your memory, active TODOs, and matched knowledge guides into each new session automatically. The agent starts informed rather than blank.
+# Add the fact separately to working memory so verify can inspect it
+hive mem "auth service uses JWT with 15-minute expiry"
 
-## Verify
-
-This is where the knowledge sidecar diverges from every other AI memory tool.
-
-Any tool can store notes. keephive checks whether stored facts are still true:
-
-```bash
+# Ask the verifier to inspect working-memory facts
 hive verify
 ```
 
-`hive verify` runs each stored fact against your actual codebase using an LLM call. It marks facts stale when reality has diverged from what you recorded.
+The JWT line is an example, not captured telemetry. The command boundary is real and visible in [`remember.py`](https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/commands/remember.py) and [`memory.py`](https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/commands/memory.py). `hive r` accepts `FACT`, `DECISION`, and `TODO` records, but recording a fact in the daily log does not put it on the verifier's input list. The fact must enter working memory separately.
 
-```
-Checking: "auth service uses JWT with 15-minute expiry"
-  Checking auth/tokens.py... STALE: expiry changed to 60 minutes in commit a3f2c1
+At session start, keephive filters working memory to the current project, adds rules and stale-fact warnings, surfaces due recurring tasks, and selects matching knowledge guides within a fixed budget. That is the part I wanted: the next session receives relevant state without loading every note I have ever written.
 
-Checking: "we use Postgres, not MySQL"
-  Confirmed in docker-compose.yml and pyproject.toml
-```
+Keephive's value cannot rest on persistence alone. Its stronger ideas are an explicit cross-agent store, deliberate recall, and an evidence trail for attempted verification.
 
-A fact that was true six months ago but no longer is does not compound your knowledge. It corrupts it. A CLAUDE.md full of stale facts trains the agent to make decisions based on a codebase that no longer exists. The verification loop transforms a note-taking system into a living knowledge base.
+## The Verifier's Actual Contract
 
-## Compound
+[`hive verify`](https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/commands/verify.py) lists the eligible facts and asks `Verify with LLM?` before the first model call. It then sends batches to Claude Sonnet with `Read`, `Grep`, `Glob`, and `WebSearch`, asking again before each additional batch. The prompt requests one of three verdicts. `VALID` means the model found confirming evidence. `STALE` means it found a contradiction and can supply replacement text. `UNCERTAIN` means it investigated but found evidence for neither conclusion.
 
-Verified facts feed back into session context. Each session starts with knowledge that is accurate now, not knowledge that was accurate at some point in the past.
+The first two branches behave as their names suggest. A valid fact receives a new date. A stale fact can be replaced with the model's correction. Keephive stores the verdict and a shortened reason under a hash of the old fact, but it does not store the replacement text in that evidence history.
 
-```
-Knowledge State
-  Facts:      47 total, 44 verified, 3 stale
-  Guides:     6 active, 2 always-on
-  Freshness:  94%
-  Recall:     12 queries this week
-```
+The third branch changes the meaning of the store. It prints `Refreshed (not disproven)` and also writes a new verification date. The system preserves the `UNCERTAIN` verdict in its evidence history, but the working-memory line looks fresh again. Any later code that reads only `[verified:DATE]` loses the distinction.
 
-A codebase with 94% verified context compounds. An agent that starts each session with accurate knowledge makes better decisions in the first five minutes than a session that spends those five minutes rediscovering what already exists. That time difference compounds across every session, every day.
+Session start adds a second shortcut. [`_auto_reverify`](https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/hooks/sessionstart.py) compares stale facts with entries from daily logs for the last seven days. More than 50 percent word overlap refreshes the verification date without inspecting the repository or calling a model. Repeating a claim in a recent log can therefore make the same claim look current.
 
-## The Team Dimension
+The dashboard's freshness percentage cannot repair this. [`_knowledge_health`](https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/commands/stats.py) calls a decay score that weights the tag's recency at 40 percent, then splits the remaining weight across log references, fact category, and recall frequency. A score above 0.6 counts as fresh. That metric describes use and age, not evidentiary truth. A display that reads `94% fresh` can therefore look like measured truth without measuring it.
 
-The pattern repeats at team boundaries. AI tools amplify clear inputs and produce garbage on ambiguous ones. The quality of the output is determined less by the capability of either side and more by the quality of the handoff between them.
+## What Verification Would Require
 
-Failure lives in the joints, not the parts. The handoff between human and model is where quality breaks down. An experienced engineer paired with a capable model still produces poor output when the context passed between them is stale, contradictory, or absent. The model is not the bottleneck. The context is.
+`UNCERTAIN` has to remain uncertain. The verifier can keep the previous check date, clear it, or add a separate uncertainty field, but it cannot advance the evidence state merely because no contradiction was found. Absence of evidence is not a successful check.
 
-QA is a process, not an event. Running verification once at the end of a sprint is convention. Running verification continuously, at every session boundary, at every codebase change, is structure. The difference is the same as the difference between "sanitize your inputs" and parameterized queries.
+A correction also needs provenance that survives the rewrite. The current evidence record keeps the old claim, verdict, shortened reason, and up to five recent checks. It should also link the replacement, preserve the complete evidence locations, name the model and prompt version, and record whether a human accepted the change. Without that chain, rollback and contradiction review are harder.
 
-Verified knowledge becomes shared infrastructure. When an engineer leaves a team, their CLAUDE.md leaves with their attention. The institutional knowledge they accumulated exists only in their session habits and their memory of what they once wrote down. Automated verification persists. A knowledge base that checks its own truth survives the departure of the person who wrote it.
+Automatic rechecks should follow evidence, not repeated language. A path change, dependency update, failing test, or content hash can identify a reason to inspect a fact again. Word overlap can retrieve a candidate. It cannot verify one.
 
-## The Moat
+The evaluation is equally concrete. Seed working memory with known true, false, obsolete, and unanswerable facts. Run the same repository state through the verifier repeatedly. Measure how often each class becomes `VALID`, `STALE`, or `UNCERTAIN`, then inspect every mutation to memory. A verifier has to prove that it preserves uncertainty before its freshness score means anything.
 
-Intelligence is commoditizing. GPT, Claude, and Gemini are substitutable for most tasks today. The capability gap between frontier models narrows with each release cycle.
+## Tripod Guards a Different Boundary
 
-Context is not commoditizing. Your accumulated, verified knowledge about your specific codebase, your team's decisions, your architectural rationale, and your learned patterns is not something a commodity model provides. It is yours, and it compounds with use.
+[Tripod](https://github.com/joryeugene/tripod) addresses behavior rather than knowledge. Its [`PreToolUse` hooks](https://github.com/joryeugene/tripod/blob/289682b4b672205df871ffc1fbf5c5d64f3d030e/hooks/hooks.json) inspect matching Claude Code tool calls and return a denial for patterns such as Unicode dashes, `--no-verify`, `git stash`, and writes under `/tmp`.
 
-The moat is the combination: verified context protected by structural gates. Either layer alone is incomplete. Knowledge without enforcement drifts as stale facts accumulate and bad patterns creep in unchecked. Enforcement without knowledge is rigid and uninformed, blocking mistakes but unable to guide the agent toward better decisions.
+That boundary is narrower and easier to verify. While the plugin is active, a matching Bash, Write, or Edit call is rejected before execution. Tripod does not make the behavior impossible in every client or outside Claude Code, and a user can disable the plugin. It does remove one recurring decision from the tool path it controls.
 
-Not every constraint needs the same level of enforcement. A tone preference that drifts occasionally belongs in convention, where flexibility is a feature. A destructive command that silently corrupts shared state belongs in structure, where inflexibility is the point. The cost of a single violation determines where a constraint belongs on that spectrum.
+The `--no-verify` case is why I still separate memory from enforcement. When a pre-commit hook fails, bypassing it can look like the shortest path to finishing the task. A written instruction asks the agent to remember the rule while it is trying to remove the obstacle. A PreToolUse hook can deny that exact command. Keephive can record why the rule exists; Tripod can enforce the narrow boundary.
 
-The gap between a fresh Claude Code session and one that starts with months of verified, contextually-matched knowledge is not a model capability gap. It is a knowledge infrastructure gap. Convention emerges naturally, and everyone eventually writes a CLAUDE.md; structure must be built deliberately, because nobody accidentally builds a verification pipeline or a hook-level enforcement layer.
+Tripod also packages skills for TDD, spec writing, debugging protocol, and security review. Those skills supply procedures when the task calls for them. The hook set does not enforce those complete workflows.
 
-The central question of this blog is what emerges when complexity reaches sufficient scale. Protection emerges. Verification does not. The tools to build verification exist at every layer of the stack. The pattern is always the same: convention is a form of protection, and structure is a form of verification. Only one of them holds when nobody is watching.
+Not every preference needs a hook. A tone preference can remain guidance because an occasional miss is cheap and a hard block would create its own friction. A command that moves another agent's uncommitted work out of the worktree deserves a stronger boundary. The consequence of one violation determines which layer should own the rule.
 
-## Getting Started
+## Release Limits and Setup
+
+Keephive v2.1.0 imports the POSIX-only `fcntl` module at the top of [`storage.py`](https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/storage.py). On native Windows, that import fails before a command can run. The CLI and MCP design are cross-agent, but this release is not cross-platform. The install below requires Python 3.13 or later on a supported Unix-like environment until that lock implementation has a Windows path.
 
 ```bash
-# Install keephive (knowledge sidecar)
+# keephive: persistent memory and the verification loop described above
 uv tool install keephive
-hive setup
+keephive setup
 
-# Install tripod (enforcement sidecar)
-claude install-plugin gh:joryeugene/tripod
-
-# Start logging what you learn
-hive r "FACT: ..."
-
-# Run your first verification
-hive verify
+# tripod: Claude Code hooks and workflow skills
+claude plugin marketplace add joryeugene/tripod
+claude plugin install tripod
 ```
+
+The package is also on [PyPI](https://pypi.org/project/keephive/). Both repositories remain the authority for setup because their interfaces can change after this article.
+
+## The Claim I Can Defend
+
+Keephive already provides plain-file memory, project-aware context injection, explicit recall, and evidence records I can inspect. Tripod can deny a smaller set of Claude Code tool calls. I can show those mechanisms in source; I have not measured how much time they save or whether they improve later decisions.
+
+What I have not built yet is a knowledge base that checks its own truth. Until `UNCERTAIN` stays uncertain, corrections link old and new evidence, false-memory tests pass, and the Windows package runs, keephive is a memory sidecar with a verification loop in progress. That description is less exciting than "verified context is the moat." It is also the version I can defend by opening the code.
 
 **Links:**
 - keephive: [GitHub](https://github.com/joryeugene/keephive) | [PyPI](https://pypi.org/project/keephive/)

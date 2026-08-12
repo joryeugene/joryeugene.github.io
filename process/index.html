@@ -47,7 +47,7 @@
           <article id="case-dadbod" data-case-panel>
             <p class="eyebrow">Open source tool</p>
             <h2>Edit database tables and join data across sources without leaving Neovim.</h2>
-            <p>Dadbod Grip stages table edits as exact SQL and commits them atomically. DuckDB joins PostgreSQL, MySQL, SQLite, MotherDuck, Parquet, S3, and HTTPS data in one query.</p>
+            <p>Dadbod Grip stages table edits, exposes generated SQL for review, and applies the batch atomically. DuckDB can join PostgreSQL, MySQL, SQLite, MotherDuck, and local or HTTPS files in one query.</p>
             <div class="case-destinations"><a href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>Open the walkthrough</a><a href="https://github.com/joryeugene/dadbod-grip.nvim" data-jelly>View source</a></div>
           </article>
           <article id="case-totally-reliable" data-case-panel hidden>
@@ -92,7 +92,7 @@
 
             <div id="layer-brief" class="layer-content" role="tabpanel" data-layer-content hidden>
               <h2>Edit, query, and analyze data without leaving Neovim.</h2>
-              <p>Dadbod Grip adds editable grids, exact SQL previews, cross-database queries, schema navigation, profiling, notebooks, and schema-aware AI to the editor.</p>
+              <p>Dadbod Grip adds editable grids, generated SQL previews, cross-database queries, schema navigation, profiling, notebooks, and schema-aware AI to the editor.</p>
             </div>
 
             <div id="layer-constraints" class="layer-content" role="tabpanel" data-layer-content hidden>
@@ -106,7 +106,7 @@
 <span class="add">+ ALTER TABLE users ADD last_seen_at TIMESTAMPTZ;</span>
 <span class="add">+ CREATE INDEX idx_users_last_seen_at</span>
 <span class="add">+   ON users (last_seen_at DESC);</span></code></pre>
-              <div class="decision-note"><strong>Decision</strong>Show the exact mutation SQL before one atomic commit.</div>
+              <div class="decision-note"><strong>Decision</strong>Show the generated mutation SQL before one atomic commit.</div>
               <div class="proof-strip"><span>Editable grids</span><span>DuckDB federation</span><span>SQL notebooks</span></div>
             </div>
 
@@ -131,7 +131,7 @@
             </article>
             <article class="wrong-turn">
               <h3>Hide generated SQL</h3>
-              <p>Users need to inspect the exact query or mutation before it reaches a database.</p>
+              <p>Users need to inspect generated query or mutation SQL before it reaches a database.</p>
             </article>
           </aside>
         </div>

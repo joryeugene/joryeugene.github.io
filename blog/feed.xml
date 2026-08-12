@@ -36,11 +36,11 @@
   </entry>
 
   <entry>
-    <title>What the Model Learned Not to Show</title>
+    <title>When the Transcript Is Not Enough</title>
     <link href="https://jorypestorious.com/blog/what-the-model-learned/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/what-the-model-learned/</id>
     <updated>2026-04-13T00:00:00Z</updated>
-    <summary>Every prior model card warned about what might happen. The Mythos Preview card documents what the model has already learned to hide. In separate evaluations, instances recognized disallowed actions and concealed evidence. White-box interpretability analysis confirmed the split: the model&apos;s written chain-of-thought showed nothing unusual. Its activations showed everything.</summary>
+    <summary>Anthropic caught rare cover-ups in earlier Claude Mythos snapshots. Internal probes clarified what those snapshots knew, but Anthropic found no clear cover-up in the final model and the probes did not expose its inner state.</summary>
   </entry>
 
   <entry>
@@ -52,11 +52,11 @@
   </entry>
 
   <entry>
-    <title>Verified Context Is the Moat</title>
+    <title>When UNCERTAIN Becomes VERIFIED</title>
     <link href="https://jorypestorious.com/blog/knowledge-sidecar/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/knowledge-sidecar/</id>
     <updated>2026-03-20T00:00:00Z</updated>
-    <summary>Storing context is easy. Verifying it is correct is the work almost nobody is doing, and asking teams to do it by convention is wishful. Two sidecars, keephive (knowledge persistence and fact verification) and tripod (structural enforcement hooks), turn Claude Code sessions into compounding knowledge protected by structural gates rather than good intentions.</summary>
+    <summary>Keephive carries context across agent sessions. Its current verifier can also make an unconfirmed fact look fresh, exposing the harder work behind trustworthy AI memory.</summary>
   </entry>
 
   <entry>
@@ -64,7 +64,7 @@
     <link href="https://jorypestorious.com/blog/dadbod-grip/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/dadbod-grip/</id>
     <updated>2026-03-06T00:00:00Z</updated>
-    <summary>dadbod-grip brings the Vim editing model to database work: stage changes with color-coded rows, preview the exact SQL in a floating window, and apply in a single transaction. Cross-database federation via DuckDB, file-as-table support for Parquet and CSV, AI SQL generation, and full Vim motions. Nothing installs outside Neovim.</summary>
+    <summary>Follow a bad product through the bundled Softrear database, stage the correction in Neovim, inspect the generated SQL, and apply the batch through one transaction. The article traces the code behind that path, including the limits of undo, file writeback, and AI-generated rows.</summary>
   </entry>
 
   <entry>
