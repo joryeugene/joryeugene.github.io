@@ -988,7 +988,8 @@ const TableOfContents = {
       if (georgie && complete && !wasComplete) georgie.dispatchEvent(new Event('georgie-wake'));
       wasComplete = complete;
 
-      const scrollPos = window.scrollY + readingOffset;
+      const activationLine = readingOffset + Math.min(readableViewport * 0.25, spacing * 6);
+      const scrollPos = window.scrollY + activationLine;
       let activeIndex = 0;
       if (percent >= 99) {
         activeIndex = sections.length - 1;

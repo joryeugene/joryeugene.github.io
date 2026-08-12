@@ -306,6 +306,24 @@ test.describe('shared blog reader', () => {
     expect(scrollCall.options).toMatchObject({ behavior: 'smooth', block: 'start' });
   });
 
+  test('activates a section before its heading reaches the sticky chrome', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/blog/portable-agent-factory/');
+    const link = page.locator('.reader-toc-link').nth(3);
+    const href = await link.getAttribute('href');
+
+    const geometry = await page.evaluate((targetId) => {
+      const target = document.getElementById(targetId);
+      const readingOffset = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+      window.scrollTo(0, window.scrollY + target.getBoundingClientRect().top - readingOffset - 96);
+      return { readingOffset };
+    }, href.slice(1));
+
+    await expect.poll(() => link.getAttribute('aria-current')).toBe('location');
+    const headingTop = await page.locator(href).evaluate((heading) => heading.getBoundingClientRect().top);
+    expect(headingTop).toBeGreaterThan(geometry.readingOffset);
+  });
+
   test('updates progress and keeps the active contents link in the visible rail', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/blog/portable-agent-factory/');
