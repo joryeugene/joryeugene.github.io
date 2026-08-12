@@ -1,6 +1,46 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('portfolio shell', () => {
+  test('publishes the Georgie social card at its real preview size', async ({ page }) => {
+    const fallbackPaths = [
+      '/',
+      '/blog/',
+      '/process/',
+      '/contact/',
+      '/vim/'
+    ];
+    for (const path of fallbackPaths) {
+      await page.goto(path);
+      const expected = 'https://jorypestorious.com/jpg/jory-georgie-social.png';
+      await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', expected);
+      await expect(page.locator('meta[name="twitter:image"], meta[property="twitter:image"]')).toHaveAttribute('content', expected);
+    }
+
+    await page.goto('/');
+    await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute('content', '1200');
+    await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute('content', '630');
+
+    const dimensions = await page.evaluate(() => new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+      image.onerror = reject;
+      image.src = '/jpg/jory-georgie-social.png';
+    }));
+    expect(dimensions).toEqual({ width: 1200, height: 630 });
+
+    const authoredImages = new Map([
+      ['/blog/friction-economy/', 'https://jorypestorious.com/blog/friction-economy/def-foo-efficiency-spectrum-optimized.png'],
+      ['/blog/natural-language-first/', 'https://jorypestorious.com/blog/natural-language-first/ai-agent-friend-optimized.png'],
+      ['/blog/spiritual-bliss-attractor-state/', 'https://jorypestorious.com/blog/spiritual-bliss-attractor-state/claude-word-frequency-chart.png'],
+      ['/blog/trust-your-engineers/', 'https://jorypestorious.com/blog/trust-your-engineers/ai-excellence-optimized.png']
+    ]);
+    for (const [path, expected] of authoredImages) {
+      await page.goto(path);
+      await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', expected);
+      await expect(page.locator('meta[name="twitter:image"], meta[property="twitter:image"]')).toHaveAttribute('content', expected);
+    }
+  });
+
   test('keeps Vim prominent and exposes the approved navigation', async ({ page }) => {
     await page.goto('/');
 
