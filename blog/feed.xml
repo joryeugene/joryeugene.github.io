@@ -32,7 +32,7 @@
     <link href="https://jorypestorious.com/blog/complexity-protects-itself/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/complexity-protects-itself/</id>
     <updated>2026-04-16T00:00:00Z</updated>
-    <summary>A system that works gets replaced by one that is more ambitious. The replacement fails in new ways. Five decades of research, from Chesterton (1929) to DORA and METR (2025), document the pattern. Rules you have to remember break. Rules enforced by the system don&apos;t. Three tests catch the failure before the replacement ships.</summary>
+    <summary>A working path can become harder to operate when its replacement gathers too many responsibilities. Three tests help decide when custom infrastructure is worth owning.</summary>
   </entry>
 
   <entry>
