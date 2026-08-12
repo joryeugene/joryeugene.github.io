@@ -21,7 +21,7 @@ test.describe('portfolio shell', () => {
 
     const cases = [
       ['Inspect Phalene-Vim', 'Phalene-Vim', /motions, macros, search, undo/i],
-      ['Inspect dadbod-grip.nvim', 'dadbod-grip.nvim', /staged changes.*SQL preview/i],
+      ['Inspect dadbod-grip.nvim', 'dadbod-grip.nvim', /74 spec files.*1,761 assertions/i],
       ['Inspect Georgie', 'Georgie', /raised paw/i]
     ];
 
@@ -48,8 +48,51 @@ test.describe('portfolio shell', () => {
     await expect(page.getByRole('heading', { name: 'Selected history' })).toBeVisible();
     await expect(page.getByText('Totally Reliable Delivery Service', { exact: true })).toBeVisible();
     await expect(page.getByText('Theosis', { exact: true })).toBeVisible();
-    await expect(page.getByText(/web build is online-first, database-free/)).toBeVisible();
+    await expect(page.getByText(/four online ragdolls can form a chain and hang from a moving rocket/i)).toBeVisible();
+    await expect(page.getByText(/daily prayer cycle, Bible, saints, fasting guidance/i)).toBeVisible();
+    await expect(page.getByText('Live web product', { exact: true })).toBeVisible();
+    await expect(page.getByText(/HRIS, AI-usage, and prompt data/i)).toBeVisible();
+    await expect(page.getByText(/15\+?.*ECharts|more than 15.*ECharts/i)).toHaveCount(0);
+    await expect(page.getByText(/built (its )?interactive analytics and assessment workflows/i)).toHaveCount(0);
+    await expect(page.getByText(/data science team's assessment outputs/i)).toBeVisible();
+    await expect(page.getByText(/Nine Claude Code hooks capture facts and decisions/i)).toBeVisible();
+    await expect(page.getByText(/hive verify/)).toBeVisible();
+    await expect(page.locator('a[href="/blog/knowledge-sidecar/"]')).toBeVisible();
     await expect(page.locator('.archive-card h3 a')).toHaveCount(4);
+  });
+
+  test('lays out the Dadbod system as four ordered stages', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Inspect dadbod-grip.nvim' }).click();
+    await page.getByRole('tab', { name: 'System', exact: true }).click();
+
+    const path = page.locator('.system-path');
+    const nodes = path.locator('.system-node');
+    await expect(nodes).toHaveCount(4);
+
+    const desktop = await nodes.evaluateAll((elements) => elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { x: box.x, y: box.y, right: box.right };
+    }));
+    expect(Math.max(...desktop.map(({ y }) => y)) - Math.min(...desktop.map(({ y }) => y))).toBeLessThanOrEqual(1);
+    for (let index = 1; index < desktop.length; index += 1) {
+      expect(desktop[index].x).toBeGreaterThan(desktop[index - 1].right);
+    }
+
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.reload();
+    const phoneNodes = page.locator('.system-path .system-node');
+    await expect(phoneNodes).toHaveCount(4);
+    const phone = await phoneNodes.evaluateAll((elements) => elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { x: box.x, y: box.y, bottom: box.bottom, right: box.right };
+    }));
+    expect(Math.abs(phone[0].y - phone[1].y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(phone[2].y - phone[3].y)).toBeLessThanOrEqual(1);
+    expect(phone[2].y).toBeGreaterThan(Math.max(phone[0].bottom, phone[1].bottom));
+    expect(Math.abs(phone[0].x - phone[2].x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(phone[1].x - phone[3].x)).toBeLessThanOrEqual(1);
+    expect(phone.every(({ x, right }) => x >= 0 && right <= 320)).toBe(true);
   });
 
   test('opens a searchable command palette with every approved destination', async ({ page }) => {
@@ -206,19 +249,25 @@ test.describe('portfolio pages', () => {
   test('process page exposes inspectable layers and rejected paths', async ({ page }) => {
     await page.goto('/process/');
 
-    await expect(page.getByText(/Four selected case studies/)).toBeVisible();
+    const processGeorgie = page.getByRole('button', { name: 'Let Georgie inspect this case study' });
+    await processGeorgie.hover();
+    await expect(processGeorgie).toHaveClass(/is-georgie-active/);
+
+    await expect(page.getByText(/A closer look at selected projects/)).toBeVisible();
     await expect(page.getByText(/Four shipped systems/)).toHaveCount(0);
+    await expect(page.getByText(/15\+?.*ECharts|more than 15.*ECharts/i)).toHaveCount(0);
+    await expect(page.getByText(/built (its )?interactive analytics and assessment workflows/i)).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Process', exact: true })).toHaveAttribute('aria-current', 'page');
     await page.getByRole('tab', { name: 'Tests' }).click();
-    await expect(page.getByText('Preview the SQL before execution.')).toBeVisible();
+    await expect(page.getByText('1,761 assertions', { exact: true })).toBeVisible();
     await expect(page.getByText('Separate desktop app')).toBeVisible();
     await expect(page.locator('.wrong-turn').first()).toHaveCSS('border-left-style', 'solid');
 
     const cases = [
-      ['Dadbod Grip', /dadbod-grip\.nvim stays inspectable/i, 'https://github.com/joryeugene/dadbod-grip.nvim'],
-      ['Totally Reliable', /physics playful online/i, 'https://www.totallyreliable.com/'],
-      ['Theosis', /native and web/i, 'https://prayorthodox.com/'],
-      ['Workhelix', /Bubble to a production platform used through Series A/i, 'https://www.workhelix.com/']
+      ['Dadbod Grip', /Neovim into a data workbench/i, 'https://jorypestorious.com/dadbod-grip-web/'],
+      ['Totally Reliable', /four live ragdolls stay connected to one rocket/i, 'https://www.totallyreliable.com/'],
+      ['Theosis', /one Orthodox library across native and web/i, 'https://prayorthodox.com/'],
+      ['Workhelix', /company AI usage into product decisions/i, 'https://www.workhelix.com/platform']
     ];
 
     for (const [tabName, deepDiveTitle, destination] of cases) {
@@ -235,8 +284,11 @@ test.describe('portfolio pages', () => {
     }
 
     await page.getByRole('tab', { name: 'Theosis' }).click();
-    await expect(page.getByText(/Native stays offline while the web build loads route-sized data on demand/)).toBeVisible();
-    await expect(page.getByText(/public web path removed database and WASM startup/)).toBeVisible();
+    await expect(page.getByText(/One prayer library, delivered offline on native/i)).toBeVisible();
+    await expect(page.getByText(/no runtime database, WASM, user account, or application server/)).toBeVisible();
+    await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Tests/ }).click();
+    await expect(page.getByText(/all 4,017 dates from 2025 through 2035/)).toBeVisible();
+    await expect(page.locator('a[href="https://github.com/joryeugene/theosis"]')).toHaveCount(0);
     await expect(page).toHaveURL(/#theosis$/);
     await expect(page.getByRole('tab', { name: 'Theosis' })).toHaveAttribute('href', '#theosis');
 
@@ -249,21 +301,80 @@ test.describe('portfolio pages', () => {
     await page.goto('/blog/');
 
     const search = page.getByRole('searchbox', { name: 'Filter writing' });
+    const counter = page.locator('#writing-counter');
+    const feature = page.locator('.writing-feature');
+    const rows = page.locator('.writing-row');
+    const showAll = page.locator('#show-all-writing');
     await page.keyboard.press('/');
     await expect(search).toBeFocused();
     await expect(page.locator('#vim-search')).toHaveCount(0);
+
+    await expect(counter).toHaveText('8 shown · 18 total');
+    await expect(feature.locator('time')).toHaveAttribute('datetime', '2026-08-09');
+    await expect(feature.locator('time')).toHaveText('Aug 9, 2026');
+    await expect(rows.locator('time')).toHaveCount(17);
+    await expect(rows.first().locator('time')).toHaveAttribute('datetime', '2026-07-06');
+    await expect(showAll).toHaveText('Show 10 more essays');
+    await expect(showAll).toHaveAttribute('aria-expanded', 'false');
+
+    await search.fill('manifesto');
+    await expect(feature).toBeVisible();
+    await expect(page.locator('.writing-row:visible')).toHaveCount(0);
+    await expect(counter).toHaveText('1 result');
+
+    await search.fill('no matching essay');
+    await expect(feature).toBeHidden();
+    await expect(page.locator('.writing-row:visible')).toHaveCount(0);
+    await expect(page.getByText('No essays match that search.', { exact: true })).toBeVisible();
+    await expect(counter).toHaveText('0 results');
+
     await search.fill('complexity');
     await expect(page.locator('.writing-row:visible')).toHaveCount(1);
     await expect(page.getByText('Complexity Protects Itself', { exact: true })).toBeVisible();
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByText('Complexity Protects Itself', { exact: true }).locator('..')).toBeFocused();
     await expect(page.locator('.writing-feature__art img')).toHaveAttribute('src', '/blog/portable-agent-factory/codex-desktop-won.webp');
     await expect(page.locator('.writing-feature__art')).toHaveCSS('background-image', 'none');
 
     await search.fill('');
     await search.blur();
+    await page.keyboard.press('k');
+    await expect(page.locator('.writing-row:visible').last()).toHaveClass(/is-selected/);
     await page.keyboard.press('j');
     await expect(page.locator('.writing-feature')).toHaveClass(/is-selected/);
-    await page.keyboard.press('j');
-    await expect(page.locator('.writing-row.is-selected')).toHaveCount(1);
+
+    await showAll.click();
+    await expect(page.locator('.writing-row:visible')).toHaveCount(17);
+    await expect(showAll).toHaveAttribute('aria-expanded', 'true');
+    await expect(rows.nth(7)).toBeFocused();
+
+    await search.focus();
+    await search.fill('complexity');
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/blog\/complexity-protects-itself\/$/);
+  });
+
+  test('the featured essay is one card target while Georgie stays a separate button', async ({ page }) => {
+    await page.goto('/blog/');
+    const feature = page.locator('.writing-feature');
+    const link = feature.getByRole('link', { name: 'Read Why I Canceled Claude Max for Codex Desktop' });
+    const georgie = feature.getByRole('button', { name: 'Wake Georgie on the featured essay' });
+
+    await expect(link).toHaveAttribute('href', '/blog/portable-agent-factory/');
+    await expect(georgie).toBeVisible();
+    await link.focus();
+    await expect(link).toBeFocused();
+    expect(await link.evaluate((element) => getComputedStyle(element, '::after').position)).toBe('absolute');
+    expect(await link.evaluate((element) => getComputedStyle(element, '::after').inset)).toBe('0px');
+
+    await georgie.click();
+    await expect(page).toHaveURL(/\/blog\/$/);
+    await expect(georgie).toHaveClass(/is-georgie-active/);
+
+    const art = await feature.locator('.writing-feature__art').boundingBox();
+    expect(art).not.toBeNull();
+    await page.mouse.click(art.x + 20, art.y + 20);
+    await expect(page).toHaveURL(/\/blog\/portable-agent-factory\/$/);
   });
 
   test('contact page exposes direct destinations and resume', async ({ page }) => {
@@ -328,5 +439,60 @@ test.describe('portfolio responsive behavior', () => {
   test('uses mobile-length writing search copy', async ({ page }) => {
     await page.goto('/blog/');
     await expect(page.getByRole('searchbox', { name: 'Filter writing' })).toHaveAttribute('placeholder', 'Search writing');
+    await expect(page.locator('.writing-row__excerpt').first()).toHaveCSS('-webkit-line-clamp', '1');
+  });
+});
+
+test.describe('portfolio at 320px', () => {
+  test.use({ viewport: { width: 320, height: 844 } });
+
+  test('keeps compact tabbed surfaces stable and readable', async ({ page }) => {
+    const documentTop = (selector) => page.locator(selector).evaluate((element) => (
+      element.getBoundingClientRect().top + window.scrollY
+    ));
+
+    await page.goto('/');
+    const historyTop = await documentTop('.archive-section');
+    expect(await page.locator('[data-depth-panel]:visible').evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(361);
+    for (const name of ['Demo', 'System', 'Decisions', 'Proof']) {
+      await page.getByRole('tab', { name, exact: true }).click();
+      expect(Math.abs((await documentTop('.archive-section')) - historyTop)).toBeLessThanOrEqual(1);
+    }
+    for (const name of ['Inspect Phalene-Vim', 'Inspect dadbod-grip.nvim', 'Inspect Georgie']) {
+      await page.getByRole('button', { name }).click();
+      expect(Math.abs((await documentTop('.archive-section')) - historyTop)).toBeLessThanOrEqual(1);
+    }
+
+    await page.goto('/process/#workhelix');
+    const constraints = page.getByRole('tab', { name: /Constraints/ }).locator('span').last();
+    const labelLineCount = await constraints.evaluate((element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element.childNodes[0]);
+      return range.getClientRects().length;
+    });
+    expect(labelLineCount).toBe(1);
+    await page.getByRole('tab', { name: /Changes/ }).click();
+    expect(await page.locator('#layer-changes').evaluate((element) => element.getBoundingClientRect().height)).toBeLessThan(600);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+  });
+
+  test('keeps the email on one line while Georgie touches its edge', async ({ page }) => {
+    await page.goto('/contact/');
+    const emailCard = page.locator('.contact-path').first();
+    const email = emailCard.locator('p');
+    const metrics = await email.evaluate((element) => ({
+      height: element.getBoundingClientRect().height,
+      lineHeight: parseFloat(getComputedStyle(element).lineHeight)
+    }));
+    expect(metrics.height).toBeLessThanOrEqual(metrics.lineHeight + 1);
+
+    const [card, georgie] = await Promise.all([
+      emailCard.boundingBox(),
+      page.locator('.contact-georgie-wrap').boundingBox()
+    ]);
+    expect(card).not.toBeNull();
+    expect(georgie).not.toBeNull();
+    expect(Math.abs((georgie.y + georgie.height) - card.y)).toBeLessThanOrEqual(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   });
 });

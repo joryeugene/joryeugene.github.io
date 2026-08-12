@@ -20,7 +20,13 @@ async function expectResponsiveGeorgie(page, surface, viewport) {
 
   expect(dog.x, `${surface.path} Georgie starts outside ${viewport.width}px`).toBeGreaterThanOrEqual(-0.5);
   expect(dog.x + dog.width, `${surface.path} Georgie ends outside ${viewport.width}px`).toBeLessThanOrEqual(viewport.width + 0.5);
-  expect(overlaps(dog, anchor), `${surface.path} Georgie detached from its surface`).toBe(true);
+  const anchored = surface.edge === 'top'
+    ? dog.x < anchor.x + anchor.width
+      && dog.x + dog.width > anchor.x
+      && dog.y + dog.height >= anchor.y - 2
+      && dog.y <= anchor.y + 60
+    : overlaps(dog, anchor);
+  expect(anchored, `${surface.path} Georgie detached from its surface`).toBe(true);
   expect(overlaps(dog, readable), `${surface.path} Georgie covers readable content`).toBe(false);
 }
 
@@ -124,13 +130,16 @@ test('palette and reader motion stay compact, stable, and touch-safe', async ({ 
   await attachPausedFrames(page, palette.locator('.palette-panel'), testInfo, 'portfolio-palette');
 
   await page.goto('/blog/portable-agent-factory/');
+  await page.evaluate(() => window.scrollTo(0, 520));
+  await expect(page.locator('.reader-toc')).toBeVisible();
   const readerDog = page.locator('.reader-georgie');
   await readerDog.click();
-  expect(await page.locator('.reader-toc').evaluate((element) => getComputedStyle(element).transform)).toBe('none');
+  expect(await page.locator('.reader-toc').evaluate((element) => getComputedStyle(element).transform)).toBe('matrix(1, 0, 0, 1, 0, 0)');
   await attachPausedFrames(page, page, testInfo, 'reader-georgie');
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
+  await page.evaluate(() => window.scrollTo(0, 420));
   await page.locator('.reader-mobile-trigger').click();
   const sheet = page.locator('.reader-sheet-panel');
   await expect(sheet).toBeVisible();
@@ -170,7 +179,7 @@ test('responsive motion surfaces stay inside the viewport and leave visual artif
     { name: 'home-georgie', path: '/', target: '.georgie-egg--home', anchor: '.project-preview--georgie', readable: '[data-project-card="georgie"] .project-heading', trigger: '[data-project-card="georgie"]' },
     { name: 'process-georgie', path: '/process/', target: '.georgie-egg--process', anchor: '.layer-rail', readable: '.process-panel [data-layer-content]:not([hidden]) h2', trigger: '.georgie-egg--process' },
     { name: 'writing-georgie', path: '/blog/', target: '.georgie-egg--writing', anchor: '.writing-feature', readable: '.writing-feature h2', trigger: '.writing-feature' },
-    { name: 'contact-georgie', path: '/contact/', target: '.contact-georgie-wrap', anchor: '.contact-path:first-of-type', readable: '.contact-path:first-of-type .contact-action', trigger: '.contact-georgie-wrap' },
+    { name: 'contact-georgie', path: '/contact/', target: '.contact-georgie-wrap', anchor: '.contact-path:first-of-type', readable: '.contact-path:first-of-type .contact-action', trigger: '.contact-georgie-wrap', edge: 'top' },
     { name: 'reader-georgie', path: '/blog/portable-agent-factory/', target: '.reader-georgie', anchor: '.reader-rail-slot', readable: '.markdown-body', trigger: '.reader-georgie', click: true }
   ];
   const runtimeErrors = [];

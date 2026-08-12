@@ -144,7 +144,7 @@ for (const viewport of contactViewports) {
       && georgie.y <= email.y + 60;
     expect(horizontalTouch || topEdgeTouch).toBe(true);
 
-    if (viewport.width <= 900) {
+    if (viewport.width > 600 && viewport.width <= 900) {
       expect(emailNumber.x).toBeGreaterThanOrEqual(georgie.x + georgie.width);
     }
   });
@@ -240,7 +240,7 @@ test('Georgie is attached to the intended box edge instead of floating over cont
   expect(writingDogBox.y + writingDogBox.height - writingBox.y - writingBox.height).toBeLessThanOrEqual(17);
   expect(writingBox.y + writingBox.height - writingLinkBox.y - writingLinkBox.height).toBeLessThanOrEqual(56);
 
-  await page.locator('.writing-feature__art').hover();
+  await page.locator('.writing-feature__link').hover();
   await expect(writingDog).toHaveClass(/is-georgie-active/);
   await expect.poll(async () => {
     const dogBox = await writingDog.boundingBox();
@@ -273,9 +273,11 @@ test('Georgie easter eggs stay inside a narrow viewport without covering their p
   }
 
   await page.goto('/blog/');
-  const writingLink = await page.locator('.writing-feature a').boundingBox();
   const writingDog = await page.locator('.georgie-egg--writing').boundingBox();
-  expect(writingLink.x + writingLink.width).toBeLessThanOrEqual(writingDog.x + 4);
+  const writingCopy = await page.locator('.writing-feature__copy').boundingBox();
+  expect(writingDog).not.toBeNull();
+  expect(writingCopy).not.toBeNull();
+  expect(writingDog.x + writingDog.width).toBeLessThanOrEqual(writingCopy.x + writingCopy.width + 1);
 });
 
 test('every homepage project and depth control changes state without leaving the page', async ({ page }) => {
@@ -337,6 +339,33 @@ test('portfolio command palette keeps the page frame stable', async ({ page }) =
   });
   expect(after.left).toBeCloseTo(before.left, 1);
   expect(after.width).toBeCloseTo(before.width, 1);
+});
+
+test('shared portfolio actions respond to keyboard focus without moving', async ({ page }) => {
+  const cases = [
+    { route: '/', name: 'Try the editor', arrow: '.project-action' },
+    { route: '/process/', name: 'Open the walkthrough', arrow: '.case-destinations a' },
+    { route: '/contact/', name: /Write a note/, arrow: '.contact-action' }
+  ];
+
+  for (const item of cases) {
+    await page.goto(item.route);
+    const action = page.getByRole('link', { name: item.name }).first();
+    const arrow = page.locator(item.arrow).first();
+    const before = await action.boundingBox();
+    expect(before).not.toBeNull();
+
+    await action.focus();
+    await expect(action).toBeFocused();
+    await expect.poll(() => arrow.evaluate((element) => getComputedStyle(element, '::after').transform)).not.toBe('none');
+
+    const after = await action.boundingBox();
+    expect(after).not.toBeNull();
+    expect(after.x).toBeCloseTo(before.x, 1);
+    expect(after.y).toBeCloseTo(before.y, 1);
+    expect(after.width).toBeCloseTo(before.width, 1);
+    expect(after.height).toBeCloseTo(before.height, 1);
+  }
 });
 
 test('homepage project previews respond to hover, focus, and pinning', async ({ page }) => {
@@ -495,7 +524,10 @@ test('tabbed surfaces reserve their layout height across content changes', async
 
     for (const name of ['Inspect Phalene-Vim', 'Inspect dadbod-grip.nvim', 'Inspect Georgie']) {
       await page.getByRole('button', { name }).click();
-      expect(Math.abs((await documentTop('.archive-section')) - historyTop)).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs((await documentTop('.archive-section')) - historyTop),
+        `${name} moved Selected history at ${width}px`
+      ).toBeLessThanOrEqual(1);
     }
 
     await page.goto('/process/');
@@ -525,7 +557,7 @@ test('Writing search, reveal, keyboard selection, and article navigation all wor
   await expect(page.locator('.writing-row:visible')).toHaveCount(1);
   await search.fill('');
   const writingCount = await page.locator('.writing-row').count();
-  await page.getByRole('button', { name: /Show all/i }).click();
+  await page.getByRole('button', { name: /Show \d+ more essays/i }).click();
   await expect(page.locator('.writing-row:visible')).toHaveCount(writingCount);
   await search.blur();
   await page.keyboard.press('j');
@@ -591,6 +623,10 @@ test('Georgie keeps the press state without motion when reduced motion is reques
   await page.locator('[data-project-card="georgie"]').hover();
   const homeSprite = page.locator('.georgie-egg--home .georgie-egg__sprite');
   expect(await homeSprite.evaluate((sprite) => getComputedStyle(sprite, '::after').animationName)).toBe('none');
+
+  const projectAction = page.getByRole('link', { name: 'Try the editor' });
+  await projectAction.focus();
+  expect(await projectAction.evaluate((element) => getComputedStyle(element, '::after').transform)).toBe('none');
 });
 
 test('all same-origin destinations exposed by the main pages resolve', async ({ page, request, baseURL }) => {

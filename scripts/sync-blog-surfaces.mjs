@@ -36,6 +36,7 @@ const PATHS = {
 };
 
 const CHECK_MODE = process.argv.includes('--check');
+const normalizeNewlines = text => text.replace(/\r\n/g, '\n');
 
 // Parse blog/index.html to an ordered list of { slug, title, summary, date }.
 async function readPosts() {
@@ -203,9 +204,9 @@ async function main() {
   ]);
 
   const changed = [];
-  if (newFeed !== oldFeed) changed.push('blog/feed.xml');
-  if (newBlogCommon !== oldBlogCommon) changed.push('js/blog-common.js');
-  if (newReadme !== oldReadme) changed.push('README.md');
+  if (normalizeNewlines(newFeed) !== normalizeNewlines(oldFeed)) changed.push('blog/feed.xml');
+  if (normalizeNewlines(newBlogCommon) !== normalizeNewlines(oldBlogCommon)) changed.push('js/blog-common.js');
+  if (normalizeNewlines(newReadme) !== normalizeNewlines(oldReadme)) changed.push('README.md');
 
   if (CHECK_MODE) {
     if (changed.length) {

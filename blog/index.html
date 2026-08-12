@@ -13,7 +13,7 @@
   <title>Writing | Jory Pestorious</title>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="alternate" type="application/atom+xml" title="Engineering Notes" href="/blog/feed.xml">
-  <link rel="stylesheet" href="/css/portfolio.css">
+  <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-3">
 </head>
 <body class="portfolio-page page-writing">
   <a class="skip-link" href="#main">Skip to writing</a>
@@ -42,8 +42,8 @@
         </div>
         <div class="writing-search">
           <label for="writing-search">/</label>
-          <input id="writing-search" type="search" aria-label="Filter writing" autocomplete="off" placeholder="Search writing">
-          <span id="writing-counter" class="writing-counter" aria-live="polite">1 / 18</span>
+          <input id="writing-search" type="search" aria-label="Filter writing" aria-controls="writing-results" autocomplete="off" placeholder="Search writing">
+          <span id="writing-counter" class="writing-counter" aria-live="polite">8 shown · 18 total</span>
         </div>
       </div>
 
@@ -55,14 +55,14 @@
           <p class="eyebrow">Featured essay</p>
           <h2>Why I Canceled Claude Max for Codex Desktop</h2>
           <p>I staged a manifesto about owning my AI harness. Then I canceled Claude Max and moved into Codex Desktop. Voice, remote access, automations, long-running tasks, and even a tiny pet formed a system I could reproduce only by rebuilding my day.</p>
-          <a href="/blog/portable-agent-factory/">Read essay</a>
+          <a class="writing-feature__link" href="/blog/portable-agent-factory/" aria-label="Read Why I Canceled Claude Max for Codex Desktop">Read essay <span aria-hidden="true">›</span></a>
         </div>
         <button class="georgie-egg georgie-egg--writing" type="button" aria-label="Wake Georgie on the featured essay" data-georgie-egg>
           <span class="georgie-egg__sprite" aria-hidden="true"></span>
         </button>
       </article>
 
-      <div class="writing-index" aria-label="Writing index">
+      <div id="writing-results" class="writing-index" aria-label="Writing index">
         <a class="writing-row" href="/blog/ai-engineer-verification/" data-pub-date="2026-07-06">
           <span class="writing-row__number">01</span><span class="writing-row__title">AI Engineer World's Fair 2026: Verification Became the Bottleneck</span><span class="writing-row__excerpt">A firsthand report on why verification, company context, and taste matter more as agent output gets cheaper, and why game feel is my next bet.</span><span aria-hidden="true">›</span>
         </a>
@@ -114,7 +114,8 @@
         <a class="writing-row" href="/blog/ai-dev-tooling-presentation/" data-pub-date="2025-04-15">
           <span class="writing-row__number">17</span><span class="writing-row__title">AI-Amplified Development: Tools and Workflows for Modern Engineers</span><span class="writing-row__excerpt">A 2025 presentation on Cursor, Claude Code, Cline, MCP, git worktrees, terminal tools, verification, and parallel agent workflows.</span><span aria-hidden="true">›</span>
         </a>
-        <button id="show-all-writing" class="show-all" type="button">Show all writing</button>
+        <p id="writing-empty" class="writing-empty" role="status" hidden>No essays match that search.</p>
+        <button id="show-all-writing" class="show-all" type="button" aria-expanded="false">Show 10 more essays</button>
       </div>
     </main>
 
@@ -131,7 +132,7 @@
     </div>
   </div>
 
-  <script src="/js/blog-common.js"></script>
-  <script src="/js/portfolio.js"></script>
+  <script src="/js/blog-common.js?v=foundation-plus-3"></script>
+  <script src="/js/portfolio.js?v=foundation-plus-3"></script>
 </body>
 </html>

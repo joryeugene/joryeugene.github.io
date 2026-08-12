@@ -22,41 +22,133 @@ test.describe('shared blog reader', () => {
 
     const context = page.locator('.reader-context');
     await expect(context.getByRole('link', { name: 'Back to Writing' })).toHaveAttribute('href', '/blog/');
-    await expect(context).toContainText(/Engineering Notes\s*·\s*\d+ min read/);
+    await expect(context).toContainText('AI Engineer World\'s Fair 2026: Verification Became the Bottleneck');
+    await expect(context.locator('[data-reader-progress]')).toHaveText('0%');
     await expect(context.getByRole('button', { name: 'Change background' })).toHaveCount(0);
     await expect(context).not.toContainText('Contents');
 
     const toc = page.getByRole('navigation', { name: 'On this page' });
+    await expect(toc).toBeHidden();
+    await page.evaluate(() => window.scrollTo(0, 520));
     await expect(toc).toBeVisible();
     await expect(toc.getByText('On this page', { exact: true })).toHaveCount(1);
     expect(await toc.getByRole('link').count()).toBeGreaterThan(2);
     await expect(page.getByText('Contents', { exact: true })).toHaveCount(0);
   });
 
+  test('uses measured chrome geometry with a narrower article and readable contents rail', async ({ page }) => {
+    await page.goto('/blog/portable-agent-factory/');
+    await page.evaluate(() => window.scrollTo(0, 520));
+    await expect(page.locator('.reader-toc')).toBeVisible();
+
+    const geometry = await page.evaluate(() => {
+      const chrome = document.querySelector('.reader-chrome').getBoundingClientRect();
+      const article = document.querySelector('.markdown-body').getBoundingClientRect();
+      const toc = document.querySelector('.reader-toc').getBoundingClientRect();
+      const root = getComputedStyle(document.documentElement);
+      const rail = getComputedStyle(document.querySelector('.reader-rail-slot'));
+      return {
+        chromeHeight: chrome.height,
+        articleWidth: article.width,
+        tocWidth: toc.width,
+        gap: toc.left - article.right,
+        scrollPaddingTop: parseFloat(root.scrollPaddingTop),
+        railTop: parseFloat(rail.top),
+      };
+    });
+
+    expect(geometry.articleWidth).toBeGreaterThanOrEqual(760);
+    expect(geometry.articleWidth).toBeLessThanOrEqual(790);
+    expect(geometry.tocWidth).toBeGreaterThanOrEqual(210);
+    expect(geometry.tocWidth).toBeLessThanOrEqual(230);
+    expect(geometry.gap).toBeGreaterThanOrEqual(30);
+    expect(geometry.gap).toBeLessThanOrEqual(60);
+    expect(geometry.scrollPaddingTop).toBeCloseTo(geometry.chromeHeight + 16, 0);
+    expect(geometry.railTop).toBeCloseTo(geometry.scrollPaddingTop, 0);
+  });
+
   test('gives article Georgie a sleeping and waking state without changing pages', async ({ page }) => {
     await page.goto('/blog/ai-engineer-verification/');
+    await page.evaluate(() => window.scrollTo(0, 520));
+    await expect(page.locator('.reader-toc')).toBeVisible();
+    await expect(page.locator('.markdown-body h1')).toContainText('Verification Became the Bottleneck');
     const georgie = page.getByRole('button', { name: 'Wake Georgie' });
     const sprite = georgie.locator('.reader-georgie__sprite');
+    const bed = georgie.locator('.reader-georgie__bed');
 
     await expect(georgie).toBeVisible();
+    await expect(bed).toBeVisible();
+    await expect(bed).toHaveCSS('background-image', /georgie-reader-bed\.webp/);
     await expect(sprite).toHaveCSS('background-image', /georgie-reader-pair\.webp/);
     await expect(sprite).toHaveCSS('background-position-x', /^0(?:px|%)$/);
-    const georgieBox = await georgie.boundingBox();
-    const tocBox = await page.locator('.reader-toc').boundingBox();
-    expect(georgieBox.x).toBeLessThan(tocBox.x);
-    expect(georgieBox.x + georgieBox.width).toBeGreaterThan(tocBox.x);
-    expect(georgieBox.y).toBeLessThan(tocBox.y + tocBox.height);
-    expect(georgieBox.y + georgieBox.height).toBeGreaterThan(tocBox.y + tocBox.height);
+    await expect.poll(async () => {
+      const [georgieBox, tocBox, articleBox] = await Promise.all([
+        georgie.boundingBox(),
+        page.locator('.reader-toc').boundingBox(),
+        page.locator('.markdown-body').boundingBox()
+      ]);
+      if (!georgieBox || !tocBox || !articleBox) return false;
+      return georgieBox.x >= articleBox.x + articleBox.width
+        && georgieBox.x + georgieBox.width <= tocBox.x + tocBox.width + 1
+        && georgieBox.y >= tocBox.y + tocBox.height - 1;
+    }).toBe(true);
+    await expect.poll(async () => {
+      const [georgieBox, bedBox, railBox, articleBox] = await Promise.all([
+        georgie.boundingBox(),
+        bed.boundingBox(),
+        page.locator('.reader-rail-slot').boundingBox(),
+        page.locator('.markdown-body').boundingBox()
+      ]);
+      if (!georgieBox || !bedBox || !railBox || !articleBox) return false;
+      const supportsGeorgie = bedBox.y < georgieBox.y + georgieBox.height
+        && bedBox.y + bedBox.height > georgieBox.y + georgieBox.height * 0.62;
+      const touchesRail = bedBox.y < railBox.y + railBox.height
+        && bedBox.y + bedBox.height > railBox.y;
+      const clearsArticle = bedBox.x >= articleBox.x + articleBox.width;
+      return supportsGeorgie && touchesRail && clearsArticle;
+    }).toBe(true);
 
     await georgie.hover();
     await expect(georgie).toHaveClass(/is-awake/);
-    await expect(sprite).toHaveCSS('background-position-x', '100%');
+    await expect.poll(async () => sprite.evaluate((element) => getComputedStyle(element).backgroundPositionX))
+      .toBe('100%');
     await page.mouse.move(2, 2);
     await expect(georgie).not.toHaveClass(/is-awake/);
 
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await expect(georgie).toHaveClass(/is-awake/);
+    await page.evaluate(() => {
+      document.documentElement.style.scrollBehavior = 'auto';
+      window.scrollTo(0, document.documentElement.scrollHeight);
+    });
+    await expect(georgie).toHaveClass(/is-awake/, { timeout: 1500 });
     await expect(georgie).not.toHaveClass(/is-awake/, { timeout: 1200 });
+  });
+
+  test('keeps Georgie and his bed below the sticky chrome when an article has no contents list', async ({ page }) => {
+    await page.goto('/blog/pig-security-wisdom/');
+    await expect(page.locator('.markdown-body h1')).toBeVisible();
+    await expect(page.locator('.reader-toc')).toHaveCount(0);
+    await page.evaluate(() => {
+      document.documentElement.style.scrollBehavior = 'auto';
+      window.scrollTo(0, 520);
+    });
+
+    const geometry = await page.evaluate(() => {
+      const box = (selector) => {
+        const rect = document.querySelector(selector).getBoundingClientRect();
+        return { top: rect.top, bottom: rect.bottom, height: rect.height };
+      };
+      return {
+        chrome: box('.reader-chrome'),
+        georgie: box('.reader-georgie'),
+        bed: box('.reader-georgie__bed'),
+        rail: box('.reader-rail-slot'),
+      };
+    });
+
+    expect(geometry.rail.height).toBeGreaterThanOrEqual(geometry.georgie.height);
+    expect(geometry.georgie.top).toBeGreaterThanOrEqual(geometry.chrome.bottom);
+    expect(geometry.bed.top).toBeLessThan(geometry.georgie.bottom);
+    expect(geometry.bed.bottom).toBeGreaterThan(geometry.georgie.top + geometry.georgie.height * 0.62);
   });
 
   test('keeps reading controls functional and gives buttons a jelly response', async ({ page }) => {
@@ -120,6 +212,8 @@ test.describe('shared blog reader', () => {
       if (request.resourceType() === 'document') documentRequests.push(request.url());
     });
     await page.goto('/blog/portable-agent-factory/');
+    await page.evaluate(() => window.scrollTo(0, 520));
+    await expect(page.locator('.reader-toc')).toBeVisible();
     await page.evaluate(() => {
       window.__readerScrollCalls = [];
       const original = Element.prototype.scrollIntoView;
@@ -140,6 +234,28 @@ test.describe('shared blog reader', () => {
     const scrollCall = await page.evaluate(() => window.__readerScrollCalls.at(-1));
     expect(scrollCall.id).toBe(href.slice(1));
     expect(scrollCall.options).toMatchObject({ behavior: 'smooth', block: 'start' });
+  });
+
+  test('updates progress and keeps the active contents link in the visible rail', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/blog/portable-agent-factory/');
+    await page.evaluate(() => window.scrollTo(0, 520));
+    await expect(page.locator('.reader-toc')).toBeVisible();
+
+    const links = page.locator('.reader-toc-link');
+    const last = links.last();
+    await last.click();
+    await expect(last).toHaveAttribute('aria-current', 'location');
+    await expect.poll(async () => Number((await page.locator('.reader-toc-progress span').innerText()).replace('%', '')))
+      .toBeGreaterThan(0);
+
+    const visibility = await page.evaluate(() => {
+      const toc = document.querySelector('.reader-toc').getBoundingClientRect();
+      const active = document.querySelector('.reader-toc-link.active').getBoundingClientRect();
+      return { tocTop: toc.top, tocBottom: toc.bottom, activeTop: active.top, activeBottom: active.bottom };
+    });
+    expect(visibility.activeTop).toBeGreaterThanOrEqual(visibility.tocTop);
+    expect(visibility.activeBottom).toBeLessThanOrEqual(visibility.tocBottom + 1);
   });
 
   test('leaves the presentation reader untouched', async ({ page }) => {
@@ -163,8 +279,18 @@ test.describe('shared blog reader on mobile', () => {
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
 
     await expect(page.getByRole('navigation', { name: 'On this page' })).toBeHidden();
-    const trigger = page.getByRole('button', { name: /Open article contents/ });
+    const trigger = page.locator('.reader-mobile-trigger');
+    await expect(trigger).toBeHidden();
+    await expect(trigger).toHaveAttribute('aria-hidden', 'true');
+    await expect(trigger).toHaveAttribute('tabindex', '-1');
+
+    const initialHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+    await page.evaluate(() => window.scrollTo(0, 420));
     await expect(trigger).toBeVisible();
+    await expect(trigger).toHaveAttribute('aria-hidden', 'false');
+    await expect(trigger).toHaveAttribute('tabindex', '0');
+    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(initialHeight);
+    await expect(page.getByRole('button', { name: /Open article contents/ })).toBeVisible();
     await trigger.click();
 
     const sheet = page.getByRole('dialog', { name: 'Article controls' });
@@ -174,6 +300,10 @@ test.describe('shared blog reader on mobile', () => {
     await expect(sheet.getByText('Appearance', { exact: true })).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(sheet).toBeHidden();
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(trigger).toBeHidden();
+    await expect(trigger).toHaveAttribute('aria-hidden', 'true');
   });
 
   test('keeps article copy readable at narrow phone widths', async ({ page }) => {

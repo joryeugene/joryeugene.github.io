@@ -7,7 +7,7 @@
   <meta name="author" content="Jory Pestorious">
   <title>Process | Jory Pestorious</title>
   <link rel="icon" type="image/png" href="/favicon.png">
-  <link rel="stylesheet" href="/css/portfolio.css">
+  <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-3">
 </head>
 <body class="portfolio-page page-process">
   <a class="skip-link" href="#main">Skip to process</a>
@@ -31,7 +31,7 @@
     <main id="main">
       <section aria-labelledby="process-title">
         <h1 id="process-title" class="page-title">Process</h1>
-        <p class="page-lede">Four selected case studies, with their constraints, implementation details, tests, and visual checks.</p>
+        <p class="page-lede">A closer look at selected projects, their constraints, implementation details, tests, and visual checks.</p>
 
         <div class="case-navigation">
           <p class="eyebrow">Choose a case study</p>
@@ -46,33 +46,33 @@
         <section class="process-case-detail" aria-live="polite">
           <article id="case-dadbod" data-case-panel>
             <p class="eyebrow">Open source tool</p>
-            <h2>Dadbod Grip keeps database changes inside a familiar editing model.</h2>
-            <p>Dadbod Grip stages each mutation and keeps the exact SQL visible until the user applies it.</p>
-            <div class="case-destinations"><a href="https://github.com/joryeugene/dadbod-grip.nvim" data-jelly>Open source</a><a href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>View the walkthrough</a></div>
+            <h2>Edit database tables and join data across sources without leaving Neovim.</h2>
+            <p>Dadbod Grip stages table edits as exact SQL and commits them atomically. DuckDB joins PostgreSQL, MySQL, SQLite, MotherDuck, Parquet, S3, and HTTPS data in one query.</p>
+            <div class="case-destinations"><a href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>Open the walkthrough</a><a href="https://github.com/joryeugene/dadbod-grip.nvim" data-jelly>View source</a></div>
           </article>
           <article id="case-totally-reliable" data-case-panel hidden>
             <p class="eyebrow">Shipped at scale</p>
-            <h2>Multiplayer physics across console, PC, and mobile.</h2>
-            <p>I architected the networked backend for a Unity ragdoll sandbox where players, vehicles, joints, and physics objects needed to remain responsive under real network conditions. The game passed 50 million downloads.</p>
-            <div class="case-destinations"><a href="https://www.totallyreliable.com/" data-jelly>Visit the official site</a></div>
+            <h2>Four networked ragdolls can hang from one moving rocket.</h2>
+            <p>I led Unity and C# multiplayer with Photon and PlayFab. Four players can grip into a live chain and hang from a rocket, so its bodies, joints, vehicle, and collisions remain part of the shared simulation. The game passed 50 million downloads; launch week peaked above 32,000 concurrent Twitch viewers.</p>
+            <div class="case-destinations"><a href="https://www.totallyreliable.com/" data-jelly>Visit the official site</a><a href="https://streamscharts.com/games/totally-reliable-delivery-service/release-stats" data-jelly>See launch-week Twitch data</a></div>
           </article>
           <article id="case-theosis" data-case-panel hidden>
-            <p class="eyebrow">Product in development</p>
-            <h2>Native stays offline while the web build loads route-sized data on demand.</h2>
-            <p>Theosis now splits delivery by platform: native keeps bundled SQLite and full offline behavior; the public web path removed database and WASM startup, emits immutable route-sized JSON, defers heavy reference routes, and enforces a 650 KB gzip entry cap.</p>
-            <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Theosis</a><a href="https://github.com/joryeugene/theosis" data-jelly>View source</a></div>
+            <p class="eyebrow">Live web product</p>
+            <h2>One prayer library, delivered offline on native and without runtime infrastructure on the web.</h2>
+            <p>Theosis brings the daily prayer cycle, Bible, saints, fasting guidance, chant, and pastoral help into a quiet, book-like interface. The public edition follows Orthodox Church in America sources on the New Calendar. Native bundles the core library in SQLite; the web build transforms the same canonical sources into immutable, route-sized JSON and needs no runtime database, WASM, user account, or application server.</p>
+            <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Pray Orthodox</a></div>
           </article>
           <article id="case-workhelix" data-case-panel hidden>
             <p class="eyebrow">Founding engineering</p>
-            <h2>From a pre-seed Bubble prototype to the production platform used through Series A.</h2>
-            <p>I joined as the sole frontend engineer, replaced the prototype with React and TypeScript, then expanded into Python and FastAPI performance, PostgreSQL migrations, AWS and Terraform, release automation, agent workflows, security controls, and production data.</p>
-            <div class="case-destinations"><a href="https://www.workhelix.com/" data-jelly>Visit Workhelix</a></div>
+            <h2>Turn HRIS, AI-usage, and prompt data into decisions about AI ROI.</h2>
+            <p>Nucleus shows leaders where AI adoption creates value, where gaps remain, and which workflows deserve investment. I replaced the Bubble prototype with the production React and TypeScript platform, translated Figma designs into reusable components, and built the product experience that presented the data science team's assessment outputs. My scope later expanded into backend, data, infrastructure, authentication, and release work.</p>
+            <div class="case-destinations"><a href="https://www.workhelix.com/platform" data-jelly>Explore Nucleus</a><a href="https://www.workhelix.com/resources/nucleus-product-overview" data-jelly>Read the product overview</a></div>
           </article>
         </section>
 
         <div class="process-deep-dive">
           <p class="eyebrow">Deep dive</p>
-          <h2 data-process-deep-title>How dadbod-grip.nvim stays inspectable</h2>
+          <h2 data-process-deep-title>How Dadbod Grip turns Neovim into a data workbench</h2>
         </div>
 
         <div class="process-stage" data-georgie-surface>
@@ -91,34 +91,35 @@
             <p class="process-kicker" data-process-kicker>Case: dadbod-grip.nvim</p>
 
             <div id="layer-brief" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Edit database tables without leaving Vim.</h2>
-              <p>The core job is not “build a database client.” It is preserving editor flow while making mutations reviewable before execution.</p>
+              <h2>Edit, query, and analyze data without leaving Neovim.</h2>
+              <p>Dadbod Grip adds editable grids, exact SQL previews, cross-database queries, schema navigation, profiling, notebooks, and schema-aware AI to the editor.</p>
             </div>
 
             <div id="layer-constraints" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Use the tools already carrying the hard parts.</h2>
-              <p>Vim provides the interaction model. Dadbod owns connections. The database remains authoritative. New code earns its place only around the missing workflow.</p>
+              <h2>Keep the database and existing connection tools authoritative.</h2>
+              <p>Dadbod manages connections. DuckDB joins databases and files. Dadbod Grip adds workflows without hiding the SQL or replacing either system.</p>
             </div>
 
             <div id="layer-changes" class="layer-content" role="tabpanel" data-layer-content>
-              <h2>Keep each mutation inspectable.</h2>
+              <h2>Make edits and federation inspectable.</h2>
               <pre class="code-window" aria-label="Example staged SQL change"><code><span class="remove">- ALTER TABLE users ADD last_seen_at TIMESTAMP;</span>
 <span class="add">+ ALTER TABLE users ADD last_seen_at TIMESTAMPTZ;</span>
 <span class="add">+ CREATE INDEX idx_users_last_seen_at</span>
 <span class="add">+   ON users (last_seen_at DESC);</span></code></pre>
-              <div class="decision-note"><strong>Decision</strong>Keep changes staged until the SQL is reviewable.</div>
-              <div class="proof-strip"><span>Staged changes</span><span>SQL preview</span><span>Single transaction</span></div>
+              <div class="decision-note"><strong>Decision</strong>Show the exact mutation SQL before one atomic commit.</div>
+              <div class="proof-strip"><span>Editable grids</span><span>DuckDB federation</span><span>SQL notebooks</span></div>
             </div>
 
             <div id="layer-tests" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Exercise the change at the level users depend on.</h2>
-              <p>Preview the SQL before execution. Apply the staged mutations inside one transaction. Verify database state after commit and after rollback.</p>
-              <div class="proof-strip"><span>Preview</span><span>Apply</span><span>Verify state</span></div>
+              <h2>Run the database workflows against real engines.</h2>
+              <p>The linked CI run passes 74 spec files and 1,761 assertions on Neovim stable and 0.10, including enabled DuckDB federation checks.</p>
+              <div class="proof-strip"><span>74 spec files</span><span>1,761 assertions</span><span>Two Neovim targets</span></div>
+              <p class="proof-line"><a href="https://github.com/joryeugene/dadbod-grip.nvim/actions/runs/30663015056">Inspect the passing run</a> · <a href="/blog/dadbod-grip/">Read the build story</a></p>
             </div>
 
             <div id="layer-visual" class="layer-content" role="tabpanel" data-layer-content hidden>
               <h2>Inspect the real interface.</h2>
-              <p>Tables, diffs, floating SQL previews, focus order, and empty states are checked in Neovim. Screenshots support the review but do not replace interaction.</p>
+              <p>Editable grids, schema and foreign-key navigation, ER diagrams, profiling sparklines, Query Doctor, notebooks, and AI SQL are reviewed inside Neovim.</p>
             </div>
           </section>
 
@@ -129,8 +130,8 @@
               <p>It breaks editor flow and adds another interface to install, learn, and maintain.</p>
             </article>
             <article class="wrong-turn">
-              <h3>Custom database layer</h3>
-              <p>It rebuilds reliable connection and query behavior that existing tools already provide.</p>
+              <h3>Hide generated SQL</h3>
+              <p>Users need to inspect the exact query or mutation before it reaches a database.</p>
             </article>
           </aside>
         </div>
@@ -150,7 +151,7 @@
     </div>
   </div>
 
-  <script src="/js/blog-common.js"></script>
-  <script src="/js/portfolio.js"></script>
+  <script src="/js/blog-common.js?v=foundation-plus-3"></script>
+  <script src="/js/portfolio.js?v=foundation-plus-3"></script>
 </body>
 </html>

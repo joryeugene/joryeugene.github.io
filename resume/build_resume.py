@@ -304,7 +304,7 @@ def build():
         section("Experience"),
         role("Workhelix", "Founding Full-Stack Engineer", "07/2024 - 07/2026", "Remote / San Francisco"),
         bullet(
-            "Joined pre-seed as the sole frontend engineer and replaced the Bubble.io prototype with the production React/TypeScript application used through Series A."
+            "Joined pre-seed as the sole frontend engineer, translated Figma designs into reusable React/TypeScript components, and replaced the Bubble.io prototype with the production application used through Series A."
         ),
         bullet(
             "Expanded into substantial ownership of the Python/FastAPI backend, including SQLAlchemy/PostgreSQL performance work, production data migrations, and AWS infrastructure managed with Terraform."
@@ -313,7 +313,7 @@ def build():
             "Built GitHub Actions and agent workflows for code review and releases; implemented engineering controls supporting SOC 2 Type II."
         ),
         bullet(
-            "Delivered OAuth, WorkOS SSO, JWT, multi-tenant isolation, analytics, admin tools, and interactive views of assessment results."
+            "Built the product experience that presented the data science team's assessment outputs through filters, comparisons, and drilldowns; delivered OAuth, WorkOS SSO, JWT, multi-tenant isolation, and admin tools."
         ),
         Spacer(1, 1),
         role("U.S. Bank", "Automation Engineer, AVP", "07/2023 - 07/2024", "Remote"),
@@ -329,13 +329,13 @@ def build():
             "Co-founded the studio and architected Totally Reliable Delivery Service, a networked Unity/C# 3D physics game with 50M+ downloads across console, PC, and mobile."
         ),
         bullet(
-            "Led 5+ engineers building multiplayer systems with Photon Networking and Azure PlayFab; reduced release cycles from eight weeks to four through development and release automation."
+            "Designed Photon Networking and Azure PlayFab systems so four online ragdolls could grip into live chains and hang from moving vehicles and rockets; led 5+ engineers and cut release cycles from eight weeks to four."
         ),
         bullet("Led technical strategy through the tinyBuild acquisition and the later Atari publishing acquisition."),
         Spacer(1, 1),
         role("Gravie", "Software Engineer", "10/2017 - 08/2018", "Minneapolis, MN"),
         bullet(
-            "Built Clojure/Groovy services and React/Angular interfaces, led a redesign that increased enrollment conversion by 27 percent, and orchestrated zero-downtime MySQL migrations."
+            "Built Clojure/Groovy services and React/Angular interfaces, translated the design team's Sketch style guide into reusable frontend standards, and orchestrated zero-downtime MySQL migrations."
         ),
         Spacer(1, 1),
         role("Best Buy", "Software Engineer", "12/2016 - 10/2017", "Richfield, MN"),

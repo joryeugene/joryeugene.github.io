@@ -664,8 +664,9 @@ const ReaderShell = {
         </div>
       </header>
       <div class="reader-context" aria-label="Article context">
-        <a class="reader-back" href="/blog/"><span class="reader-back-full">Back to Writing</span><span class="reader-back-short">Writing</span></a>
-        <span class="reader-context-meta"><strong>Engineering Notes</strong><span class="reader-context-separator"> · </span><span data-reading-time>Reading time</span></span>
+        <a class="reader-back" href="/blog/" aria-label="Back to Writing">Writing</a>
+        <span class="reader-context-title" data-reader-title></span>
+        <strong class="reader-context-progress" data-reader-progress>0%</strong>
       </div>`;
 
     const main = document.createElement('main');
@@ -676,7 +677,7 @@ const ReaderShell = {
     georgie.className = 'reader-georgie';
     georgie.type = 'button';
     georgie.setAttribute('aria-label', 'Wake Georgie');
-    georgie.innerHTML = '<span class="reader-georgie__sprite" aria-hidden="true"></span>';
+    georgie.innerHTML = '<span class="reader-georgie__bed" aria-hidden="true"></span><span class="reader-georgie__sprite" aria-hidden="true"></span>';
     container.parentNode.insertBefore(main, container);
     rail.append(georgie);
     main.append(container, rail);
@@ -686,7 +687,9 @@ const ReaderShell = {
     mobileTrigger.type = 'button';
     mobileTrigger.setAttribute('aria-label', 'Open article contents');
     mobileTrigger.setAttribute('aria-controls', 'reader-sheet');
+    mobileTrigger.setAttribute('aria-hidden', 'true');
     mobileTrigger.setAttribute('data-jelly', '');
+    mobileTrigger.tabIndex = -1;
     mobileTrigger.innerHTML = 'On this page <span data-reader-progress>0%</span>';
 
     const palette = document.createElement('dialog');
@@ -823,10 +826,9 @@ const ReaderShell = {
   enhanceArticle() {
     const article = document.querySelector('.markdown-body');
     if (!article || !article.textContent.trim()) return;
-    const words = article.textContent.trim().split(/\s+/).length;
-    const minutes = Math.max(1, Math.ceil(words / 220));
-    document.querySelectorAll('[data-reading-time]').forEach((element) => {
-      element.textContent = `${minutes} min read`;
+    const title = article.querySelector('h1')?.textContent.trim() || document.title.split(' - ')[0];
+    document.querySelectorAll('[data-reader-title]').forEach((element) => {
+      element.textContent = title;
     });
     document.querySelectorAll('.post-nav-link').forEach((link) => link.setAttribute('data-jelly', ''));
   }
@@ -891,28 +893,62 @@ const TableOfContents = {
   },
 
   setupScrollSpy(sections) {
-    if (this.scrollHandler) window.removeEventListener('scroll', this.scrollHandler);
+    if (this.scrollHandler) {
+      window.removeEventListener('scroll', this.scrollHandler);
+      window.removeEventListener('resize', this.scrollHandler);
+    }
     let frame = 0;
     let wasComplete = false;
+    let lastActiveIndex = -1;
     const update = () => {
       const article = document.querySelector('.markdown-body');
-      const articleTop = article.offsetTop;
-      const total = Math.max(1, article.scrollHeight - window.innerHeight + 180);
-      const percent = Math.max(0, Math.min(100, Math.round(((window.scrollY - articleTop + 180) / total) * 100)));
+      const chrome = document.querySelector('.reader-chrome');
+      const mobileTrigger = document.querySelector('.reader-mobile-trigger');
+      if (!article || !chrome || !mobileTrigger) return;
+
+      const chromeHeight = Math.ceil(chrome.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--reader-chrome-height', `${chromeHeight}px`);
+      const rootStyles = getComputedStyle(document.documentElement);
+      const readingOffset = parseFloat(rootStyles.scrollPaddingTop) || chromeHeight;
+      const articleRect = article.getBoundingClientRect();
+      const articleTop = window.scrollY + articleRect.top;
+      const readableViewport = Math.max(1, window.innerHeight - readingOffset);
+      const total = Math.max(1, articleRect.height - readableViewport);
+      const traveled = window.scrollY + readingOffset - articleTop;
+      const percent = Math.max(0, Math.min(100, Math.round((traveled / total) * 100)));
       document.querySelectorAll('[data-reader-progress]').forEach((element) => {
         element.textContent = `${percent}%`;
       });
+
+      const heading = article.querySelector('h1');
+      const spacing = parseFloat(rootStyles.getPropertyValue('--reader-space-5')) || 24;
+      const headingBottom = heading
+        ? window.scrollY + heading.getBoundingClientRect().bottom
+        : articleTop;
+      const revealAt = Math.max(window.innerHeight / 3, headingBottom - readingOffset + spacing);
+      const showMobileTrigger = window.matchMedia('(max-width: 1040px)').matches
+        && window.scrollY >= revealAt;
+      mobileTrigger.classList.toggle('is-visible', showMobileTrigger);
+      mobileTrigger.setAttribute('aria-hidden', String(!showMobileTrigger));
+      mobileTrigger.tabIndex = showMobileTrigger ? 0 : -1;
+      document.querySelector('.reader-toc')?.classList.toggle('is-visible', window.scrollY >= revealAt);
+
       const georgie = document.querySelector('.reader-georgie');
       const complete = percent >= 96;
       if (georgie && complete && !wasComplete) georgie.dispatchEvent(new Event('georgie-wake'));
       wasComplete = complete;
 
-      const scrollPos = window.scrollY + 190;
-      let activeIndex = -1;
-      for (let i = sections.length - 1; i >= 0; i--) {
-        if (sections[i].offsetTop <= scrollPos) {
-          activeIndex = i;
-          break;
+      const scrollPos = window.scrollY + readingOffset;
+      let activeIndex = 0;
+      if (percent >= 99) {
+        activeIndex = sections.length - 1;
+      } else {
+        for (let i = sections.length - 1; i > 0; i--) {
+          const sectionTop = window.scrollY + sections[i].getBoundingClientRect().top;
+          if (sectionTop <= scrollPos + 1) {
+            activeIndex = i;
+            break;
+          }
         }
       }
       document.querySelectorAll('.reader-toc-link, .reader-sheet-link').forEach((link, index) => {
@@ -921,6 +957,20 @@ const TableOfContents = {
         if (normalizedIndex === activeIndex) link.setAttribute('aria-current', 'location');
         else link.removeAttribute('aria-current');
       });
+
+      if (activeIndex !== lastActiveIndex) {
+        const toc = document.querySelector('.reader-toc');
+        const activeLink = toc?.querySelector('.reader-toc-link.active');
+        if (toc && activeLink) {
+          const tocRect = toc.getBoundingClientRect();
+          const linkRect = activeLink.getBoundingClientRect();
+          const visibleTop = tocRect.top + spacing;
+          const visibleBottom = tocRect.bottom - spacing;
+          if (linkRect.top < visibleTop) toc.scrollTop -= visibleTop - linkRect.top;
+          else if (linkRect.bottom > visibleBottom) toc.scrollTop += linkRect.bottom - visibleBottom;
+        }
+        lastActiveIndex = activeIndex;
+      }
       frame = 0;
     };
     this.scrollHandler = () => {

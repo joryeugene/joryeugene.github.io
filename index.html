@@ -14,7 +14,7 @@
   <title>Jory Pestorious | Developer tools, agents, and interfaces</title>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/css/portfolio.css">
+  <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-3">
 </head>
 <body class="portfolio-page page-work">
   <a class="skip-link" href="#main">Skip to work</a>
@@ -64,7 +64,7 @@
             <span class="project-number">02</span>
             <div>
               <h2>dadbod-grip.nvim</h2>
-              <p>Database work inside the editor. Staged changes, visible SQL, one transaction.</p>
+              <p>Editable database grids for Neovim. Stage changes as exact SQL, commit atomically, or join databases and files through DuckDB.</p>
             </div>
           </div>
           <div class="project-preview">
@@ -72,7 +72,7 @@
           </div>
           <div class="project-actions">
             <button class="project-inspect" type="button" data-project-inspect="dadbod-grip" aria-label="Inspect dadbod-grip.nvim" aria-controls="project-depth" aria-expanded="true" data-jelly>Inspect details</button>
-            <a class="project-action" href="https://github.com/joryeugene/dadbod-grip.nvim" data-jelly>View source</a>
+            <a class="project-action" href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>Open walkthrough</a>
           </div>
         </article>
 
@@ -109,26 +109,29 @@
         </div>
         <div id="depth-demo" class="depth-panel" role="tabpanel" data-depth-panel aria-labelledby="depth-demo-tab" hidden>
           <h3>Open the working tool</h3>
-          <p>Browse a schema, edit rows with Vim motions, preview the SQL, then apply the change in one transaction.</p>
-          <p class="proof-line"><a href="https://github.com/joryeugene/dadbod-grip.nvim">View source and installation</a></p>
+          <p>Edit tables, inspect exact SQL, query files, and join data across databases through DuckDB.</p>
+          <p class="proof-line"><a href="https://jorypestorious.com/dadbod-grip-web/">Open the walkthrough</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>
         </div>
         <div id="depth-system" class="depth-panel" role="tabpanel" data-depth-panel aria-labelledby="depth-system-tab">
-          <div class="system-path" aria-label="System cross-section">
-            <div class="system-node"><strong>PostgreSQL</strong>tables, views, indexes</div>
+          <div class="system-path system-path--four" aria-label="Dadbod Grip system cross-section">
+            <div class="system-node"><strong>Sources</strong><span class="system-detail system-detail--wide">PostgreSQL · MySQL · SQLite · MotherDuck · files/S3</span><span class="system-detail system-detail--compact">4 databases · files/S3</span></div>
             <span aria-hidden="true">to</span>
-            <div class="system-node is-core"><strong>dadbod-grip.nvim</strong>staging and SQL preview</div>
+            <div class="system-node"><strong>DuckDB hub</strong><span class="system-detail system-detail--wide">attach databases · scan files · cross-source joins</span><span class="system-detail system-detail--compact">attach · scan · cross-source JOIN</span></div>
             <span aria-hidden="true">to</span>
-            <div class="system-node"><strong>Vim</strong>buffers, diffs, motions</div>
+            <div class="system-node is-core"><strong>Dadbod Grip</strong><span class="system-detail system-detail--wide">edit grids · preview SQL · atomic commit · transaction undo</span><span class="system-detail system-detail--compact">edit · preview SQL · commit/undo</span></div>
+            <span aria-hidden="true">to</span>
+            <div class="system-node"><strong>Neovim analysis</strong><span class="system-detail system-detail--wide">schemas/FKs · notebooks · profiling · Query Doctor · four AI providers</span><span class="system-detail system-detail--compact">schema · profile · notebook · AI SQL</span></div>
           </div>
-          <p class="proof-line">The plugin applies every staged change in one transaction.</p>
+          <p class="proof-line"><span class="system-detail system-detail--wide">One query joins PostgreSQL customers to S3 Parquet events. Direct-table edits preview exact SQL and roll back together on failure.</span><span class="system-detail system-detail--compact">Example: JOIN PostgreSQL to S3 Parquet. Preview exact SQL; commit or roll back as one transaction.</span></p>
         </div>
         <div id="depth-decisions" class="depth-panel" role="tabpanel" data-depth-panel aria-labelledby="depth-decisions-tab" hidden>
           <h3>Keep the work inside the editor.</h3>
           <p>The database remains the source of truth. Vim supplies the interaction model. Existing tools handle connections instead of a new database layer.</p>
         </div>
         <div id="depth-proof" class="depth-panel" role="tabpanel" data-depth-panel aria-labelledby="depth-proof-tab" hidden>
-          <h3>Inspectable before execution</h3>
-          <p>Every staged mutation becomes visible SQL. The final apply runs atomically, and the repository documents the supported databases and workflows.</p>
+          <h3>Test the database workbench</h3>
+          <p>The linked CI run passes 74 spec files and 1,761 assertions on Neovim stable and 0.10.</p>
+          <p class="proof-line"><a href="https://github.com/joryeugene/dadbod-grip.nvim/actions/runs/30663015056">Inspect the passing run</a> · <a href="/blog/dadbod-grip/">Read the build story</a></p>
         </div>
       </section>
 
@@ -142,39 +145,43 @@
 
         <div class="archive-grid">
           <article class="archive-card">
-            <div class="archive-meta"><span>Shipped at scale</span><span>Unity, C#, Photon</span></div>
+            <div class="archive-meta"><span>Shipped at scale</span><span>Unity, C#, Photon, PlayFab</span></div>
             <h3><a href="https://www.totallyreliable.com/">Totally Reliable Delivery Service</a></h3>
-            <p>I co-founded We're Five Games and architected the networked multiplayer backend for a physics sandbox released across console, PC, and mobile. The game passed 50 million downloads.</p>
+            <p>I co-founded We're Five Games and led Unity and C# multiplayer for a sandbox where four online ragdolls can form a chain and hang from a moving rocket. I led the multiplayer work that kept those grips, bodies, joints, vehicles, and collisions in the shared simulation. The game passed 50 million downloads; launch week peaked above 32,000 concurrent Twitch viewers.</p>
             <div class="archive-links">
               <a href="https://www.totallyreliable.com/">Visit the official site</a>
               <a href="/process/#totally-reliable">See the engineering trace</a>
+              <a href="https://streamscharts.com/games/totally-reliable-delivery-service/release-stats">See the launch audience</a>
             </div>
           </article>
 
           <article class="archive-card">
-            <div class="archive-meta"><span>In development</span><span>Expo, TypeScript, generated web data</span></div>
-            <h3><a href="/process/#theosis">Theosis</a></h3>
-            <p>An Orthodox prayer companion redesigned as a responsive liturgical folio. Native stays fully offline; the web build is online-first, database-free, and loads immutable day and Bible data on demand under enforced bundle budgets.</p>
+            <div class="archive-meta"><span>Live web product</span><span>React Native, Expo, TypeScript</span></div>
+            <h3><a href="https://prayorthodox.com/">Theosis</a></h3>
+            <p>An Orthodox prayer book and Scripture reader for the daily prayer cycle, Bible, saints, fasting guidance, chant, and pastoral help. Native bundles the core library for offline reading. The web build transforms the same sources into route-sized JSON, so the public app starts without a runtime database, WASM, account, or application server.</p>
             <div class="archive-links">
+              <a href="https://prayorthodox.com/">Open Pray Orthodox</a>
               <a href="/process/#theosis">See the product trace</a>
             </div>
           </article>
 
           <article class="archive-card">
-            <div class="archive-meta"><span>Product platform</span><span>React, TypeScript, Python</span></div>
-            <h3><a href="/process/#workhelix">Workhelix platform</a></h3>
-            <p>I joined pre-seed as the sole frontend engineer and replaced the Bubble.io prototype with the production React and TypeScript application used through Series A. I then expanded into FastAPI, PostgreSQL, AWS, Terraform, release agents, authentication, analytics, admin tools, and assessment views.</p>
+            <div class="archive-meta"><span>Product platform</span><span>React, TypeScript, ECharts</span></div>
+            <h3><a href="https://www.workhelix.com/platform">Workhelix Nucleus</a></h3>
+            <p>Nucleus combines HRIS, AI-usage, and prompt data so leaders can see adoption, quantify value, and find workflows worth improving. I replaced its Bubble prototype with the production React and TypeScript platform, translated Figma designs into reusable components, and built the product experience that presented the data science team's assessment outputs.</p>
             <div class="archive-links">
-              <a href="/process/#workhelix">See the process layer</a>
+              <a href="https://www.workhelix.com/platform">Explore Nucleus</a>
+              <a href="/process/#workhelix">See the engineering trace</a>
             </div>
           </article>
 
           <article class="archive-card">
             <div class="archive-meta"><span>Agent memory</span><span>Python, MCP, SQLite FTS5</span></div>
             <h3><a href="https://github.com/joryeugene/keephive">keephive</a></h3>
-            <p>Keephive captures decisions and facts from coding sessions, recalls them across agents, and checks stale claims against the codebase before they become durable memory.</p>
+            <p>Keephive gives coding agents persistent memory with codebase checks. Nine Claude Code hooks capture facts and decisions. MCP and lightweight shims give Claude, Codex, and Gemini access to the same store; <code>hive verify</code> checks stale facts against the codebase.</p>
             <div class="archive-links">
               <a href="https://github.com/joryeugene/keephive">View the repository</a>
+              <a href="/blog/knowledge-sidecar/">Read the verified-context essay</a>
               <a href="https://pypi.org/project/keephive/">Open the Python package</a>
             </div>
           </article>
@@ -197,7 +204,7 @@
     </div>
   </div>
 
-  <script src="/js/blog-common.js"></script>
-  <script src="/js/portfolio.js"></script>
+  <script src="/js/blog-common.js?v=foundation-plus-3"></script>
+  <script src="/js/portfolio.js?v=foundation-plus-3"></script>
 </body>
 </html>

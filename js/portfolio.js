@@ -14,10 +14,10 @@
     'dadbod-grip': {
       name: 'dadbod-grip.nvim',
       panels: {
-        demo: '<h3>Open the working tool</h3><p>Browse a schema, edit rows with Vim motions, preview the SQL, then apply the change in one transaction.</p><p class="proof-line"><a href="https://github.com/joryeugene/dadbod-grip.nvim">View source and installation</a></p>',
-        system: '<div class="system-path" aria-label="Dadbod Grip system cross-section"><div class="system-node"><strong>PostgreSQL</strong>tables, views, indexes</div><span aria-hidden="true">to</span><div class="system-node is-core"><strong>dadbod-grip.nvim</strong>staging and SQL preview</div><span aria-hidden="true">to</span><div class="system-node"><strong>Vim</strong>buffers, diffs, motions</div></div><p class="proof-line">The plugin applies every staged change in one transaction.</p>',
-        decisions: '<h3>Keep the work inside the editor.</h3><p>The database remains the source of truth. Vim supplies the interaction model. Existing tools handle connections instead of a new database layer.</p>',
-        proof: '<h3>Inspectable before execution</h3><p>Every staged mutation becomes visible SQL. The final apply runs atomically, with staged changes and SQL preview covered by the repository tests.</p><p class="proof-line"><a href="https://jorypestorious.com/dadbod-grip-web/">Open the walkthrough</a></p>'
+        demo: '<h3>Open the working tool</h3><p>Edit tables, inspect exact SQL, query files, and join data across databases through DuckDB.</p><p class="proof-line"><a href="https://jorypestorious.com/dadbod-grip-web/">Open the walkthrough</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>',
+        system: '<div class="system-path system-path--four" aria-label="Dadbod Grip system cross-section"><div class="system-node"><strong>Sources</strong><span class="system-detail system-detail--wide">PostgreSQL · MySQL · SQLite · MotherDuck · files/S3</span><span class="system-detail system-detail--compact">4 databases · files/S3</span></div><span aria-hidden="true">to</span><div class="system-node"><strong>DuckDB hub</strong><span class="system-detail system-detail--wide">attach databases · scan files · cross-source joins</span><span class="system-detail system-detail--compact">attach · scan · cross-source JOIN</span></div><span aria-hidden="true">to</span><div class="system-node is-core"><strong>Dadbod Grip</strong><span class="system-detail system-detail--wide">edit grids · preview SQL · atomic commit · transaction undo</span><span class="system-detail system-detail--compact">edit · preview SQL · commit/undo</span></div><span aria-hidden="true">to</span><div class="system-node"><strong>Neovim analysis</strong><span class="system-detail system-detail--wide">schemas/FKs · notebooks · profiling · Query Doctor · four AI providers</span><span class="system-detail system-detail--compact">schema · profile · notebook · AI SQL</span></div></div><p class="proof-line"><span class="system-detail system-detail--wide">One query joins PostgreSQL customers to S3 Parquet events. Direct-table edits preview exact SQL and roll back together on failure.</span><span class="system-detail system-detail--compact">Example: JOIN PostgreSQL to S3 Parquet. Preview exact SQL; commit or roll back as one transaction.</span></p>',
+        decisions: '<h3>Keep the data work inside Neovim.</h3><p>Dadbod handles connections, DuckDB federates sources, and the underlying database stays authoritative. The plugin adds the editing and analysis workflows between them.</p>',
+        proof: '<h3>Test the database workbench</h3><p>The current CI run passes 74 spec files and 1,761 assertions on Neovim stable and 0.10.</p><p class="proof-line"><a href="https://github.com/joryeugene/dadbod-grip.nvim/actions/runs/30663015056">Inspect the passing run</a> · <a href="/blog/dadbod-grip/">Read the build story</a></p>'
       }
     },
     georgie: {
@@ -33,53 +33,53 @@
 
   const processCases = {
     'dadbod-grip': {
-      title: 'How dadbod-grip.nvim stays inspectable',
+      title: 'How Dadbod Grip turns Neovim into a data workbench',
       kicker: 'Case: dadbod-grip.nvim',
       layers: {
-        brief: '<h2>Edit database tables without leaving Vim.</h2><p>The core job is preserving editor flow while making mutations reviewable before execution.</p>',
-        constraints: '<h2>Keep existing connection and query tools.</h2><p>Vim provides the interaction model. Dadbod owns connections. The database remains authoritative.</p>',
-        changes: '<h2>Keep each mutation inspectable.</h2><pre class="code-window" aria-label="Example staged SQL change"><code><span class="remove">- ALTER TABLE users ADD last_seen_at TIMESTAMP;</span>\n<span class="add">+ ALTER TABLE users ADD last_seen_at TIMESTAMPTZ;</span>\n<span class="add">+ CREATE INDEX idx_users_last_seen_at</span>\n<span class="add">+   ON users (last_seen_at DESC);</span></code></pre><div class="decision-note"><strong>Decision</strong>Keep changes staged until the SQL is reviewable.</div><div class="proof-strip"><span>Staged changes</span><span>SQL preview</span><span>Single transaction</span></div>',
-        tests: '<h2>Test the mutation workflow.</h2><p>Preview the SQL before execution. Apply staged mutations inside one transaction. Verify database state after commit and rollback.</p><div class="proof-strip"><span>Preview</span><span>Apply</span><span>Verify state</span></div>',
-        visual: '<h2>Inspect the real interface.</h2><p>Tables, diffs, floating SQL previews, focus order, and empty states are checked in Neovim. Screenshots support the review but do not replace interaction.</p>'
+        brief: '<h2>Edit, query, and analyze data without leaving Neovim.</h2><p>Dadbod Grip adds editable grids, exact SQL previews, cross-database queries, schema navigation, profiling, notebooks, and schema-aware AI to the editor.</p>',
+        constraints: '<h2>Keep the database and existing connection tools authoritative.</h2><p>Dadbod manages connections. DuckDB joins databases and files. Dadbod Grip adds workflows without hiding the SQL or replacing either system.</p>',
+        changes: '<h2>Make edits and federation inspectable.</h2><pre class="code-window" aria-label="Example staged SQL change"><code><span class="remove">- ALTER TABLE users ADD last_seen_at TIMESTAMP;</span>\n<span class="add">+ ALTER TABLE users ADD last_seen_at TIMESTAMPTZ;</span>\n<span class="add">+ CREATE INDEX idx_users_last_seen_at</span>\n<span class="add">+   ON users (last_seen_at DESC);</span></code></pre><div class="decision-note"><strong>Decision</strong>Show the exact mutation SQL before one atomic commit.</div><div class="proof-strip"><span>Editable grids</span><span>DuckDB federation</span><span>SQL notebooks</span></div>',
+        tests: '<h2>Run the database workflows against real engines.</h2><p>The linked CI run passes 74 spec files and 1,761 assertions on Neovim stable and 0.10, including enabled DuckDB federation checks.</p><div class="proof-strip"><span>74 spec files</span><span>1,761 assertions</span><span>Two Neovim targets</span></div><p class="proof-line"><a href="https://github.com/joryeugene/dadbod-grip.nvim/actions/runs/30663015056">Inspect the passing run</a> · <a href="/blog/dadbod-grip/">Read the build story</a></p>',
+        visual: '<h2>Inspect the real interface.</h2><p>Editable grids, schema and foreign-key navigation, ER diagrams, profiling sparklines, Query Doctor, and notebooks are reviewed inside Neovim. AI-assisted SQL can use Anthropic, OpenAI, Gemini, or Ollama.</p>'
       },
-      wrongTurns: [['Separate desktop app', 'It breaks editor flow and adds another interface to install, learn, and maintain.'], ['Custom database layer', 'It rebuilds reliable connection and query behavior that existing tools already provide.']]
+      wrongTurns: [['Separate desktop app', 'It breaks editor flow and adds another interface to install, learn, and maintain.'], ['Hide generated SQL', 'Users need to inspect the exact query or mutation before it reaches a database.']]
     },
     'totally-reliable': {
-      title: 'How Totally Reliable kept physics playful online',
+      title: 'How four live ragdolls stay connected to one rocket',
       kicker: 'Case: Totally Reliable Delivery Service',
       layers: {
-        brief: '<h2>Keep a physics sandbox responsive in multiplayer.</h2><p>The job was to preserve the game\'s ragdoll chaos while players shared the same world across console, PC, and mobile.</p>',
-        constraints: '<h2>Support unpredictable objects and uneven networks.</h2><p>Players, vehicles, joints, and physics objects all interact. The backend had to carry those interactions across real network conditions and different platforms.</p>',
-        changes: '<h2>Build networking around the game feel.</h2><p>The networked backend treated local responsiveness and shared state as simultaneous requirements instead of forcing the simulation into a rigid product model.</p><div class="decision-note"><strong>Decision</strong>Protect the playful physics while making the world legible to every player.</div>',
-        tests: '<h2>Test the collisions people actually create.</h2><p>Multiplayer sessions exercise ragdolls, vehicles, jointed objects, reconnects, and cross-platform behavior under network conditions.</p><div class="proof-strip"><span>Physics</span><span>Multiplayer</span><span>Cross-platform</span></div>',
-        visual: '<h2>Watch whether the chaos still feels responsive.</h2><p>Logs can confirm state transfer. Play sessions reveal whether collisions, vehicles, and ragdolls still feel immediate.</p>'
+        brief: '<h2>Keep every grip, body, joint, and vehicle live online.</h2><p>Four players can grab one another into a physical chain and hang from a moving rocket. The mechanic only works when the shared simulation stays responsive.</p>',
+        constraints: '<h2>Network real ragdolls instead of canned reactions.</h2><p>Rigid bodies, joints, collisions, players, and vehicles affect one another continuously. Synchronization cost grows with every connected body and moving object.</p>',
+        changes: '<h2>Profile the interactions players can feel.</h2><p>I led the Unity and C# multiplayer architecture with Photon and PlayFab, reduced synchronization work, tuned smoothing, and traced lower-level failures into compiled vendor code.</p><div class="decision-note"><strong>Decision</strong>Spend network work on the bodies and interactions visible to players.</div><div class="proof-strip"><span>Ragdolls + joints</span><span>Vehicles + objects</span><span>Bandwidth + smoothing</span></div><p class="proof-line"><a href="https://www.totallyreliable.com/post/pc-mac-2-03-03-update">Read a shipped update</a></p>',
+        tests: '<h2>Test the combinations players create.</h2><p>Multiplayer sessions exercise grappling chains, vehicles, collisions, physics objects, platform limits, and real network conditions.</p><div class="proof-strip"><span>Four players</span><span>Six platforms</span><span>50M+ downloads</span></div>',
+        visual: '<h2>Watch the mechanic at launch scale.</h2><p>Play sessions reveal whether chained bodies and vehicles still react immediately. The game\'s first week peaked above 32,000 concurrent Twitch viewers.</p><p class="proof-line"><a href="https://streamscharts.com/games/totally-reliable-delivery-service/release-stats">Inspect the launch-week audience</a></p>'
       },
-      wrongTurns: [['Desktop-only assumptions', 'The shipped game had to serve console, PC, and mobile rather than optimizing around one input or hardware profile.'], ['Networking that dictates the fun', 'A rigid synchronization model would make the physics easier to reason about while removing the behavior players came for.']]
+      wrongTurns: [['Fake the ragdolls with canned animation', 'It would remove the live grip, chain, collision, and vehicle interactions that define the game.'], ['Synchronize every object equally', 'It spends the same bandwidth on sleeping scenery and the bodies players are actively controlling.']]
     },
     theosis: {
-      title: 'How Theosis serves native and web without one dragging the other down',
+      title: 'How Theosis delivers one Orthodox library across native and web',
       kicker: 'Case: Theosis',
       layers: {
-        brief: '<h2>Make daily prayer calm on a phone and fast on the public web.</h2><p>The same product needs full offline native behavior and a public web experience that opens quickly on any screen.</p>',
-        constraints: '<h2>Keep native offline and remove web startup costs.</h2><p>Native keeps bundled SQLite and offline use. Web must avoid database and WASM startup while preserving the liturgical folio and long-form reading experience.</p>',
-        changes: '<h2>Ship immutable route-sized data on the web.</h2><p>The public build emits daily and Bible data as generated assets, defers heavy reference routes, and caps the gzip entry at 650 KB.</p><div class="decision-note"><strong>Decision</strong>Share the product model without forcing both platforms through one startup path.</div>',
-        tests: '<h2>Make performance budgets fail the build.</h2><p>Checks reject database or WASM leakage, oversized route shards, an entry above 650 KB gzip, missing SPA fallback, and broken content routes.</p><div class="proof-strip"><span>Bundle budget</span><span>Route data</span><span>Content integrity</span></div>',
-        visual: '<h2>Read the folio at real phone and desktop widths.</h2><p>Daily prayers, long readings, Bible anchors, search, and navigation are inspected for overflow, clipped text, and console errors.</p>'
+        brief: '<h2>Put today\'s Orthodox prayer cycle and Scripture in one book-like reader.</h2><p>The public edition follows Orthodox Church in America sources on the New Calendar, with daily prayer, Bible, saints, fasting guidance, chant, and pastoral help.</p>',
+        constraints: '<h2>Keep native offline while making the public web start immediately.</h2><p>Native needs the complete core library without a network connection. Web needs the same canonical content without a runtime database, WASM, user account, or application server.</p>',
+        changes: '<h2>Build once from canonical sources, then deliver for each platform.</h2><p>React Native, Expo Router, TypeScript, and SQLite power native. A Python pipeline transforms the same sources into immutable, route-sized JSON for Cloudflare Pages.</p><div class="decision-note"><strong>Decision</strong>Preserve one content source while giving native and web different delivery paths.</div>',
+        tests: '<h2>Test the rules that can silently show the wrong prayer.</h2><p>The office resolver is checked across all 4,017 dates from 2025 through 2035. Tests separate personal prayer rules from Church offices, change the service date at Vespers without moving the selected calendar page, and withhold unverified daily propers.</p><div class="proof-strip"><span>4,017 dates</span><span>275 Jest tests</span><span>69 browser checks</span></div>',
+        visual: '<h2>Make a deep Bible reader feel like one continuous reading session.</h2><p>The reader handles Orthodox Psalm numbering, canon filters, search, exact passage links, verse-range selection, discontinuous liturgical readings, and keyboard navigation. Phone, desktop, and 200% zoom checks catch overflow and clipped text.</p>'
       },
       wrongTurns: [['One heavyweight bundle everywhere', 'It would preserve implementation symmetry while making the public web pay the native offline startup cost.'], ['A runtime database for deterministic web content', 'The public routes can ship immutable generated data without adding database and WASM startup to every visit.']]
     },
     workhelix: {
-      title: 'How Workhelix moved from Bubble to a production platform used through Series A',
+      title: 'How Nucleus turns company AI usage into product decisions',
       kicker: 'Workhelix · pre-seed to Series A',
       layers: {
-        brief: '<h2>Replace the Bubble.io prototype while the product kept moving.</h2><p>I joined Workhelix pre-seed as the sole frontend engineer. The React and TypeScript application that replaced the prototype remained the production product through Series A.</p>',
-        constraints: '<h2>The rebuild crossed frontend, backend, data, and infrastructure.</h2><p>The product depended on FastAPI services, SQLAlchemy and PostgreSQL performance, tenant boundaries, production data migrations, AWS infrastructure, release workflows, analytics, admin tools, and assessment results.</p>',
-        changes: '<h2>Expand the production stack after replacing the prototype.</h2><p>I took substantial ownership of the Python and FastAPI backend, database performance and migrations, AWS and Terraform, OAuth, WorkOS SSO, JWT, multi-tenant isolation, analytics, admin tools, and interactive assessment views.</p><div class="decision-note"><strong>Scope</strong>React and TypeScript, FastAPI and PostgreSQL, AWS and Terraform, authentication, analytics, and admin tools.</div><div class="proof-strip"><span>React + TypeScript</span><span>FastAPI + PostgreSQL</span><span>AWS + Terraform</span></div>',
+        brief: '<h2>Show where company AI use creates value and where it stalls.</h2><p>Nucleus combines HRIS, AI-usage, and prompt data to rank opportunities, reveal adoption gaps and superusers, and measure business impact.</p>',
+        constraints: '<h2>Replace the prototype while the product and customer work continued.</h2><p>I joined pre-seed as the sole frontend engineer. The production platform needed tenant-safe data, authentication, interfaces for analytics and assessment results, admin tools, and releases while the migration continued.</p>',
+        changes: '<h2>Replace Bubble, then own the production path.</h2><p>I replaced Bubble with React and TypeScript, turned Figma designs into reusable components, and used ECharts to present the data science team\'s assessment outputs. I later owned FastAPI, PostgreSQL performance and migrations, authentication, admin tools, AWS, Terraform, and releases.</p>',
         tests: '<h2>Build review, release, and security checks into delivery.</h2><p>I built GitHub Actions and agent workflows for code review and releases, then implemented engineering controls that supported SOC 2 Type II. Authentication covered OAuth, WorkOS SSO, JWT, and multi-tenant isolation.</p><div class="proof-strip"><span>Review</span><span>Release</span><span>Tenant isolation</span></div>',
-        visual: '<h2>Turn production data into product views.</h2><p>I delivered analytics, admin tools, and interactive assessment-result views so the product could expose dense data through interfaces people could use.</p>'
+        visual: '<h2>Make dense opportunity data explorable.</h2><p>The product interface turned assessment results and AI-opportunity data into ECharts overviews, filters, comparisons, and drilldowns.</p>'
       },
       sidebarTitle: 'Scope of ownership',
-      wrongTurns: [['Production adoption', 'The React and TypeScript application replaced Bubble.io and remained in production through Series A.'], ['Backend and data', 'The work expanded into FastAPI, SQLAlchemy and PostgreSQL performance, and production data migrations.'], ['Delivery and trust', 'AWS, Terraform, GitHub Actions, agent workflows, authentication, tenant isolation, and SOC 2 controls became part of the same ownership path.']]
+      wrongTurns: [['Product migration', 'The React and TypeScript application replaced Bubble and remained in production through Series A.'], ['Backend and data', 'The work expanded into FastAPI, SQLAlchemy, PostgreSQL performance, and production data migrations.'], ['Delivery and trust', 'AWS, Terraform, GitHub Actions, authentication, tenant isolation, and SOC 2 controls became part of the same ownership path.']]
     }
   };
 
@@ -250,64 +250,107 @@
     const search = document.getElementById('writing-search');
     const counter = document.getElementById('writing-counter');
     const showAll = document.getElementById('show-all-writing');
+    const emptyState = document.getElementById('writing-empty');
     const featured = document.querySelector('.writing-feature');
-    const featuredLink = featured?.querySelector('a[href]');
+    const featuredLink = featured?.querySelector('.writing-feature__link');
     const rows = Array.from(document.querySelectorAll('.writing-row'));
     if (!search || !rows.length) return;
 
     const collapsedLimit = 7;
+    const totalCount = rows.length + (featuredLink ? 1 : 0);
     let expanded = false;
     let selectedIndex = -1;
 
+    document.querySelectorAll('[data-pub-date]').forEach((entry) => {
+      if (entry.querySelector('time')) return;
+      const date = entry.dataset.pubDate;
+      const title = entry.querySelector('.writing-row__title');
+      const eyebrow = entry.querySelector('.writing-feature__copy .eyebrow');
+      if (!date || (!title && !eyebrow)) return;
+      const time = document.createElement('time');
+      time.className = title ? 'writing-row__date' : 'writing-feature__date';
+      time.dateTime = date;
+      time.textContent = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`));
+      if (title) title.insertAdjacentElement('afterend', time);
+      else {
+        eyebrow.append(' · ');
+        eyebrow.append(time);
+      }
+    });
+
     function visibleTargets() {
       const targets = rows.filter((row) => !row.hidden);
-      if (featuredLink && !search.value.trim()) targets.unshift(featuredLink);
+      if (featuredLink && !featured.hidden) targets.unshift(featuredLink);
       return targets;
     }
 
     function setSelected(index) {
       const visible = visibleTargets();
       if (!visible.length) return;
-      selectedIndex = Math.max(0, Math.min(index, visible.length - 1));
+      selectedIndex = (index + visible.length) % visible.length;
       rows.forEach((row) => row.classList.remove('is-selected'));
       const target = visible[selectedIndex];
       featured?.classList.toggle('is-selected', target === featuredLink);
       target.closest('.writing-row')?.classList.add('is-selected');
       target.focus({ preventScroll: true });
       target.scrollIntoView({ block: 'nearest' });
-      counter.textContent = `${selectedIndex + 1} / ${visible.length}`;
     }
 
     function filterRows() {
       const query = search.value.trim().toLowerCase();
-      let matches = 0;
+      const featuredMatches = Boolean(featuredLink && (!query || featured.textContent.toLowerCase().includes(query)));
+      let rowMatches = 0;
+      let shownRows = 0;
 
       rows.forEach((row, index) => {
         const matchesQuery = !query || row.textContent.toLowerCase().includes(query);
         const withinCollapsedSet = expanded || query || index < collapsedLimit;
         row.hidden = !(matchesQuery && withinCollapsedSet);
-        if (!row.hidden) matches += 1;
+        if (matchesQuery) rowMatches += 1;
+        if (!row.hidden) shownRows += 1;
         row.classList.remove('is-selected');
       });
 
+      if (featured) featured.hidden = !featuredMatches;
       selectedIndex = -1;
       featured?.classList.remove('is-selected');
-      const targetCount = matches + (featuredLink && !query ? 1 : 0);
-      counter.textContent = targetCount ? `1 / ${targetCount}` : '0 / 0';
+      const resultCount = rowMatches + (featuredMatches ? 1 : 0);
+      const shownCount = shownRows + (featuredMatches ? 1 : 0);
+      counter.textContent = query
+        ? `${resultCount} ${resultCount === 1 ? 'result' : 'results'}`
+        : `${shownCount} shown · ${totalCount} total`;
+      if (emptyState) emptyState.hidden = resultCount > 0;
       if (showAll) {
         showAll.hidden = Boolean(query) || expanded || rows.length <= collapsedLimit;
+        showAll.textContent = `Show ${rows.length - collapsedLimit} more essays`;
+        showAll.setAttribute('aria-expanded', String(expanded));
       }
     }
 
     search.addEventListener('input', filterRows);
     showAll?.addEventListener('click', () => {
+      const firstHidden = rows.find((row) => row.hidden);
       expanded = true;
       filterRows();
-      showAll.hidden = true;
+      firstHidden?.focus({ preventScroll: true });
+      firstHidden?.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     });
 
     document.addEventListener('keydown', (event) => {
       if (document.activeElement === search) {
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          setSelected(0);
+          return;
+        }
+        if (event.key === 'Enter') {
+          const visible = visibleTargets();
+          if (visible.length) {
+            event.preventDefault();
+            visible[0].click();
+          }
+          return;
+        }
         if (event.key === 'Escape') {
           search.blur();
           search.value = '';
@@ -327,11 +370,12 @@
         const visibleCount = visibleTargets().length;
         if (!visibleCount) return;
         if (event.key === 'j') setSelected(selectedIndex + 1);
-        else setSelected(selectedIndex <= 0 ? visibleCount - 1 : selectedIndex - 1);
+        else setSelected(selectedIndex < 0 ? visibleCount - 1 : selectedIndex - 1);
         return;
       }
 
       if (event.key === 'Enter' && selectedIndex >= 0) {
+        event.preventDefault();
         const visible = visibleTargets();
         visible[selectedIndex]?.click();
       }
