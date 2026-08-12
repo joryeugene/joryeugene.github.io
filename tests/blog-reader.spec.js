@@ -226,17 +226,43 @@ test.describe('shared blog reader', () => {
     await expect(palette).toBeHidden();
   });
 
-  test('scrolls standard article readers with j and k without stealing palette keys', async ({ page }) => {
+  test('uses smooth reader Vim scrolling without restoring the legacy HUD', async ({ page }) => {
     await page.goto('/blog/ai-engineer-verification/');
     await expect(page.locator('#vim-hud')).toHaveCount(0);
+    await page.evaluate(() => {
+      window.__readerWindowScrollCalls = [];
+      const originalScrollBy = window.scrollBy.bind(window);
+      const originalScrollTo = window.scrollTo.bind(window);
+      window.scrollBy = (...args) => {
+        window.__readerWindowScrollCalls.push({ method: 'by', args });
+        return originalScrollBy(...args);
+      };
+      window.scrollTo = (...args) => {
+        window.__readerWindowScrollCalls.push({ method: 'to', args });
+        return originalScrollTo(...args);
+      };
+    });
 
     const start = await page.evaluate(() => window.scrollY);
-    await page.keyboard.press('j');
+    await page.keyboard.down('j');
+    await page.waitForTimeout(180);
+    await page.keyboard.up('j');
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(start);
+    expect(await page.evaluate(() => window.__readerWindowScrollCalls.at(-1))).toEqual({
+      method: 'by',
+      args: [{ top: 120, behavior: 'smooth' }]
+    });
 
     const afterJ = await page.evaluate(() => window.scrollY);
     await page.keyboard.press('k');
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(afterJ);
+
+    await page.keyboard.press('Shift+g');
+    await expect.poll(() => page.evaluate(() => Math.round(window.scrollY + window.innerHeight)))
+      .toBe(await page.evaluate(() => document.documentElement.scrollHeight));
+    await page.keyboard.press('g');
+    await page.keyboard.press('g');
+    await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(0);
 
     await page.getByRole('button', { name: 'Open command palette' }).click();
     const palette = page.getByRole('dialog', { name: 'Command palette' });

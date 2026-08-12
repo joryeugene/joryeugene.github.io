@@ -775,6 +775,13 @@ const ReaderShell = {
 
   bindControls(palette, sheet, mobileTrigger) {
     let palettePreviousFocus = null;
+    let readerGTimer = 0;
+    const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    const clearReaderG = () => {
+      if (!readerGTimer) return;
+      window.clearTimeout(readerGTimer);
+      readerGTimer = 0;
+    };
     const openPalette = () => {
       palettePreviousFocus = document.activeElement;
       if (!palette.open) palette.showModal();
@@ -827,8 +834,29 @@ const ReaderShell = {
       if (active?.matches('input, textarea, select, [contenteditable="true"]')) return;
       if (event.key === 'j' || event.key === 'k') {
         event.preventDefault();
-        window.scrollBy(0, event.key === 'j' ? 120 : -120);
+        clearReaderG();
+        window.scrollBy({ top: event.key === 'j' ? 120 : -120, behavior: scrollBehavior() });
+        return;
       }
+      if (event.key === 'G' || (event.key === 'g' && event.shiftKey)) {
+        event.preventDefault();
+        clearReaderG();
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: scrollBehavior() });
+        return;
+      }
+      if (event.key === 'g') {
+        event.preventDefault();
+        if (readerGTimer) {
+          clearReaderG();
+          window.scrollTo({ top: 0, behavior: scrollBehavior() });
+          return;
+        }
+        readerGTimer = window.setTimeout(() => {
+          readerGTimer = 0;
+        }, 400);
+        return;
+      }
+      clearReaderG();
     });
 
     document.addEventListener('pointerdown', (event) => {
