@@ -58,8 +58,8 @@
           </article>
           <article id="case-theosis" data-case-panel hidden>
             <p class="eyebrow">Live web product</p>
-            <h2>One prayer library, delivered offline on native and without runtime infrastructure on the web.</h2>
-            <p>Theosis brings the daily prayer cycle, Bible, saints, fasting guidance, chant, and pastoral help into a quiet, book-like interface. The public edition follows Orthodox Church in America sources on the New Calendar. Native bundles the core library in SQLite; the web build transforms the same canonical sources into immutable, route-sized JSON and needs no runtime database, WASM, user account, or application server.</p>
+            <h2>Turn two SQLite libraries into a versioned CDN data layer.</h2>
+            <p>Theosis brings the daily prayer cycle, Bible, saints, fasting guidance, chant, and pastoral help into a quiet, book-like interface. Before deployment, Python generates hashed JSON files for each date, month, and Bible chapter. Expo exports the React Native Web interface, and Cloudflare Pages serves the application and versioned content through its global CDN. The browser loads only the selected file; no API starts and no live database query runs during a visit.</p>
             <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Pray Orthodox</a></div>
           </article>
           <article id="case-workhelix" data-case-panel hidden>

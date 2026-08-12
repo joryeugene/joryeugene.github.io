@@ -266,7 +266,7 @@ test.describe('portfolio pages', () => {
     const cases = [
       ['Dadbod Grip', /Neovim into a data workbench/i, 'https://jorypestorious.com/dadbod-grip-web/'],
       ['Totally Reliable', /four live ragdolls stay connected to one rocket/i, 'https://www.totallyreliable.com/'],
-      ['Theosis', /one Orthodox library across native and web/i, 'https://prayorthodox.com/'],
+      ['Theosis', /SQLite content into a versioned CDN data layer/i, 'https://prayorthodox.com/'],
       ['Workhelix', /company AI usage into product decisions/i, 'https://www.workhelix.com/platform']
     ];
 
@@ -284,8 +284,8 @@ test.describe('portfolio pages', () => {
     }
 
     await page.getByRole('tab', { name: 'Theosis' }).click();
-    await expect(page.getByText(/One prayer library, delivered offline on native/i)).toBeVisible();
-    await expect(page.getByText(/no runtime database, WASM, user account, or application server/)).toBeVisible();
+    await expect(page.getByText(/Turn two SQLite libraries into a versioned CDN data layer/i)).toBeVisible();
+    await expect(page.getByText(/no API starts and no live database query runs/i)).toBeVisible();
     await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Tests/ }).click();
     await expect(page.getByText(/all 4,017 dates from 2025 through 2035/)).toBeVisible();
     await expect(page.locator('a[href="https://github.com/joryeugene/theosis"]')).toHaveCount(0);

@@ -158,7 +158,7 @@
           <article class="archive-card">
             <div class="archive-meta"><span>Live web product</span><span>React Native, Expo, TypeScript</span></div>
             <h3><a href="https://prayorthodox.com/">Theosis</a></h3>
-            <p>An Orthodox prayer book and Scripture reader for the daily prayer cycle, Bible, saints, fasting guidance, chant, and pastoral help. Native bundles the core library for offline reading. The web build transforms the same sources into route-sized JSON, so the public app starts without a runtime database, WASM, account, or application server.</p>
+            <p>An Orthodox prayer book and Scripture reader for the daily prayer cycle, Bible, saints, fasting guidance, chant, and pastoral help. Before deployment, Python converts two SQLite content libraries into hashed JSON files for each date and Bible chapter. Cloudflare Pages serves the Expo web app and versioned data through its global CDN, so each visit loads the selected content without starting an API or querying a live database.</p>
             <div class="archive-links">
               <a href="https://prayorthodox.com/">Open Pray Orthodox</a>
               <a href="/process/#theosis">See the product trace</a>
