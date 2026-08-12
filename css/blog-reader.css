@@ -465,7 +465,21 @@ body.reader-page {
   cursor: pointer;
   touch-action: manipulation;
   filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.42));
+  opacity: 1;
+  transform: translateY(0) scale(1);
   transform-origin: 50% 82%;
+}
+
+.reader-georgie.is-loading {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px) scale(0.98);
+}
+
+.reader-georgie.is-ready {
+  transition:
+    opacity var(--reader-motion-spatial) var(--reader-ease-enter),
+    transform var(--reader-motion-character) var(--reader-ease-character);
 }
 
 .reader-georgie:focus-visible {

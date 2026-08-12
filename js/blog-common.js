@@ -674,7 +674,7 @@ const ReaderShell = {
     const rail = document.createElement('aside');
     rail.className = 'reader-rail-slot';
     const georgie = document.createElement('button');
-    georgie.className = 'reader-georgie';
+    georgie.className = 'reader-georgie is-loading';
     georgie.type = 'button';
     georgie.setAttribute('aria-label', 'Wake Georgie');
     georgie.innerHTML = '<span class="reader-georgie__bed" aria-hidden="true"></span><span class="reader-georgie__sprite" aria-hidden="true"></span>';
@@ -764,6 +764,15 @@ const ReaderShell = {
     georgie.addEventListener('georgie-wake', play);
   },
 
+  revealGeorgie() {
+    const georgie = document.querySelector('.reader-georgie.is-loading');
+    if (!georgie) return;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      georgie.classList.remove('is-loading');
+      georgie.classList.add('is-ready');
+    }));
+  },
+
   bindControls(palette, sheet, mobileTrigger) {
     let palettePreviousFocus = null;
     const openPalette = () => {
@@ -844,12 +853,14 @@ const TableOfContents = {
     const headings = Array.from(document.querySelectorAll('.markdown-body h2'));
     if (!article || !headings.length) {
       document.querySelector('.reader-mobile-trigger')?.setAttribute('hidden', '');
+      ReaderShell.revealGeorgie();
       return;
     }
     const sections = [article, ...headings];
     document.querySelector('.reader-toc')?.remove();
     this.createTOC(sections);
     this.setupScrollSpy(sections);
+    ReaderShell.revealGeorgie();
   },
 
   createTOC(sections) {
