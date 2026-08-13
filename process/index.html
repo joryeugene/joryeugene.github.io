@@ -14,6 +14,7 @@
   <meta name="twitter:image" content="https://jorypestorious.com/jpg/jory-georgie-social.png">
   <title>Process | Jory Pestorious</title>
   <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-4">
 </head>
 <body class="portfolio-page page-process">
@@ -77,9 +78,9 @@
             <div class="process-case-copy">
               <p class="eyebrow">Live prayer book</p>
               <h2>Open the Orthodox daily cycle in one trustworthy prayer book.</h2>
-              <p>Pray Orthodox brings Church offices, appointed propers, Scripture, saints, fasting guidance, and Bible reading into one quiet surface. A source-audited appointment engine composes each date from fixed services and variable liturgical corpora. Every rendered prayer retains its source and locator. If a required form or proper is incomplete, it stays out of the public schedule instead of being replaced by a generic prayer.</p>
-              <p>Python bakes the source-pinned calendar and Bible corpora into content-addressed, route-sized files. Expo builds the shared interface for web and native. The public release is the Cloudflare Pages web reader, which needs no runtime API or database startup.</p>
-              <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Pray Orthodox</a><a href="https://b8eb1eb8.theosis.pages.dev/" data-jelly>Inspect the immutable deployment</a></div>
+              <p>Pray Orthodox brings Church offices, appointed propers, Scripture, saints, fasting guidance, and Bible reading into one quiet surface. A source-pinned appointment engine composes each date from fixed services and variable liturgical corpora. Every rendered prayer retains its source and locator. If a required form or proper is incomplete, it stays out of the public schedule instead of being replaced by a generic prayer.</p>
+              <p>Python bakes the calendar and Bible data into files for each day, month, chapter, and search route. Expo builds the shared interface for web and native. The web reader loads those files without waiting for a runtime API or database startup.</p>
+              <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Pray Orthodox</a></div>
             </div>
             <figure class="process-case-shot">
               <img src="/jpg/process/pray-orthodox-reader.png" alt="Pray Orthodox showing the selected church day beside the Third Hour Reader office with its sources collapsed." width="1440" height="900" loading="lazy" decoding="async">
@@ -140,9 +141,8 @@
 
             <div id="layer-tests" class="layer-content" role="tabpanel" data-layer-content hidden>
               <h2>Run the workbench on both supported Neovim targets.</h2>
-              <p>The linked CI run passes 74 spec files and 1,761 assertions on Neovim stable and 0.10 with DuckDB installed. PostgreSQL and MySQL integration specs remain skipped, so the run does not prove every database and CLI combination.</p>
-              <div class="proof-strip"><span>74 spec files</span><span>1,761 assertions</span><span>Two Neovim targets</span></div>
-              <p class="proof-line"><a href="https://github.com/joryeugene/dadbod-grip.nvim/actions/runs/30663015056">Inspect the passing run</a> · <a href="/blog/dadbod-grip/">Read the build story</a></p>
+              <p>The test matrix covers editing state, generated SQL, adapters, the interface, and regression paths on Neovim stable and 0.10 with DuckDB installed. PostgreSQL and MySQL integration remain outside that matrix, so it does not prove every database and CLI combination.</p>
+              <p class="proof-line"><a href="/blog/dadbod-grip/">Read the build story</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>
             </div>
 
             <div id="layer-visual" class="layer-content" role="tabpanel" data-layer-content hidden>

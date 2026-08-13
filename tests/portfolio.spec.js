@@ -61,7 +61,7 @@ test.describe('portfolio shell', () => {
 
     const cases = [
       ['Inspect Phalene-Vim', 'Phalene-Vim', /motions, macros, search, undo/i],
-      ['Inspect dadbod-grip.nvim', 'dadbod-grip.nvim', /74 spec files.*1,761 assertions/i],
+      ['Inspect dadbod-grip.nvim', 'dadbod-grip.nvim', /test matrix covers edits.*generated SQL.*query files/i],
       ['Inspect Georgie', 'Georgie', /raised paw/i]
     ];
 
@@ -298,9 +298,10 @@ test.describe('portfolio pages', () => {
     await expect(page.getByText(/Four shipped systems/)).toHaveCount(0);
     await expect(page.getByText(/15\+?.*ECharts|more than 15.*ECharts/i)).toHaveCount(0);
     await expect(page.getByText(/built (its )?interactive analytics and assessment workflows/i)).toHaveCount(0);
+    await expect(page.locator('body')).not.toContainText(/immutable deployment|content-addressed|source-audited|Jest tests across|passing journeys|intentional skips|cache-bypassing|linked CI run|\d[\d,]* assertions/i);
     await expect(page.getByRole('link', { name: 'Process', exact: true })).toHaveAttribute('aria-current', 'page');
     await page.getByRole('tab', { name: 'Tests' }).click();
-    await expect(page.getByText('1,761 assertions', { exact: true })).toBeVisible();
+    await expect(page.getByText(/test matrix covers editing state.*generated SQL.*adapters/i)).toBeVisible();
     await expect(page.getByText('Separate desktop app')).toBeVisible();
     await expect(page.locator('.wrong-turn').first()).toHaveCSS('border-left-style', 'solid');
 
@@ -327,17 +328,15 @@ test.describe('portfolio pages', () => {
     await page.getByRole('tab', { name: 'Pray Orthodox' }).click();
     const theosisPanel = page.locator('#case-theosis');
     await expect(page.getByText(/Open the Orthodox daily cycle in one trustworthy prayer book/i)).toBeVisible();
-    await expect(theosisPanel).toContainText('source-audited appointment engine');
+    await expect(theosisPanel).toContainText('source-pinned appointment engine');
     await expect(theosisPanel).toContainText('Every rendered prayer retains its source and locator');
     await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Tests/ }).click();
-    await expect(page.getByText(/every exposed office and role across all 4,017 dates/i)).toBeVisible();
+    await expect(page.getByText(/every exposed office and role is resolved across the supported calendar range/i)).toBeVisible();
     await expect(page.getByText(/reject unresolved propers, unknown sources, missing locators/i)).toBeVisible();
-    await expect(page.getByText(/567 Jest tests across 53 suites/i)).toBeVisible();
-    await expect(page.getByText(/179 passing journeys/i)).toBeVisible();
-    await expect(page.getByText(/one deduplicated cache-bypassing v2 fetch/i)).toBeVisible();
+    await expect(page.getByText(/Browser checks open those prayer journeys on phone and desktop/i)).toBeVisible();
     await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Visual QA/ }).click();
     await expect(page.getByText(/Vespers must show tomorrow's service day without moving today's calendar page/i)).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Inspect the immutable deployment', exact: true })).toHaveAttribute('href', 'https://b8eb1eb8.theosis.pages.dev/');
+    await expect(page.getByRole('link', { name: 'Open the live product', exact: true })).toHaveAttribute('href', 'https://prayorthodox.com/');
     await expect(page.locator('a[href="https://github.com/joryeugene/theosis"]')).toHaveCount(0);
     await expect(page).toHaveURL(/#theosis$/);
     await expect(page.getByRole('tab', { name: 'Pray Orthodox' })).toHaveAttribute('href', '#theosis');

@@ -21,7 +21,7 @@ Together, the three labels form a five-step loop. The loop stops when the produc
 4. Record each mismatch as a bounded task.
 5. Recheck the product after the task lands.
 
-The comparison does not prove that a specification improves productivity. I have not run a controlled before-and-after study on this framework. This method gives the team a reviewable basis for deciding whether generated output is correct.
+The comparison does not prove that a specification improves productivity. No measured before-and-after result exists for this framework. This method gives the team a reviewable basis for deciding whether generated output is correct.
 
 ## Put evidence beside the decision
 
@@ -35,7 +35,7 @@ Git worktrees let separate processes work on separate branches without sharing a
 
 Parallel work is easiest to review when the spec divides it along clear interfaces. One branch can change the implementation, another can add the acceptance test, and a third can update the documentation, provided one person owns integration and checks the combined behavior. When tasks overlap in the same files or assumptions, running more agents creates merge and review work instead of removing it.
 
-The quality checks also have different jobs. Static analysis catches classes of syntax and type errors. Tests check stated examples and invariants. A comparison against the spec checks whether the requested behavior survived implementation.
+Static analysis catches classes of syntax and type errors. Tests check stated examples and invariants. A comparison against the spec checks whether the requested behavior survived implementation.
 
 Production monitoring and user reports reveal conditions the earlier checks missed. An LLM can help locate a mismatch, but its review is another input, not proof that the product is correct. My conference note, `Bug prevention > Bug squashing`, means comparing the implementation with the spec before users have to report the difference.
 

@@ -44,7 +44,7 @@ The keymap lives on the Piantor through Vial, so the layout follows the board to
 
 Modifiers occupy the outer pinky columns: Ctrl at top left, Cmd at home left, Alt at top right, and Shift on both bottom keys. Six thumb keys handle five layers plus Backspace, Space, Tab, Escape, and mouse click. The right outer thumb taps Escape and holds Hyper, which is Ctrl+Shift+Alt+Cmd. The right inner thumb taps left-click and holds a mouse layer that moves the pointer with HJKL.
 
-Home-row mods failed in this setup. With 20g switches, resting pressure and normal rollover produced accidental modifiers often enough to interrupt typing. Dedicated modifier keys removed the timing decision from the firmware: Ctrl is always Ctrl.
+With 20g switches, resting pressure and normal rollover produced accidental modifiers often enough to interrupt typing. Dedicated modifier keys removed the timing decision from the firmware: Ctrl is always Ctrl.
 
 The inner-column keys at the T/G/B and Y/H/N positions stay blank on layers where I do not need them. Insert once lived on the G position of the navigation layer and fired constantly. Removing that binding fixed the mistake. The number and symbol layers still use the inner columns where I intend to reach them.
 
@@ -78,9 +78,9 @@ Start with software before buying hardware. Karabiner can put arrows on Cmd+HJKL
 
 [Wispr Flow](https://wisprflow.ai/) is what I use for dictation. In my own messages and documents, holding a hotkey, speaking, and releasing is faster than typing the same prose. I still review the output, especially around code terms and commands.
 
-[Open Wispr](https://github.com/human37/open-wispr/tree/ce567f4f548e0fa8f501e7b7c435bbe9daa5c60a) provides a local alternative for Apple Silicon Macs. Its project documentation describes a Globe-key hold-to-speak interface, whisper.cpp transcription with Metal acceleration, local processing, and no account requirement. I have not run a controlled accuracy comparison between it and paid dictation products.
+[Open Wispr](https://github.com/human37/open-wispr/tree/ce567f4f548e0fa8f501e7b7c435bbe9daa5c60a) provides a local alternative for Apple Silicon Macs. Its project documentation describes a Globe-key hold-to-speak interface, whisper.cpp transcription with Metal acceleration, local processing, and no account requirement. I have no accuracy measurements comparing it with paid dictation products.
 
-Voice does not replace my keyboard for programming. It handles Slack messages, pull request descriptions, commit messages, documentation, and email, while the keyboard remains better for code and precise editing. I wrote more about voice as an input layer in [Friction Economy: Unconscious Productivity Drains](/blog/friction-economy/).
+Voice handles Slack messages, pull request descriptions, commit messages, documentation, and email, while the keyboard remains better for code and precise editing. I wrote more about voice as an input layer in [Friction Economy: Unconscious Productivity Drains](/blog/friction-economy/).
 
 ## Or Use What You Have
 

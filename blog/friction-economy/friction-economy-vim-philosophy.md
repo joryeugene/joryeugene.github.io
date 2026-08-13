@@ -6,7 +6,7 @@
 
 In a 1999 interview quoted by *The Register*, Bill Joy said he wrote vi over several months while using a home terminal and a 300-baud modem. The slow connection made every screen update and round trip visible. Vi answered that constraint with a compact command language for moving through and changing text. For current development work, ask which repeated steps a command can remove without removing a decision the work still needs.
 
-Friction is not every pause. A code review, a permission decision, and confirmation before a destructive command carry information and responsibility. The friction worth removing is mechanical work that begins after the decision is already made: rebuilding a directory path, reconstructing search flags, finding the same prompt, or translating a schedule into cron syntax.
+A code review, a permission decision, and confirmation before a destructive command carry information and responsibility. The friction worth removing is mechanical work that begins after the decision is already made: rebuilding a directory path, reconstructing search flags, finding the same prompt, or translating a schedule into cron syntax.
 
 ![Developer at a keyboard with Vim, React, FastAPI, and a permission dialog around the workstation](def-foo-efficiency-spectrum-optimized.png)
 *A developer works at a keyboard while editing, framework, and permission tools surround the workstation.*
@@ -66,7 +66,7 @@ Ripgrep's defaults are useful in a repository, but they are not identical to `gr
 
 The ripgrep project publishes several benchmarks and warns that one benchmark is not enough. Search the same corpus with the same pattern and output requirements before making a speed claim.
 
-For syntax-aware searches, [ast-grep 0.39.6](https://github.com/ast-grep/ast-grep/releases/tag/0.39.6) matches abstract syntax tree patterns instead of plain text. Structural search answers a different question from grep. Use it when the question depends on code structure.
+For syntax-aware searches, [ast-grep 0.39.6](https://github.com/ast-grep/ast-grep/releases/tag/0.39.6) matches abstract syntax tree patterns instead of plain text. Use it when the question depends on code structure.
 
 ## Reviewing Git state
 
@@ -87,7 +87,7 @@ c      commit
 P      push
 ```
 
-The useful comparison is not command count alone. Compare whether the candidate makes the changed lines and destination branch easier to verify. If it saves typing while making the patch less visible, it has moved the cost into review risk.
+Compare whether the candidate makes the changed lines and destination branch easier to verify. If it saves typing while making the patch less visible, it has moved the cost into review risk.
 
 ## Permission prompts carry decisions
 
@@ -130,7 +130,7 @@ Calmhive's bundled allowlist includes all 15 core tools and roughly 70 MCP tools
 
 ## Run one comparison
 
-I have not run the tools above as a controlled comparison. Before treating one as an improvement, run the same task against the same repository and input with pinned tool versions.
+I did not compare the listed tools against one another. Before treating one as an improvement, run the same task against the same repository and input with pinned tool versions.
 
 1. Write the acceptable result before changing the workflow.
 2. Record the current path from lookup through result checking, including any approval or recovery step.
@@ -138,7 +138,7 @@ I have not run the tools above as a controlled comparison. Before treating one a
 4. Compare the result and elapsed time. Include the time spent on corrections and permission review.
 5. Keep the change only if it removes mechanical work without weakening the result or its decision boundaries.
 
-Time alone cannot settle the comparison. A faster search may inspect a different file set. A prompt shortcut may retrieve stale instructions. A background agent may finish after making edits that cost more to review than the foreground work it replaced.
+A faster search may inspect a different file set. A prompt shortcut may retrieve stale instructions. A background agent may finish after making edits that cost more to review than the foreground work it replaced.
 
 Vi remains useful here because its command language makes the removed operation visible. Apply that test to the rest of the workflow. If a shortcut hides a permission decision, changes the result set, or adds more review than it removes, the shortcut has moved friction into review or risk.
 
