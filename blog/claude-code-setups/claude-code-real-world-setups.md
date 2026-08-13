@@ -6,7 +6,7 @@
 
 My setup is zsh, WezTerm, Zellij, LazyVim, lazygit, and yazi. It works, with one recurring defect: Claude's output flickers at the bottom of a Zellij pane inside WezTerm. The text still arrives, but the last lines jump while they render.
 
-That defect gave me a better way to evaluate terminal setups. A long Claude response does not care which shell has the best defaults. I care whether the terminal renders every line, lets me find and copy the part I need, and preserves the session when the window or connection disappears.
+A long Claude response does not care which shell has the best defaults. I care whether the terminal renders every line, lets me find and copy the part I need, and preserves the session when the window or connection disappears.
 
 ## Run the 10,000-Line Test
 
@@ -40,7 +40,7 @@ Changing bash, zsh, or fish does not repair dropped scrollback or a rendering de
 
 The terminal emulator owns the 10,000-line display test. Do not assume an integrated terminal fails merely because it lives inside an editor. By September 2025, [VS Code can move a terminal into another window](https://github.com/microsoft/vscode-docs/blob/059ba913fd38c4c00885071cb717a67a0031569e/docs/terminal/basics.md#terminals-in-new-windows). It also documents [process reconnection and process revive](https://github.com/microsoft/vscode-docs/blob/059ba913fd38c4c00885071cb717a67a0031569e/docs/terminal/advanced.md#persistent-sessions), although revive relaunches the process rather than preserving its in-memory state. Run the same fixture in VS Code and a standalone terminal before deciding that separation changes anything you use.
 
-A multiplexer earns its place when I need a session to outlive the terminal window or an SSH connection. Tmux has accumulated nearly two decades of use. Zellij gives me discoverable pane controls, but the Zellij and WezTerm combination produces the flicker I see with Claude output. That is an observation about my stack, not a result for every OS, GPU, or version.
+I add a multiplexer when I need a session to outlive the terminal window or an SSH connection. Zellij gives me discoverable pane controls, but the Zellij and WezTerm combination produces the flicker I see with Claude output. That is an observation about my stack, not a result for every OS, GPU, or version.
 
 ## My Stack
 
@@ -75,4 +75,4 @@ I do not use `! cd` to carry one conversation into another repository. The suppo
 
 Keep the current setup when it renders the fixture, preserves the text you need, and gives you a recovery path you understand. Adjust scrollback before replacing the emulator. Add tmux, Zellij, or another multiplexer when detach and reattach behavior solves a real remote or long-running-session problem. Change the shell only for a shell problem.
 
-Switch the emulator when the same visible failure survives configuration changes and disappears in another emulator under the same test. That is enough evidence for a personal decision. It is not evidence that one terminal makes code better or developers faster. The best terminal setup is the one you stop thinking about.
+Switch the emulator when the same visible failure survives configuration changes and disappears in another emulator under the same test. That is enough evidence for a personal decision. It is not evidence that one terminal makes code better or developers faster. The flicker has not lost text or blocked recovery in my use, so I am keeping WezTerm and Zellij.
