@@ -84,6 +84,19 @@ test.describe('P0 jumplist', () => {
     expect(await lines(page)).toEqual(['beta one', 'beta two']);
   });
 
+  test(':w name keeps existing jumps attached to the renamed document', async ({ page }) => {
+    await open(page);
+    await seed(page, 'one\ntwo\nthree');
+    await press(page, 'G');
+
+    await cmd(page, 'w beta');
+    await press(page, 'Control+o');
+
+    expect((await state(page)).file).toContain('beta');
+    expect((await state(page)).pos).toBe('1,1');
+    expect(await lines(page)).toEqual(['one', 'two', 'three']);
+  });
+
   test(':jumps displays entries and :clearjumps resets traversal', async ({ page }) => {
     await open(page);
     await seed(page, 'one\ntwo\nthree');

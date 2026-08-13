@@ -291,6 +291,12 @@
     var oldDocumentId = state.documentId;
     saveCurrentDocument();
     state.documents[documentId] = state.documents[oldDocumentId];
+    for (var i = 0; i < state.jumpList.length; i++) {
+      if (state.jumpList[i].documentId === oldDocumentId) {
+        state.jumpList[i].documentId = documentId;
+        state.jumpList[i].filename = filename;
+      }
+    }
     if (documentId !== oldDocumentId) delete state.documents[oldDocumentId];
     state.documentId = documentId;
     state.filename = filename;
