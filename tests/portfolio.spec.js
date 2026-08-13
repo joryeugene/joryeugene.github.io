@@ -87,8 +87,8 @@ test.describe('portfolio shell', () => {
 
     await expect(page.getByRole('heading', { name: 'Selected history' })).toBeVisible();
     await expect(page.getByText('Totally Reliable Delivery Service', { exact: true })).toBeVisible();
-    await expect(page.getByText('Theosis', { exact: true })).toBeVisible();
-    await expect(page.getByText(/four online ragdolls can form a chain and hang from a moving rocket/i)).toBeVisible();
+    await expect(page.getByText('Pray Orthodox', { exact: true })).toBeVisible();
+    await expect(page.getByText(/four online ragdolls can form a flying chain beneath a jetpack/i)).toBeVisible();
     await expect(page.getByText(/4,017 OCA calendar days with feasts, fasts, saints, stories, and appointed readings/i)).toBeVisible();
     await expect(page.getByText(/39,891 verses across 85 books for browsing and search/i)).toBeVisible();
     await expect(page.getByText('Live web product', { exact: true })).toBeVisible();
@@ -306,9 +306,9 @@ test.describe('portfolio pages', () => {
 
     const cases = [
       ['Dadbod Grip', /Neovim into a data workbench/i, 'https://jorypestorious.com/dadbod-grip-web/'],
-      ['Totally Reliable', /four live ragdolls stay connected to one rocket/i, 'https://www.totallyreliable.com/'],
+      ['Totally Reliable', /four live ragdolls stay connected in flight/i, 'https://www.totallyreliable.com/'],
       ['Pray Orthodox', /turns Church sources into a trustworthy daily office/i, 'https://prayorthodox.com/'],
-      ['Workhelix', /shows enterprise leaders where AI creates value/i, 'https://www.workhelix.com/platform']
+      ['Workhelix', /presents AI-opportunity estimates to enterprise leaders/i, 'https://www.workhelix.com/platform']
     ];
 
     for (const [tabName, deepDiveTitle, destination] of cases) {

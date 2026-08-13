@@ -21,9 +21,9 @@ An engineer using Claude on a personal account may be crossing an approved data 
 
 Ask an engineer to demonstrate one recent task that the approved setup could not complete well. Record the intended artifact, the manual steps, the data involved, the permissions required, and the point where the current tool stopped helping. Define acceptable quality before discussing a replacement.
 
-A task demonstration turns a product request into a workflow requirement. A request for Claude Code, for example, might be a request for repository context, terminal access, reusable project instructions, or an external integration. Each need has different controls and can be evaluated separately.
+A request for Claude Code, for example, might be a request for repository context, terminal access, reusable project instructions, or an external integration. Each need has different controls and can be evaluated separately.
 
-The tools available in August 2025 provide mechanisms worth testing, not outcomes to assume. My [July 2025 `CLAUDE.md`](https://github.com/joryeugene/calmhive-cli/blob/ece1ec8c8f431c8f21e8cac1eaf05013e3bcc29d/CLAUDE.md) shows how one repository can carry project instructions. The June 2025 [Model Context Protocol specification](https://modelcontextprotocol.io/specification/2025-06-18/server/index) defines resources, prompts, and tools that a server can expose to a client. Neither mechanism proves that documentation stays current, bugs take hours instead of days, or junior engineers ramp up faster.
+My [July 2025 `CLAUDE.md`](https://github.com/joryeugene/calmhive-cli/blob/ece1ec8c8f431c8f21e8cac1eaf05013e3bcc29d/CLAUDE.md) shows how one repository can carry project instructions. The June 2025 [Model Context Protocol specification](https://modelcontextprotocol.io/specification/2025-06-18/server/index) defines resources, prompts, and tools that a server can expose to a client. Neither mechanism proves that documentation stays current, bugs take hours instead of days, or junior engineers ramp up faster.
 
 ## Run a 30-Day Comparison
 
@@ -37,7 +37,7 @@ Select a small set of representative tasks before the pilot begins. Run them wit
 
 Keep code review and production controls in place through the entire comparison. A pilot should compare tools, not remove the safeguards that make the work acceptable.
 
-Do not multiply an assumed few hours of weekly savings across 1,000 engineers. First establish whether the pilot saves time after review and rework, how much results vary by task, and whether the change affects quality or risk. An extrapolation is useful only after those measurements exist.
+Do not multiply an assumed few hours of weekly savings across 1,000 engineers. First establish whether the pilot saves time after review and rework, how much results vary by task, and whether the change affects quality or risk.
 
 ## Govern the Risk the Tool Creates
 
@@ -48,9 +48,9 @@ Leadership caution can protect engineers and customers from risks that a local w
 - **Budget impact:** What does normal and heavy usage cost after the pilot reaches more teams?
 - **Integration complexity:** Who owns authentication, upgrades, incident response, and removal?
 
-Product labels do not answer these questions. A claim such as SOC 2 compliance, data isolation, or audit logging needs a named product and plan, the applicable report scope, retention and training terms, and the exact events administrators can review.
+A claim such as SOC 2 compliance, data isolation, or audit logging needs a named product and plan, the applicable report scope, retention and training terms, and the exact events administrators can review.
 
-MCP also requires implementation-specific review. Its June 2025 [tool guidance](https://modelcontextprotocol.io/specification/2025-06-18/server/tools) says people should be able to deny tool calls, clients should identify exposed tools and invocations, and annotations from untrusted servers must not determine tool-use decisions. Its [authorization specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization) covers HTTP authorization, token validation, and audience binding. The protocol does not make every client, server, or tool safe by default.
+The June 2025 MCP [tool guidance](https://modelcontextprotocol.io/specification/2025-06-18/server/tools) says people should be able to deny tool calls, clients should identify exposed tools and invocations, and annotations from untrusted servers must not determine tool-use decisions. Its [authorization specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization) covers HTTP authorization, token validation, and audience binding. The protocol does not make every client, server, or tool safe by default.
 
 ## Let the Result Decide
 

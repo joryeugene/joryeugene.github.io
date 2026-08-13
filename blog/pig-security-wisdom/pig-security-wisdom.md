@@ -36,7 +36,7 @@ Patch isolated the affected devices and preserved their logs. Her honeypot recor
 
 *"No!"* howled the wolf as Patch's services came back. *"This is impossible!"*
 
-*"You taught yourself to destroy, but I learned how to detect, respond, and recover,"* Patch called out through her intercom.
+*"You taught yourself to destroy, but I taught myself to build,"* Patch called out through her intercom.
 
 Patch never accessed a computer she did not own. The provider blocked the malicious traffic, and the logs gave investigators evidence they could use. The wolf slunk into the digital wilderness, frustrated and still dangerous, while the pigs repaired the damage.
 

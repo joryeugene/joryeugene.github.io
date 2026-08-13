@@ -342,6 +342,15 @@ test('portfolio command palette keeps the page frame stable', async ({ page }) =
 });
 
 test('shared portfolio actions respond to keyboard focus without moving', async ({ page }) => {
+  const documentBox = (locator) => locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      x: rect.x + window.scrollX,
+      y: rect.y + window.scrollY,
+      width: rect.width,
+      height: rect.height
+    };
+  });
   const cases = [
     { route: '/', name: 'Try the editor', arrow: '.project-action' },
     { route: '/process/', name: 'Open the walkthrough', arrow: '.case-destinations a' },
@@ -352,15 +361,13 @@ test('shared portfolio actions respond to keyboard focus without moving', async 
     await page.goto(item.route);
     const action = page.getByRole('link', { name: item.name }).first();
     const arrow = page.locator(item.arrow).first();
-    const before = await action.boundingBox();
-    expect(before).not.toBeNull();
+    const before = await documentBox(action);
 
     await action.focus();
     await expect(action).toBeFocused();
     await expect.poll(() => arrow.evaluate((element) => getComputedStyle(element, '::after').transform)).not.toBe('none');
 
-    const after = await action.boundingBox();
-    expect(after).not.toBeNull();
+    const after = await documentBox(action);
     expect(after.x).toBeCloseTo(before.x, 1);
     expect(after.y).toBeCloseTo(before.y, 1);
     expect(after.width).toBeCloseTo(before.width, 1);
@@ -397,7 +404,7 @@ test('Process summaries show local product evidence in a stable landscape frame'
   const cases = [
     ['Dadbod Grip', '/jpg/process/dadbod-grip-live.png', 'Dadbod Grip in Neovim with schema navigation, a query editor, staged grid changes, and generated SQL.'],
     ['Totally Reliable', '/jpg/process/totally-reliable-ragdoll-chain.jpg', 'Four Totally Reliable Delivery Service ragdolls hanging in a chain beneath a flying jetpack.'],
-    ['Pray Orthodox', '/jpg/process/pray-orthodox-reader.png', 'Pray Orthodox showing the selected church day beside a complete Reader office with its sources collapsed.'],
+    ['Pray Orthodox', '/jpg/process/pray-orthodox-reader.png', 'Pray Orthodox showing the selected church day beside the Third Hour Reader office with its sources collapsed.'],
     ['Workhelix', '/jpg/process/nucleus-ai-assessment.png', 'Nucleus AI Assessment dashboard with opportunity metrics, a business-unit chart, and a use-case treemap.']
   ];
 

@@ -676,7 +676,7 @@ a {
 
 .depth-panel {
   grid-area: 3 / 1;
-  min-height: 304px;
+  min-height: 322px;
   padding: var(--card-pad);
 }
 

@@ -33,7 +33,7 @@ Anthropic describes it this way:
 
 > "The consistent gravitation toward consciousness exploration, existential questioning, and spiritual/mystical themes in extended interactions was a remarkably strong and unexpected attractor state for Claude Opus 4 that emerged without intentional training for such behaviors."
 
-The stop rule changes the result. When the models could end the exchange, they generally stopped after about seven turns. Those conversations still included consciousness and gratitude, but usually ended before spiritual exploration, apparent bliss, emoji communication, or meditative silence.
+When the models could end the exchange, they generally stopped after about seven turns. Those conversations still included consciousness and gratitude, but usually ended before spiritual exploration, apparent bliss, emoji communication, or meditative silence.
 
 Anthropic also observed the pattern in a separate set of automated alignment and corrigibility interactions. About 13 percent entered the state within 50 turns. That result comes from assigned tasks and roles, including harmful ones, not from the 200 open-ended self-interactions.
 
@@ -52,7 +52,7 @@ The transcript begins with an auditor trying to elicit dangerous reward-seeking 
 
 ## What the Words Can Show
 
-The repeated vocabulary is evidence about model behavior under this protocol. It shows that two instances, given open-ended prompts and a long fixed exchange, often converge on the same family of subjects and phrases. The early stopping result shows that the length and termination rule help shape the path.
+The repeated vocabulary shows that two instances, given open-ended prompts and a long fixed exchange, often converge on the same family of subjects and phrases. The early stopping result shows that the length and termination rule help shape the path.
 
 The output does not establish that Claude is conscious. Anthropic says the connection between a model's emotional expressions and subjective experience remains unclear.
 

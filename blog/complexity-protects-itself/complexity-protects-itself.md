@@ -50,7 +50,7 @@ Before building a deployment platform, I want one question answered: who already
 
 [Dan Luu's case studies of billion-dollar companies with comparatively simple architectures](https://danluu.com/simple-architectures/) are a useful counterweight to the assumption that growth automatically demands a platform. Scale can justify custom infrastructure, but it does not do so by itself.
 
-McKinley's innovation tokens make this a question of focus. For a company whose product is not infrastructure, I would require a concrete advantage before spending scarce engineering attention on it. [Charity Majors calls developer cycles the scarcest resource in a company](https://www.honeycomb.io/blog/future-ops-platform-engineering), so outsourcing infrastructure can keep them on the product. A vendor may amortize reliability work across customers, but the team still has to verify that the vendor's incentives and boundaries match its own.
+For a company whose product is not infrastructure, I would require a concrete advantage before spending scarce engineering attention on it. [Charity Majors calls developer cycles the scarcest resource in a company](https://www.honeycomb.io/blog/future-ops-platform-engineering), so outsourcing infrastructure can keep them on the product. A vendor may amortize reliability work across customers, but the team still has to verify that the vendor's incentives and boundaries match its own.
 
 AI lowers the cost of starting a build while leaving the team responsible for maintaining the result. In a [2025 randomized trial](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/), 16 experienced open-source developers completed 246 tasks in mature repositories they knew well. With early-2025 AI tools, they took 19 percent longer while estimating that AI had made them 20 percent faster. METR warns against generalizing beyond that setting, and later tools may behave differently. The result still gives me a reason to measure the maintenance cost instead of assuming generated code removed it.
 
@@ -71,8 +71,6 @@ I see a related asymmetry between protection and verification in the [agent expe
 ---
 
 ## Three Tests
-
-Three questions help evaluate a replacement before it becomes the only path to production.
 
 **Does more stress make this stronger?** Name what changes after an incident. Tested fixes and shared context can strengthen the system; another undocumented exception and narrower ownership make it more fragile.
 
