@@ -308,7 +308,7 @@ test.describe('portfolio pages', () => {
       ['Dadbod Grip', /Neovim into a data workbench/i, 'https://jorypestorious.com/dadbod-grip-web/'],
       ['Totally Reliable', /four live ragdolls stay connected to one rocket/i, 'https://www.totallyreliable.com/'],
       ['Pray Orthodox', /turns Church sources into a trustworthy daily office/i, 'https://prayorthodox.com/'],
-      ['Workhelix', /company AI usage into product decisions/i, 'https://www.workhelix.com/platform']
+      ['Workhelix', /shows enterprise leaders where AI creates value/i, 'https://www.workhelix.com/platform']
     ];
 
     for (const [tabName, deepDiveTitle, destination] of cases) {

@@ -69,10 +69,10 @@
       wrongTurns: [['Generic office shells', 'A complete-looking ordinary form can be false on a feast or seasonal day. Unsupported appointments stay hidden until every required section resolves.'], ['Send readers to source PDFs', 'A citation proves provenance; it is not the prayer surface. Authorized services remain in the app with a source and locator attached to each line.'], ['Resolve liturgy in a runtime API', 'The calendar range and source corpus are deterministic at release time. Building them before deployment makes correctness testable and removes a server or database availability boundary while someone is praying.']]
     },
     workhelix: {
-      title: 'How Nucleus turns company AI usage into product decisions',
+      title: 'How Nucleus shows enterprise leaders where AI creates value',
       kicker: 'Workhelix · pre-seed to Series A',
       layers: {
-        brief: '<h2>Show where company AI use creates value and where it stalls.</h2><p>Nucleus combines HRIS, AI-usage, and prompt data to rank opportunities, reveal adoption gaps and superusers, and measure business impact.</p>',
+        brief: '<h2>Show enterprise leaders where AI creates value and where gaps remain.</h2><p>Nucleus combines HRIS, AI-usage, prompt, assessment, and business-impact data to show adoption, rank opportunities, identify effective users, estimate savings, expose gaps, and help leaders prioritize AI investment.</p>',
         constraints: '<h2>Replace the prototype while the product and customer work continued.</h2><p>I joined pre-seed as the sole frontend engineer. The production platform needed tenant-safe data, authentication, interfaces for analytics and assessment results, admin tools, and releases while the migration continued.</p>',
         changes: '<h2>Replace Bubble, then own the production path.</h2><p>I replaced Bubble with React and TypeScript, turned Figma designs into reusable components, and used ECharts to present the data science team\'s assessment outputs. I later owned FastAPI, PostgreSQL performance and migrations, authentication, admin tools, AWS, Terraform, and releases.</p>',
         tests: '<h2>Build review, release, and security checks into delivery.</h2><p>I built GitHub Actions and agent workflows for code review and releases, then implemented engineering controls that supported SOC 2 Type II. Authentication covered OAuth, WorkOS SSO, JWT, and multi-tenant isolation.</p><div class="proof-strip"><span>Review</span><span>Release</span><span>Tenant isolation</span></div>',
