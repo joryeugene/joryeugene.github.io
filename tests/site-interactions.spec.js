@@ -418,6 +418,21 @@ test('Process summaries show local product evidence in a stable landscape frame'
   }
 });
 
+test('Process stacked summaries do not reserve blank space below the selected evidence', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/process/');
+
+  for (const name of ['Dadbod Grip', 'Totally Reliable', 'Theosis', 'Workhelix']) {
+    await page.getByRole('tab', { name, exact: true }).click();
+    const unusedHeight = await page.locator('[data-case-panel]:visible').evaluate((article) => {
+      const articleBottom = article.getBoundingClientRect().bottom;
+      const imageBottom = article.querySelector('.process-case-shot').getBoundingClientRect().bottom;
+      return articleBottom - imageBottom;
+    });
+    expect(unusedHeight, `${name} leaves empty stacked-summary space`).toBeLessThanOrEqual(1);
+  }
+});
+
 test('every Process case updates its summary, destination, deep dive, layers, and wrong turns', async ({ page }) => {
   await page.goto('/process/');
   const failures = collectRuntimeFailures(page);
@@ -580,14 +595,16 @@ test('tabbed surfaces reserve their layout height across content changes', async
 
     for (const name of ['Dadbod Grip', 'Totally Reliable', 'Theosis', 'Workhelix']) {
       await page.getByRole('tab', { name, exact: true }).click();
-      expect(
-        Math.abs((await documentTop('.process-deep-dive')) - deepDiveTop),
-        `${name} moved the Deep dive heading at ${width}px`
-      ).toBeLessThanOrEqual(1);
-      expect(
-        Math.abs((await documentTop('.process-stage')) - processStageTop),
-        `${name} moved the Process stage at ${width}px`
-      ).toBeLessThanOrEqual(1);
+      if (width > 1120) {
+        expect(
+          Math.abs((await documentTop('.process-deep-dive')) - deepDiveTop),
+          `${name} moved the Deep dive heading at ${width}px`
+        ).toBeLessThanOrEqual(1);
+        expect(
+          Math.abs((await documentTop('.process-stage')) - processStageTop),
+          `${name} moved the Process stage at ${width}px`
+        ).toBeLessThanOrEqual(1);
+      }
     }
   }
 });

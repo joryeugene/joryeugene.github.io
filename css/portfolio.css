@@ -1828,10 +1828,13 @@ a {
     grid-template-columns: var(--process-rail) minmax(0, 1fr);
   }
 
-  .process-case-detail article,
-  .process-case-detail article[hidden] {
+  .process-case-detail article {
     grid-template-columns: minmax(0, 1fr);
     align-content: start;
+  }
+
+  .process-case-detail article[hidden] {
+    display: none;
   }
 
   .wrong-turns {
