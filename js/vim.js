@@ -211,6 +211,7 @@
     lineNumbers: false,
     zenMode: false,
     filename: 'untitled.txt',
+    documentId: 'welcome',
     statusMsg: null,
     statusMsgTimer: null,
     exitTarget: document.referrer && document.referrer.indexOf(location.origin) === 0
@@ -1337,70 +1338,71 @@
 
   function searchNext(dir) {
     if (!state.searchMatches.length) { setStatus('No previous search pattern'); return; }
-    jumpToMatch(state.searchIdx + dir);
+    var nextIdx = ((state.searchIdx + dir) % state.searchMatches.length + state.searchMatches.length) % state.searchMatches.length;
+    var next = state.searchMatches[nextIdx];
+    if (next.row !== state.cursor.row || next.col !== state.cursor.col) pushJump();
+    jumpToMatch(nextIdx);
     render();
   }
 
   // -------------------------------------------------------------------------
   // Jump list (Ctrl-O / Ctrl-I)
   // -------------------------------------------------------------------------
-  function jumpOlder() {
-    if (!state.jumpList.length) { setStatus(''); return; }
-    // Save current position when navigating back from end of list
-    if (state.jumpIdx === state.jumpList.length - 1) {
-      var cur = { row: state.cursor.row, col: state.cursor.col };
-      var last = state.jumpList[state.jumpList.length - 1];
-      if (!last || last.row !== cur.row) {
-        state.jumpList.push(cur);
-        state.jumpIdx = state.jumpList.length - 1;
-      }
-    }
-    if (state.jumpIdx <= 0) { setStatus(''); return; }
-    state.jumpIdx--;
-    var j = state.jumpList[state.jumpIdx];
-    state.cursor.row = clampRow(j.row);
-    state.cursor.col = clampCol(state.cursor.row, j.col);
-    state.curswant = state.cursor.col;
-    render();
+  function jumpPosition(row, col) {
+    return {
+      documentId: state.documentId,
+      filename: state.filename,
+      row: row,
+      col: col
+    };
   }
 
-  function jumpNewer() {
-    if (!state.jumpList.length || state.jumpIdx >= state.jumpList.length - 1) { setStatus(''); return; }
-    state.jumpIdx++;
-    var j = state.jumpList[state.jumpIdx];
-    state.cursor.row = clampRow(j.row);
-    state.cursor.col = clampCol(state.cursor.row, j.col);
-    state.curswant = state.cursor.col;
-    render();
+  function sameJumpLine(a, b) {
+    return !!a && !!b && a.documentId === b.documentId && a.row === b.row;
   }
 
-  // Push current cursor position onto jump list (used by mark jumps, G, etc.)
+  function pushJumpAt(row, col) {
+    var entry = jumpPosition(row, col);
+    var last = state.jumpList[state.jumpList.length - 1];
+    if (sameJumpLine(last, entry)) return false;
+    state.jumpList.push(entry);
+    if (state.jumpList.length > 100) state.jumpList.shift();
+    state.jumpIdx = state.jumpList.length - 1;
+    return true;
+  }
+
   function pushJump() {
-    var entry = { row: state.cursor.row, col: state.cursor.col };
-    if (state.jumpIdx >= 0 && state.jumpIdx < state.jumpList.length - 1) {
-      state.jumpList = state.jumpList.slice(0, state.jumpIdx + 1);
-    }
-    var last = state.jumpList.length ? state.jumpList[state.jumpList.length - 1] : null;
-    if (last && last.row === entry.row && last.col === entry.col) return;
-    state.jumpList.push(entry);
-    if (state.jumpList.length > 100) state.jumpList = state.jumpList.slice(-100);
-    state.jumpIdx = state.jumpList.length - 1;
+    return pushJumpAt(state.cursor.row, state.cursor.col);
   }
 
-  // Auto-push jump when cursor moves 2+ lines (called from handleKey)
-  function autoJump(fromRow, fromCol) {
-    if (Math.abs(state.cursor.row - fromRow) < 2) return;
-    var entry = { row: fromRow, col: fromCol };
-    // Truncate forward history when navigating after Ctrl-O
-    if (state.jumpIdx >= 0 && state.jumpIdx < state.jumpList.length - 1) {
-      state.jumpList = state.jumpList.slice(0, state.jumpIdx + 1);
+  function activateJump(entry) {
+    state.cursor.row = clampRow(entry.row);
+    state.cursor.col = clampCol(state.cursor.row, entry.col);
+    state.curswant = state.cursor.col;
+    render();
+  }
+
+  function jumpOlder(count) {
+    if (!state.jumpList.length) { setStatus('E662: At start of jumplist'); return; }
+    if (state.jumpIdx === state.jumpList.length - 1) pushJump();
+    var moved = false;
+    for (var i = 0; i < count && state.jumpIdx > 0; i++) {
+      state.jumpIdx--;
+      moved = true;
     }
-    // Dedup after truncation so we compare against the correct tail
-    var last = state.jumpList.length ? state.jumpList[state.jumpList.length - 1] : null;
-    if (last && last.row === entry.row) return;
-    state.jumpList.push(entry);
-    if (state.jumpList.length > 100) state.jumpList = state.jumpList.slice(-100);
-    state.jumpIdx = state.jumpList.length - 1;
+    if (moved) activateJump(state.jumpList[state.jumpIdx]);
+    if (moved === false || i < count) setStatus('E662: At start of jumplist');
+  }
+
+  function jumpNewer(count) {
+    if (!state.jumpList.length) { setStatus('E663: At end of jumplist'); return; }
+    var moved = false;
+    for (var i = 0; i < count && state.jumpIdx < state.jumpList.length - 1; i++) {
+      state.jumpIdx++;
+      moved = true;
+    }
+    if (moved) activateJump(state.jumpList[state.jumpIdx]);
+    if (moved === false || i < count) setStatus('E663: At end of jumplist');
   }
 
   // -------------------------------------------------------------------------
@@ -2998,6 +3000,12 @@
   function execCommand(cmd) {
     cmd = cmd.trim();
     if (cmd) triggerTouch();
+    if (cmd === 'clearjumps') {
+      state.jumpList = [];
+      state.jumpIdx = -1;
+      setStatus('jumplist cleared');
+      return;
+    }
     if (cmd === 'q' || cmd === 'q!') {
       if (cmd === 'q!') { hackerExit(); return; }
       window.location.href = state.exitTarget;
@@ -3557,9 +3565,11 @@
         if (e.key >= 'a' && e.key <= 'z') {
           var mk = state.marks[e.key];
           if (!mk) { setStatus('E20: Mark not set'); return; }
-          pushJump();
-          state.cursor.row = clampRow(mk.row);
-          state.cursor.col = clampCol(state.cursor.row, mk.col);
+          var markRow = clampRow(mk.row);
+          var markCol = clampCol(markRow, mk.col);
+          if (markRow !== state.cursor.row || markCol !== state.cursor.col) pushJump();
+          state.cursor.row = markRow;
+          state.cursor.col = markCol;
           state.curswant = state.cursor.col;
           render();
         }
@@ -3570,9 +3580,11 @@
         if (e.key >= 'a' && e.key <= 'z') {
           var mk2 = state.marks[e.key];
           if (!mk2) { setStatus('E20: Mark not set'); return; }
-          pushJump();
-          state.cursor.row = clampRow(mk2.row);
-          state.cursor.col = firstNonBlank(state.cursor.row);
+          var markLineRow = clampRow(mk2.row);
+          var markLineCol = firstNonBlank(markLineRow);
+          if (markLineRow !== state.cursor.row || markLineCol !== state.cursor.col) pushJump();
+          state.cursor.row = markLineRow;
+          state.cursor.col = markLineCol;
           state.curswant = state.cursor.col;
           render();
         }
@@ -3668,6 +3680,7 @@
     if (e.key === 'g' && !pendingOperator) {
       if (gTimer) {
         clearTimeout(gTimer); gTimer = null;
+        if (state.cursor.row !== 0 || state.cursor.col !== clampCol(0, state.curswant)) pushJump();
         state.cursor.row = 0;
         state.cursor.col = clampCol(0, state.curswant);
         render();
@@ -3906,8 +3919,11 @@
       var gN = countBuf;
       countBuf = 0;
       // {N}G goes to line N, plain G goes to last line
-      state.cursor.row = gN > 0 ? clampRow(gN - 1) : state.lines.length - 1;
-      state.cursor.col = clampCol(state.cursor.row, state.curswant);
+      var targetGRow = gN > 0 ? clampRow(gN - 1) : state.lines.length - 1;
+      var targetGCol = clampCol(targetGRow, state.curswant);
+      if (targetGRow !== state.cursor.row || targetGCol !== state.cursor.col) pushJump();
+      state.cursor.row = targetGRow;
+      state.cursor.col = targetGCol;
       render(); return;
     }
     if (e.key === '0') {
@@ -3989,8 +4005,11 @@
     if (e.key === 'H') {
       getCount();
       var scrollTop = Math.floor(bodyEl.scrollTop / lineH);
-      state.cursor.row = clampRow(scrollTop);
-      state.cursor.col = firstNonBlank(state.cursor.row);
+      var targetHRow = clampRow(scrollTop);
+      var targetHCol = firstNonBlank(targetHRow);
+      if (targetHRow !== state.cursor.row || targetHCol !== state.cursor.col) pushJump();
+      state.cursor.row = targetHRow;
+      state.cursor.col = targetHCol;
       state.curswant = state.cursor.col;
       render(); return;
     }
@@ -3998,8 +4017,11 @@
       getCount();
       var scrollTopM = Math.floor(bodyEl.scrollTop / lineH);
       var visRowsM = Math.floor(bodyEl.clientHeight / lineH);
-      state.cursor.row = clampRow(scrollTopM + Math.floor(visRowsM / 2));
-      state.cursor.col = firstNonBlank(state.cursor.row);
+      var targetMRow = clampRow(scrollTopM + Math.floor(visRowsM / 2));
+      var targetMCol = firstNonBlank(targetMRow);
+      if (targetMRow !== state.cursor.row || targetMCol !== state.cursor.col) pushJump();
+      state.cursor.row = targetMRow;
+      state.cursor.col = targetMCol;
       state.curswant = state.cursor.col;
       render(); return;
     }
@@ -4007,8 +4029,11 @@
       getCount();
       var scrollTopL = Math.floor(bodyEl.scrollTop / lineH);
       var visRowsL = Math.floor(bodyEl.clientHeight / lineH);
-      state.cursor.row = clampRow(scrollTopL + visRowsL - 1);
-      state.cursor.col = firstNonBlank(state.cursor.row);
+      var targetLRow = clampRow(scrollTopL + visRowsL - 1);
+      var targetLCol = firstNonBlank(targetLRow);
+      if (targetLRow !== state.cursor.row || targetLCol !== state.cursor.col) pushJump();
+      state.cursor.row = targetLRow;
+      state.cursor.col = targetLCol;
       state.curswant = state.cursor.col;
       render(); return;
     }
@@ -4052,6 +4077,7 @@
       var pBN = getCount();
       var pBR = row;
       for (var pBi = 0; pBi < pBN; pBi++) pBR = paragraphBackward(pBR);
+      if (pBR !== state.cursor.row || state.cursor.col !== 0) pushJump();
       state.cursor.row = pBR; state.cursor.col = 0; state.curswant = 0;
       render(); return;
     }
@@ -4059,6 +4085,7 @@
       var pFN = getCount();
       var pFR = row;
       for (var pFi = 0; pFi < pFN; pFi++) pFR = paragraphForward(pFR);
+      if (pFR !== state.cursor.row || state.cursor.col !== 0) pushJump();
       state.cursor.row = pFR; state.cursor.col = 0; state.curswant = 0;
       render(); return;
     }
@@ -4066,6 +4093,7 @@
       getCount(); // consume
       var mb = matchBracket(row, col);
       if (mb) {
+        if (mb.row !== state.cursor.row || mb.col !== state.cursor.col) pushJump();
         state.cursor.row = mb.row; state.cursor.col = mb.col;
         state.curswant = mb.col;
         render();
@@ -4372,6 +4400,8 @@
             if (sm.row > row || (sm.row === row && sm.col > col)) { bestIdx = si; break; }
           }
           if (e.key === '#') bestIdx = (bestIdx - 1 + state.searchMatches.length) % state.searchMatches.length;
+          var wordMatch = state.searchMatches[bestIdx];
+          if (wordMatch.row !== state.cursor.row || wordMatch.col !== state.cursor.col) pushJump();
           jumpToMatch(bestIdx);
           setStatus('/' + pat);
         }
@@ -4954,8 +4984,10 @@
         clearTimeout(gTimer); gTimer = null;
         var ggN = countBuf > 0 ? countBuf - 1 : 0; countBuf = 0;
         var ggRow = clampRow(ggN);
+        var ggCol = clampCol(ggRow, state.curswant);
+        if (ggRow !== state.cursor.row || ggCol !== state.cursor.col) pushJump();
         state.cursor.row = ggRow;
-        state.cursor.col = clampCol(ggRow, state.curswant);
+        state.cursor.col = ggCol;
         render();
       } else {
         gTimer = setTimeout(function() { gTimer = null; }, 500);
@@ -4994,7 +5026,45 @@
     if (e.key === 'W') { var WN = getCount(); var Wp = {row: row, col: col}; for (var Wi = 0; Wi < WN; Wi++) Wp = WORDForward(Wp.row, Wp.col); state.cursor.row = Wp.row; state.cursor.col = Wp.col; state.curswant = Wp.col; render(); return; }
     if (e.key === 'B') { var BN = getCount(); var Bp = {row: row, col: col}; for (var Bi = 0; Bi < BN; Bi++) Bp = WORDBackward(Bp.row, Bp.col); state.cursor.row = Bp.row; state.cursor.col = Bp.col; state.curswant = Bp.col; render(); return; }
     if (e.key === 'E') { var EN = getCount(); var Ep = {row: row, col: col}; for (var Ei = 0; Ei < EN; Ei++) Ep = WORDEnd(Ep.row, Ep.col); state.cursor.row = Ep.row; state.cursor.col = Ep.col; state.curswant = Ep.col; render(); return; }
-    if (e.key === 'G') { var GN = countBuf > 0 ? clampRow(countBuf - 1) : state.lines.length - 1; countBuf = 0; state.cursor.row = GN; state.cursor.col = clampCol(GN, state.curswant); render(); return; }
+    if (e.key === 'G') {
+      var GN = countBuf > 0 ? clampRow(countBuf - 1) : state.lines.length - 1;
+      countBuf = 0;
+      var visualGCol = clampCol(GN, state.curswant);
+      if (GN !== state.cursor.row || visualGCol !== state.cursor.col) pushJump();
+      state.cursor.row = GN;
+      state.cursor.col = visualGCol;
+      render(); return;
+    }
+    if (e.key === 'H') {
+      getCount();
+      var visualHRow = clampRow(Math.floor(bodyEl.scrollTop / lineH));
+      var visualHCol = firstNonBlank(visualHRow);
+      if (visualHRow !== state.cursor.row || visualHCol !== state.cursor.col) pushJump();
+      state.cursor.row = visualHRow;
+      state.cursor.col = visualHCol;
+      state.curswant = visualHCol;
+      render(); return;
+    }
+    if (e.key === 'M') {
+      getCount();
+      var visualMRow = clampRow(Math.floor(bodyEl.scrollTop / lineH) + Math.floor(bodyEl.clientHeight / lineH / 2));
+      var visualMCol = firstNonBlank(visualMRow);
+      if (visualMRow !== state.cursor.row || visualMCol !== state.cursor.col) pushJump();
+      state.cursor.row = visualMRow;
+      state.cursor.col = visualMCol;
+      state.curswant = visualMCol;
+      render(); return;
+    }
+    if (e.key === 'L') {
+      getCount();
+      var visualLRow = clampRow(Math.floor(bodyEl.scrollTop / lineH) + Math.floor(bodyEl.clientHeight / lineH) - 1);
+      var visualLCol = firstNonBlank(visualLRow);
+      if (visualLRow !== state.cursor.row || visualLCol !== state.cursor.col) pushJump();
+      state.cursor.row = visualLRow;
+      state.cursor.col = visualLCol;
+      state.curswant = visualLCol;
+      render(); return;
+    }
     if (e.key === '$') { var endLine = getLine(row); var ec = previousCharacterIndex(endLine, endLine.length); state.cursor.col = ec; state.curswant = ec; render(); return; }
     if (e.key === '0') { state.cursor.col = 0; state.curswant = 0; render(); return; }
     if (e.key === '^') { var vfnb = firstNonBlank(row); state.cursor.col = vfnb; state.curswant = vfnb; render(); return; }
@@ -5023,15 +5093,20 @@
     // % bracket match, { } paragraph motions, n N search in visual
     if (e.key === '%') {
       var vmb = matchBracket(row, col);
-      if (vmb) { state.cursor.row = vmb.row; state.cursor.col = vmb.col; state.curswant = vmb.col; render(); }
+      if (vmb) {
+        if (vmb.row !== state.cursor.row || vmb.col !== state.cursor.col) pushJump();
+        state.cursor.row = vmb.row; state.cursor.col = vmb.col; state.curswant = vmb.col; render();
+      }
       return;
     }
     if (e.key === '{') {
       var pbN = getCount(); var vpb = row; for (var pbi = 0; pbi < pbN; pbi++) vpb = paragraphBackward(vpb);
+      if (vpb !== state.cursor.row || state.cursor.col !== 0) pushJump();
       state.cursor.row = vpb; state.cursor.col = 0; state.curswant = 0; render(); return;
     }
     if (e.key === '}') {
       var pfN = getCount(); var vpf = row; for (var pfi = 0; pfi < pfN; pfi++) vpf = paragraphForward(vpf);
+      if (vpf !== state.cursor.row || state.cursor.col !== 0) pushJump();
       state.cursor.row = vpf; state.cursor.col = 0; state.curswant = 0; render(); return;
     }
     if (e.key === 'n') { searchNext(state.searchDir); return; }
@@ -5155,7 +5230,8 @@
       var pattern = state.searchBuf;
       if (state.searchMatches.length) {
         // Find nearest match in search direction from cursor
-        var row = state.cursor.row, col = state.cursor.col;
+        var searchStart = state.preSearchCursor || state.cursor;
+        var row = searchStart.row, col = searchStart.col;
         var bestIdx = 0;
         if (state.searchDir === 1) {
           for (var si = 0; si < state.searchMatches.length; si++) {
@@ -5169,6 +5245,7 @@
             if (smj.row < row || (smj.row === row && smj.col < col)) { bestIdx = sj; break; }
           }
         }
+        pushJumpAt(state.preSearchCursor.row, state.preSearchCursor.col);
         jumpToMatch(bestIdx);
       } else if (pattern) {
         var testRe;
@@ -5326,10 +5403,6 @@
       }
     }
 
-    // Capture cursor position before any movement for auto jump list
-    var preJumpRow = state.cursor.row;
-    var preJumpCol = state.cursor.col;
-
     if (e.ctrlKey) {
       var ctrlHandled = { r: 1, R: 1, f: 1, b: 1, u: 1, d: 1, e: 1, y: 1, g: 1, a: 1, x: 1, o: 1, i: 1, h: 1, w: 1, v: 1 };
       if (!ctrlHandled[e.key]) return;
@@ -5422,9 +5495,14 @@
       }
       if (e.key === 'a') { incrementNumber(1); return; }
       if (e.key === 'x') { incrementNumber(-1); return; }
-      if (e.key === 'o') { jumpOlder(); return; }
-      if (e.key === 'i') { jumpNewer(); return; }
-      autoJump(preJumpRow, preJumpCol);
+      if (e.key === 'o') { jumpOlder(getCount()); return; }
+      if (e.key === 'i') { jumpNewer(getCount()); return; }
+      return;
+    }
+
+    if (!e.ctrlKey && e.key === 'Tab' && (state.mode === 'normal' || state.mode === 'visual')) {
+      e.preventDefault();
+      jumpNewer(getCount());
       return;
     }
 
@@ -5456,8 +5534,6 @@
         render();
       }
     }
-
-    autoJump(preJumpRow, preJumpCol);
   }
 
   function sendMobileKey(key, modifiers) {
