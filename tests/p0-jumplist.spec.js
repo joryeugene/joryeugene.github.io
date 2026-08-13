@@ -60,4 +60,42 @@ test.describe('P0 jumplist', () => {
     await press(page, '2'); await press(page, 'Control+o');
     expect((await state(page)).pos).toBe('1,1');
   });
+
+  test('Ctrl-O and Ctrl-I restore edited browser documents', async ({ page }) => {
+    await open(page);
+    await seed(page, 'beta one\nbeta two');
+    await cmd(page, 'w beta');
+
+    await cmd(page, 'enew');
+    await press(page, 'i'); await type(page, 'alpha one\nalpha two'); await press(page, 'Escape');
+    await cmd(page, 'w alpha');
+    await press(page, 'G');
+    await press(page, 'A'); await type(page, ' unsaved'); await press(page, 'Escape');
+
+    await cmd(page, 'e beta');
+
+    await press(page, 'Control+o');
+    expect((await state(page)).file).toContain('alpha');
+    expect(await lines(page)).toEqual(['alpha one', 'alpha two unsaved']);
+    expect((await state(page)).pos).toBe('2,17');
+
+    await press(page, 'Control+i');
+    expect((await state(page)).file).toContain('beta');
+    expect(await lines(page)).toEqual(['beta one', 'beta two']);
+  });
+
+  test(':jumps displays entries and :clearjumps resets traversal', async ({ page }) => {
+    await open(page);
+    await seed(page, 'one\ntwo\nthree');
+    await press(page, 'G');
+    await cmd(page, 'jumps');
+    await expect(page.locator('#vim-content')).toContainText('jump line  col file');
+    await expect(page.locator('#vim-content')).toContainText('untitled.txt');
+    await press(page, 'u');
+    await cmd(page, 'clearjumps');
+    const before = (await state(page)).pos;
+    await press(page, 'Control+o');
+    expect((await state(page)).pos).toBe(before);
+    await expect(page.locator('#vim-cmdline')).toContainText('E662: At start of jumplist');
+  });
 });

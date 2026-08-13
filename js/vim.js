@@ -179,10 +179,8 @@
     if (isExplorerBuffer()) return;
     pushUndo();
     var expLines = buildExplorer();
-    state.lines = expLines;
-    state.cursor = { row: expLines.firstFileRow || 0, col: expLines.padLeft || 0 };
-    state.curswant = expLines.padLeft || 0;
-    state.filename = 'netrw';
+    pushJump();
+    switchDocument('explorer', 'netrw', expLines, expLines.firstFileRow || 0, expLines.padLeft || 0);
     setStatus('"netrw" ' + Object.keys(blogFiles).length + ' files');
     render();
   }
@@ -240,6 +238,9 @@
     wordWrap: false,
     hlsearch: true,
     incsearch: true,
+    documents: {},
+    untitledSeq: 0,
+    outputSeq: 0,
     jumpList: [],
     jumpIdx: -1,
     lastVisualRange: null,
@@ -262,6 +263,53 @@
     paletteOpen: false,
     sitePaletteOpen: false
   };
+
+  state.documents.welcome = {
+    filename: state.filename,
+    lines: state.lines.slice()
+  };
+
+  function saveCurrentDocument() {
+    state.documents[state.documentId] = {
+      filename: state.filename,
+      lines: state.lines.slice()
+    };
+  }
+
+  function switchDocument(documentId, filename, lines, row, col) {
+    saveCurrentDocument();
+    state.documentId = documentId;
+    state.filename = filename;
+    state.lines = lines.slice();
+    state.cursor = { row: row || 0, col: col || 0 };
+    state.cursor.row = clampRow(state.cursor.row);
+    state.cursor.col = clampCol(state.cursor.row, state.cursor.col);
+    state.curswant = state.cursor.col;
+  }
+
+  function renameCurrentDocument(documentId, filename) {
+    var oldDocumentId = state.documentId;
+    saveCurrentDocument();
+    state.documents[documentId] = state.documents[oldDocumentId];
+    if (documentId !== oldDocumentId) delete state.documents[oldDocumentId];
+    state.documentId = documentId;
+    state.filename = filename;
+    state.documents[documentId].filename = filename;
+  }
+
+  function nextUntitledId() {
+    state.untitledSeq++;
+    return 'untitled:' + state.untitledSeq;
+  }
+
+  function nextOutputId(kind) {
+    state.outputSeq++;
+    return 'output:' + kind + ':' + state.outputSeq;
+  }
+
+  function documentIdForEdit(name, isBlog) {
+    return isBlog ? 'blog:' + name : 'file:' + name;
+  }
 
   function resetWelcomeLayout() {
     var lines = buildWelcome();
@@ -486,7 +534,7 @@
   // -------------------------------------------------------------------------
   function pushUndo() {
     state.undoStack = state.undoStack.slice(0, state.undoIdx + 1);
-    state.undoStack.push({ lines: state.lines.slice(), filename: state.filename });
+    state.undoStack.push({ lines: state.lines.slice(), filename: state.filename, documentId: state.documentId });
     if (state.undoStack.length > 200) { state.undoStack.shift(); }
     else { state.undoIdx++; }
   }
@@ -495,11 +543,12 @@
     if (state.undoIdx < 0) { setStatus('Already at oldest change'); return; }
     // At the tip: save current state so redo can restore it
     if (state.undoIdx === state.undoStack.length - 1) {
-      state.undoStack.push({ lines: state.lines.slice(), filename: state.filename });
+      state.undoStack.push({ lines: state.lines.slice(), filename: state.filename, documentId: state.documentId });
     }
     var entry = state.undoStack[state.undoIdx--];
     state.lines = entry.lines.slice();
     if (entry.filename) state.filename = entry.filename;
+    if (entry.documentId) state.documentId = entry.documentId;
     clampCursor();
     render();
   }
@@ -511,6 +560,7 @@
     var entry = state.undoStack[state.undoIdx + 2];
     state.lines = entry.lines.slice();
     if (entry.filename) state.filename = entry.filename;
+    if (entry.documentId) state.documentId = entry.documentId;
     state.undoIdx++;
     clampCursor();
     render();
@@ -1362,7 +1412,10 @@
   }
 
   function pushJumpAt(row, col) {
-    var entry = jumpPosition(row, col);
+    return pushJumpEntry(jumpPosition(row, col));
+  }
+
+  function pushJumpEntry(entry) {
     var last = state.jumpList[state.jumpList.length - 1];
     if (sameJumpLine(last, entry)) return false;
     state.jumpList.push(entry);
@@ -1376,32 +1429,46 @@
   }
 
   function activateJump(entry) {
+    if (entry.documentId !== state.documentId) {
+      saveCurrentDocument();
+      var target = state.documents[entry.documentId];
+      if (!target) {
+        setStatus('E92: Buffer not found: ' + entry.filename);
+        return false;
+      }
+      state.documentId = entry.documentId;
+      state.filename = target.filename;
+      state.lines = target.lines.slice();
+    }
     state.cursor.row = clampRow(entry.row);
     state.cursor.col = clampCol(state.cursor.row, entry.col);
     state.curswant = state.cursor.col;
     render();
+    return true;
   }
 
   function jumpOlder(count) {
     if (!state.jumpList.length) { setStatus('E662: At start of jumplist'); return; }
     if (state.jumpIdx === state.jumpList.length - 1) pushJump();
+    var previousIdx = state.jumpIdx;
     var moved = false;
     for (var i = 0; i < count && state.jumpIdx > 0; i++) {
       state.jumpIdx--;
       moved = true;
     }
-    if (moved) activateJump(state.jumpList[state.jumpIdx]);
+    if (moved && !activateJump(state.jumpList[state.jumpIdx])) state.jumpIdx = previousIdx;
     if (moved === false || i < count) setStatus('E662: At start of jumplist');
   }
 
   function jumpNewer(count) {
     if (!state.jumpList.length) { setStatus('E663: At end of jumplist'); return; }
+    var previousIdx = state.jumpIdx;
     var moved = false;
     for (var i = 0; i < count && state.jumpIdx < state.jumpList.length - 1; i++) {
       state.jumpIdx++;
       moved = true;
     }
-    if (moved) activateJump(state.jumpList[state.jumpIdx]);
+    if (moved && !activateJump(state.jumpList[state.jumpIdx])) state.jumpIdx = previousIdx;
     if (moved === false || i < count) setStatus('E663: At end of jumplist');
   }
 
@@ -3006,6 +3073,27 @@
       setStatus('jumplist cleared');
       return;
     }
+    if (cmd === 'jumps') {
+      pushUndo();
+      pushJump();
+      var jumpLines = ['jump line  col file/text', '----+------+---+---------'];
+      for (var ji = 0; ji < state.jumpList.length; ji++) {
+        var jumpEntry = state.jumpList[ji];
+        var jumpDocument = jumpEntry.documentId === state.documentId
+          ? { lines: state.lines }
+          : state.documents[jumpEntry.documentId];
+        var jumpText = jumpDocument && jumpDocument.lines[jumpEntry.row]
+          ? jumpDocument.lines[jumpEntry.row].slice(0, 40)
+          : '';
+        var jumpPrefix = ji === state.jumpIdx ? '>' : ' ';
+        jumpLines.push(jumpPrefix + ' ' + (state.jumpIdx - ji) + '    ' +
+          (jumpEntry.row + 1) + '      ' + jumpEntry.col + '   ' +
+          jumpEntry.filename + (jumpText ? ' ' + jumpText : ''));
+      }
+      jumpLines.push('', 'Press u to return to your buffer.');
+      switchDocument(nextOutputId('jumps'), '[Jumps]', jumpLines, 0, 0);
+      render(); return;
+    }
     if (cmd === 'q' || cmd === 'q!') {
       if (cmd === 'q!') { hackerExit(); return; }
       window.location.href = state.exitTarget;
@@ -3025,7 +3113,7 @@
     if (cmd.slice(0, 2) === 'w ') {
       var fname = cmd.slice(2).trim();
       if (fname) {
-        state.filename = fname;
+        renameCurrentDocument('file:' + fname, fname);
         downloadText(state.lines.join('\n'), fname);
         saveToLocalFS(fname, state.lines.join('\n'));
       }
@@ -3141,10 +3229,8 @@
     }
     if (cmd === 'enew' || cmd === 'new') {
       pushUndo();
-      state.lines = [''];
-      state.cursor = { row: 0, col: 0 };
-      state.curswant = 0;
-      state.filename = 'untitled.txt';
+      pushJump();
+      switchDocument(nextUntitledId(), 'untitled.txt', [''], 0, 0);
       render(); return;
     }
     if (cmd === 'e' || cmd.slice(0, 2) === 'e ') {
@@ -3153,40 +3239,29 @@
       var ePath = resolveBlogPath(eFname);
       if (eStored !== null) {
         pushUndo();
-        state.lines = eStored.split('\n');
-        state.cursor = { row: 0, col: 0 };
-        state.curswant = 0;
-        state.filename = eFname;
+        pushJump();
+        switchDocument(documentIdForEdit(eFname, false), eFname, eStored.split('\n'), 0, 0);
         setStatus('"' + eFname + '" ' + state.lines.length + ' lines');
         render();
       } else if (ePath) {
+        var eSourceJump = jumpPosition(state.cursor.row, state.cursor.col);
         setStatus('Reading "' + eFname + '"...');
         fetch(ePath).then(function(resp) {
           if (!resp.ok) throw new Error(resp.status);
           return resp.text();
         }).then(function(text) {
           pushUndo();
-          state.lines = text.split('\n');
-          state.cursor = { row: 0, col: 0 };
-          state.curswant = 0;
-          state.filename = eFname + '.md';
+          pushJumpEntry(eSourceJump);
+          switchDocument(documentIdForEdit(eFname, true), eFname + '.md', text.split('\n'), 0, 0);
           setStatus('"' + eFname + '" ' + state.lines.length + ' lines');
           render();
         }).catch(function() {
-          pushUndo();
-          state.lines = [''];
-          state.cursor = { row: 0, col: 0 };
-          state.curswant = 0;
-          state.filename = eFname || 'untitled.txt';
-          setStatus('"' + state.filename + '" new file');
-          render();
+          setStatus('"' + eFname + '" read error');
         });
       } else {
         pushUndo();
-        state.lines = [''];
-        state.cursor = { row: 0, col: 0 };
-        state.curswant = 0;
-        state.filename = eFname || 'untitled.txt';
+        pushJump();
+        switchDocument(documentIdForEdit(eFname, false), eFname || 'untitled.txt', [''], 0, 0);
         setStatus('"' + state.filename + '" new file');
         render();
       }
@@ -3197,24 +3272,25 @@
     }
     if (cmd === 'intro') {
       pushUndo();
-      resetWelcomeLayout();
+      pushJump();
+      var introLines = buildWelcome();
+      welcomeSnapshot = introLines.join('\n');
+      switchDocument('welcome', 'untitled.txt', introLines, introLines.firstContentRow || 0, introLines.firstContentCol || 0);
       render(); return;
     }
     if (cmd === 'help' || cmd === 'h' || cmd.slice(0, 5) === 'help ' || cmd.slice(0, 2) === 'h ') {
       var helpArg = cmd.replace(/^h(elp)?\s*/, '').trim();
       pushUndo();
       var helpLines = getHelpText(helpArg);
-      state.lines = helpLines;
-      state.cursor = { row: 0, col: 0 };
-      state.curswant = 0;
+      pushJump();
+      switchDocument('help:' + (helpArg || 'main'), '[Help]', helpLines, 0, 0);
       render();
       return;
     }
     if (cmd === 'tutor' || cmd === 'Tutor') {
       pushUndo();
-      state.lines = (window.VIM_TUTOR_LESSONS || []).slice();
-      state.cursor = { row: 0, col: 0 };
-      state.curswant = 0;
+      pushJump();
+      switchDocument('tutor', '[Tutor]', window.VIM_TUTOR_LESSONS || [], 0, 0);
       setStatus(':tutor opened. Edit this buffer to practice.');
       render(); return;
     }
@@ -3465,9 +3541,8 @@
         var preview = mLine.length > 40 ? mLine.slice(0, 40) + '...' : mLine;
         markLines.push(' ' + markKeys[mi] + '    ' + (mRow + 1) + '      ' + mk.col + '   ' + preview);
       }
-      state.lines = markLines;
-      state.cursor = { row: 0, col: 0 };
-      state.curswant = 0;
+      pushJump();
+      switchDocument(nextOutputId('marks'), '[Marks]', markLines, 0, 0);
       render(); return;
     }
     if (cmd === 'pray') { window.open('https://prayorthodox.com', '_blank'); setStatus('"https://prayorthodox.com" opened'); return; }
@@ -5144,7 +5219,7 @@
     'nohlsearch', 'noh', 'nohl',
     'sort', 'sort u',
     'r', 'zen', 'enew', 'new', 'e', 'intro', 'help', 'h', 'tutor', 'Tutor', 'agents', 'moth', 'snake',
-    'marks', 'pray',
+    'marks', 'jumps', 'clearjumps', 'pray',
     'colorscheme', 'colo', 'color', 'emacs', 'nano'
   ];
   var tabIdx = -1;
