@@ -1053,7 +1053,7 @@ const PostNavigation = {
     { slug: 'endgame-keyboard', title: 'Twelve Keyboards Later' },
     { slug: 'knowledge-sidecar', title: 'Verified Context Is the Moat' },
     { slug: 'dadbod-grip', title: 'Edit Database Tables Like Vim Buffers' },
-    { slug: 'emergent-religion', title: 'Protection Emerged, Verification Did Not' },
+    { slug: 'emergent-religion', title: 'Protection Emerged. Verification Did Not.' },
     { slug: 'natural-language-first', title: 'Before Building Complex Architectures, Try Natural Language' },
     { slug: 'friction-economy', title: 'Friction Economy: Unconscious Productivity Drains in Development Workflows' },
     { slug: 'claude-code-setups', title: 'Terminal Setups for Claude\'s 10,000-Line Outputs' },

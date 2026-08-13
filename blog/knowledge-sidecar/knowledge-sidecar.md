@@ -10,7 +10,7 @@ The verifier does not justify calling all of that context verified. At keephive 
 
 Persistent memory increases the cost of that mistake. A bad answer in one chat can disappear with the session. A bad fact in working memory can return at every session start.
 
-In [Protection Emerged, Verification Did Not](../emergent-religion/index.html), I looked at verification through agent simulations. [Project Sid](https://arxiv.org/html/2411.00114v1) seeded Pastafarianism through designated priest agents and supplied roles for some collective tasks. The paper did not test whether a fact-checking role would emerge. The narrower engineering question still matters: when a system keeps beliefs, what can reject one that is wrong?
+In [Protection Emerged. Verification Did Not.](../emergent-religion/index.html), I looked at verification through agent simulations. [Project Sid](https://arxiv.org/html/2411.00114v1) seeded Pastafarianism through designated priest agents and supplied roles for some collective tasks. The paper did not test whether a fact-checking role would emerge. The narrower engineering question still matters: when a system keeps beliefs, what can reject one that is wrong?
 
 ## What Keephive Actually Stores
 
@@ -94,4 +94,4 @@ What I have not built yet is a knowledge base that checks its own truth. Until `
 **Links:**
 - keephive: [GitHub](https://github.com/joryeugene/keephive) | [PyPI](https://pypi.org/project/keephive/)
 - tripod: [GitHub](https://github.com/joryeugene/tripod)
-- [Previous: Protection Emerged, Verification Did Not](../emergent-religion/index.html)
+- [Previous: Protection Emerged. Verification Did Not.](../emergent-religion/index.html)
