@@ -49,4 +49,4 @@ Simon Willison's [pelicans-on-bicycles comparison](https://simonwillison.net/202
 
 The conference does not establish a productivity gain or return-on-investment multiple, and it does not identify a winning tool stack. Tool names, prices, and model rankings change too quickly to carry the argument. The durable part is the comparison between a recorded decision and observable behavior.
 
-A specification earns its place when someone can use it to judge the product. SPEC records the decision. EXPOSURE supplies the evidence. TASK DELTA names the next piece of work. The comparison record lets a team change the code without losing the reason for the change.
+Someone must be able to use the specification to judge the product. SPEC records the decision. EXPOSURE supplies the evidence. TASK DELTA names the next piece of work. The comparison record lets a team change the code without losing the reason for the change.
