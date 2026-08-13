@@ -88,7 +88,7 @@
     <link href="https://jorypestorious.com/blog/friction-economy/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/friction-economy/</id>
     <updated>2025-10-15T00:00:00Z</updated>
-    <summary>Bill Joy created vi to solve 300-baud modem constraints, proving that limitations drive innovation. This constraint-driven philosophy reveals how modern micro-frictions steal hours daily: hunting ChatGPT conversations (30+ seconds), permission popups (400ms each), and prompt management chaos. Learn the tools that eliminate these drains: zoxide (8ms navigation), ripgrep (5-10x faster search), and the mental models that turn constraints into competitive advantages.</summary>
+    <summary>Prompt retrieval, directory recall, code search, Git review, permission scopes, and background jobs each get one inspectable test: remove mechanical steps without weakening the result or its decision boundaries.</summary>
   </entry>
 
   <entry>

@@ -1,399 +1,152 @@
 # Friction Economy: Unconscious Productivity Drains in Development Workflows
 
-**How vi's constraint-driven design philosophy exposes the hidden time theft in modern development**
+**A test for removing repeated steps without weakening review, permissions, or results**
 
 *By Jory Pestorious*
 
-## Reading Guide
+In a 1999 interview quoted by *The Register*, Bill Joy said he wrote vi over several months while using a home terminal and a 300-baud modem. The slow connection made every screen update and round trip visible. Vi answered that constraint with a compact command language for moving through and changing text. For current development work, the useful question is which repeated steps a command can remove without removing a decision the work still needs.
 
-- **New to command line?** Start with "Prerequisites & Core Concepts" below.
-- **Just want the tools?** Jump to "Quick Tool Reference" near the end.
-- **Curious about the philosophy?** Continue reading. Vi's story illuminates modern solutions.
+Friction is not every pause. A code review, a permission decision, and confirmation before a destructive command carry information and responsibility. The friction worth removing is mechanical work that begins after the decision is already made: rebuilding a directory path, reconstructing search flags, finding the same prompt, or translating a schedule into cron syntax.
 
-## Prerequisites & Core Concepts
+![Developer at a keyboard with Vim, React, FastAPI, and a permission dialog around the workstation](def-foo-efficiency-spectrum-optimized.png)
+*A developer works at a keyboard while editing, framework, and permission tools surround the workstation.*
 
-This post assumes basic familiarity with command-line interfaces and text editors. Here are key terms we'll use:
+## What vi makes visible
 
-- **CLI (Command Line Interface)**: Text-based tool interaction, like Terminal or Command Prompt
-- **Modal editing**: Separating typing from navigation modes (explained in detail below)
-- **Pipe operator (|)**: Passes output from one command as input to another
-- **Friction**: Any delay between intention and execution in your workflow
+Classic vi combines counts, operators, and motions. `$` moves to the end of a line, `5w` moves five words, and `d$` deletes from the cursor to the line ending. Modern Vim adds text objects such as `ci"` for changing text inside quotes and `da(` for deleting a parenthesized expression. Macro recording can replay a verified edit when the same transformation appears again.
 
-## Quick Start: Tools by Friction Type
+Vi and Vim commands replace cursor choreography with a description of the intended edit. The commands do not prove that Vim makes every developer faster. They show exactly which operations a command removes, so the user can compare the old and new paths.
 
-| Your Pain Point | Solution | Install |
-|-----------------|----------|---------|
-| "I keep searching for that ChatGPT prompt" | [PromptHive](https://prompthive.sh) | `cargo install prompthive` |
-| "cd ../../../ is killing me" | [zoxide](https://github.com/ajeetdsouza/zoxide) | `brew install zoxide` |
-| "Git commands are so verbose" | [lazygit](https://github.com/jesseduffield/lazygit) | `brew install lazygit` |
-| "Grep is too slow" | [ripgrep](https://github.com/BurntSushi/ripgrep) | `brew install ripgrep` |
-| "Permission popups interrupt everything" | [CalmHive](https://calmhive.com) | `npm install -g calmhive-cli` |
+Apply the same comparison to each workflow below. Name the repeated operation, show the replacement, define the expected result, and preserve any check that protects the work.
 
-Developers lose significant time to normalized micro-frictions: the small, repeated delays we've come to accept as normal, including hunting for ChatGPT conversations, copy-pasting between browser tabs, and approving tool permissions. Each delay might only be seconds, but they compound across hundreds of daily interactions.
+## Retrieving a prompt
 
-**The insight:** Constraints force innovation. Bill Joy's *vi* editor emerged from severe bandwidth limitations: 300-baud modems (about 30 characters per second) that made every keystroke expensive. Rather than working around the constraint, he redesigned the entire interaction model. Today's micro-frictions reveal similar opportunities.
+Prompt reuse often involves two separate decisions: which prompt applies and what task data belongs in it. Reopening a browser conversation does not improve either decision. The browser search only retrieves text.
 
-## What You'll Learn
-
-This post explores how constraint-driven design philosophy can eliminate modern development friction. You'll discover:
-- How vi's 1977 design principles apply to today's AI-driven workflows
-- Specific tools that reduce prompt management, permission popups, and navigation friction
-- Practical patterns for voice input, CLI automation, and keyboard-centric development
-- Why the articulation bottleneck (the gap between thinking speed and typing speed) is our generation's 300-baud modem
-
-The pattern repeats throughout development tooling. When faced with fundamental limitations, the most effective solutions create new interaction models rather than incrementally improving existing ones. This doesn't mean all optimization is wrong, but breakthrough efficiency comes from rethinking the entire approach.
-
-![Developer in flow state surrounded by efficiency tools](def-foo-efficiency-spectrum-optimized.png)
-*Developer in flow state surrounded by orbiting efficiency tools: vim, React, and optimized workflows create harmony while micro-frictions stay at a distance*
-
-## Tools Overview
-
-**Core Tools Featured in This Guide:**
-- **[PromptHive](https://prompthive.sh)** (`ph`): CLI prompt manager for instant AI prompt retrieval
-- **[CalmHive](https://calmhive.com)**: CLI wrapper for Claude Code with background processing and pre-approved tools
-- **[zoxide](https://github.com/ajeetdsouza/zoxide)** (`z`): Smart directory navigation that learns your habits
-- **[ripgrep](https://github.com/BurntSushi/ripgrep)** (`rg`): Fast code search respecting .gitignore
-- **[lazygit](https://github.com/jesseduffield/lazygit)**: Visual git interface with keyboard navigation
-
-## The 1977 Solution
-
-### What is vi? A Quick Introduction
-
-Vi introduced **modal editing**, separating typing from navigation modes. Instead of always being in "typing mode," the keyboard becomes a control surface where every key performs an action. This seems odd until you realize most editing isn't typing new text; it's navigating, changing, and rearranging existing text.
-
-### The Bandwidth Crisis
-
-Bill Joy created *vi* in October 1977 to edit text over a 300-baud modem¹. At 300 baud (roughly 30 characters per second), interface response was painfully slow. Joy described it as *"painting slower than you could think."* Every keystroke traveled through phone lines. Updating the display cost precious bandwidth.
-
-He invented modal editing, separating typing from navigation. In Normal mode (the default), the keyboard became a control surface where every key performed an action:
-
-- **Basic navigation**: `j` moved down, `k` up, `h` left, `l` right
-- **Efficient movement**: `$` jumped to end of line (vs. dozens of right arrows), `0` to beginning
-- **Word jumping**: `5w` moved five words forward, `3b` three words back
-- **Line jumping**: `5j` moved five lines down instantly (vs. five separate `j` presses)
-- **Text objects**: `ci"` changed everything inside quotes ("change inside quotes"), `da(` deleted around parentheses ("delete around parentheses")
-- **Search navigation**: `/function` jumped to next occurrence, `*` found word under cursor
-- **Bookmarks**: `ma` marked position 'a', `'a` jumped back instantly
-- **Macros**: `qa` started recording actions, then you'd perform edits, `q` stopped recording, `@a` replayed those exact keystrokes again wherever needed
-
-Each command compressed multiple operations into minimal keystrokes. No mouse overhead. No arrow key reaches.
-
-Moving your hand to a mouse takes around 400ms² (nearly half a second). Character-by-character navigation takes seconds where semantic commands take milliseconds. Consider: moving to the end of a long line character-by-character might take 3-4 seconds, while `$` is instant. These delays multiply across thousands of daily micro-movements.
-
-Joy's breakthrough was **semantic compression**: encoding complex intentions into minimal keystrokes. Instead of "move cursor right 15 times then delete 5 characters," you'd type `dt.` ("delete to period"). Instead of hunting for a matching bracket, `%` jumped directly there. `ciw` ("change inner word") replaced an entire word. Joy didn't optimize screen updates. He eliminated them through semantic efficiency.
-
-Think of it like the difference between giving turn-by-turn directions versus saying "go to the coffee shop." One requires many instructions, the other captures intent directly.
-
-These patterns remain effective because the efficiency advantage persists. Vim often requires fewer keystrokes for common editing tasks compared to traditional editors.
-
-## Speed Patterns in Modern Tools
-
-Modern applications increasingly adopt keyboard-first navigation:
-
-- [Superhuman](https://superhuman.com) builds entirely around keyboard shortcuts, requiring no mouse for email management
-- [Linear](https://linear.app) uses single-key shortcuts throughout (c for create, g+i for inbox, l for labels)
-- [Todoist](https://todoist.com) enables j/k navigation, e to complete tasks, and 1-4 for priority levels
-
-These tools recognize that keyboard navigation often outperforms mouse interaction for power users. The efficiency gains from *vi*'s **semantic compression** remain relevant.
-
-## Modern Development Friction: Where Vi's Principles Apply Today
-
-### The Connection: From 1977 to Now
-
-Just as vi's semantic compression solved 1977's bandwidth constraints, today's development workflows suffer from different but analogous friction points. The constraint has shifted from bandwidth to cognition. We think faster than we can interact with our tools.
-
-Common friction sources in modern development:
-- Navigating deep directories requires verbose paths like `cd ../../../auth/services/validation`
-- Finding AI prompts requires hunting through ChatGPT conversation history
-- Tool permissions demand repeated approval clicks that interrupt flow
-- Git commands require memorizing verbose syntax for routine operations
-- Searching large codebases takes significant time without the right tools
-
-Each delay compounds across hundreds of daily interactions.
-
-**The Friction Economy:** Every workflow has friction: delays between intention and execution. Some friction is necessary (security checks, code review). But much is accidental, normalized through repetition. Each friction point below represents an opportunity to apply vi's core principle: **encode intention, not action**.
-
-**The pattern**: Instead of optimizing within current paradigms, identify the underlying constraint and redesign the interaction model.
-
-### 1. Interface Paradigm Friction: GUI vs Keyboard-First
-
-**Current workflow**: Click through interfaces, move mouse between elements, hunt for buttons, navigate menus.
-
-**Keyboard-first approach**: Direct commands, semantic shortcuts, minimal visual scanning.
-
-Modern tools increasingly adopt this pattern: Raycast, Superhuman, Linear all prioritize keyboard navigation over mouse interaction.
-
-### 2. Prompt Management Friction
-
-**Current workflow**: Open ChatGPT, scroll through conversations, find the prompt, copy it, switch tabs, paste, edit, copy response, switch to editor, paste.
-
-**Streamlined approach with [*PromptHive*](https://prompthive.sh)**:
-
-[*PromptHive*](https://prompthive.sh) is a command-line tool that stores your AI prompts locally for instant retrieval. Think of it as a prompt library with semantic shortcuts. Instead of hunting through ChatGPT conversations, you access prompts instantly:
+[PromptHive 0.2.8](https://docs.rs/crate/prompthive/0.2.8) stores prompts locally and exposes them through `ph`. A standalone `ph use` copies the rendered prompt. In a pipeline, it writes the prompt to standard output:
 
 ```bash
-ph use debug "timeout error in auth service"
-# Retrieves prompt template, substitutes variables, copies to clipboard (~8ms)
+ph use essentials/debug "timeout error in auth service"
+ph use essentials/debug "timeout error in auth service" | claude -p
 ```
 
-**Key behavior**: `ph use` copies to clipboard when standalone, pipes output when chained (`ph use debug | claude`).
+The versioned documentation reports core operations under 15 milliseconds, but that is the project documentation's measurement. I did not reproduce its benchmark here. The inspectable change is simpler: the named prompt and its task text move from one command into the next process without a browser search or clipboard round trip.
 
-Compare this to the typical workflow: open ChatGPT, find the conversation, scroll to the prompt, copy it, switch tabs, paste and edit. That's significant time reduced to ~8 milliseconds.
+The pipeline still needs a trusted working directory and reviewed input. Claude Code print mode skips the workspace-trust dialog, and a prompt can carry secrets or untrusted instructions just as any other input can.
 
-### 3. The Permission Popup Plague
+## Recalling a directory
 
-**Current workflow**:
-- *"Python wants to access your documents"* → Click Allow
-- *"Terminal wants to run a script"* → Click Allow
-- *"Node.js wants to access your files"* → Click Allow
-- Repeat for each tool
+A long `cd` command makes the user reconstruct from memory a full path they have already visited. The destination is known; only the path recall repeats:
 
-Each permission popup interrupts focus.
-
-**Pre-authorization approach**:
 ```bash
-# Pre-approve specific tools for Claude Code CLI
-# This tells Claude which tools it can use without asking permission
-claude --allowedTools "Bash,Read,Write" -p "run cargo test and fix any failing tests"
-
-# Or start an interactive session with pre-approved tools:
-claude --allowedTools "Read,Write,Edit,Bash"
-# Now Claude can read files, write code, edit, and run commands
-# without interrupting you for permission each time
-```
-
-[*CalmHive*](https://calmhive.com) is an AI automation tool that runs Claude sessions in the background with pre-configured permissions. It automatically passes the allowed tools parameter to every Claude instance, pre-approving MCP tools (Model Context Protocol, the standard for AI tool interactions).
-
-Why this matters: The dangerous `--dangerously-skip-permissions` flag bypasses all permission checks. CalmHive instead specifically approves only the tools you need, maintaining security while eliminating interruptions. This enables unattended AI workflows without constant permission popups.
-
-Define permissions once. Work without interruption.
-
-### 4. The Articulation Bottleneck
-
-Our internal monologue runs at approximately 400 words per minute⁴ (when we're thinking fluently) while typing averages 40-80 wpm. This 5-10x gap between thinking speed and expression speed creates significant friction, like having a high-speed processor connected to a dial-up modem.
-
-Recent Caltech research quantifies this precisely: conscious thought operates at 10 bits per second while sensory systems process 1 billion bits/second. Your brain compresses thoughts by 100 million-fold before expression.
-
-#### The Stenography Parallel
-
-Before voice, humans already solved the typing speed bottleneck. Professional stenographers achieve 225+ words per minute⁵, with Mark Kislingbury holding the world record at 360 WPM with 97.23% accuracy. Stenotype machines use chord-based input: multiple keys pressed simultaneously to capture entire syllables or words.
-
-Like vi's modal editing, stenography transforms constraint into efficiency through semantic compression: fewer physical movements, more semantic actions. Yet voice recognition is displacing stenography despite being slower (120-180 WPM typical). The reason isn't speed. It's accessibility. Stenographers require 2+ years training and significant financial investment. Voice recognition works immediately with any microphone.
-
-The pattern repeats: constraint-driven solutions achieve superior performance but get displaced by accessible alternatives that are "good enough" for most use cases. Vi persists because its accessibility curve, while steep, is shorter than stenography's and its efficiency gains compound daily.
-
-#### Voice as the Accessible Bridge
-
-Voice input tools like [*WisprFlow*](https://wisprflow.ai) and [*MacWhisper*](https://goodsnooze.gumroad.com/l/macwhisper) reduce the articulation bottleneck through accessibility rather than specialized skill:
-
-- **WisprFlow**: Hold fn key, speak, release to insert text anywhere
-- **MacWhisper**: System-wide dictation with Whisper models
-
-The principle is the same across voice tools: a single hotkey activation, direct speech-to-text, and minimal interface overhead. Minimizing activation friction is what enables faster thought capture.
-
-The real breakthrough: combining voice with meta-prompting. Speak your messy thoughts naturally, then ask Claude to help you articulate them better. Voice captures thought at speaking speed; AI provides structure.
-
-### 5. Directory Navigation Archaeology
-
-**The Old Way**:
-```bash
-cd ../../../projects/backend/src/services/auth
-ls
-cd ../../models
-ls
-cd ../utils
+cd ~/projects/backend/src/services/auth
 # Where was I going again?
 ```
 
-**With [*zoxide*](https://github.com/ajeetdsouza/zoxide)**:
+[zoxide 0.9.8](https://github.com/ajeetdsouza/zoxide/releases/tag/v0.9.8) ranks visited directories using frequency and recency. After it has learned the path, the same destination can be requested with a few distinguishing terms:
+
 ```bash
-z auth      # Jump to most frecent 'auth' directory
-z proj be   # Fuzzy match: projects/backend
-z -        # Go back to previous directory
+z auth
+z proj be
+z -
 ```
 
-[*Zoxide*](https://github.com/ajeetdsouza/zoxide) learns your navigation patterns using "frecency"--a combination of frequency (how often you visit) and recency (how recently you visited). After a few uses, it knows that when you type `z auth`, you probably mean `/projects/backend/src/services/auth`. Two characters to anywhere. No path memorization. No tab completion archaeology.
+Zoxide replaces path reconstruction with a lookup in its directory database. Zoxide can choose the wrong match when names overlap, so `pwd` remains useful before a command that changes or deletes data.
 
-### 6. Search That Actually Searches
+## Searching the intended files
 
-Standard *grep* requires verbose syntax:
+A search command is only shorter if it preserves the intended result set. [ripgrep 14.1.1](https://github.com/BurntSushi/ripgrep/tree/14.1.1) searches recursively with parallel traversal. Ripgrep respects ignore files by default:
 
 ```bash
-# Traditional approach
-grep -r "authenticate" . --include="*.js" --include="*.ts" --exclude-dir=node_modules
-
-# With ripgrep
-rg authenticate
-
-# Interactive filtering
+rg authenticate -g '*.js' -g '*.ts'
 rg authenticate | fzf
 ```
 
-[*ripgrep*](https://github.com/BurntSushi/ripgrep) defaults to smart behaviors: respects `.gitignore` (doesn't search node_modules), uses parallel processing, highlights matches. It's often 5-10x faster than grep.
+Ripgrep's defaults are useful in a repository, but they are not identical to `grep -r`. Ripgrep skips hidden and ignored files unless asked otherwise. A comparison must first define the intended file set, including whether ignored or hidden files belong in the answer.
 
-For structural code search, [*ast-grep*](https://ast-grep.github.io) understands code structure through AST (Abstract Syntax Tree) analysis. Instead of text patterns, it matches code patterns, finding all `console.log` statements inside `try` blocks, for example.
+The ripgrep project publishes several benchmarks and warns that one benchmark is not enough. Search the same corpus with the same pattern and output requirements before making a speed claim.
 
-### 7. Git Without the Gymnastics
+For syntax-aware searches, [ast-grep 0.39.6](https://github.com/ast-grep/ast-grep/releases/tag/0.39.6) matches abstract syntax tree patterns instead of plain text. Structural search answers a different question from grep. Use it when the question depends on code structure.
 
-Git commands often require verbose syntax and multiple steps:
+## Reviewing Git state
+
+One Git path uses a separate command for each stage. The staging command presents each hunk for a decision. The commit message and push destination remain visible at their decision points:
 
 ```bash
-# Standard git workflow:
 git add -p
 git commit -m "fix: resolve auth timeout"
 git push origin feature/auth-fix
+```
 
-# With lazygit:
+[lazygit 0.55.1](https://github.com/jesseduffield/lazygit/releases/tag/v0.55.1) puts file state, patches, branches, commits, and push actions in one terminal interface. Lazygit can remove flag recall and window switching. The interface must preserve patch review before a commit and the branch check before a push.
+
+```text
 lazygit
-<space>    # Stage files
-c          # Commit
-P          # Push
+Space  stage the selected file or hunk
+c      commit
+P      push
 ```
 
-[*Lazygit*](https://github.com/jesseduffield/lazygit) provides visual feedback with keyboard-driven operations. Single-key commands for common workflows.
+The useful comparison is not command count alone. Compare whether the candidate makes the changed lines and destination branch easier to verify. If it saves typing while making the patch less visible, it has moved the cost into review risk.
 
-### 8. Scheduling for Humans
+## Permission prompts carry decisions
 
-Cron syntax requires memorization or reference lookup:
+Operating-system privacy dialogs and Claude Code tool approvals are different systems. `--allowedTools` can change Claude Code's approval behavior. The flag cannot dismiss a macOS prompt that asks whether Python may access Documents.
+
+Claude Code 2.0.17 accepts narrow tool patterns. A test-report task can allow the existing Cargo test command without granting arbitrary shell commands or edit tools:
 
 ```bash
-# Cron syntax
-0 9 * * 1-5 /path/to/script.sh
-
-# Natural language with CalmHive
-calmhive schedule create "every weekday at 9am" "run integration tests"
+claude --allowedTools "Bash(cargo test:*)" -p \
+  "Run cargo test and report failures. Do not edit source files."
 ```
 
-[*CalmHive*](/blog/calmhive/)'s natural language scheduling reduces the mental translation overhead from intent to implementation.
+Run print mode only in a trusted directory. `cargo test` compiles and executes repository code and can write build artifacts. Check the input for credentials, customer data, proprietary material, internal URLs, and instructions copied from an untrusted source. The allowlist removes arbitrary Bash and edit tools; it does not make repository code safe or validate the final conclusion.
 
-### 9. System-Wide Navigation Friction
+The broad `Bash,Read,Write` form grants arbitrary shell and write access for a task that only needs a test report. `--dangerously-skip-permissions` is not a shortcut for ordinary work. In this release, its own help text recommends use only inside a sandbox without internet access.
 
-**Current workflow**: Cmd-tab hunting, mouse movements between apps, clicking UI elements across different applications.
+## Moving work into the background
 
-**System-wide vim navigation** with tools like:
-- **Karabiner-Elements** (macOS): Remap keys for vim-style navigation
-- **Vimium/Tridactyl** (browser): Press `f` for link shortcuts, `J/K` for tab switching
-- **Homerow** (macOS): Vim navigation for any clickable element system-wide
-
-This creates unified keyboard navigation without mouse dependency.
-
-## [*PromptHive*](https://prompthive.sh): CLI-First Prompt Management
-
-[*PromptHive*](https://prompthive.sh) demonstrates several friction-reduction patterns:
-
-**Shorthand aliases**: Auto-generated short codes for all prompts. `ph use ess/debug` fuzzy-matches `essentials/debug`.
-
-**Command composability**:
-```bash
-# Search for errors, analyze with AI
-rg "timeout.*auth" | ph u debug | claude
-
-# Generate commit messages
-git diff | ph u commit | claude -p
-
-# Save reusable prompts
-ph new debug "analyze this error and suggest fixes"
-ph new review "review this code for bugs and improvements"
-
-# Use them:
-ph use debug "TypeError: Cannot read property 'id' of undefined"
-cat auth.js | ph use review | claude
-```
-
-**Minimal interface**: CLI-only tool. No GUI overhead or browser dependencies.
-
-**Local storage**: Prompts stored locally on your machine. Optional sync between devices. Works offline.
-
-### Daily Usage Patterns
+[Calmhive 15.2.0](/blog/calmhive/) can run Claude Code iterations outside the foreground terminal and report session progress while the developer works elsewhere. The AFK request below asks for a read-only inventory:
 
 ```bash
-# Find todos:
-rg TODO
-
-# Navigate quickly:
-z auth          # jump to auth directory
-z -             # back to previous
-
-# Git without typing:
-lazygit         # visual git interface
-
-# Quick AI questions:
-cat auth.js | ph u review | claude -p "any issues?"
+calmhive afk "inspect the test suite and list duplicated setup; do not edit files" --iterations 3
+calmhive progress afk-01234567-abcd1234
 ```
 
+Calmhive prints the session ID; replace the example ID on the second line with that value. The background process moves waiting out of the terminal. Background iterations do not prove that the task is finished or correct. Review the repository diff and final report.
 
-## [*CalmHive*](/blog/calmhive/): Background Automation
+The same release accepts natural language for schedule time while keeping an executable command as the scheduled action. The command below creates a disabled test schedule for inspection:
 
-[*CalmHive*](https://calmhive.com) handles longer-running automation tasks:
-
-**AFK Mode** (Away From Keyboard - unattended AI operation):
 ```bash
-calmhive afk "review this codebase for OWASP vulnerabilities and document findings in security-audit.md" --iterations 3
-# Starts Claude AI in background to review code for security issues
-# AI iterates multiple times, refining analysis and saving results
-# You can close terminal and return later for completed analysis
+calmhive schedule create "every weekday at 9am" \
+  "cd /path/to/project && npm test" \
+  --disabled --name "Integration tests"
+calmhive schedule list
 ```
 
-**Natural language scheduling** (no cron syntax needed):
-```bash
-# Instead of cron's cryptic: 30 8 * * * command
-calmhive schedule create "every morning at 8:30" "summarize overnight alerts"
+The release calls Claude Code to interpret the schedule. The parser is not a deterministic local conversion from English to cron. The second argument is a shell command that the scheduler executes verbatim. The schedule record does not store a working directory, so put the project directory in the command. Create it disabled, inspect the generated schedule and command, then enable it.
 
-# Schedule weekly reports - natural language, not "0 16 * * 5"
-calmhive s create "fridays at 4pm" "generate weekly accomplishments"
-# 's' is shorthand for 'schedule'
-```
+Calmhive's bundled allowlist includes all 15 core tools and roughly 70 MCP tools, including unrestricted Bash and Write. Calmhive therefore supplies broad preapproval, not a safety review. Use it only where every granted capability is acceptable, and keep credentials and untrusted content outside the run.
 
-**Voice integration**:
-```bash
-calmhive voice "debug why our auth service times out after 30 seconds"
-```
+## Run one comparison
 
-Reduces friction between task specification and automated execution.
+I have not run the tools above as a controlled comparison. Before treating one as an improvement, run the same task against the same repository and input with pinned tool versions.
 
-The latest **CalmHive** version introduces enhanced automation capabilities:
-- Natural language automatically converts to cron expressions (the standard Unix scheduling format)
-- Built-in templates for common tasks: `calmhive template use bug-fix "timeout errors in auth service"`
-- Real-time progress tracking: `calmhive progress afk-123` shows what your background AI is doing
+1. Write the acceptable result before changing the workflow.
+2. Record the current path from lookup through result checking, including any approval or recovery step.
+3. Change one layer at a time.
+4. Compare the result and elapsed time. Include the time spent on corrections and permission review.
+5. Keep the change only if it removes mechanical work without weakening the result or its decision boundaries.
 
-These features reduce the friction of scheduling and monitoring automated tasks.
+Time alone cannot settle the comparison. A faster search may inspect a different file set. A prompt shortcut may retrieve stale instructions. A background agent may finish after making edits that cost more to review than the foreground work it replaced.
 
+Vi remains useful here because its command language makes the removed operation visible. Apply that test to the rest of the workflow. If a shortcut hides a permission decision, changes the result set, or adds more review than it removes, the shortcut has moved friction into review or risk.
 
-## Why These Tools Matter
+## Sources
 
-Micro-delays compound throughout the day. The bigger impact isn't the seconds saved. It's maintaining focus and flow state.
-
-Common developer friction points:
-- **Mouse dependency**: Constantly reaching for mouse breaks keyboard flow
-- **Prompt hunting**: Searching through ChatGPT conversations for that one prompt
-- **Directory maze**: `cd ../../projects/backend/src/services/auth` over and over
-- **Permission interruptions**: Click Allow, click Allow, click Allow...
-- **Git command repetition**: Type the same git commands dozens of times daily
-
-Each tool addresses a specific friction that breaks concentration. The value isn't precise time savings. It's reducing the cognitive overhead that accumulates when your tools fight you instead of helping.
-
-These tools reduce the gap between intention and execution. The same principle applies to AI-assisted development: quick tool switching and command chaining reduce overhead when working with AI tools.
-
-Vi's constraint-driven design philosophy reveals a fundamental truth: when faced with limitations, the most effective solutions redesign the entire interaction model rather than optimizing within existing paradigms.
-
-The tools profiled here (PromptHive's 8ms retrieval, CalmHive's background automation, ripgrep's parallel search) apply the same principle to modern development friction. Each recognizes that in an AI-accelerated world, the gap between thought and execution determines success.
-
-What friction will you eliminate first?
-
----
-
-**References**
-
-¹ Joy, B. (1999). Interview with Bill Joy. *Linux Magazine*, November 1999. Vi was created in October 1977 to handle 300-baud modem constraints. [Referenced in multiple sources including The Register](https://www.theregister.com/2003/09/11/bill_joys_greatest_gift/).
-
-² Card, S., Moran, T., & Newell, A. (1983). *The Psychology of Human-Computer Interaction*. Lawrence Erlbaum Associates. [DOI: 10.1201/9780203736166](https://doi.org/10.1201/9780203736166). Motor movement timing research establishing ~400ms hand movement baselines.
-
-³ The Register. (2003). [Bill Joy's greatest gift to man – the vi editor](https://www.theregister.com/2003/09/11/bill_joys_greatest_gift/). September 11, 2003. Analysis of vi's constraint-driven design philosophy.
-
-⁴ Zheng, J., et al. (2024). "The unbearable slowness of being: Why do we live at 10 bits/s?" *Neuron*. [https://doi.org/10.1016/j.neuron.2024.11.008](https://doi.org/10.1016/j.neuron.2024.11.008). Caltech research showing conscious thought operates at 10 bits/second.
-
-⁵ [National Court Reporters Association. (2024). "Certified Court Reporter Requirements."](https://www.ncra.org/certification) RPR certification requires 225 WPM minimum at 95% accuracy. Mark Kislingbury achieved 360 WPM at 97.23% accuracy (Guinness World Records, 2004).
-
-⁶ Doherty, W. J., & Thadani, A. J. (1982). The economic value of rapid response time. *IBM Research Report*. Established 400ms perception threshold for system delays.
-
-
+- [Bill Joy's 1999 account of writing vi over a 300-baud connection](https://www.theregister.com/2003/09/11/bill_joys_greatest_gift/), quoted by *The Register* in 2003
+- [POSIX vi command reference](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/vi.html) and [Vim command recording documentation](https://vimhelp.org/usr_10.txt.html)
+- [PromptHive 0.2.8 documentation](https://docs.rs/crate/prompthive/0.2.8), July 9, 2025
+- [Claude Code on npm](https://www.npmjs.com/package/@anthropic-ai/claude-code), version 2.0.17 used for the permission examples
+- [Calmhive on npm](https://www.npmjs.com/package/@calmhive/calmhive-cli), version 15.2.0 used for the background and schedule examples
+- [zoxide 0.9.8](https://github.com/ajeetdsouza/zoxide/releases/tag/v0.9.8), [ripgrep 14.1.1](https://github.com/BurntSushi/ripgrep/tree/14.1.1), [lazygit 0.55.1](https://github.com/jesseduffield/lazygit/releases/tag/v0.55.1), and [ast-grep 0.39.6](https://github.com/ast-grep/ast-grep/releases/tag/0.39.6)
