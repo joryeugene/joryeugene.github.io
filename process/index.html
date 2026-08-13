@@ -45,7 +45,7 @@
           <div class="case-tabs" role="tablist" aria-label="Process case studies">
             <a class="case-tab" href="#dadbod-grip" role="tab" data-case-tab data-case-hash="dadbod-grip" aria-controls="case-dadbod" aria-selected="true">Dadbod Grip</a>
             <a class="case-tab" href="#totally-reliable" role="tab" data-case-tab data-case-hash="totally-reliable" aria-controls="case-totally-reliable" aria-selected="false">Totally Reliable</a>
-            <a class="case-tab" href="#theosis" role="tab" data-case-tab data-case-hash="theosis" aria-controls="case-theosis" aria-selected="false">Theosis</a>
+            <a class="case-tab" href="#theosis" role="tab" data-case-tab data-case-hash="theosis" aria-controls="case-theosis" aria-selected="false">Pray Orthodox</a>
             <a class="case-tab" href="#workhelix" role="tab" data-case-tab data-case-hash="workhelix" aria-controls="case-workhelix" aria-selected="false">Workhelix</a>
           </div>
         </div>
@@ -75,13 +75,14 @@
           </article>
           <article id="case-theosis" data-case-panel hidden>
             <div class="process-case-copy">
-              <p class="eyebrow">Live web product</p>
-              <h2>Turn separate calendar and Bible databases into a versioned CDN data layer.</h2>
-              <p>Theosis keeps two source libraries because they serve different reads. <code>theosis.db</code> organizes 4,017 OCA calendar days and their feasts, fasts, saints, stories, and appointed readings by date. <code>bible.db</code> indexes 39,891 verses across 85 books for chapter browsing and search. Before deployment, Python emits hashed JSON for each day, month, Bible chapter, and search corpus. Expo exports the React Native Web interface, and Cloudflare Pages serves the application and selected data through its global CDN. Serving a visit requires no API process or live database query.</p>
-              <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Pray Orthodox</a></div>
+              <p class="eyebrow">Live prayer book</p>
+              <h2>Open the Orthodox daily cycle in one trustworthy prayer book.</h2>
+              <p>Pray Orthodox brings Church offices, appointed propers, Scripture, saints, fasting guidance, and Bible reading into one quiet surface. A source-audited appointment engine composes each date from fixed services and variable liturgical corpora. Every rendered prayer retains its source and locator. If a required form or proper is incomplete, it stays out of the public schedule instead of being replaced by a generic prayer.</p>
+              <p>Python bakes the source-pinned calendar and Bible corpora into content-addressed, route-sized files. Expo serves the same product on web and native, while Cloudflare Pages delivers the public reader without a runtime API or database startup.</p>
+              <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Pray Orthodox</a><a href="https://7a18ea18.theosis.pages.dev/" data-jelly>Inspect the immutable deployment</a></div>
             </div>
             <figure class="process-case-shot">
-              <img src="/jpg/process/pray-orthodox-reader.png" alt="Pray Orthodox showing the daily calendar beside the Third Hour prayer reader." width="1440" height="900" loading="lazy" decoding="async">
+              <img src="/jpg/process/pray-orthodox-reader.png" alt="Pray Orthodox showing the selected church day beside a complete Reader office with its sources collapsed." width="1440" height="900" loading="lazy" decoding="async">
             </figure>
           </article>
           <article id="case-workhelix" data-case-panel hidden>

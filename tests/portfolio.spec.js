@@ -307,7 +307,7 @@ test.describe('portfolio pages', () => {
     const cases = [
       ['Dadbod Grip', /Neovim into a data workbench/i, 'https://jorypestorious.com/dadbod-grip-web/'],
       ['Totally Reliable', /four live ragdolls stay connected to one rocket/i, 'https://www.totallyreliable.com/'],
-      ['Theosis', /serves calendar and Bible data from the edge/i, 'https://prayorthodox.com/'],
+      ['Pray Orthodox', /turns Church sources into a trustworthy daily office/i, 'https://prayorthodox.com/'],
       ['Workhelix', /company AI usage into product decisions/i, 'https://www.workhelix.com/platform']
     ];
 
@@ -324,17 +324,20 @@ test.describe('portfolio pages', () => {
       }
     }
 
-    await page.getByRole('tab', { name: 'Theosis' }).click();
+    await page.getByRole('tab', { name: 'Pray Orthodox' }).click();
     const theosisPanel = page.locator('#case-theosis');
-    await expect(page.getByText(/Turn separate calendar and Bible databases into a versioned CDN data layer/i)).toBeVisible();
-    await expect(theosisPanel).toContainText('4,017 OCA calendar days');
-    await expect(theosisPanel).toContainText('39,891 verses across 85 books');
-    await expect(theosisPanel).toContainText('requires no API process or live database query');
+    await expect(page.getByText(/Open the Orthodox daily cycle in one trustworthy prayer book/i)).toBeVisible();
+    await expect(theosisPanel).toContainText('source-audited appointment engine');
+    await expect(theosisPanel).toContainText('Every rendered prayer retains its source and locator');
     await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Tests/ }).click();
-    await expect(page.getByText(/all 4,017 dates from 2025 through 2035/)).toBeVisible();
+    await expect(page.getByText(/every exposed office and role across all 4,017 dates/i)).toBeVisible();
+    await expect(page.getByText(/reject unresolved propers, unknown sources, missing locators/i)).toBeVisible();
+    await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Visual QA/ }).click();
+    await expect(page.getByText(/Vespers must show tomorrow's service day without moving today's calendar page/i)).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Inspect the immutable deployment', exact: true })).toHaveAttribute('href', 'https://7a18ea18.theosis.pages.dev/');
     await expect(page.locator('a[href="https://github.com/joryeugene/theosis"]')).toHaveCount(0);
     await expect(page).toHaveURL(/#theosis$/);
-    await expect(page.getByRole('tab', { name: 'Theosis' })).toHaveAttribute('href', '#theosis');
+    await expect(page.getByRole('tab', { name: 'Pray Orthodox' })).toHaveAttribute('href', '#theosis');
 
     const caseNavigationTop = await page.locator('.case-navigation').evaluate((element) => element.getBoundingClientRect().top + scrollY);
     const processStageTop = await page.locator('.process-stage').evaluate((element) => element.getBoundingClientRect().top + scrollY);

@@ -397,7 +397,7 @@ test('Process summaries show local product evidence in a stable landscape frame'
   const cases = [
     ['Dadbod Grip', '/jpg/process/dadbod-grip-live.png', 'Dadbod Grip in Neovim with schema navigation, a query editor, staged grid changes, and generated SQL.'],
     ['Totally Reliable', '/jpg/process/totally-reliable-ragdoll-chain.jpg', 'Four Totally Reliable Delivery Service ragdolls hanging in a chain beneath a flying jetpack.'],
-    ['Theosis', '/jpg/process/pray-orthodox-reader.png', 'Pray Orthodox showing the daily calendar beside the Third Hour prayer reader.'],
+    ['Pray Orthodox', '/jpg/process/pray-orthodox-reader.png', 'Pray Orthodox showing the selected church day beside a complete Reader office with its sources collapsed.'],
     ['Workhelix', '/jpg/process/nucleus-ai-assessment.png', 'Nucleus AI Assessment dashboard with opportunity metrics, a business-unit chart, and a use-case treemap.']
   ];
 
@@ -422,7 +422,7 @@ test('Process stacked summaries do not reserve blank space below the selected ev
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/process/');
 
-  for (const name of ['Dadbod Grip', 'Totally Reliable', 'Theosis', 'Workhelix']) {
+  for (const name of ['Dadbod Grip', 'Totally Reliable', 'Pray Orthodox', 'Workhelix']) {
     await page.getByRole('tab', { name, exact: true }).click();
     const unusedHeight = await page.locator('[data-case-panel]:visible').evaluate((article) => {
       const articleBottom = article.getBoundingClientRect().bottom;
@@ -542,7 +542,7 @@ test('mobile contact and cursor passage do not switch tabs before a completed ta
 
     await page.goto('/process/#totally-reliable');
     const totallyReliable = page.getByRole('tab', { name: 'Totally Reliable' });
-    const theosis = page.getByRole('tab', { name: 'Theosis' });
+    const theosis = page.getByRole('tab', { name: 'Pray Orthodox' });
     const changes = page.getByRole('tab', { name: /Changes/ });
     const tests = page.getByRole('tab', { name: /Tests/ });
 
@@ -593,7 +593,7 @@ test('tabbed surfaces reserve their layout height across content changes', async
     const deepDiveTop = await documentTop('.process-deep-dive');
     const processStageTop = await documentTop('.process-stage');
 
-    for (const name of ['Dadbod Grip', 'Totally Reliable', 'Theosis', 'Workhelix']) {
+    for (const name of ['Dadbod Grip', 'Totally Reliable', 'Pray Orthodox', 'Workhelix']) {
       await page.getByRole('tab', { name, exact: true }).click();
       if (width > 1120) {
         expect(
