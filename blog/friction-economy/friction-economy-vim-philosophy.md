@@ -4,7 +4,7 @@
 
 *By Jory Pestorious*
 
-In a 1999 interview quoted by *The Register*, Bill Joy said he wrote vi over several months while using a home terminal and a 300-baud modem. The slow connection made every screen update and round trip visible. Vi answered that constraint with a compact command language for moving through and changing text. For current development work, the useful question is which repeated steps a command can remove without removing a decision the work still needs.
+In a 1999 interview quoted by *The Register*, Bill Joy said he wrote vi over several months while using a home terminal and a 300-baud modem. The slow connection made every screen update and round trip visible. Vi answered that constraint with a compact command language for moving through and changing text. For current development work, ask which repeated steps a command can remove without removing a decision the work still needs.
 
 Friction is not every pause. A code review, a permission decision, and confirmation before a destructive command carry information and responsibility. The friction worth removing is mechanical work that begins after the decision is already made: rebuilding a directory path, reconstructing search flags, finding the same prompt, or translating a schedule into cron syntax.
 
