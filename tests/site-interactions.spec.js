@@ -419,6 +419,14 @@ test('Process summaries show local product evidence in a stable landscape frame'
     await expect(image).toHaveAttribute('decoding', 'async');
     await expect(image).toBeVisible();
     expect(await image.evaluate((element) => element.naturalWidth)).toBeGreaterThan(0);
+    const dimensions = await image.evaluate((element) => ({
+      declaredWidth: Number(element.getAttribute('width')),
+      declaredHeight: Number(element.getAttribute('height')),
+      naturalWidth: element.naturalWidth,
+      naturalHeight: element.naturalHeight
+    }));
+    expect(dimensions.declaredWidth, `${name} width metadata`).toBe(dimensions.naturalWidth);
+    expect(dimensions.declaredHeight, `${name} height metadata`).toBe(dimensions.naturalHeight);
     const box = await page.locator('[data-case-panel]:visible .process-case-shot').boundingBox();
     expect(box).not.toBeNull();
     expect(Math.abs(box.width / box.height - 16 / 9)).toBeLessThan(0.02);
