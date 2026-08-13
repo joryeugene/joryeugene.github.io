@@ -208,9 +208,8 @@ test.describe('dashboard and runner experience', () => {
     await expect(page.locator('.vim-snake-head')).toHaveText('^3^');
     const upwardHead = await readSnake();
     await page.keyboard.press('j');
-    await page.waitForTimeout(200);
+    await expect.poll(async () => (await readSnake()).y).toBeGreaterThan(upwardHead.y);
     const verticalHairpin = await readSnake();
-    expect(verticalHairpin.y).toBeGreaterThan(upwardHead.y);
     expect(verticalHairpin.token).toBe('v3v');
 
     await page.keyboard.press('r');

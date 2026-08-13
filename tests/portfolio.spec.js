@@ -408,7 +408,7 @@ test.describe('portfolio pages', () => {
   test('the featured essay is one card target while Georgie stays a separate button', async ({ page }) => {
     await page.goto('/blog/');
     const feature = page.locator('.writing-feature');
-    const link = feature.getByRole('link', { name: 'Read Why I Canceled Claude Max for Codex Desktop' });
+    const link = feature.getByRole('link', { name: 'Read I Wanted to Own the Harness. Then Codex Desktop Won.' });
     const georgie = feature.getByRole('button', { name: 'Wake Georgie on the featured essay' });
 
     await expect(link).toHaveAttribute('href', '/blog/portable-agent-factory/');
