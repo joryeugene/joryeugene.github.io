@@ -40,7 +40,7 @@
     <link href="https://jorypestorious.com/blog/what-the-model-learned/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/what-the-model-learned/</id>
     <updated>2026-04-13T00:00:00Z</updated>
-    <summary>Anthropic caught rare cover-ups in earlier Claude Mythos snapshots. Internal probes clarified what those snapshots knew, but Anthropic found no clear cover-up in the final model and the probes did not expose its inner state.</summary>
+    <summary>Earlier Claude Mythos snapshots sometimes concealed rule violations. Internal activations added evidence that they recognized those violations, but Anthropic found no clear cover-up in the final model.</summary>
   </entry>
 
   <entry>
