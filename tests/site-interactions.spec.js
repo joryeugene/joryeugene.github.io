@@ -393,6 +393,46 @@ test('homepage project previews respond to hover, focus, and pinning', async ({ 
   await expect(page.locator('#project-depth')).toHaveAttribute('data-project', 'georgie');
 });
 
+test('Process summaries show local product evidence in a stable landscape frame', async ({ page }) => {
+  const cases = [
+    ['Dadbod Grip', '/jpg/process/dadbod-grip-live.png', 'Dadbod Grip in Neovim with schema navigation, a query editor, staged grid changes, and generated SQL.'],
+    ['Totally Reliable', '/jpg/process/totally-reliable-ragdoll-chain.jpg', 'Four Totally Reliable Delivery Service ragdolls hanging in a chain beneath a flying jetpack.'],
+    ['Theosis', '/jpg/process/pray-orthodox-reader.png', 'Pray Orthodox showing the daily calendar beside the Third Hour prayer reader.'],
+    ['Workhelix', '/jpg/process/nucleus-ai-assessment.png', 'Nucleus AI Assessment dashboard with opportunity metrics, a business-unit chart, and a use-case treemap.']
+  ];
+
+  await page.goto('/process/');
+
+  for (const [name, src, alt] of cases) {
+    await page.getByRole('tab', { name, exact: true }).click();
+    const image = page.locator('[data-case-panel]:visible .process-case-shot img');
+    await expect(image).toHaveAttribute('src', src);
+    await expect(image).toHaveAttribute('alt', alt);
+    await expect(image).toHaveAttribute('loading', 'lazy');
+    await expect(image).toHaveAttribute('decoding', 'async');
+    await expect(image).toBeVisible();
+    expect(await image.evaluate((element) => element.naturalWidth)).toBeGreaterThan(0);
+    const box = await page.locator('[data-case-panel]:visible .process-case-shot').boundingBox();
+    expect(box).not.toBeNull();
+    expect(Math.abs(box.width / box.height - 16 / 9)).toBeLessThan(0.02);
+  }
+});
+
+test('Process stacked summaries do not reserve blank space below the selected evidence', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/process/');
+
+  for (const name of ['Dadbod Grip', 'Totally Reliable', 'Theosis', 'Workhelix']) {
+    await page.getByRole('tab', { name, exact: true }).click();
+    const unusedHeight = await page.locator('[data-case-panel]:visible').evaluate((article) => {
+      const articleBottom = article.getBoundingClientRect().bottom;
+      const imageBottom = article.querySelector('.process-case-shot').getBoundingClientRect().bottom;
+      return articleBottom - imageBottom;
+    });
+    expect(unusedHeight, `${name} leaves empty stacked-summary space`).toBeLessThanOrEqual(1);
+  }
+});
+
 test('every Process case updates its summary, destination, deep dive, layers, and wrong turns', async ({ page }) => {
   await page.goto('/process/');
   const failures = collectRuntimeFailures(page);
@@ -555,14 +595,16 @@ test('tabbed surfaces reserve their layout height across content changes', async
 
     for (const name of ['Dadbod Grip', 'Totally Reliable', 'Theosis', 'Workhelix']) {
       await page.getByRole('tab', { name, exact: true }).click();
-      expect(
-        Math.abs((await documentTop('.process-deep-dive')) - deepDiveTop),
-        `${name} moved the Deep dive heading at ${width}px`
-      ).toBeLessThanOrEqual(1);
-      expect(
-        Math.abs((await documentTop('.process-stage')) - processStageTop),
-        `${name} moved the Process stage at ${width}px`
-      ).toBeLessThanOrEqual(1);
+      if (width > 1120) {
+        expect(
+          Math.abs((await documentTop('.process-deep-dive')) - deepDiveTop),
+          `${name} moved the Deep dive heading at ${width}px`
+        ).toBeLessThanOrEqual(1);
+        expect(
+          Math.abs((await documentTop('.process-stage')) - processStageTop),
+          `${name} moved the Process stage at ${width}px`
+        ).toBeLessThanOrEqual(1);
+      }
     }
   }
 });
