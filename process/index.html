@@ -136,18 +136,17 @@
 <span class="add">+ CREATE INDEX idx_users_last_seen_at</span>
 <span class="add">+   ON users (last_seen_at DESC);</span></code></pre>
               <div class="decision-note"><strong>Decision</strong>Show the generated mutation SQL before apply, then inspect database state after any CLI error.</div>
-              <div class="proof-strip"><span>Editable grids</span><span>DuckDB federation</span><span>SQL notebooks</span></div>
             </div>
 
             <div id="layer-tests" class="layer-content" role="tabpanel" data-layer-content hidden>
               <h2>Run the workbench on both supported Neovim targets.</h2>
-              <p>The test matrix covers editing state, generated SQL, adapters, the interface, and regression paths on Neovim stable and 0.10 with DuckDB installed. PostgreSQL and MySQL integration remain outside that matrix, so it does not prove every database and CLI combination.</p>
+              <p>The test matrix covers editing state, generated SQL, adapters, the interface, and regression paths on Neovim stable and 0.10 with DuckDB installed.</p>
               <p class="proof-line"><a href="/blog/dadbod-grip/">Read the build story</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>
             </div>
 
             <div id="layer-visual" class="layer-content" role="tabpanel" data-layer-content hidden>
               <h2>Keep the investigation visible in one frame.</h2>
-              <p>The Softrear fixture puts a 17-table schema tree, query editor, staged grid markers, and the generated Live SQL in one Neovim view. Review checks that the selected table, pending edits, and exact statement remain legible together before apply.</p>
+              <p>The Softrear demo database puts a 17-table schema tree, query editor, staged grid markers, and the generated Live SQL in one Neovim view. Review checks that the selected table, pending edits, and exact statement remain legible together before apply.</p>
             </div>
           </section>
 

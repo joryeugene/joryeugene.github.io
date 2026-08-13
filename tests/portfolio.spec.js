@@ -298,7 +298,7 @@ test.describe('portfolio pages', () => {
     await expect(page.getByText(/Four shipped systems/)).toHaveCount(0);
     await expect(page.getByText(/15\+?.*ECharts|more than 15.*ECharts/i)).toHaveCount(0);
     await expect(page.getByText(/built (its )?interactive analytics and assessment workflows/i)).toHaveCount(0);
-    await expect(page.locator('body')).not.toContainText(/immutable deployment|content-addressed|source-audited|Jest tests across|passing journeys|intentional skips|cache-bypassing|linked CI run|\d[\d,]* assertions/i);
+    await expect(page.locator('body')).not.toContainText(/immutable deployment|content-addressed|source-audited|Jest tests across|passing journeys|intentional skips|cache-bypassing|linked CI run|\d[\d,]* assertions|does not prove every database|Softrear fixture/i);
     await expect(page.getByRole('link', { name: 'Process', exact: true })).toHaveAttribute('aria-current', 'page');
     await page.getByRole('tab', { name: 'Tests' }).click();
     await expect(page.getByText(/test matrix covers editing state.*generated SQL.*adapters/i)).toBeVisible();
@@ -344,6 +344,20 @@ test.describe('portfolio pages', () => {
     const caseNavigationTop = await page.locator('.case-navigation').evaluate((element) => element.getBoundingClientRect().top + scrollY);
     const processStageTop = await page.locator('.process-stage').evaluate((element) => element.getBoundingClientRect().top + scrollY);
     expect(caseNavigationTop).toBeLessThan(processStageTop);
+  });
+
+  test('process Changes layers do not use full-width proof strips', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto('/process/');
+
+    const caseTabs = page.getByRole('tablist', { name: 'Process case studies' }).getByRole('tab');
+    const changesTab = page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Changes/ });
+
+    for (let caseIndex = 0; caseIndex < await caseTabs.count(); caseIndex += 1) {
+      await caseTabs.nth(caseIndex).click();
+      await changesTab.click();
+      await expect(page.locator('#layer-changes .proof-strip')).toHaveCount(0);
+    }
   });
 
   test('writing search and keyboard selection are usable', async ({ page }) => {
