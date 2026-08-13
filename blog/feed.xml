@@ -120,7 +120,7 @@
     <link href="https://jorypestorious.com/blog/ai-engineer-spec/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/ai-engineer-spec/</id>
     <updated>2025-06-15T00:00:00Z</updated>
-    <summary>Key insights from the San Francisco conference on specification-driven development. Influenced by Sean Grove&apos;s keynote “The New Code” (OpenAI), exploring how SPEC, EXPOSURE, and TASK DELTA are reshaping AI engineering, plus practical guidance on tools and team transformation.</summary>
+    <summary>A June 2025 field note on Sean Grove&apos;s specification argument and a practical SPEC, EXPOSURE, TASK DELTA loop for turning observed product gaps into reviewable work.</summary>
   </entry>
 
   <entry>
