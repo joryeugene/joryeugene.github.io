@@ -538,6 +538,32 @@
   // -------------------------------------------------------------------------
   // Undo
   // -------------------------------------------------------------------------
+  function adjustJumpRows(startRow, removedCount, addedCount) {
+    var endRow = startRow + removedCount;
+    var delta = addedCount - removedCount;
+    for (var i = 0; i < state.jumpList.length; i++) {
+      var jump = state.jumpList[i];
+      if (jump.documentId !== state.documentId || jump.row < startRow) continue;
+      if (jump.row < endRow) jump.row = startRow;
+      else jump.row += delta;
+      jump.row = Math.max(0, jump.row);
+    }
+  }
+
+  function adjustJumpRowsForRestore(nextLines) {
+    var prefix = 0;
+    while (prefix < state.lines.length && prefix < nextLines.length &&
+           state.lines[prefix] === nextLines[prefix]) prefix++;
+    var currentEnd = state.lines.length;
+    var nextEnd = nextLines.length;
+    while (currentEnd > prefix && nextEnd > prefix &&
+           state.lines[currentEnd - 1] === nextLines[nextEnd - 1]) {
+      currentEnd--;
+      nextEnd--;
+    }
+    adjustJumpRows(prefix, currentEnd - prefix, nextEnd - prefix);
+  }
+
   function pushUndo() {
     state.undoStack = state.undoStack.slice(0, state.undoIdx + 1);
     state.undoStack.push({ lines: state.lines.slice(), filename: state.filename, documentId: state.documentId });
@@ -552,6 +578,7 @@
       state.undoStack.push({ lines: state.lines.slice(), filename: state.filename, documentId: state.documentId });
     }
     var entry = state.undoStack[state.undoIdx--];
+    if (entry.documentId === state.documentId) adjustJumpRowsForRestore(entry.lines);
     state.lines = entry.lines.slice();
     if (entry.filename) state.filename = entry.filename;
     if (entry.documentId) state.documentId = entry.documentId;
@@ -564,6 +591,7 @@
       setStatus('Already at newest change'); return;
     }
     var entry = state.undoStack[state.undoIdx + 2];
+    if (entry.documentId === state.documentId) adjustJumpRowsForRestore(entry.lines);
     state.lines = entry.lines.slice();
     if (entry.filename) state.filename = entry.filename;
     if (entry.documentId) state.documentId = entry.documentId;
@@ -619,6 +647,7 @@
     if (state.lines.length === 1) {
       state.lines[0] = '';
     } else {
+      adjustJumpRows(r, 1, 0);
       state.lines.splice(r, 1);
     }
     state.cursor.row = clampRow(state.cursor.row);
@@ -626,6 +655,7 @@
   }
 
   function insertLine(r, str) {
+    adjustJumpRows(r, 0, 1);
     state.lines.splice(r, 0, str);
   }
 
@@ -1299,6 +1329,7 @@
           state.lines[startRow] = getLine(startRow).slice(0, startCol) + getLine(startRow).slice(endCol);
         } else {
           state.lines[startRow] = getLine(startRow).slice(0, startCol) + getLine(endRow).slice(endCol);
+          adjustJumpRows(startRow + 1, endRow - startRow, 0);
           state.lines.splice(startRow + 1, endRow - startRow);
         }
         state.cursor.row = startRow;
@@ -1309,6 +1340,7 @@
           state.lines[startRow] = getLine(startRow).slice(0, startCol) + getLine(startRow).slice(endCol);
         } else {
           state.lines[startRow] = getLine(startRow).slice(0, startCol) + getLine(endRow).slice(endCol);
+          adjustJumpRows(startRow + 1, endRow - startRow, 0);
           state.lines.splice(startRow + 1, endRow - startRow);
         }
         state.cursor.row = startRow;
@@ -1576,6 +1608,7 @@
         for (var j = range.startRow + 1; j < range.endRow; j++) yankedLines.push(getLine(j));
         yankedLines.push(getLine(range.endRow).slice(0, range.endCol));
         setRegister(yankedLines.join('\n'), false);
+        adjustJumpRows(range.startRow, range.endRow - range.startRow + 1, 1);
         state.lines.splice(range.startRow, range.endRow - range.startRow + 1, firstLine + lastLine);
         state.cursor.row = range.startRow;
         state.cursor.col = clampCol(range.startRow, range.startCol);
@@ -1996,6 +2029,7 @@
         }).then(function(text) {
           pushUndo();
           var output = text.split('\n');
+          adjustJumpRows(state.cursor.row + 1, 0, output.length);
           for (var ci = 0; ci < output.length; ci++) {
             state.lines.splice(state.cursor.row + 1 + ci, 0, output[ci]);
           }
@@ -3346,6 +3380,7 @@
         if (shellOut === null) return;
         pushUndo();
         var rInsertAt = state.cursor.row + 1;
+        adjustJumpRows(rInsertAt, 0, shellOut.length);
         for (var rsi = 0; rsi < shellOut.length; rsi++) {
           state.lines.splice(rInsertAt + rsi, 0, shellOut[rsi]);
         }
@@ -3365,6 +3400,7 @@
         // does not inject a blank line on read (matches real vim behavior).
         if (localLines.length && localLines[localLines.length - 1] === '') localLines.pop();
         var localInsertAt = state.cursor.row + 1;
+        adjustJumpRows(localInsertAt, 0, localLines.length);
         for (var li = 0; li < localLines.length; li++) {
           state.lines.splice(localInsertAt + li, 0, localLines[li]);
         }
@@ -3385,6 +3421,7 @@
         pushUndo();
         var newLines = text.split('\n');
         var insertAt = state.cursor.row + 1;
+        adjustJumpRows(insertAt, 0, newLines.length);
         for (var ri = 0; ri < newLines.length; ri++) {
           state.lines.splice(insertAt + ri, 0, newLines[ri]);
         }
@@ -3460,15 +3497,13 @@
       catch (ex) { setStatus('E476: Invalid pattern: ' + gPat); return; }
       pushUndo();
       if (gSub === 'd') {
-        var gKept = [];
-        var gRemoved = 0;
+        var gMatches = [];
         for (var gi = 0; gi < state.lines.length; gi++) {
           var gHit = gRe.test(state.lines[gi]);
-          if ((gHit && !gNeg) || (!gHit && gNeg)) { gRemoved++; continue; }
-          gKept.push(state.lines[gi]);
+          if ((gHit && !gNeg) || (!gHit && gNeg)) gMatches.push(gi);
         }
-        if (!gKept.length) gKept = [''];
-        state.lines = gKept;
+        for (var gdi = gMatches.length - 1; gdi >= 0; gdi--) deleteLine(gMatches[gdi]);
+        var gRemoved = gMatches.length;
         state.cursor.row = Math.min(state.cursor.row, state.lines.length - 1);
         state.cursor.col = 0;
         setStatus(gRemoved + ' lines deleted');
@@ -4306,6 +4341,7 @@
           var jSep = jLine.length > 0 ? ' ' : '';
           state.cursor.col = jLine.length;
           state.lines[row] = jLine + jSep + jNext;
+          adjustJumpRows(row + 1, 1, 0);
           state.lines.splice(row + 1, 1);
         }
         state.curswant = state.cursor.col;
@@ -4584,6 +4620,7 @@
         var prevLine = getLine(row - 1);
         var joinCol = prevLine.length;
         state.lines[row - 1] = prevLine + line;
+        adjustJumpRows(row, 1, 0);
         state.lines.splice(row, 1);
         state.cursor.row = row - 1;
         state.cursor.col = joinCol;
@@ -4630,6 +4667,7 @@
         var chPrev = getLine(row - 1);
         var chJoinCol = chPrev.length;
         state.lines[row - 1] = chPrev + line;
+        adjustJumpRows(row, 1, 0);
         state.lines.splice(row, 1);
         state.cursor.row = row - 1;
         state.cursor.col = chJoinCol;
@@ -4786,6 +4824,7 @@
           var jSep = line.length > 0 ? ' ' : '';
           state.cursor.col = line.length;
           state.lines[row] = line + jSep + jNext;
+          adjustJumpRows(row + 1, 1, 0);
           state.lines.splice(row + 1, 1);
         }
         break;

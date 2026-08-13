@@ -50,6 +50,26 @@ test.describe('P0 jumplist', () => {
     expect((await state(page)).pos).toBe('5,1');
   });
 
+  test('saved jump rows follow inserted and deleted lines', async ({ page }) => {
+    await open(page);
+    await seed(page, 'top\nanchor\nbottom');
+    await press(page, '/'); await type(page, 'anchor'); await press(page, 'Enter');
+    await press(page, 'G');
+    await press(page, 'g'); await press(page, 'g');
+
+    await press(page, 'o'); await type(page, 'inserted'); await press(page, 'Escape');
+    await press(page, 'G');
+    await press(page, '3'); await press(page, 'Control+o');
+    expect((await state(page)).pos).toBe('3,1');
+    expect((await lines(page))[2]).toBe('anchor');
+
+    await press(page, 'g'); await press(page, 'g');
+    await press(page, 'd'); await press(page, 'd');
+    await press(page, 'G');
+    await press(page, '2'); await press(page, 'Control+o');
+    expect((await lines(page))[(parseInt((await state(page)).pos, 10) - 1)]).toBe('anchor');
+  });
+
   test('a new jump after Ctrl-O preserves newer entries', async ({ page }) => {
     await open(page);
     await seed(page, 'one\ntwo\nthree\nfour\nfive');

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { open, lines, state } from './helpers.js';
+import { open, press, seed, lines, state } from './helpers.js';
 
 async function mobileText(page, text) {
   await page.locator('#vim-mobile-input').evaluate((input, value) => {
@@ -196,6 +196,19 @@ test.describe('mobile Vim input', () => {
 
     expect(await lines(page)).toEqual(['ab']);
     await expect(ctrl).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('mobile one-shot Ctrl traverses the jumplist', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await open(page);
+    await seed(page, 'one\ntwo\nthree');
+    await press(page, 'G');
+
+    const ctrl = page.locator('#vim-mobile-keys [data-vim-modifier="Control"]');
+    await ctrl.tap(); await mobileText(page, 'o');
+    expect((await state(page)).pos).toBe('1,1');
+    await ctrl.tap(); await mobileText(page, 'i');
+    expect((await state(page)).pos).toBe('3,1');
   });
 
   test('mobile dashboard advertises the tap-anywhere interaction', async ({ page }) => {
