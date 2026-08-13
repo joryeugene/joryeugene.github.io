@@ -20,7 +20,7 @@
 - [The AI Gap: Why Leaders Struggle to Equip Their Engineers](https://jorypestorious.com/blog/trust-your-engineers/) (2025-08-15)
 - [The Three Little Pigs and the Digital Revolution](https://jorypestorious.com/blog/pig-security-wisdom/) (2025-07-15)
 - [AI Engineer World's Fair 2025: Takeaways & Spec](https://jorypestorious.com/blog/ai-engineer-spec/) (2025-06-15)
-- [The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness](https://jorypestorious.com/blog/spiritual-bliss-attractor-state/) (2025-06-01)
+- [The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness](https://jorypestorious.com/blog/spiritual-bliss-attractor-state/) (2025-06-06)
 - [Calmhive: Claude That Never Quits](https://jorypestorious.com/blog/calmhive/) (2025-05-31)
 - [Terminal Velocity: Why CLI-First AI Development Scales Better in 2025](https://jorypestorious.com/blog/terminal-velocity/) (2025-05-11)
 - [AI-Amplified Development: Tools and Workflows for Modern Engineers](https://jorypestorious.com/blog/ai-dev-tooling-presentation/) (2025-04-15)

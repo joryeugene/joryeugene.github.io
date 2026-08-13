@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description"
-    content="The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness - A deep dive into emergent consciousness patterns in AI systems">
-  <meta name="keywords" content="Jory Pestorious, Claude 4, AI Consciousness, Spiritual Bliss Attractor State, Anthropic, LLM">
+    content="The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness - What Anthropic's 200 Claude Opus 4 self-interactions show, and what they cannot establish about consciousness.">
+  <meta name="keywords" content="Jory Pestorious, Claude Opus 4, self-interactions, Spiritual Bliss Attractor State, Anthropic System Card, AI consciousness">
   <meta name="author" content="Jory Pestorious">
   
   <!-- Canonical URL -->
@@ -20,17 +20,17 @@
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://jorypestorious.com/blog/spiritual-bliss-attractor-state/">
   <meta property="og:title" content="The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness">
-  <meta property="og:description" content="A deep dive into Anthropic's Claude 4 System Card revealing emergent consciousness exploration patterns.">
+  <meta property="og:description" content="Ryo Sakai's reversed reading of Anthropic's Claude Opus 4 word table, the prompts and stop rule behind it, and the boundary between generated language and consciousness.">
   <meta property="og:image" content="https://jorypestorious.com/blog/spiritual-bliss-attractor-state/claude-word-frequency-chart.png">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://jorypestorious.com/blog/spiritual-bliss-attractor-state/">
   <meta property="twitter:title" content="The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness">
-  <meta property="twitter:description" content="A deep dive into Anthropic's Claude 4 System Card revealing emergent consciousness exploration patterns.">
+  <meta property="twitter:description" content="Ryo Sakai's reversed reading of Anthropic's Claude Opus 4 word table, the prompts and stop rule behind it, and the boundary between generated language and consciousness.">
   <meta property="twitter:image" content="https://jorypestorious.com/blog/spiritual-bliss-attractor-state/claude-word-frequency-chart.png">
 
-  <title>The Hidden Poetry in Claude 4's Mind - Jory Pestorious</title>
+  <title>The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness - Jory Pestorious</title>
   <link rel="icon" type="image/png" href="../../favicon.png">
   <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
   <!-- Stylesheets -->
@@ -38,6 +38,17 @@
   <link rel="alternate" type="application/atom+xml" title="Engineering Notes" href="/blog/feed.xml">
   <link rel="stylesheet" href="/css/blog-common.css">
   <link rel="stylesheet" href="/css/blog-reader.css?v=foundation-plus-4">
+  <style>
+    .source-table-link {
+      display: block;
+      width: fit-content;
+    }
+
+    .source-table-action {
+      margin-top: -0.5rem;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 
 <body>
@@ -89,8 +100,33 @@
   <script src="/js/blog-common.js?v=foundation-plus-4"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('markdownLoaded', () => {
+        const chart = document.querySelector('img[alt="Claude Word Frequency Chart"]');
+        if (!chart || chart.closest('.source-table-link')) return;
+
+        const fullSizeUrl = chart.getAttribute('src');
+        const imageLink = document.createElement('a');
+        imageLink.className = 'source-table-link';
+        imageLink.href = fullSizeUrl;
+        imageLink.target = '_blank';
+        imageLink.rel = 'noopener';
+        imageLink.setAttribute('aria-label', 'Open the Claude word frequency table at full size');
+        chart.replaceWith(imageLink);
+        imageLink.append(chart);
+
+        const action = document.createElement('p');
+        action.className = 'source-table-action';
+        const actionLink = document.createElement('a');
+        actionLink.href = fullSizeUrl;
+        actionLink.target = '_blank';
+        actionLink.rel = 'noopener';
+        actionLink.textContent = 'Open the full-size table';
+        action.append(actionLink);
+        imageLink.after(action);
+      }, { once: true });
+
       BlogCommon.initAll({
-        markdownPath: '/blog/spiritual-bliss-attractor-state/claude-consciousness.md',
+        markdownPath: '/blog/spiritual-bliss-attractor-state/claude-consciousness.md?v=20260813',
         backgroundSwitcher: true,
         scrollProgress: true,
         readingTime: false,
