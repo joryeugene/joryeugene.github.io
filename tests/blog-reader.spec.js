@@ -22,7 +22,7 @@ test.describe('shared blog reader', () => {
 
     const context = page.locator('.reader-context');
     await expect(context.getByRole('link', { name: 'Back to Writing' })).toHaveAttribute('href', '/blog/');
-    await expect(context).toContainText('AI Engineer World\'s Fair 2026: Verification Became the Bottleneck');
+    await expect(context).toContainText('AI Engineer World\'s Fair 2026: Takeaways & Verification');
     await expect(context.locator('[data-reader-progress]')).toHaveText('0%');
     await expect(context.getByRole('button', { name: 'Change background' })).toHaveCount(0);
     await expect(context).not.toContainText('Contents');
@@ -71,7 +71,7 @@ test.describe('shared blog reader', () => {
     await page.goto('/blog/ai-engineer-verification/');
     await page.evaluate(() => window.scrollTo(0, 520));
     await expect(page.locator('.reader-toc')).toBeVisible();
-    await expect(page.locator('.markdown-body h1')).toContainText('Verification Became the Bottleneck');
+    await expect(page.locator('.markdown-body h1')).toContainText('Takeaways & Verification');
     const georgie = page.getByRole('button', { name: 'Wake Georgie' });
     const sprite = georgie.locator('.reader-georgie__sprite');
     const bed = georgie.locator('.reader-georgie__bed');
