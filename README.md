@@ -21,7 +21,7 @@
 - [Major improvements to my Claude Code CLI wrapper (v10.0.0)](https://jorypestorious.com/blog/pig-security-wisdom/) (2025-07-15)
 - [AI Engineer World's Fair 2025: Takeaways & Spec](https://jorypestorious.com/blog/ai-engineer-spec/) (2025-06-15)
 - [The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness](https://jorypestorious.com/blog/spiritual-bliss-attractor-state/) (2025-06-01)
-- [Calmhive: Claude That Never Quits](https://jorypestorious.com/blog/calmhive/) (2025-05-31)
+- [Calmhive v3: A Claude Code Wrapper for Background Jobs](https://jorypestorious.com/blog/calmhive/) (2025-05-31)
 - [Terminal Velocity: My CLI-First AI Workflow in 2025](https://jorypestorious.com/blog/terminal-velocity/) (2025-05-11)
 - [AI-Amplified Development: Tools and Workflows for Modern Engineers](https://jorypestorious.com/blog/ai-dev-tooling-presentation/) (2025-04-15)
 

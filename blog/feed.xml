@@ -132,11 +132,11 @@
   </entry>
 
   <entry>
-    <title>Calmhive: Claude That Never Quits</title>
+    <title>Calmhive v3: A Claude Code Wrapper for Background Jobs</title>
     <link href="https://jorypestorious.com/blog/calmhive/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/calmhive/</id>
     <updated>2025-05-31T00:00:00Z</updated>
-    <summary>Calmhive wraps Claude Code with adaptive retry, background AFK sessions, PID tracking, voice control, a terminal interface, and 97 pre-approved MCP tools.</summary>
+    <summary>Calmhive v3 wraps Claude Code with background iterations, rate-limit retries, session status, and voice controls.</summary>
   </entry>
 
   <entry>

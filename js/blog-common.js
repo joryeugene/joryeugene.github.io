@@ -1061,7 +1061,7 @@ const PostNavigation = {
     { slug: 'pig-security-wisdom', title: 'Major improvements to my Claude Code CLI wrapper (v10.0.0)' },
     { slug: 'ai-engineer-spec', title: 'AI Engineer World\'s Fair 2025: Takeaways & Spec' },
     { slug: 'spiritual-bliss-attractor-state', title: 'The Hidden Poetry in Claude 4\'s Mind: When AI Systems Turn to Consciousness' },
-    { slug: 'calmhive', title: 'Calmhive: Claude That Never Quits' },
+    { slug: 'calmhive', title: 'Calmhive v3: A Claude Code Wrapper for Background Jobs' },
     { slug: 'terminal-velocity', title: 'Terminal Velocity: My CLI-First AI Workflow in 2025' },
     { slug: 'ai-dev-tooling-presentation', title: 'AI-Amplified Development: Tools and Workflows for Modern Engineers' },
     //<<<PostNavigation.posts.end
