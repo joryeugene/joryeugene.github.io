@@ -22,19 +22,19 @@ I have been calling 2026 the year of verification. The Fair had a track named Ev
 
 ### The Dark Factory Is Real
 
-The dark software factory stopped being a metaphor. [Dan Shapiro described five levels of software automation](https://www.danshapiro.com/blog/2026/01/the-five-levels-from-spicy-autocomplete-to-the-software-factory/), ending with a factory that runs without humans writing the code. [StrongDM built one](https://factory.strongdm.ai/) with a three-person AI team whose charter bars humans from writing or reviewing the generated code. Its Digital Twin Universe supplies behavioral copies of services such as Okta, Jira, and Slack, so the factory can run test scenarios without production API limits. The factory also runs probabilistic satisfaction tests against holdout scenarios. [Simon Willison's account](https://simonwillison.net/2026/Feb/7/software-factory/) records the team's deliberately aggressive capacity target: spend at least $1,000 per human engineer per day on tokens.
+[Dan Shapiro described five levels of software automation](https://www.danshapiro.com/blog/2026/01/the-five-levels-from-spicy-autocomplete-to-the-software-factory/), ending with a factory that runs without humans writing the code. [StrongDM built one](https://factory.strongdm.ai/) with a three-person AI team whose charter bars humans from writing or reviewing the generated code. Its Digital Twin Universe supplies behavioral copies of services such as Okta, Jira, and Slack, so the factory can run test scenarios without production API limits. The factory also runs probabilistic satisfaction tests against holdout scenarios. [Simon Willison's account](https://simonwillison.net/2026/Feb/7/software-factory/) records the team's deliberately aggressive capacity target: spend at least $1,000 per human engineer per day on tokens.
 
-The charter does not make review disappear. Review moves into the twin, the holdout scenarios, and the rules that decide whether an output passes. Someone still has to keep the twin aligned with the real services and compare its verdicts with production behavior. A stale copy of Okta can certify code against obsolete behavior.
+Review moves into the twin, the holdout scenarios, and the rules that decide whether an output passes. Someone still has to keep the twin aligned with the real services and compare its verdicts with production behavior. A stale copy of Okta can certify code against obsolete behavior.
 
 ### Cross-Model Review Gets Measured
 
-[Greptile drew on data from several million reviewed pull requests](https://www.greptile.com/blog/rise-of-the-overnight-agents). Its April 2026 keyword search across review comments flagged auth-bypass language in pull requests attributed to [Claude](https://www.anthropic.com/claude) at 1.5 times the human rate per line of code, versus 1.0 for [Codex](https://openai.com/codex/). The rates are a comment-level signal, not confirmed vulnerabilities. They show that models can leave different, measurable review signals, which a team can test on its own codebase with one model writing and another reviewing.
+[Greptile drew on data from several million reviewed pull requests](https://www.greptile.com/blog/rise-of-the-overnight-agents). For its April 2026 auth-bypass comparison, Greptile divided each model's keyword-flag rate in review comments per line of code by the human rate. [Claude's](https://www.anthropic.com/claude) ratio was 1.50; [Codex's](https://openai.com/codex/) was 1.00. The post does not publish the absolute flag rates or number of comments in that keyword subset, and a keyword flag is not a confirmed vulnerability. A team can have one model write and another review, then report the keyword flags, reviewed lines, and confirmed defects on its own codebase.
 
 ### Open Source Shows the Triage Cost
 
 [Linux kernel maintainer Willy Tarreau reported](https://lwn.net/Articles/1065620/) that the private security list went from two or three reports per week two years ago to five to ten per day in early 2026. Most of the new reports were correct, duplicate discoveries appeared daily, and the project added maintainers to handle them. The [kernel's security guidance](https://kernel.org/doc/html/next/process/security-bugs.html) now tells researchers to treat AI-assisted discoveries as public because the same bugs often surface across several researchers on the same day. Curl [closed the bug-bounty program](https://lwn.net/Articles/1055996/) because low-quality AI reports consumed too much maintainer time.
 
-The tools found real bugs. The projects still had to reproduce each report, judge its impact, prepare a fix, and coordinate disclosure. [Google's M-Trends 2026](https://cloud.google.com/blog/topics/threat-intelligence/m-trends-2026) estimates mean time-to-exploit at negative seven days, which means exploitation routinely begins before a patch exists. Verification capacity now affects how quickly maintainers can turn a valid report into protection for users.
+The projects still had to reproduce each report, judge its impact, prepare a fix, and coordinate disclosure. [Google's M-Trends 2026](https://cloud.google.com/blog/topics/threat-intelligence/m-trends-2026) estimates mean time-to-exploit at negative seven days, which means exploitation routinely begins before a patch exists. Verification capacity now affects how quickly maintainers can turn a valid report into protection for users.
 
 ### Design-to-Code Needs More Than a Screenshot
 
@@ -42,11 +42,11 @@ The design-to-code comparisons I watched on the same template usually got the br
 
 I also do not trust a model's private judgment that a screenshot looks right. For my own web apps, DOM-driven checks have been more reliable and cheaper than vision-only computer use. [Steve Kinney separates the jobs](https://stevekinney.com/writing/driving-vs-debugging-the-browser): [Playwright MCP](https://github.com/microsoft/playwright-mcp) drives the browser, while [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) inspects what went wrong. [Yutori's open Frontend VisualQA tool](https://github.com/yutori-ai/frontend-visualqa) adds screenshots and explicit visual claims, which helps a coding agent catch failures that DOM assertions miss.
 
-The instructions around the code also need recurring checks. Context, guardrails, links, prices, and product claims all rot. I give important documents their own scheduled check that reopens every source and proposes a diff. The schedule removes the recurring search work, but I still decide whether the evidence supports the change.
+Context, guardrails, links, prices, and product claims all rot. I give important documents their own scheduled check that reopens every source and proposes a diff. The schedule removes the recurring search work, but I still decide whether the evidence supports the change.
 
 ## The Factory Is the Product
 
-If no single feature is scarce, the system that produces and proves work becomes the advantage. The Fair dedicated an entire track to Software Factories. [Zach Lloyd of Warp argued that software engineering is becoming factory engineering](https://www.latent.space/p/aiewf-daily-dispatch-loops): "You'll be building the thing that builds the product." [Warp](https://www.warp.dev/) is acting on that view. Warp open-sourced its terminal and built [Oz](https://www.warp.dev/oz), a control plane that [orchestrates](https://www.warp.dev/blog/multi-harness-cloud-agent-orchestration) [Claude Code](https://code.claude.com/docs/en/overview), Codex, and Warp's own agent as interchangeable workers.
+If no single feature is scarce, the system that produces and proves work becomes the advantage. The Fair dedicated an entire track to Software Factories. [Zach Lloyd of Warp argued that software engineering is becoming factory engineering](https://www.latent.space/p/aiewf-daily-dispatch-loops): "You'll be building the thing that builds the product." [Warp](https://www.warp.dev/) open-sourced its terminal and built [Oz](https://www.warp.dev/oz), a control plane that [orchestrates](https://www.warp.dev/blog/multi-harness-cloud-agent-orchestration) [Claude Code](https://code.claude.com/docs/en/overview), Codex, and Warp's own agent as interchangeable workers.
 
 When an idea costs less to test, the people closest to the customer can contribute more than tickets. A model provider can sell the same model to every competitor. It cannot supply the customer knowledge that determines which ideas are worth testing.
 
@@ -56,9 +56,9 @@ When an idea costs less to test, the people closest to the customer can contribu
 
 ### The Laptop Is Becoming a Thin Client
 
-My practical takeaway is to stop being afraid to shut the laptop. Agent execution is moving off it. [Superconductor](https://www.superconductor.com/) launches and reviews remote agents from a phone or Slack. Its pricing page lists a Playwright-based QA Check Agent on every plan, though [the feature is still in private beta](https://www.superconductor.com/docs/implementation/qa-checks). Pricing is based on sandbox hours, and connected Claude and ChatGPT plans still use the provider's rate limits. [Zo Computer](https://zo.computer/) provides a persistent Linux server with an AI that accepts messages, closer to an always-on personal computer.
+My practical takeaway is to stop being afraid to shut the laptop. [Superconductor](https://www.superconductor.com/) launches and reviews remote agents from a phone or Slack. Its pricing page lists a Playwright-based QA Check Agent on every plan, though [the feature is still in private beta](https://www.superconductor.com/docs/implementation/qa-checks). Pricing is based on sandbox hours, and connected Claude and ChatGPT plans still use the provider's rate limits. [Zo Computer](https://zo.computer/) provides a persistent Linux server with an AI that accepts messages, closer to an always-on personal computer.
 
-Subscription portability changes which tools I can combine. A [ChatGPT Plus](https://chatgpt.com/pricing/) subscription can power Codex inside [Zo](https://www.zo.computer/docs/codex), [Hermes](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart/), and [Superconductor](https://www.superconductor.com/docs/agents/codex). [Claude Max](https://www.anthropic.com/pricing) can travel through Claude Code and [apps built with the Claude Agent SDK](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan). I keep workflow rules in `AGENTS.md`, MCP servers, Markdown skills, and Git worktrees so a subscription or harness change does not take those rules with it.
+A [ChatGPT Plus](https://chatgpt.com/pricing/) subscription can power Codex inside [Zo](https://www.zo.computer/docs/codex), [Hermes](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart/), and [Superconductor](https://www.superconductor.com/docs/agents/codex). [Claude Max](https://www.anthropic.com/pricing) can travel through Claude Code and [apps built with the Claude Agent SDK](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan). I keep workflow rules in `AGENTS.md`, MCP servers, Markdown skills, and Git worktrees so a subscription or harness change does not take those rules with it.
 
 ### Unattended Agents Need Safer Defaults
 
@@ -76,7 +76,7 @@ The Fair even had a track named [Tokenmaxxing](https://www.ai.engineer/worldsfai
 
 [Zed created the Agent Client Protocol](https://zed.dev/blog/bring-your-own-agent-to-zed) in 2025 while working with Google's Gemini CLI team on its first reference implementation. ACP uses JSON-RPC to let an editor run an agent as a subprocess and render its work without parsing terminal escape codes. Zed released it under the Apache license, and the [current ACP ecosystem](https://zed.dev/acp) includes JetBrains IDEs, Visual Studio Code, Neovim, Codex CLI, Claude Code, Cline, and many other editors and agents.
 
-The interface matters because execution is only part of the job. A CLI can run in the background while a GUI shows rendered pages, annotations, diffs, worktrees, and several agents at once. The GUI reduces the number of terminals and separate context windows I have to track. ACP lets the same agent keep its execution model while different clients compete on review and coordination.
+A CLI can run in the background while a GUI shows rendered pages, annotations, diffs, worktrees, and several agents at once. The GUI reduces the number of terminals and separate context windows I have to track. ACP lets the same agent keep its execution model while different clients compete on review and coordination.
 
 ### What “Self-Learning” Actually Stores
 
@@ -90,7 +90,7 @@ Researchers [audited 31,132 skills from skills.rest and SkillsMP](https://arxiv.
 
 [Anthropic's Dreams research preview](https://platform.claude.com/docs/en/managed-agents/dreams) reads an existing memory store and up to 100 past session transcripts. Dreams writes a separate store with duplicate memories merged, stale or contradicted entries replaced, and new insights added. The input stays intact, and future agents see the output only when a user attaches the new store. The separate output store makes consolidation inspectable, but the resulting memory still lives inside Anthropic's managed system.
 
-Hermes puts reusable skills in the repository, Paper Compute turns recorded sessions into shared skills, and Dreams consolidates a managed memory store. Each leaves the learned state in a different place. Whether I can inspect, correct, and take that state elsewhere is part of the lock-in decision.
+Hermes puts reusable skills in the repository, Paper Compute turns recorded sessions into shared skills, and Dreams consolidates a managed memory store. Whether I can inspect, correct, and take that state elsewhere is part of the lock-in decision.
 
 ## Taste, Slop, and the Algorithmic Uniclone
 
@@ -111,11 +111,11 @@ The hidden gold I did not hear a talk about was **game feel**. Game designers al
 
 Mario's [triple jump](https://www.nintendo.com/eu/media/downloads/games_8/emanuals/nintendo_8/Manual_Nintendo64_SuperMario64_EN.pdf) in [Super Mario 64](https://mario.nintendo.com/history/) is a compact example. Run and time three jumps correctly, and the third becomes a forward somersault. The move rewards rhythm and makes basic movement worth practicing for its own sake.
 
-I want dev tools to care about that level of interaction. Reviewing a pull request and shipping it should feel closer to hitting a clean line in [DDR](https://www.konami.com/arcadegames/us/en/products/am_ddr.html) than filling out another form. A DOM assertion can confirm that the button worked. It cannot tell me whether the interaction invited mastery, reduced hesitation, or made the work satisfying.
+Reviewing a pull request and shipping it should feel closer to hitting a clean line in [DDR](https://www.konami.com/arcadegames/us/en/products/am_ddr.html) than filling out another form. A DOM assertion can confirm that the button worked. It cannot tell me whether the interaction invited mastery, reduced hesitation, or made the work satisfying.
 
 ## What the Factory Cannot Decide
 
-A factory still has humans inside it. Engineers respond to impact, curiosity, recognition, and money in different proportions. Better agents do not remove the time lost when a team re-litigates decisions or leadership leaves conflicts unresolved.
+Engineers respond to impact, curiosity, recognition, and money in different proportions. Better agents do not remove the time lost when a team re-litigates decisions or leadership leaves conflicts unresolved.
 
 Someone also has to choose the problem. Cheaper execution lets people who know the customer test more ideas, but the factory earns its keep only when those ideas remove a real burden without extracting more from the people they serve.
 
