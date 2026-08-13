@@ -96,7 +96,7 @@
     <link href="https://jorypestorious.com/blog/claude-code-setups/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/claude-code-setups/</id>
     <updated>2025-09-15T00:00:00Z</updated>
-    <summary>A comparison of bash, zsh, fish, Warp, iTerm2, WezTerm, Kitty, tmux, and Zellij. It focuses on Claude-specific needs such as large output, copy mode, persistent sessions, and recovery.</summary>
+    <summary>A local 10,000-line fixture tests rendering, search, copy, scrollback, and recovery before you change shells, terminal emulators, or multiplexers.</summary>
   </entry>
 
   <entry>
