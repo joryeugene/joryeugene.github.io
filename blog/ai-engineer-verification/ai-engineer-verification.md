@@ -28,7 +28,7 @@ The charter does not make review disappear. Review moves into the twin, the hold
 
 ### Cross-Model Review Gets Measured
 
-[Greptile drew on data from several million reviewed pull requests](https://www.greptile.com/blog/rise-of-the-overnight-agents). Its April 2026 keyword search across review comments flagged auth-bypass language in pull requests attributed to [Claude](https://www.anthropic.com/claude) at 1.5 times the human rate per line of code, versus 1.0 for [Codex](https://openai.com/codex/). That does not mean "Claude bad." The rates are a comment-level signal, not confirmed vulnerabilities. They show that models can leave different, measurable review signals, which a team can test on its own codebase with one model writing and another reviewing.
+[Greptile drew on data from several million reviewed pull requests](https://www.greptile.com/blog/rise-of-the-overnight-agents). Its April 2026 keyword search across review comments flagged auth-bypass language in pull requests attributed to [Claude](https://www.anthropic.com/claude) at 1.5 times the human rate per line of code, versus 1.0 for [Codex](https://openai.com/codex/). The rates are a comment-level signal, not confirmed vulnerabilities. They show that models can leave different, measurable review signals, which a team can test on its own codebase with one model writing and another reviewing.
 
 ### Open Source Shows the Triage Cost
 
