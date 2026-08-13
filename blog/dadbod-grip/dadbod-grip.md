@@ -19,13 +19,13 @@ The next query finds a severity 9 incident for the same roll: "Open floor plan. 
 
 I can investigate that chain without leaving one Neovim workspace. `<C-CR>` runs the query block under my cursor. `f` filters the grid by the current cell, `gf` follows a foreign key, and `<C-o>` returns to the prior table. `K` turns the current row into a vertical record, while `4` opens the complete entity-relationship map. The motion follows Vim's `:find` rhythm: follow the reference, explore, come back.
 
-The same database makes the mutation path inspectable. I can open `rolls`, press `i` on the `discontinued` cell, and stage `true`. The row turns violet, but the database has not changed. `gs` shows the generated `UPDATE`; `a` sends the staged batch to the active database CLI.
+I can open `rolls`, press `i` on the `discontinued` cell, and stage `true`. The row turns violet, but the database has not changed. `gs` shows the generated `UPDATE`; `a` sends the staged batch to the active database CLI.
 
 <p align="center">
 <img src="live.png" alt="dadbod-grip: schema sidebar, query pad, and editable grid with color-coded mutations" width="900">
 </p>
 
-That path is why dadbod-grip exists. The records, relationships, and generated SQL stay in one workspace, with no copy-paste circuit between exploration and mutation. I wanted database work to feel keyboard-native and reviewable: follow the evidence quickly, then slow down where exploration becomes a write.
+The records, relationships, and generated SQL stay in one workspace, with no copy-paste circuit between exploration and mutation. I wanted database work to feel keyboard-native and reviewable: follow the evidence quickly, then slow down where exploration becomes a write.
 
 ## The Mutation Stays Visible
 
@@ -56,13 +56,13 @@ Local staging undo goes fifty changes deep, with `<C-r>` for redo. After an appl
 
 The workspace has three main surfaces: `1` opens the schema sidebar, `2` opens the query pad, and `3` returns to the grid. Keys `5` through `9` replace the grid with statistics, column definitions, foreign keys, indexes, or constraints for the current table. Key `4` opens the full ER map. Its tree-spine layout arranges tables by foreign-key depth and shows primary keys, foreign keys, and a column summary. The map supports `j`/`k`, `Tab`/`Shift-Tab`, `<CR>` to open a table, `f` to follow a relationship, and `H` to move back through its breadcrumb trail.
 
-Filtering follows the value under the cursor. `f` adds a filter for the current cell, `<C-f>` accepts a freeform `WHERE` clause, and `gF` opens a builder with operators including `LIKE`, `NOT LIKE`, `IS NULL`, `IS NOT NULL`, and `>=`. `gp` loads a saved filter preset; `gP` saves the current filters. `s` toggles the current column between ascending and descending, while `S` adds another sort tier.
+`f` adds a filter for the current cell, `<C-f>` accepts a freeform `WHERE` clause, and `gF` opens a builder with operators including `LIKE`, `NOT LIKE`, `IS NULL`, `IS NOT NULL`, and `>=`. `gp` loads a saved filter preset; `gP` saves the current filters. `s` toggles the current column between ascending and descending, while `S` adds another sort tier.
 
-The grid keeps several edits close to the record. `c` clones a row as a staged insert with its primary keys cleared. Visual mode can set, delete, or null several rows at once. Negative numbers render red, booleans render green or red, and past timestamps dim. `-` hides a grid column, `g-` restores hidden columns, and `gH` opens a visibility picker.
+`c` clones a row as a staged insert with its primary keys cleared. Visual mode can set, delete, or null several rows at once. Negative numbers render red, booleans render green or red, and past timestamps dim. `-` hides a grid column, `g-` restores hidden columns, and `gH` opens a visibility picker.
 
-Schema work remains explicit. `:GripCreate` opens the table designer. In the properties view, `R` renames a column, `+` adds one, and `D` starts the drop-column flow. Dropping a table from the schema browser also uses `D`, requires typed confirmation, and shows dependency information before execution.
+`:GripCreate` opens the table designer. In the properties view, `R` renames a column, `+` adds one, and `D` starts the drop-column flow. Dropping a table from the schema browser also uses `D`, requires typed confirmation, and shows dependency information before execution.
 
-The analysis tools stay attached to the same table context. `gS` shows distinct values, nulls, min/max, and top values for the current column. `gR` profiles every column with completeness, cardinality, distributions, and top values where they apply. Query Doctor (`gx`) formats an `EXPLAIN` plan with cost bars and heuristic index suggestions, while `gD` compares two tables by primary key. `gE` copies the current result as CSV, TSV, JSON, SQL `INSERT`, Markdown, or Grip Table box drawing; `gX` writes an export file.
+`gS` shows distinct values, nulls, min/max, and top values for the current column. `gR` profiles every column with completeness, cardinality, distributions, and top values where they apply. Query Doctor (`gx`) formats an `EXPLAIN` plan with cost bars and heuristic index suggestions, while `gD` compares two tables by primary key. `gE` copies the current result as CSV, TSV, JSON, SQL `INSERT`, Markdown, or Grip Table box drawing; `gX` writes an export file.
 
 Saved queries live under `.grip/queries/` for the project. `:GripHistory` reads timestamped SQL from `.grip/history.jsonl`. Those files can contain query literals, and saved connection URLs in `.grip/connections.json` can contain embedded credentials. I keep `.grip/` out of version control and do not save passwords in connection URLs. SQL completion covers tables, columns, aliases, and keywords, with an optional `dadbod_grip` source for nvim-cmp.
 
