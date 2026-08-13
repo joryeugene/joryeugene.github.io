@@ -14,7 +14,7 @@
 - [When UNCERTAIN Becomes VERIFIED](https://jorypestorious.com/blog/knowledge-sidecar/) (2026-03-20)
 - [Edit Database Tables Like Vim Buffers](https://jorypestorious.com/blog/dadbod-grip/) (2026-03-06)
 - [Protection Emerged, Verification Did Not](https://jorypestorious.com/blog/emergent-religion/) (2026-02-15)
-- [Before Building Complex Architectures, Try Natural Language](https://jorypestorious.com/blog/natural-language-first/) (2025-12-01)
+- [Before Adding Agent Architecture, Try Plain Instructions](https://jorypestorious.com/blog/natural-language-first/) (2025-12-01)
 - [Friction Economy: Unconscious Productivity Drains in Development Workflows](https://jorypestorious.com/blog/friction-economy/) (2025-10-15)
 - [Terminal Setups for Claude's 10,000-Line Outputs](https://jorypestorious.com/blog/claude-code-setups/) (2025-09-15)
 - [The AI Gap: Why Leaders Struggle to Equip Their Engineers](https://jorypestorious.com/blog/trust-your-engineers/) (2025-08-15)

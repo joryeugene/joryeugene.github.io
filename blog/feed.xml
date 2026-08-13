@@ -76,11 +76,11 @@
   </entry>
 
   <entry>
-    <title>Before Building Complex Architectures, Try Natural Language</title>
+    <title>Before Adding Agent Architecture, Try Plain Instructions</title>
     <link href="https://jorypestorious.com/blog/natural-language-first/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/natural-language-first/</id>
     <updated>2025-12-01T00:00:00Z</updated>
-    <summary>Reported hallucination rates for OpenAI&apos;s o3 and o4-mini reached 33-79% depending on the task. The article tests plain-language system prompts for evidence requirements, tool resilience, self-correction, and behavior checks before adding RAG or multi-agent architecture.</summary>
+    <summary>Plain-language rules specify evidence reporting, tool fallback, tone, and task order. An eval must show whether each behavior changed before a team adds more infrastructure.</summary>
   </entry>
 
   <entry>

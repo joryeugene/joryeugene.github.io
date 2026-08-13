@@ -1,277 +1,83 @@
-# Before Building Complex Architectures, Try Natural Language
+# Before Adding Agent Architecture, Try Plain Instructions
 
-**How system prompts help mitigate AI's confidence bug**
+**Use plain-language rules for observable behavior, then test whether the behavior changed.**
 
-*By Jory Pestorious*
+*By Jory Pestorious | December 1, 2025 | Archive note added August 12, 2026*
 
-OpenAI's latest models hallucinate 33-79% of the time depending on the task¹.
+> **Archive note, August 12, 2026:** The original article treated hallucination, incorrectness, confidence calibration, prompt compliance, and agent behavior as one “confidence bug.” They are different problems. I narrowed the article to what its examples support: instructions are a cheap first intervention for behavior you can observe, but they do not replace retrieval, tests, permissions, state, or evaluation. I also pinned the moving `CLAUDE.md` reference and replaced secondary benchmark reporting with primary sources.
 
-Let that sink in. The most advanced AI systems are wrong between one-third and four-fifths of the time on certain questions. Yet they deliver these hallucinations with complete confidence: no hedging, no uncertainty, just authoritative-sounding nonsense.
+![Developer collaborating with an AI agent through plain-language instructions](ai-agent-friend-optimized.png)
+Plain instructions can define a behavior without proving that the model will follow it.
 
-This is the confidence bug. And it's why only 3.8% of developers trust AI-generated code enough to ship without human review².
+## Start with the failure you can see
 
-![Developer collaborating with AI agent through natural language system prompts, showing warm partnership while avoiding complex architectures](ai-agent-friend-optimized.png)
-*Natural language as the highest leverage interface: developer and AI agent working together through clear instructions rather than complex technical architectures*
+After months of writing rules for Claude Code, I keep finding problems that do not need a new service first. The agent may declare success before running tests or stop after one tool fails. Another answer may bury a direct response in corporate language. Each failure is visible enough to describe in one instruction and score in the next run.
 
-## The Trust Crisis Is Real
+An instruction file is the cheapest place to start. I can change a sentence, rerun the same task, and inspect the output without adding a vector database, retrieval pipeline, or another agent. The instruction does not make the model truthful. The instruction gives the evaluation a behavior to check.
 
-The numbers tell a stark story. According to Qodo's "State of AI Code Quality 2025" survey²:
+## Keep the failure classes separate
 
-- 82% of developers use AI coding assistants daily
-- 67% don't trust the generated code
-- 45% report AI "hallucinates" non-existent functions
-- 38% say it generates outdated patterns
+OpenAI's April 2025 [o3 and o4-mini system card](https://deploymentsafety.openai.com/o3/appendix#hallucinations) reports hallucination rates on two fact-seeking evaluations. On PersonQA, o3 scored 33 percent and o4-mini scored 48 percent. On SimpleQA, the rates were 51 and 79 percent. The four rates describe particular models, datasets, and scoring rules. They do not measure whether a response sounds certain or whether a system prompt changes the result.
 
-Google's AI infamously advised users to add glue to pizza³. Lawyers have cited AI-generated cases that never existed⁴.
+Hallucination is fabricated or unsupported content. Incorrectness is broader. Calibration concerns whether expressed confidence matches observed accuracy. The [Thermometer paper](https://arxiv.org/abs/2403.08819) treats calibration as its own problem and trains an auxiliary model across tasks.
 
-The pattern is consistent: AI sounds completely certain while being completely wrong.
+Prompt compliance asks whether the model follows an instruction. Tone, tool fallback, evidence reporting, and task order are observable behaviors. Changing one does not establish an improvement in the others.
 
-## Three Behaviors That Expose the Confidence Bug
+## What my instruction file asks for
 
-After analyzing thousands of AI interactions, three specific behaviors reveal the confidence bug in action:
+The publication-era [`CLAUDE.md`](https://github.com/joryeugene/calmhive-cli/blob/2cd9ad26ffe3903a4005c2fc143a45345c62800a/CLAUDE.md) asks the agent to show command output, before-and-after comparisons, tests, and specific measurements before declaring completion. The file also asks for direct language, parallel work when tasks are independent, and correction when the agent notices that it is about to violate a rule.
 
-### 1. Corporate Speak Infection
+The file contains requests, not results. For an evidence rule, the useful test is whether the agent runs the relevant check and reproduces its output. A polished sentence that says “all tests pass” can still be fabricated. The verifier must inspect the command, output, exit status, and changed behavior. I start with four rules because each has a visible pass condition.
 
-**What you see:**
-```
-"This comprehensive solution leverages industry-leading
-best practices to streamline your workflow..."
-```
+### Require completion evidence
 
-**What developers actually want:**
-```
-"This works well for rate limiting. Here's why..."
+```text
+Do not claim that the task is complete until you show:
+- the exact change
+- the relevant command and exit status
+- the output that verifies the changed behavior
+- the largest remaining gap
 ```
 
-Nobody talks like a Fortune 500 press release. When AI adopts this language, it immediately signals inauthenticity. Developers communicate directly. We say "it breaks here" not "suboptimal performance characteristics have been observed."
+### Continue after a tool failure
 
-### 2. The Give-Up Pattern
-
-**What you see:**
-```
-AI: I cannot access that tool.
-[Stops trying]
+```text
+If one tool fails, state the failure and try an available equivalent.
+Stop when the alternatives would change scope, require new permission,
+or risk damaging data.
 ```
 
-**What developers do:**
-```
-Primary tool fails → Try alternatives → Check MCP tools →
-Use CLI equivalents → Find creative workarounds
-```
+### Name the language to remove
 
-Real developers don't give up when the first approach fails. We try seventeen different ways before declaring something impossible. AI that quits after one attempt reveals it's following scripts, not solving problems.
-
-### 3. Evidence-Free Confidence
-
-**What you see:**
-```
-AI: I've fixed the authentication bug.
+```text
+Avoid comprehensive, revolutionary, industry-leading, and best-in-class.
+Name the actor, action, evidence, and limitation in direct language.
 ```
 
-**What developers need:**
-```
-AI: Fixed auth bug. Evidence:
-- Root cause: Missing null check in validateToken() line 142
-- Fix: Added defensive check for undefined tokens
-- Tests: All 47 auth tests passing (output below)
-- Verification: Login now handles edge cases correctly
-```
+### Correct the current action
 
-Claims without evidence are worthless. Research shows AI systems exhibit "overconfidence bias," maintaining high certainty even when wrong⁵. Developers need proof, not promises.
-
-These three behaviors (corporate speak, giving up too easily, and making claims without evidence) all stem from the same root cause: AI systems that haven't been taught how to behave properly. The confidence bug isn't just about incorrect information; it's about incorrect behavior patterns.
-
-## The Insight: Natural Language as Your Best First Move
-
-Here's what I've discovered after months of experimentation: complex architectures have their place, but they're often not where to start. For many use cases, behavioral control through natural language provides the highest leverage.
-
-You don't need vector databases, RAG architectures, or elaborate multi-agent systems to improve AI behavior. You need thoughtful instructions written in plain English.
-
-This isn't about avoiding complexity; it's about engineering pragmatism, and pragmatism means trying the simple solution first.
-
-## CLAUDE.md: A Case Study in Behavioral Control
-
-[CLAUDE.md](https://github.com/joryeugene/calmhive-cli/blob/main/CLAUDE.md) demonstrates how natural language can create sophisticated behavioral control. Instead of building complex architectures, it uses plain English to shape AI behavior.
-
-Key themes that help mitigate the confidence bug:
-
-### Parallel Execution Mandates
-Natural language can orchestrate multi-agent systems:
-```
-Single message with parallel agents:
-- Task("Analyze authentication patterns in /src/auth")
-- Task("Search for security vulnerabilities")
-- Task("Review error handling patterns")
-- Task("Check test coverage for auth module")
-
-All execute simultaneously. No sequential bottlenecks.
+```text
+When you notice a rule violation, identify it, correct the current work,
+and suggest a durable instruction change. Do not call the suggestion
+learning until a later run shows that the behavior changed.
 ```
 
-### Evidence Requirements
-Every claim must include proof:
-```
-Before: "I've optimized the API endpoint"
+## Instructions still need a runtime
 
-After: "Optimized API endpoint. Evidence:
-- Changed: Sequential DB calls → Parallel execution
-- Benchmark: 3.2s → 0.4s response time
-- Query analysis: Eliminated N+1 pattern in user fetching
-- Test output: All 47 API tests passing [shows output]"
-```
+OpenAI's archived [Swarm](https://github.com/openai/swarm/tree/0c82d7d868bb8e2d380dfd2a319b5c3a1f4c0cb9) makes the boundary visible. An agent has instructions and functions. Swarm converts the active instructions into a system prompt, while its run loop executes tool calls, handles handoffs, updates context variables, and returns when no new function calls remain. The natural-language instruction describes behavior; code performs the orchestration.
 
-### Tool Resilience
-When one approach fails, try others:
-```
-Before:
-AI: I cannot access the GitHub API tool.
-[Gives up]
+Swarm also tells developers to bring evaluation suites. Swarm's guidance is the right posture for any instruction file. A rule earns its place when a repeated task shows that it changes the target behavior without reducing correctness elsewhere.
 
-After:
-AI: GitHub API tool unavailable. Trying alternatives:
-- Checking MCP GitHub tools... found mcp__github__get_issue
-- Trying gh CLI... gh issue view 123
-- Using curl fallback... curl api.github.com/repos/...
-[Continues until solution found]
-```
+For a small comparison, hold the model, task set, repository state, tools, and settings constant. Run the tasks without the new rule, add one rule, then run them again. Score the behavior named by the rule and the correctness of the final result.
 
-### Self-Correction Protocols
-AI can learn to improve itself:
-```
-AI: I notice I was about to process these sequentially.
-This violates the parallel execution mandate. Should I
-update CLAUDE.md to make this pattern more explicit?
+A tone rule needs a tone check. A tool-fallback rule needs recorded failures and alternatives. An evidence rule needs real commands and outputs. None of those scores can stand in for a hallucination or calibration evaluation.
 
-[Then executes correctly in parallel regardless]
-```
+## Know when an instruction is the wrong layer
 
-## The Power of Starting Simple
+Use retrieval when the model needs private or changing facts. Use storage when work must survive between runs. Use schemas and programmatic checks when the output must be deterministic. Use explicit permission controls around consequential tools. Use tests and independent review for correctness. Add orchestration when one prompt and one tool loop cannot reliably represent the workflow.
 
-The research backs this up. Microsoft's Semantic Kernel emphasizes "Clear System Prompts" for agent behavior⁶. OpenAI's Swarm framework lets developers define "routines" in natural language⁷. Across the industry, natural language is becoming the primary interface for AI control.
+Plain instructions are useful because they are cheap to change and easy for a team to read. Start with one when the failure is observable in the agent's behavior. Keep it when the comparison shows an improvement. Build another layer when the failure is knowledge, state, permissions, deterministic validation, or execution.
 
-The reason is that it works in practice. Natural language system prompts:
-- Require no additional infrastructure
-- Can be tested and iterated quickly
-- Are readable by your entire team
-- Provide immediate behavioral improvements
+**lets bee friends**
 
-## What Developers Can Do Today
-
-Before reaching for complex architectural solutions, try these natural language patterns:
-
-### 1. Require Evidence for Everything
-```
-Add to your prompts:
-"Never claim success without showing proof. Include:
-- What specifically changed
-- Test results or verification output
-- Actual command/code output, not descriptions
-- Before/after comparisons where applicable"
-```
-
-### 2. Ban Corporate Language Explicitly
-```
-Add to your prompts:
-"Forbidden phrases: comprehensive, leverage, revolutionary,
-industry-leading, best-in-class, groundbreaking, synergies
-
-Use direct technical language. Say 'works well for X'
-not 'best solution ever.'"
-```
-
-### 3. Design for Tool Resilience
-```
-Add to your prompts:
-"When a tool or approach fails:
-1. List 3-5 alternative approaches
-2. Try each systematically
-3. Document what you attempted
-4. Only give up after exhausting reasonable options"
-```
-
-### 4. Create Behavioral Validation Stages
-```
-Structure your prompts with checkpoints:
-"Before responding, verify:
-1. All claims have supporting evidence
-2. Language is direct and technical
-3. Multiple approaches attempted if needed
-4. Response addresses actual question asked"
-```
-
-## The Engineering Reality
-
-System prompts aren't wish lists. They're behavioral architectures. Think of them like validation pipelines for human communication. Each instruction helps prevent specific failure modes.
-
-This mirrors how we build reliable software:
-- Input validation helps prevent bad data
-- Test suites help catch logic errors
-- Monitoring helps detect anomalies
-- System prompts help prevent behavioral failures
-
-The analogy is useful, though imperfect. Validation pipelines catch deterministic failures against a known schema; system prompts shape a distribution of model behavior without guaranteeing any single output. What transfers is the engineering posture: anticipate the failure modes, encode the defenses, and measure whether they hold. What does not transfer is certainty.
-
-## When Complex Architectures Make Sense
-
-Let's be clear: RAG systems, vector databases, and multi-agent architectures have their place. For certain use cases, especially those requiring extensive domain knowledge or complex reasoning chains, they're essential.
-
-But for many developers, the highest initial ROI comes from thoughtful system prompts. It's about choosing the right tool for the job and starting with the simplest solution that might work.
-
-## A Pragmatic Path Forward
-
-The confidence bug in AI isn't going away soon. Hallucination rates of 33-79% mean we need practical mitigation strategies, not perfect solutions.
-
-Natural language system prompts offer:
-- High leverage (small changes, big behavioral improvements)
-- Low complexity (no new infrastructure required)
-- Fast iteration (test changes immediately)
-- Team accessibility (everyone can read and contribute)
-
-This isn't "THE solution," but it's often the best starting point. Try behavioral design in plain English first. You can always add architectural complexity later if needed.
-
-We don't need AI to be perfect. We need it to be more predictable. And sometimes, better instructions are all it takes to get there.
-
-## 🐝 A Closing Thought
-
-*In precision, understanding, and collaboration*
-
-    We approach each task with careful attention
-    We build with understanding, test with rigor
-    Every word reflects our thoughtful intention
-
-    We honor what came before, strengthen what comes next
-    We debate constructively, commit fully
-    Together we compose solutions from existing wisdom
-
-    We help teams thrive through evidence and action
-    We measure our impact with clarity and purpose
-    We pollinate progress across the ecosystem we serve
-
-🐝 **lets bee friends** 🐝
-
----
-
-## Footnotes
-
-1. ["AI is Getting Smarter, but Hallucinations Are Getting Worse"](https://techblog.comsoc.org/2025/05/10/nyt-ai-is-getting-smarter-but-hallucinations-are-getting-worse/) - IEEE Communications Society Tech Blog, May 2025. Reports OpenAI's o3 and o4-mini models have hallucination rates ranging from 33% to 79%.
-
-2. [Qodo "2025 State of AI Code Quality"](https://www.qodo.ai/reports/state-of-ai-code-quality/) - Survey of 500+ developers, December 2024. Found only 3.8% of developers report both low hallucination rates and high confidence in shipping AI code without human review.
-
-3. ["Why Google's AI search might recommend you mix glue into your pizza"](https://www.washingtonpost.com/technology/2024/05/24/google-ai-overviews-wrong/) - The Washington Post, May 24, 2024. Google's AI Overview recommended adding "about 1/8 cup of non-toxic glue to the sauce to give it more tackiness" when users asked how to make cheese stick to pizza.
-
-4. ["Lawyers submitted bogus case law created by ChatGPT. A judge fined them $5,000"](https://apnews.com/article/artificial-intelligence-chatgpt-fake-case-lawyers-d6ae9fa79d0542db9e1455397aef381c) - Associated Press, May 27, 2023. In Mata v. Avianca, Inc., No. 22-cv-1461 (S.D.N.Y.), lawyers used ChatGPT to research legal precedents, which generated six completely fictional case citations that were submitted to federal court.
-
-5. ["MIT researchers prevent AI model overconfidence about wrong answers"](https://news.mit.edu/2024/thermometer-prevents-ai-model-overconfidence-about-wrong-answers-0731) - MIT News, July 31, 2024. MIT CSAIL research documented that large language models are frequently overconfident about wrong answers or underconfident about correct ones, introducing methods to improve AI calibration and reduce overconfidence bias.
-
-6. [Microsoft Semantic Kernel Documentation](https://learn.microsoft.com/en-us/semantic-kernel/overview/) - Emphasizes using "Clear System Prompts" to guide agent behavior and tool orchestration.
-
-7. [OpenAI Swarm Framework](https://github.com/openai/swarm) - Experimental framework for multi-agent orchestration using natural language routines.
-
----
-
-## Tools & Resources
-
-- **[CLAUDE.md](https://github.com/joryeugene/calmhive-cli/blob/main/CLAUDE.md)**: Example behavioral architecture using natural language
-- **[Claude Code](https://claude.ai/download)**: Anthropic's CLI for AI development
-- **[CalmHive CLI](https://github.com/joryeugene/calmhive-cli)**: Wrapper enabling background AI automation with pre-approved tools
-- **[Microsoft Semantic Kernel](https://github.com/microsoft/semantic-kernel)**: SDK for AI orchestration with natural language
-- **[OpenAI Swarm](https://github.com/openai/swarm)**: Experimental framework for multi-agent systems
+**Sources:** [OpenAI o3 and o4-mini system card](https://deploymentsafety.openai.com/o3/appendix#hallucinations) | [Thermometer paper](https://arxiv.org/abs/2403.08819) | [pinned `CLAUDE.md`](https://github.com/joryeugene/calmhive-cli/blob/2cd9ad26ffe3903a4005c2fc143a45345c62800a/CLAUDE.md) | [OpenAI Swarm](https://github.com/openai/swarm/tree/0c82d7d868bb8e2d380dfd2a319b5c3a1f4c0cb9)

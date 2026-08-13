@@ -1054,7 +1054,7 @@ const PostNavigation = {
     { slug: 'knowledge-sidecar', title: 'When UNCERTAIN Becomes VERIFIED' },
     { slug: 'dadbod-grip', title: 'Edit Database Tables Like Vim Buffers' },
     { slug: 'emergent-religion', title: 'Protection Emerged, Verification Did Not' },
-    { slug: 'natural-language-first', title: 'Before Building Complex Architectures, Try Natural Language' },
+    { slug: 'natural-language-first', title: 'Before Adding Agent Architecture, Try Plain Instructions' },
     { slug: 'friction-economy', title: 'Friction Economy: Unconscious Productivity Drains in Development Workflows' },
     { slug: 'claude-code-setups', title: 'Terminal Setups for Claude\'s 10,000-Line Outputs' },
     { slug: 'trust-your-engineers', title: 'The AI Gap: Why Leaders Struggle to Equip Their Engineers' },
