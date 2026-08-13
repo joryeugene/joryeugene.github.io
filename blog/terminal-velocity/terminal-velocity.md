@@ -2,15 +2,15 @@
 
 *By Jory Pestorious | May 11, 2025*
 
-My earlier presentation, [Stop Coding Like It's 2024: An AI-Amplified Dev Playbook](/blog/ai-dev-tooling-presentation/), argues that AI belongs inside an engineer's existing tools. Claude Code makes that idea concrete for me. I can pipe a file or diff into the model, resume a session inside a repository, connect MCP servers, and run the same agent without waiting for an editor integration.
+My earlier presentation, [Stop Coding Like It's 2024: An AI-Amplified Dev Playbook](/blog/ai-dev-tooling-presentation/), argues that AI belongs inside an engineer's existing tools. I can pipe a file or diff into Claude Code, resume a session inside a repository, connect MCP servers, and run the same agent without waiting for an editor integration.
 
 The appeal is not terminal aesthetics. The shell already connects processes, files, source control, and remote sessions. I can start with one agent in one repository, then add parallel work without replacing the rest of my setup.
 
+Here, scaling means adding another agent, repository, tool, or persistent session while keeping the same instruction, review, and isolation layers. I have not measured whether this workflow finishes tasks faster than an IDE-first one.
+
 ## The Stack
 
-My setup centers on [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview), a terminal multiplexer, an editor, and a source-control view. I can swap among [WezTerm](https://wezfurlong.org/wezterm/), [Warp](https://www.warp.dev/), [Rio](https://github.com/raphamorim/rio), and [Kitty](https://sw.kovidgoyal.net/kitty/) without changing the rest of the workflow. [Zellij](https://zellij.dev/) and [Tmux](https://github.com/tmux/tmux) keep long-running sessions alive.
-
-I edit in [Neovim](https://neovim.io/) and use [LazyGit](https://github.com/jesseduffield/lazygit), [Ripgrep](https://github.com/BurntSushi/ripgrep), and [FZF](https://github.com/junegunn/fzf) to inspect changes and find context. [Claude Desktop](https://claude.ai/download) and [Claude Mobile](https://www.anthropic.com/news/android-app) give me access outside the terminal.
+My setup centers on [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview), a terminal multiplexer, an editor, and a source-control view. I can swap among [WezTerm](https://wezfurlong.org/wezterm/), [Warp](https://www.warp.dev/), [Rio](https://github.com/raphamorim/rio), and [Kitty](https://sw.kovidgoyal.net/kitty/) without changing the rest of the workflow. [Zellij](https://zellij.dev/) and [Tmux](https://github.com/tmux/tmux) keep long-running sessions alive. I edit in [Neovim](https://neovim.io/) and use [LazyGit](https://github.com/jesseduffield/lazygit), [Ripgrep](https://github.com/BurntSushi/ripgrep), and [FZF](https://github.com/junegunn/fzf) to inspect changes and find context.
 
 I connect a small set of MCP servers when the task needs them. [Memento](https://github.com/gannonh/memento-mcp) stores entities and relations that the client explicitly writes to Neo4j, then exposes semantic search over them. [Sequential Thinking Tools](https://github.com/spences10/mcp-sequentialthinking-tools) adds a structured thought sequence with tool recommendations. [Context7](https://github.com/upstash/context7) retrieves library documentation, while [OmniSearch](https://github.com/spences10/mcp-omnisearch) connects several search providers.
 
@@ -18,11 +18,10 @@ I do not install an MCP server because its category sounds essential. I keep one
 
 ## Claude Code 0.2.107 in the Shell
 
-I build the workflow around a few commands:
+The commands below describe [Claude Code 0.2.107](https://registry.npmjs.org/@anthropic-ai/claude-code/-/claude-code-0.2.107.tgz), the version I use for this article. I check `claude --version` before running them instead of replacing another installed version.
 
 ```bash
-# Install the version used in this article
-npm install -g @anthropic-ai/claude-code@0.2.107
+# Expected output for this article
 claude --version
 # 0.2.107 (Claude Code)
 
@@ -35,15 +34,16 @@ claude -c
 claude -r
 
 # Give the model a file or an inspected diff
+# Remove credentials, customer data, and unrelated proprietary content first.
 cat error.log | claude -p "Explain the failure and cite the relevant lines."
-cat data.json | claude -p "Convert this JSON to CSV. Return only CSV." > data.converted.csv
+cat data.json | claude -p "Convert this JSON to CSV. Return only CSV." > data.converted.new.csv
 git diff --staged | claude -p "Draft one concise commit message for this diff."
 
 # Stream structured output for another process to consume
 claude -p "Generate deployment steps" --output-format stream-json
 ```
 
-The commit-message command only drafts text. Sending the response through `xargs git commit -m` can split it into arguments and treat later words as pathspecs. I review the message and the staged diff before committing.
+The conversion writes to a new path because shell redirection truncates an existing file before Claude succeeds. I validate the output as CSV before replacing the intended file. The commit-message command only drafts text. Sending the response through `xargs git commit -m` can split it into arguments and treat later words as pathspecs. I review the message and the staged diff before committing.
 
 The `claude_full` alias I wrote is too broad: it preapproves Bash, write access, search, and a long named list of MCP tools. Permission prompts are part of the safety boundary. I grant the smallest set of tools the current task needs, especially when the agent can change files or run shell commands.
 
@@ -88,30 +88,26 @@ If worktrees feel unfamiliar, separate full clones still keep each agent in a di
 
 ## Background Work Needs Stronger Guards
 
-I routinely run three or more Claude processes overnight, so I want them to continue while I am away from the terminal. The shell loop is not safe for someone else to copy. Claude Code 0.2.107 has no root `-t` template option. Appending `&` returns control to the shell, but it does not by itself keep a job alive after the terminal or login session closes.
+I routinely run three or more Claude processes overnight, so I want them to continue while I am away from the terminal. Claude Code 0.2.107 has no root `-t` template option. Appending `&` returns control to the shell, but it does not by itself keep a job alive after the terminal or login session closes. My original loop also granted broad shell and write access, used a predictable file under `/tmp` as a non-atomic lock, trusted a reused process ID, and extracted its next task from unvalidated log text. I do not publish it as a template.
 
-Tmux and Zellij already solve the session-lifetime problem. An unattended run also needs an isolated worktree, narrow permissions, bounded iterations, recorded output, exit-code checks, repository tests, and a notification that brings me back for review. A predictable lock file under `/tmp`, a reused process ID, or a next task extracted from unvalidated log text is not enough.
+Tmux and Zellij already solve the session-lifetime problem. An unattended run also needs an isolated worktree, narrow permissions, bounded iterations, recorded output, exit-code checks, repository tests, and a notification that brings me back for review.
 
 ## Prompts That Work for Me
 
-The prompt pattern I keep using names the task, the allowed tools, the success check, and what to do after a failure. Large tool lists create irrelevant choices. A request to "reflect" does little unless it points back to a test, diff, log, or another result the agent can inspect.
+The prompt pattern I keep using names the task, the allowed tools, the success check, and what to do after a failure. A request to "reflect" does little unless it points back to a test, diff, log, or another result the agent can inspect.
 
 These are working observations from my own runs, not evidence for exact percentage gains or one optimal tool count. Explicit checks and recovery instructions still make those runs easier to review.
 
-## Other Agents and a Fixed-Cost Subscription
-
-I am also watching [RA.Aid](https://github.com/ai-christianson/RA.Aid), the [Augment SWE-bench agent](https://github.com/augmentcode/augment-swebench-agent), and [SWE-agent](https://github.com/SWE-agent/SWE-agent). The Augment repository reports 65.4 percent on SWE-bench Verified with an ensemble of Claude 3.7 Sonnet and OpenAI o1. The three projects target different jobs, so I cannot rank their MCP support from the benchmark.
+## A Fixed-Cost Subscription
 
 [Claude Max costs $100 per month for the 5x tier and $200 for 20x](https://support.claude.com/en/articles/11049741-what-is-the-max-plan), and [Claude Code now accepts Max access](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md). I like paying a fixed subscription while I experiment instead of watching API charges accumulate. The exact number of messages depends on prompt length, context, attachments, model, and tool use, so a fixed message-count table would promise precision the plans do not provide.
 
 ## Where the GUI Helps
 
-I do not treat the terminal and IDE as opposing choices. [Cursor](https://cursor.com/) and [Windsurf](https://windsurf.com/editor) give me a unified project view with less setup. The shell gives me composition and isolation. Each surface solves a different part of the workflow.
+I do not treat the terminal and IDE as opposing choices. [Cursor](https://cursor.com/) and [Windsurf](https://windsurf.com/blog/changelist-may25) give me a unified project view with less setup. The shell gives me composition and isolation.
 
 [Claude Squad](https://github.com/smtg-ai/claude-squad) combines worktrees with terminal sessions for people beginning to explore parallel agents. It reduces worktree and session setup, though parallel runs still need the review and isolation rules above.
 
 ## What I Am Building Next
 
-I am prototyping a federation protocol for distributing tasks, a reusable set of safer AFK templates, and better recovery for unattended runs. The CLI-first workflow remains composable/inspectable: plain files carry instructions, pipes move data, stage views expose changes, worktrees isolate experiments, and persistent sessions keep a process alive without hiding it.
-
-That is why I keep the center of the workflow in the terminal. I can add another agent or tool without surrendering the pieces I already trust.
+I am prototyping a federation protocol for distributing tasks, a reusable set of safer AFK templates, and better recovery for unattended runs. They can use the same substrate: plain files for instructions, pipes for data, stage views for review, worktrees for isolation, and persistent sessions for process lifetime. I can add coordination without surrendering the pieces I already trust.
