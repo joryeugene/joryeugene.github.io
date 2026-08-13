@@ -1,4 +1,4 @@
-# AI-Amplified Development Presentation
+# AI-Amplified Development: Tools and Workflows for Modern Engineers
 
 This repository contains a presentation on AI-Amplified Development: Tools and Workflows for Modern Engineers.
 

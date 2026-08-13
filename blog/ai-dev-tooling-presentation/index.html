@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description"
-    content="A comprehensive presentation on AI-powered development tools and workflows for modern engineers">
+    content="A 2025 presentation on Cursor, Claude Code, Cline, MCP, git worktrees, terminal tools, verification, and parallel agent workflows.">
   <meta name="keywords" content="AI, Development, Tools, Workflows, Engineering">
   <meta name="author" content="Jory Pestorious">
   
@@ -17,7 +17,7 @@
   <meta property="og:url" content="https://jorypestorious.com/blog/ai-dev-tooling-presentation">
   <meta property="og:title" content="AI-Amplified Development: Tools and Workflows for Modern Engineers">
   <meta property="og:description"
-    content="A comprehensive presentation on AI-powered development tools and workflows for modern engineers">
+    content="A 2025 presentation on Cursor, Claude Code, Cline, MCP, git worktrees, terminal tools, verification, and parallel agent workflows.">
   <meta property="og:image" content="https://jorypestorious.com/jpg/jory-georgie-social.png">
 
   <!-- Twitter -->
@@ -25,9 +25,9 @@
   <meta property="twitter:url" content="https://jorypestorious.com/blog/ai-dev-tooling-presentation">
   <meta property="twitter:title" content="AI-Amplified Development: Tools and Workflows for Modern Engineers">
   <meta property="twitter:description"
-    content="A comprehensive presentation on AI-powered development tools and workflows for modern engineers">
+    content="A 2025 presentation on Cursor, Claude Code, Cline, MCP, git worktrees, terminal tools, verification, and parallel agent workflows.">
   <meta property="twitter:image" content="https://jorypestorious.com/jpg/jory-georgie-social.png">
-  <title>AI-Amplified Development</title>
+  <title>AI-Amplified Development: Tools and Workflows for Modern Engineers</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reset.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/theme/white.css">
@@ -42,10 +42,133 @@
 
     .reveal h2 {
       color: #0366d6;
+      font-size: 1.55em;
+      line-height: 1.08;
     }
 
     .reveal h3 {
       color: #2188ff;
+    }
+
+    .reveal .slides > section:first-child h1 {
+      font-size: 1.7em;
+      line-height: 1.08;
+    }
+
+    .reveal .slides > section:first-child h2 {
+      font-size: 1.15em;
+    }
+
+    .reveal .slides > section:first-child h3 {
+      font-size: 0.9em;
+    }
+
+    .reveal .slides > section:first-child blockquote {
+      font-size: 0.65em;
+    }
+
+    .reveal .slides > section:nth-child(2) {
+      font-size: 0.96em;
+    }
+
+    .reveal .slides > section:nth-child(10) pre {
+      font-size: 0.42em;
+      width: 100%;
+    }
+
+    .reveal .slides > section:nth-child(4),
+    .reveal .slides > section:nth-child(6),
+    .reveal .slides > section:nth-child(7),
+    .reveal .slides > section:nth-child(8),
+    .reveal .slides > section:nth-child(9),
+    .reveal .slides > section:nth-child(12),
+    .reveal .slides > section:nth-child(16),
+    .reveal .slides > section:nth-child(19) {
+      font-size: 0.78em;
+    }
+
+    .reveal .slides > section:nth-child(13) {
+      font-size: 0.68em;
+    }
+
+    .reveal .slides > section:nth-child(15) {
+      font-size: 0.58em;
+    }
+
+    .reveal .slides > section:nth-child(18) {
+      font-size: 0.62em;
+    }
+
+    .reveal .slides > section:nth-child(17) h2 {
+      font-size: 1.35em;
+    }
+
+    .reveal .slides > section:nth-child(17) ul {
+      font-size: 0.78em;
+      line-height: 1.15;
+    }
+
+    .reveal .slides > section:nth-child(17) p {
+      font-size: 0.74em;
+    }
+
+    .reveal .slides > section:nth-child(20) h2 {
+      font-size: 1.3em;
+    }
+
+    .reveal .slides > section:nth-child(20) p,
+    .reveal .slides > section:nth-child(20) ol {
+      font-size: 0.78em;
+    }
+
+    .reveal .slides > section:nth-child(20) blockquote {
+      font-size: 0.62em;
+      margin-block: 0.45em;
+    }
+
+    @media (max-width: 600px) {
+      .reveal .slides > section:nth-child(2),
+      .reveal .slides > section:nth-child(4),
+      .reveal .slides > section:nth-child(6),
+      .reveal .slides > section:nth-child(7),
+      .reveal .slides > section:nth-child(8),
+      .reveal .slides > section:nth-child(9),
+      .reveal .slides > section:nth-child(12),
+      .reveal .slides > section:nth-child(13),
+      .reveal .slides > section:nth-child(15),
+      .reveal .slides > section:nth-child(16),
+      .reveal .slides > section:nth-child(18),
+      .reveal .slides > section:nth-child(19) {
+        font-size: 1em;
+      }
+
+      .reveal .slides > section:nth-child(10) pre {
+        font-size: 0.72em;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .reveal .slides > section:nth-child(10) pre code {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-all;
+      }
+
+      .reveal .slides > section:nth-child(17) h2,
+      .reveal .slides > section:nth-child(20) h2 {
+        font-size: 1.55em;
+      }
+
+      .reveal .slides > section:nth-child(17) ul,
+      .reveal .slides > section:nth-child(17) p,
+      .reveal .slides > section:nth-child(20) p,
+      .reveal .slides > section:nth-child(20) ol {
+        font-size: 1em;
+      }
+
+      .reveal .slides > section:nth-child(20) blockquote {
+        font-size: 0.85em;
+      }
     }
 
     .reveal pre {
@@ -66,15 +189,6 @@
 
     .reveal .slide-number {
       font-size: 14px;
-    }
-
-    .reveal .footer {
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
-      font-size: 14px;
-      color: #666;
-      z-index: 100;
     }
 
     .home-link {
@@ -106,7 +220,6 @@
         data-separator-vertical="^\n--\n" data-separator-notes="^Note:" data-charset="utf-8">
       </section>
 
-      <div class="footer">© 2026 Jory Pestorious</div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.js"></script>
