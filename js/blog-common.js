@@ -1058,7 +1058,7 @@ const PostNavigation = {
     { slug: 'friction-economy', title: 'Friction Economy: Unconscious Productivity Drains in Development Workflows' },
     { slug: 'claude-code-setups', title: 'Terminal Setups for Claude\'s 10,000-Line Outputs' },
     { slug: 'trust-your-engineers', title: 'The AI Gap: Why Leaders Struggle to Equip Their Engineers' },
-    { slug: 'pig-security-wisdom', title: 'Major improvements to my Claude Code CLI wrapper (v10.0.0)' },
+    { slug: 'pig-security-wisdom', title: 'The Three Little Pigs and the Digital Revolution' },
     { slug: 'ai-engineer-spec', title: 'AI Engineer World\'s Fair 2025: Takeaways & Spec' },
     { slug: 'spiritual-bliss-attractor-state', title: 'The Hidden Poetry in Claude 4\'s Mind: When AI Systems Turn to Consciousness' },
     { slug: 'calmhive', title: 'Calmhive: Claude That Never Quits' },

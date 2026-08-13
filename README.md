@@ -18,7 +18,7 @@
 - [Friction Economy: Unconscious Productivity Drains in Development Workflows](https://jorypestorious.com/blog/friction-economy/) (2025-10-15)
 - [Terminal Setups for Claude's 10,000-Line Outputs](https://jorypestorious.com/blog/claude-code-setups/) (2025-09-15)
 - [The AI Gap: Why Leaders Struggle to Equip Their Engineers](https://jorypestorious.com/blog/trust-your-engineers/) (2025-08-15)
-- [Major improvements to my Claude Code CLI wrapper (v10.0.0)](https://jorypestorious.com/blog/pig-security-wisdom/) (2025-07-15)
+- [The Three Little Pigs and the Digital Revolution](https://jorypestorious.com/blog/pig-security-wisdom/) (2025-07-15)
 - [AI Engineer World's Fair 2025: Takeaways & Spec](https://jorypestorious.com/blog/ai-engineer-spec/) (2025-06-15)
 - [The Hidden Poetry in Claude 4's Mind: When AI Systems Turn to Consciousness](https://jorypestorious.com/blog/spiritual-bliss-attractor-state/) (2025-06-01)
 - [Calmhive: Claude That Never Quits](https://jorypestorious.com/blog/calmhive/) (2025-05-31)
