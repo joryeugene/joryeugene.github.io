@@ -332,9 +332,12 @@ test.describe('portfolio pages', () => {
     await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Tests/ }).click();
     await expect(page.getByText(/every exposed office and role across all 4,017 dates/i)).toBeVisible();
     await expect(page.getByText(/reject unresolved propers, unknown sources, missing locators/i)).toBeVisible();
+    await expect(page.getByText(/567 Jest tests across 53 suites/i)).toBeVisible();
+    await expect(page.getByText(/179 passing journeys/i)).toBeVisible();
+    await expect(page.getByText(/one deduplicated cache-bypassing v2 fetch/i)).toBeVisible();
     await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Visual QA/ }).click();
     await expect(page.getByText(/Vespers must show tomorrow's service day without moving today's calendar page/i)).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Inspect the immutable deployment', exact: true })).toHaveAttribute('href', 'https://7a18ea18.theosis.pages.dev/');
+    await expect(page.getByRole('link', { name: 'Inspect the immutable deployment', exact: true })).toHaveAttribute('href', 'https://b8eb1eb8.theosis.pages.dev/');
     await expect(page.locator('a[href="https://github.com/joryeugene/theosis"]')).toHaveCount(0);
     await expect(page).toHaveURL(/#theosis$/);
     await expect(page.getByRole('tab', { name: 'Pray Orthodox' })).toHaveAttribute('href', '#theosis');
