@@ -1,4 +1,4 @@
-# Terminal Velocity: My CLI-First AI Workflow in 2025
+# Terminal Velocity: Why CLI-First AI Development Scales Better in 2025
 
 This directory contains the article source and the page that displays it.
 

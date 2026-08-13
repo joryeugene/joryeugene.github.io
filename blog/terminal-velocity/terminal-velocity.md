@@ -1,8 +1,6 @@
-# Terminal Velocity: My CLI-First AI Workflow in 2025
+# Terminal Velocity: Why CLI-First AI Development Scales Better in 2025
 
 *By Jory Pestorious | May 11, 2025*
-
-> **August 2026 note:** Commands below are pinned to Claude Code 0.2.107. My later turn back toward the GUI is in [Why I Canceled Claude Max for Codex Desktop](/blog/portable-agent-factory/).
 
 My earlier presentation, [Stop Coding Like It's 2024: An AI-Amplified Dev Playbook](/blog/ai-dev-tooling-presentation/), argues that AI belongs inside an engineer's existing tools. Claude Code makes that idea concrete for me. I can pipe a file or diff into the model, resume a session inside a repository, connect MCP servers, and run the same agent without waiting for an editor integration.
 

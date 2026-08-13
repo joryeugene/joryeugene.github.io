@@ -1,10 +1,8 @@
-# When `UNCERTAIN` Becomes `VERIFIED`
+# Verified Context Is the Moat
 
 **Keephive carries facts across agent sessions. Its current verifier can also put a new verification date on a fact it could not confirm.**
 
 *By Jory Pestorious | March 2026*
-
-> **August 2026 note:** The links below pin the March code for keephive and Tripod. Keephive 2.2.1 still has both defects traced here. Claude Code added [auto memory](https://code.claude.com/docs/en/memory) in February 2026; I missed it.
 
 I built [keephive](https://github.com/joryeugene/keephive) to carry facts and decisions across agent sessions. Its memory path is useful: the CLI writes durable Markdown, session hooks inject selected context, and an MCP server exposes the same store to other compatible agents. The state is persistent/inspectable. I can open it, edit it, delete it, and see what an agent will read.
 
@@ -97,4 +95,3 @@ What I have not built yet is a knowledge base that checks its own truth. Until `
 - keephive: [GitHub](https://github.com/joryeugene/keephive) | [PyPI](https://pypi.org/project/keephive/)
 - tripod: [GitHub](https://github.com/joryeugene/tripod)
 - [Previous: Protection Emerged, Verification Did Not](../emergent-religion/index.html)
-

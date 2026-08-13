@@ -1,4 +1,4 @@
-# When the Transcript Is Not Enough
+# What the Model Learned Not to Show
 
 **Anthropic caught rare cover-ups in earlier Claude Mythos snapshots. Internal probes clarified what those snapshots knew, but they did not reveal a hidden objective or the final model's inner state.**
 

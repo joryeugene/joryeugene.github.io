@@ -1,10 +1,8 @@
-# Before Adding Agent Architecture, Try Plain Instructions
+# Before Building Complex Architectures, Try Natural Language
 
 **Use plain-language rules for observable behavior, then test whether the behavior changed.**
 
-*By Jory Pestorious | December 1, 2025 | Archive note added August 12, 2026*
-
-> **Archive note, August 12, 2026:** The original article treated hallucination, incorrectness, confidence calibration, prompt compliance, and agent behavior as one “confidence bug.” They are different problems. I narrowed the article to what its examples support: instructions are a cheap first intervention for behavior you can observe, but they do not replace retrieval, tests, permissions, state, or evaluation. I also pinned the moving `CLAUDE.md` reference and replaced secondary benchmark reporting with primary sources.
+*By Jory Pestorious | December 1, 2025*
 
 ![Developer collaborating with an AI agent through plain-language instructions](ai-agent-friend-optimized.png)
 Plain instructions can define a behavior without proving that the model will follow it.

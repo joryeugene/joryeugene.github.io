@@ -1,10 +1,8 @@
-# Calmhive v3: A Claude Code Wrapper for Background Jobs
+# Calmhive: Claude That Never Quits
 
 **A CLI for leaving long Claude Code tasks running and checking them later.**
 
-*By Jory Pestorious | May 31, 2025 | Archive note added August 12, 2026*
-
-> **Archive note, August 12, 2026:** The [npm registry](https://registry.npmjs.org/%40calmhive%2Fcalmhive-cli) records v3.0.19 as published on May 31, 2025, but no longer serves that version. The [GitHub repository](https://github.com/joryeugene/calmhive-cli) is archived, and its surviving history begins with a July 5, 2025 [complete rewrite](https://github.com/joryeugene/calmhive-cli/commit/10e86539bd3852f2107a6a9b52b61f912b539edf). The v3 source is not publicly recoverable, so I cannot independently reverify its implementation claims. I removed the current install commands, the blanket “safe” label on preapproved tools, and routine `killorphans` advice. Treat the body as a May 2025 release note, not a current setup guide.
+*By Jory Pestorious | May 31, 2025*
 
 ![CalmBee, the Calmhive bee mascot](calmbee.png)
 CalmBee is the mascot for Calmhive's background workflows.

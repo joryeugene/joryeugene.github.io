@@ -1,4 +1,4 @@
-# Why I Canceled Claude Max for Codex Desktop
+# I Wanted to Own the Harness. Then Codex Desktop Won.
 
 **By Jory Pestorious | August 9, 2026**
 

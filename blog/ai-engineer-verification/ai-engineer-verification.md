@@ -1,4 +1,4 @@
-# AI Engineer World's Fair 2026: Verification Became the Bottleneck
+# AI Engineer World's Fair 2026: Takeaways & Verification
 
 *By Jory Pestorious | San Francisco, July 6, 2026*
 
