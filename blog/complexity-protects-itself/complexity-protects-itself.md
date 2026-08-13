@@ -62,7 +62,7 @@ The [2025 DORA report](https://dora.dev/research/2025/dora-report/) describes AI
 
 ## Convention and Structure
 
-In [When UNCERTAIN Becomes VERIFIED](../knowledge-sidecar/), I argued that a rule people must remember is weaker than one the system enforces. Consider a deployment pipeline where every code path must call a function that injects required configuration. The rule can be documented and understood, yet one missed call still ships a deployment without the configuration.
+In [Verified Context Is the Moat](../knowledge-sidecar/), I argued that a rule people must remember is weaker than one the system enforces. Consider a deployment pipeline where every code path must call a function that injects required configuration. The rule can be documented and understood, yet one missed call still ships a deployment without the configuration.
 
 Now change the design so every deployment is validated for required variables before it can proceed. The implementation could be custom or managed. What matters is that the invalid state is rejected at the boundary instead of relying on every caller to remember the rule.
 
