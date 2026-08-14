@@ -8,12 +8,18 @@
     "check:sync": "node scripts/sync-blog-surfaces.mjs --check",
     "lint:prose": "node scripts/prose-lint.mjs",
     "test": "playwright test",
-    "test:motion": "playwright test -c playwright.motion.config.js"
+    "test:motion": "playwright test -c playwright.motion.config.js",
+    "test:worker": "vitest run --config vitest.worker.config.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "devDependencies": {
-    "@playwright/test": "^1.59.1"
+    "@cloudflare/vitest-pool-workers": "^0.21.3",
+    "@cloudflare/workers-types": "^5.20260814.1",
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^26.2.0",
+    "vitest": "^4.1.10",
+    "wrangler": "^4.123.0"
   }
 }

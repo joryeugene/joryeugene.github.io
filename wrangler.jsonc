@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "jorypestorious-site",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-08-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "GEORGIE_ROOM",
+        "class_name": "GeorgieRoom"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["GeorgieRoom"]
+    }
+  ],
+  "vars": {
+    "GEORGIE_ALLOWED_ORIGINS": "https://jorypestorious.com,http://127.0.0.1:4173,http://localhost:4173"
+  }
+}
