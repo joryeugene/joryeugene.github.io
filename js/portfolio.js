@@ -578,7 +578,16 @@
     selectCase(requestedTab || tabs.find((tab) => tab.getAttribute('aria-selected') === 'true') || tabs[0]);
   }
 
+  function initializeCopyrightYears() {
+    const currentYear = String(new Date().getFullYear());
+    document.querySelectorAll('[data-current-year]').forEach((year) => {
+      year.textContent = currentYear;
+      year.setAttribute('datetime', currentYear);
+    });
+  }
+
   function init() {
+    initializeCopyrightYears();
     initializeDepthTabs();
     initializeProjectDepth();
     initializeProcessLayers();
