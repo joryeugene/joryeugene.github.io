@@ -1,4 +1,10 @@
-import { SELF, env, evictDurableObject } from "cloudflare:test";
+import {
+  SELF,
+  env,
+  evictDurableObject,
+  runDurableObjectAlarm,
+  runInDurableObject,
+} from "cloudflare:test";
 import { afterEach, describe, expect, it } from "vitest";
 
 const TEST_ORIGIN = "https://jorypestorious-site.test";
@@ -165,6 +171,47 @@ describe("Georgie presence room", () => {
       type: "error",
       code: "unsupported_message",
     });
+  });
+
+  it("accepts only an empty anonymous heartbeat message", async () => {
+    const socket = await connect("visitor-a");
+    await nextJson(socket, (message) => message.type === "state");
+
+    socket.send(JSON.stringify({ type: "heartbeat" }));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    const error = nextJson(socket, (message) => message.type === "error");
+    socket.send(JSON.stringify({ type: "heartbeat", page: "/private" }));
+    expect(await error).toEqual({
+      type: "error",
+      code: "unsupported_message",
+    });
+  });
+
+  it("removes a silent session when the presence alarm finds it stale", async () => {
+    const stub = env.GEORGIE_ROOM.getByName("stale-session-test");
+    const first = await connectToRoom(stub, "visitor-a");
+    await nextJson(first, (message) => message.type === "state");
+    const stateAtTwo = nextJson(
+      first,
+      (message) => message.type === "state" && message.occupancy === 2,
+    );
+    await connectToRoom(stub, "visitor-b");
+    await stateAtTwo;
+
+    await runInDurableObject(stub, (_instance, state) => {
+      const stale = state.getWebSockets().find(
+        (socket) => socket.deserializeAttachment()?.sessionId === "visitor-b",
+      );
+      stale.serializeAttachment({ sessionId: "visitor-b", lastSeenAt: 0 });
+    });
+
+    const stateAtOne = nextJson(
+      first,
+      (message) => message.type === "state" && message.occupancy === 1,
+    );
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    expect(await stateAtOne).toMatchObject({ type: "state", occupancy: 1 });
   });
 
   it("replaces a reconnecting session without increasing occupancy", async () => {

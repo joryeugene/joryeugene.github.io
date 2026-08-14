@@ -9,6 +9,7 @@ import {
 
 const ASSET_ROOT = "/assets/georgie";
 const PRESENCE_URL = "wss://jorypestorious-site.jorypestorious-48d.workers.dev/api/presence";
+const HEARTBEAT_MS = 15_000;
 
 const DIRECTION_ASSETS = {
   right: ["right", false],
@@ -68,6 +69,7 @@ export class GeorgieWorld {
     this.routineTimer = 0;
     this.sayTimer = 0;
     this.socket = null;
+    this.heartbeatTimer = 0;
     this.draggingBone = false;
     this.bonePosition = root.hasAttribute("data-georgie-overlay")
       ? bonePositionForPath(location.pathname)
@@ -191,6 +193,14 @@ export class GeorgieWorld {
 
     const socket = new WebSocket(`${PRESENCE_URL}?session=${encodeURIComponent(sessionId)}`);
     this.socket = socket;
+    socket.addEventListener("open", () => {
+      window.clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = window.setInterval(() => {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: "heartbeat" }));
+        }
+      }, HEARTBEAT_MS);
+    });
     socket.addEventListener("message", (event) => {
       try {
         const message = JSON.parse(event.data);
@@ -200,9 +210,14 @@ export class GeorgieWorld {
         // A malformed presence message cannot stop the solo scene.
       }
     });
-    socket.addEventListener("close", () => this.setPresence(0));
-    socket.addEventListener("error", () => this.setPresence(0));
+    const disconnect = () => {
+      window.clearInterval(this.heartbeatTimer);
+      this.setPresence(0);
+    };
+    socket.addEventListener("close", disconnect);
+    socket.addEventListener("error", disconnect);
     window.addEventListener("pagehide", () => {
+      window.clearInterval(this.heartbeatTimer);
       if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: "leave" }));
         socket.close(1000, "Page left room");

@@ -2,6 +2,8 @@ import { DurableObject } from "cloudflare:workers";
 
 const INVITE_COOLDOWN_MS = 10_000;
 const MAX_MESSAGE_BYTES = 256;
+const HEARTBEAT_SWEEP_MS = 15_000;
+const STALE_SESSION_MS = 45_000;
 const SCENE_ID = "georgie-notices-the-room-v1";
 
 function isValidSessionId(value) {
@@ -103,7 +105,8 @@ export class GeorgieRoom extends DurableObject {
 
     const [client, server] = Object.values(new WebSocketPair());
     this.ctx.acceptWebSocket(server, [`session:${sessionId}`]);
-    server.serializeAttachment({ sessionId });
+    server.serializeAttachment({ sessionId, lastSeenAt: Date.now() });
+    await this.ctx.storage.setAlarm(Date.now() + STALE_SESSION_MS);
     this.broadcastState();
 
     return new Response(null, { status: 101, webSocket: client });
@@ -120,6 +123,15 @@ export class GeorgieRoom extends DurableObject {
       message = JSON.parse(rawMessage);
     } catch {
       this.send(socket, { type: "error", code: "unsupported_message" });
+      return;
+    }
+
+    if (message?.type === "heartbeat" && Object.keys(message).length === 1) {
+      const attachment = socket.deserializeAttachment();
+      socket.serializeAttachment({
+        sessionId: attachment.sessionId,
+        lastSeenAt: Date.now(),
+      });
       return;
     }
 
@@ -166,5 +178,26 @@ export class GeorgieRoom extends DurableObject {
   webSocketError(socket) {
     socket.close(1011, "Room connection failed");
     this.broadcastState();
+  }
+
+  async alarm() {
+    const now = Date.now();
+    const retained = [];
+
+    for (const socket of this.activeSockets()) {
+      const lastSeenAt = socket.deserializeAttachment()?.lastSeenAt;
+      if (!Number.isFinite(lastSeenAt) || now - lastSeenAt > STALE_SESSION_MS) {
+        socket.close(1001, "Presence heartbeat timed out");
+      } else {
+        retained.push(socket);
+      }
+    }
+
+    const state = this.stateMessage(retained);
+    for (const socket of retained) this.send(socket, state);
+
+    if (retained.length) {
+      await this.ctx.storage.setAlarm(now + HEARTBEAT_SWEEP_MS);
+    }
   }
 }
