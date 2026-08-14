@@ -31,7 +31,7 @@ At the Wave 3 baseline, `js/vim.js` is 52,623 bytes gzip. Wave 3's final focused
 3. **Browser-native boundaries.** Keep `Cmd+V` for clipboard reads and the current best-effort clipboard write path. Do not add permission prompts or asynchronous command states without a proven need.
 4. **Static deployment.** Add no runtime dependency, bundler, worker, server API, parser, language server, or plugin host.
 5. **Bounded work.** Lists, scans, replay, and completion candidates have explicit caps. A wave stops when its outcome passes its focused journey and size gate.
-6. **Serial verification.** Run one verification process at a time, one Playwright worker, and no browser matrix unless explicitly requested.
+6. **Serial verification.** Run one verification process for this repository at a time, one Playwright worker, and no browser matrix unless explicitly requested. Other repositories may verify concurrently on distinct ports.
 7. **Teaching through work.** `:teacher` gives the user a role, evidence, files, and a deliverable. It does not become a command trivia quiz.
 
 ## Scope and Wave Outcomes
@@ -289,7 +289,7 @@ The learner must reach that artifact using the real editor commands. The browser
 
 ## Verification Contract
 
-Only one test or verification process may run at a time. Before Playwright, confirm that no `node.exe` command line matches `@playwright\\test\\cli.js` and that port 8767 has no listener. If another project is testing, wait without killing its process.
+Only one test or verification process for this repository may run at a time. Before Playwright, confirm that no active Playwright command belongs to this repository and that port 8767 has no listener. A verifier in another repository does not block this project when it uses a distinct port.
 
 For each wave:
 
