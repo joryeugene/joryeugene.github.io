@@ -284,6 +284,9 @@
                        '  iw aw    inner / a word',
                        '  iW aW    inner / a WORD (non-whitespace)',
                        '  ip ap    inner / a paragraph',
+                       '  il       inner line without leading or trailing whitespace',
+                       '  al       all lines in this document (linewise)',
+                       '           il fails on an empty or whitespace-only line',
                        '',
                        'PAIRED DELIMITERS',
                        '  i( a(    inner / a parentheses   (alias: ib ab)',
@@ -299,9 +302,9 @@
                        'Brackets match across lines using the same algorithm as %.',
                        'Quotes are line-local; no nesting.',
                        '',
-                       'Compose with any operator: ci(, da", yi{, >ip, gUiw',
-                       'Also works in visual mode: vi(, va"'];
-  var TO = ['i(','a(','i)','a)','i[','a[','i]','a]','i{','a{','i}','a}','i<','a<','i"','a"',"i'","a'",'i`','a`','ib','ab','iB','aB'];
+                       'Compose with any operator: ci(, da", yi{, >ip, gUiw, cil, yal',
+                       'Also works in visual mode: vi(, va", vil, val'];
+  var TO = ['il','al','i(','a(','i)','a)','i[','a[','i]','a]','i{','a{','i}','a}','i<','a<','i"','a"',"i'","a'",'i`','a`','ib','ab','iB','aB'];
   for (var ti = 0; ti < TO.length; ti++) T[TO[ti]] = T['text-objects'];
 
   T['i_CTRL-H'] = ['CTRL-H in insert mode: same as Backspace.',
@@ -539,6 +542,7 @@
       'TEXT OBJECTS',
       '  iw aw       inner / around word          iW aW   WORD',
       '  ip ap       inner / around paragraph',
+      '  il          trimmed current line         al      all document lines',
       '  i( a(       inner / around parens        (alias: ib ab)',
       '  i[ a[       inner / around square brackets',
       '  i{ a{       inner / around curly braces  (alias: iB aB)',

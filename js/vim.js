@@ -1486,6 +1486,15 @@
   // -------------------------------------------------------------------------
   function computeTextObject(prefix, obj, row, col) {
     var line = getLine(row);
+    if (obj === 'l') {
+      if (prefix === 'a') {
+        return { startRow: 0, startCol: 0, endRow: state.lines.length - 1, endCol: 0, linewise: true };
+      }
+      var trimmed = line.trim();
+      if (!trimmed) return null;
+      var first = line.indexOf(trimmed);
+      return { startRow: row, startCol: first, endRow: row, endCol: first + trimmed.length };
+    }
     // iw / aw
     if (obj === 'w') {
       var cls = charClass(line[col]);
@@ -1675,8 +1684,8 @@
     var startRow, startCol, endRow, endCol;
     var operatedStartCol = 0, operatedEndCol = 0;
     if (range.linewise) {
-      startRow = Math.min(row, range.endRow);
-      endRow = Math.max(row, range.endRow);
+      startRow = Math.min(range.startRow ?? row, range.endRow);
+      endRow = Math.max(range.startRow ?? row, range.endRow);
       operatedEndCol = Math.max(0, getLine(endRow).length - 1);
       // Linewise operations
       var lines = state.lines.slice(startRow, endRow + 1);
@@ -4267,7 +4276,7 @@
       // text object: i/a prefix was captured, now resolve the object type
       if (op === 'textobj_i' || op === 'textobj_a') {
         var toPrefix = op === 'textobj_i' ? 'i' : 'a';
-        var acceptedObjs = { w:1, W:1, p:1, '(':1, ')':1, '[':1, ']':1, '{':1, '}':1, '<':1, '>':1, '"':1, "'":1, '`':1, 'b':1, 'B':1 };
+        var acceptedObjs = { w:1, W:1, p:1, l:1, '(':1, ')':1, '[':1, ']':1, '{':1, '}':1, '<':1, '>':1, '"':1, "'":1, '`':1, 'b':1, 'B':1 };
         // `ib`/`ab` alias for `i(`/`a(`; `iB`/`aB` alias for `i{`/`a{`.
         var objKey = e.key;
         if (objKey === 'b') objKey = '(';
@@ -5437,7 +5446,7 @@
       // text objects
       if (vop === 'v_textobj_i' || vop === 'v_textobj_a') {
         var vtP = vop === 'v_textobj_i' ? 'i' : 'a';
-        var vAcceptedObjs = { w:1, W:1, p:1, '(':1, ')':1, '[':1, ']':1, '{':1, '}':1, '<':1, '>':1, '"':1, "'":1, '`':1, 'b':1, 'B':1 };
+        var vAcceptedObjs = { w:1, W:1, p:1, l:1, '(':1, ')':1, '[':1, ']':1, '{':1, '}':1, '<':1, '>':1, '"':1, "'":1, '`':1, 'b':1, 'B':1 };
         var vtKey = e.key;
         if (vtKey === 'b') vtKey = '(';
         else if (vtKey === 'B') vtKey = '{';

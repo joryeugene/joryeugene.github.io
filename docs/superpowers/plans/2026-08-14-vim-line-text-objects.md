@@ -46,7 +46,7 @@
 **Interfaces:**
 - Consumes: `computeTextObject(prefix, obj, row, col)`, `getLine(row)`, `state.lines`, `applyOperator(op, row, col, range)`, and the existing Normal and Visual accepted-object maps.
 - Produces no new public function or state.
-- `il` range: `{ startRow: row, startCol: first, endRow: row, endCol: lastExclusive, linewise: false }`.
+- `il` range: `{ startRow: row, startCol: first, endRow: row, endCol: lastExclusive }`; omitted `linewise` is the existing characterwise default.
 - `al` range: `{ startRow: 0, startCol: 0, endRow: lastRow, endCol: 0, linewise: true }`.
 
 - [ ] **Step 1: Write the one focused failing browser journey**
@@ -119,11 +119,10 @@ if (obj === 'l') {
   if (prefix === 'a') {
     return { startRow: 0, startCol: 0, endRow: state.lines.length - 1, endCol: 0, linewise: true };
   }
-  var first = line.search(/\S/);
-  if (first === -1) return null;
-  var last = line.length;
-  while (last > first && /\s/.test(line[last - 1])) last--;
-  return { startRow: row, startCol: first, endRow: row, endCol: last, linewise: false };
+  var trimmed = line.trim();
+  if (!trimmed) return null;
+  var first = line.indexOf(trimmed);
+  return { startRow: row, startCol: first, endRow: row, endCol: first + trimmed.length };
 }
 ```
 
@@ -134,8 +133,8 @@ This is a current-line scan only. `al` does not scan the buffer; it returns its 
 At the start of `applyOperator()`'s linewise branch, replace the current row-only start calculation with:
 
 ```js
-startRow = range.startRow !== undefined ? Math.min(range.startRow, range.endRow) : Math.min(row, range.endRow);
-endRow = range.startRow !== undefined ? Math.max(range.startRow, range.endRow) : Math.max(row, range.endRow);
+startRow = Math.min(range.startRow ?? row, range.endRow);
+endRow = Math.max(range.startRow ?? row, range.endRow);
 ```
 
 This change is deliberately conditional. Existing linewise motions and mark operations omit `startRow` and remain anchored at the cursor. Existing `ip` and `ap` already provide `startRow`, so this also makes their full computed paragraph range effective instead of silently starting at the cursor.
