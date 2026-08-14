@@ -87,11 +87,22 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   expect((await lines(page)).join('\n')).toContain('HINT:');
   await press(page, 'Control+o');
   expect((await state(page)).file).toBe('incident.log');
+  await cmd(page, 'teacher golf');
+  await expect(page.locator('#vim-cmdline')).toContainText('Finish the visible result');
+  expect((await state(page)).file).toBe('incident.log');
   await search(page, 'landings=14203');
   await keys(page, ['Control+o', 'Control+i', 'G']);
   await replaceLine(page, 'ANALYST_NOTE: evt_014203 recorded 14203 landings before roof-array was online');
   await cmd(page, 'teacher check');
   await keys(page, [':', 'ArrowUp', 'Enter']);
+  await cmd(page, 'teacher golf');
+  expect((await state(page)).file).toBe('[Teacher]');
+  expect((await lines(page)).join('\n')).toContain('Gcil');
+  expect((await lines(page)).join('\n')).toContain('after the timeline is understood');
+  await press(page, 'Control+o');
+  await cmd(page, 'teacher score');
+  expect((await lines(page)).join('\n')).toContain('MOTH FLIGHT RECORDER');
+  await press(page, 'Control+o');
 
   await openMission(page, 2, 'events.csv');
   await search(page, 'candidate_id');
@@ -145,6 +156,8 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await replaceLine(page, '2. Compare event time with deployedAt.');
   await press(page, 'j');
   await replaceLine(page, '3. Quarantine pre-deployment events and notify on-call.');
+  await cmd(page, 'teacher check');
+  await expect(page.locator('#vim-cmdline')).toContainText('Missing: Operator action:');
   await press(page, 'j');
   await replaceLine(page, 'Operator action: Verify sensor source, deployment time, and event timestamp before publishing counts.');
 
@@ -173,7 +186,15 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await cmd(page, 'teacher next');
 
   expect((await state(page)).file).toBe('[Teacher]');
-  expect((await lines(page)).join('\n')).toContain('PROJECT COMPLETE');
+  const completion = (await lines(page)).join('\n');
+  expect(completion).toContain('PROJECT COMPLETE');
+  expect(completion).toContain('MOTH FLIGHT RECORDER');
+  expect(completion).toContain('Evidence: 8/8 missions');
+  expect(completion).toContain('First-pass checks: 7/8');
+  expect(completion).toContain('Lanterns used: 1');
+  expect(completion).toContain('Course corrections: 1');
+  expect(completion).toMatch(/Command strokes: [1-9]\d*/);
+  expect(completion).toContain('Skills observed: jump history, named registers');
   await press(page, 'Control+o');
   expect((await state(page)).file).toBe('postmortem.md');
   expect(await lines(page)).toEqual([

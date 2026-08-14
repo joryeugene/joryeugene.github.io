@@ -278,6 +278,7 @@
     replayContext: null,
     teacherMission: null,
     teacherReturn: null,
+    teacherStats: null,
     expandtab: true,
     tabstop: 4,
     shiftwidth: 2,
@@ -3633,6 +3634,179 @@
     return 'teacher:' + filename;
   }
 
+  var TEACHER_SKILL_ORDER = [
+    'jump history',
+    'named registers',
+    'changelist',
+    'dot-repeat',
+    'macros',
+    'buffer completion',
+    'line text objects',
+    'line change',
+    'character normalization'
+  ];
+
+  function teacherHasSequence(tokens, keys) {
+    for (var i = 0; i <= tokens.length - keys.length; i++) {
+      var found = true;
+      for (var j = 0; j < keys.length; j++) {
+        if (tokens[i + j].token !== keys[j]) { found = false; break; }
+      }
+      if (found) return true;
+    }
+    return false;
+  }
+
+  function teacherHasRegisterChord(tokens, prefix) {
+    for (var i = 0; i < tokens.length - 1; i++) {
+      if (tokens[i].token === prefix && /^[a-z]$/.test(tokens[i + 1].token)) return true;
+    }
+    return false;
+  }
+
+  function teacherObservedSkills(tokens) {
+    var found = {};
+    if (teacherHasSequence(tokens, ['<C-o>']) || teacherHasSequence(tokens, ['<C-i>'])) {
+      found['jump history'] = true;
+    }
+    if (teacherHasRegisterChord(tokens, '"')) found['named registers'] = true;
+    if (teacherHasSequence(tokens, ['g', ';']) || teacherHasSequence(tokens, ['g', ','])) {
+      found.changelist = true;
+    }
+    if (teacherHasSequence(tokens, ['.'])) found['dot-repeat'] = true;
+    if (teacherHasRegisterChord(tokens, 'q') || teacherHasRegisterChord(tokens, '@') ||
+        teacherHasSequence(tokens, ['@', '@']) || teacherHasSequence(tokens, ['Q'])) {
+      found.macros = true;
+    }
+    for (var i = 0; i < tokens.length; i++) {
+      if (tokens[i].mode === 'insert' &&
+          (tokens[i].token === '<C-n>' || tokens[i].token === '<C-p>')) {
+        found['buffer completion'] = true;
+      }
+    }
+    var lineObjects = [
+      ['c', 'i', 'l'], ['y', 'i', 'l'], ['c', 'a', 'l'], ['y', 'a', 'l'],
+      ['v', 'i', 'l'], ['v', 'a', 'l']
+    ];
+    for (var li = 0; li < lineObjects.length; li++) {
+      if (teacherHasSequence(tokens, lineObjects[li])) found['line text objects'] = true;
+    }
+    if (teacherHasSequence(tokens, ['c', 'c'])) found['line change'] = true;
+    if (teacherHasSequence(tokens, ['f', '_', 'r', '-'])) found['character normalization'] = true;
+
+    var skills = [];
+    for (var si = 0; si < TEACHER_SKILL_ORDER.length; si++) {
+      if (found[TEACHER_SKILL_ORDER[si]]) skills.push(TEACHER_SKILL_ORDER[si]);
+    }
+    return skills;
+  }
+
+  function teacherStartMissionStats() {
+    var stats = state.teacherStats;
+    if (!stats) return;
+    stats.missionStartedAt = performance.now();
+    stats.currentHints = 0;
+    stats.currentFailedChecks = 0;
+    stats.currentValidated = false;
+    stats.currentCommandStrokes = 0;
+    stats.currentTokens = [];
+  }
+
+  function teacherRecordValidation(missing) {
+    var stats = state.teacherStats;
+    if (!stats || !stats.missionStartedAt || stats.currentValidated) return;
+    if (missing) stats.currentFailedChecks++;
+    else stats.currentValidated = true;
+  }
+
+  function teacherFinishMissionStats() {
+    var stats = state.teacherStats;
+    if (!stats || !stats.missionStartedAt) return;
+    stats.missionResults.push({
+      completedMs: Math.max(0, performance.now() - stats.missionStartedAt),
+      hints: stats.currentHints,
+      failedChecks: stats.currentFailedChecks,
+      commandStrokes: stats.currentCommandStrokes,
+      skills: teacherObservedSkills(stats.currentTokens)
+    });
+    stats.missionStartedAt = 0;
+    stats.currentTokens = [];
+  }
+
+  function teacherMetricToken(e) {
+    return e.ctrlKey ? '<C-' + e.key.toLowerCase() + '>' : e.key;
+  }
+
+  function teacherRecordInput(e) {
+    var stats = state.teacherStats;
+    var teacher = teacherPackage();
+    var mission = teacher && state.teacherMission >= 0 &&
+      state.teacherMission < teacher.missions.length
+      ? teacher.missions[state.teacherMission] : null;
+    if (!stats || !mission || state.replayContext ||
+        state.documentId !== teacherDocumentId(mission.file)) return;
+    if (e.key === 'Shift' || e.key === 'Control' ||
+        e.key === 'Alt' || e.key === 'Meta') return;
+    var mode = state.mode;
+    var countable = (mode === 'normal' || mode === 'visual')
+      ? e.key !== ':'
+      : ((mode === 'insert' || mode === 'replace') &&
+        (e.key === 'Escape' || !!e.ctrlKey));
+    if (!countable) return;
+    stats.currentCommandStrokes++;
+    if (stats.currentTokens.length < 600) {
+      stats.currentTokens.push({ mode: mode, token: teacherMetricToken(e) });
+    }
+  }
+
+  function teacherScoreLines() {
+    var teacher = teacherPackage();
+    var stats = state.teacherStats;
+    if (!teacher || !stats) return ['MOTH FLIGHT RECORDER', '', 'No flight has started.'];
+    var completed = stats.missionResults.length;
+    var firstPass = 0;
+    var hints = 0;
+    var corrections = 0;
+    var strokes = 0;
+    var observed = {};
+    for (var i = 0; i < stats.missionResults.length; i++) {
+      var result = stats.missionResults[i];
+      if (result.failedChecks === 0) firstPass++;
+      hints += result.hints;
+      corrections += result.failedChecks;
+      strokes += result.commandStrokes;
+      for (var si = 0; si < result.skills.length; si++) observed[result.skills[si]] = true;
+    }
+    if (state.teacherMission >= 0 && state.teacherMission < teacher.missions.length &&
+        stats.missionStartedAt) {
+      hints += stats.currentHints;
+      corrections += stats.currentFailedChecks;
+      strokes += stats.currentCommandStrokes;
+      var currentSkills = teacherObservedSkills(stats.currentTokens);
+      for (var ci = 0; ci < currentSkills.length; ci++) observed[currentSkills[ci]] = true;
+    }
+    var skills = [];
+    for (var oi = 0; oi < TEACHER_SKILL_ORDER.length; oi++) {
+      if (observed[TEACHER_SKILL_ORDER[oi]]) skills.push(TEACHER_SKILL_ORDER[oi]);
+    }
+    var elapsedSeconds = Math.max(0, Math.round((performance.now() - stats.startedAt) / 1000));
+    return [
+      'MOTH FLIGHT RECORDER',
+      '',
+      'Evidence: ' + completed + '/' + teacher.missions.length + ' missions',
+      'First-pass checks: ' + firstPass + '/' + completed,
+      'Lanterns used: ' + hints,
+      'Course corrections: ' + corrections,
+      'Command strokes: ' + strokes,
+      'Skills observed: ' + (skills.length ? skills.join(', ') : 'none yet'),
+      'Flight time: ' + elapsedSeconds + 's'
+    ];
+  }
+
+  function teacherCompletionLines() {
+    return teacherScoreLines().concat(['', 'The moon was not rebooted.']);
+  }
+
   function teacherGuideLines(showHint) {
     var teacher = teacherPackage();
     if (!teacher) return ['Teacher content unavailable.'];
@@ -3737,6 +3911,16 @@
       return;
     }
 
+    state.teacherStats = {
+      startedAt: performance.now(),
+      missionStartedAt: 0,
+      missionResults: [],
+      currentHints: 0,
+      currentFailedChecks: 0,
+      currentValidated: false,
+      currentCommandStrokes: 0,
+      currentTokens: []
+    };
     teacherCaptureReturn();
     switchDocument('teacher:guide', '[Teacher]', teacher.intro, 0, 0);
     var filenames = Object.keys(teacher.files);
@@ -3780,6 +3964,7 @@
   }
 
   function teacherOpenMissionBrief() {
+    teacherStartMissionStats();
     teacherOpenMission();
     teacherShowGuide(false);
   }
@@ -3830,10 +4015,31 @@
     }
     if (arg === 'hint') {
       if (state.teacherMission >= teacher.missions.length) {
-        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.');
+        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.',
+          teacherCompletionLines());
         return;
       }
+      if (state.teacherMission >= 0 && state.teacherStats) state.teacherStats.currentHints++;
       teacherShowGuide(true);
+      return;
+    }
+    if (arg === 'score') {
+      teacherShowGuide(false, 'Flight log opened. Ctrl-O returns to the work.',
+        teacherScoreLines());
+      return;
+    }
+    if (arg === 'golf') {
+      if (state.teacherMission < 0 || state.teacherMission >= teacher.missions.length ||
+          teacherCheckMission()) {
+        setStatus('Finish the visible result before opening the golf route.');
+        return;
+      }
+      var golf = teacher.missions[state.teacherMission].golf;
+      teacherShowGuide(false, 'Golf route opened. Ctrl-O returns to the work.', [
+        'VIM GOLF AFTER THE RESULT',
+        'Route: ' + golf.route,
+        'Why: ' + golf.why
+      ]);
       return;
     }
     if (arg === 'check') {
@@ -3842,7 +4048,9 @@
         return;
       }
       var unmet = teacherCheckMission();
-      setStatus(unmet || ('Mission ' + (state.teacherMission + 1) + ' ready. Type :teacher next.'));
+      teacherRecordValidation(unmet);
+      setStatus(unmet || ('Mission ' + (state.teacherMission + 1) +
+        ' ready. :teacher golf shows a shorter route. :teacher next continues.'));
       return;
     }
     if (arg === 'reset') {
@@ -3857,23 +4065,27 @@
         return;
       }
       if (state.teacherMission >= teacher.missions.length) {
-        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.');
+        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.',
+          teacherCompletionLines());
         return;
       }
       var missing = teacherCheckMission();
+      teacherRecordValidation(missing);
       if (missing) {
         setStatus(missing);
         return;
       }
+      teacherFinishMissionStats();
       state.teacherMission++;
       if (state.teacherMission >= teacher.missions.length) {
-        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.');
+        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.',
+          teacherCompletionLines());
       } else {
         teacherOpenMissionBrief();
       }
       return;
     }
-    setStatus('Usage: :teacher [next|check|hint|reset]');
+    setStatus('Usage: :teacher [next|check|hint|score|golf|reset]');
   }
 
   // -------------------------------------------------------------------------
@@ -6117,7 +6329,8 @@
     'nohlsearch', 'noh', 'nohl',
     'sort', 'sort u',
     'r', 'zen', 'enew', 'new', 'e', 'intro', 'help', 'h', 'tutor', 'Tutor',
-    'teacher', 'teacher next', 'teacher check', 'teacher hint', 'teacher reset',
+    'teacher', 'teacher next', 'teacher check', 'teacher hint',
+    'teacher score', 'teacher golf', 'teacher reset',
     'agents', 'moth', 'snake',
     'marks', 'jumps', 'clearjumps', 'registers', 'display', 'pray',
     'colorscheme', 'colo', 'color', 'emacs', 'nano'
@@ -6552,6 +6765,7 @@
   }
 
   function handleKey(e) {
+    teacherRecordInput(e);
     beginRepeatCapture(e);
     try {
       dispatchKey(e);

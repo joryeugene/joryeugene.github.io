@@ -342,7 +342,7 @@ git commit -m "feat(vim): display typed registers"
 - Consumes: `normalizeKeyToken(e)`, `state.replayContext`, `teacherCheckMission()`, mission data, and guide return from Task 1.
 - Produces: `state.teacherStats`, `teacherStartMissionStats()`, `teacherRecordInput(e)`, `teacherObservedSkills(tokens)`, `teacherFinishMissionStats()`, `teacherScoreLines()`, `teacherGolfLines()`, `:teacher score`, and `:teacher golf`.
 
-- [ ] **Step 1: Add failing score and golf assertions**
+- [x] **Step 1: Add failing score and golf assertions**
 
 Before mission 1 passes, run `:teacher golf` and assert the status says `Finish the visible result`. After mission 1 passes, run it again and assert the guide contains `Gcil` and its use case. Return with `Ctrl-O`.
 
@@ -358,11 +358,11 @@ Course corrections: 1
 
 Assert `Command strokes:` is a positive integer, `Skills observed:` contains the command families exercised by the journey, and transition measurements remain at or below 100 ms.
 
-- [ ] **Step 2: Run the sole journey and observe RED**
+- [x] **Step 2: Run the sole journey and observe RED**
 
 Expected first RED: `teacher golf` shows the usage error because the command does not exist.
 
-- [ ] **Step 3: Add bounded session state and input recording**
+- [x] **Step 3: Add bounded session state and input recording**
 
 Initialize this state on `teacherStart()`:
 
@@ -411,7 +411,7 @@ function teacherRecordInput(e) {
 }
 ```
 
-- [ ] **Step 4: Recognize only the approved skill patterns**
+- [x] **Step 4: Recognize only the approved skill patterns**
 
 `teacherObservedSkills(tokens)` returns a de-duplicated list from these exact patterns:
 
@@ -439,13 +439,13 @@ function teacherHasSequence(tokens, keys) {
 
 Match `<C-o>` or `<C-i>` for jump history, `"` plus a lowercase letter for named registers, `g;` or `g,` for changelist, `.`, `q{register}` or `@{register}` for macros, Insert `<C-n>` or `<C-p>`, `cil` or `yal`, `cc`, and `f_r-`.
 
-- [ ] **Step 5: Track validation, hints, time, and completion**
+- [x] **Step 5: Track validation, hints, time, and completion**
 
 Only explicit `teacher check` and `teacher next` calls update validation metrics. The first validation sets `currentValidated`. A first success increments first-pass evidence. Each failure increments `currentFailedChecks`. When the mission later passes, those failures become course corrections.
 
 `teacher hint` increments `currentHints` once per request. `teacherFinishMissionStats()` stores elapsed milliseconds, hints, failures, command strokes, and observed skills, then discards raw tokens. `teacherStartMissionStats()` resets the current counters when a new mission brief opens.
 
-- [ ] **Step 6: Add score and golf guide views**
+- [x] **Step 6: Add score and golf guide views**
 
 Add one `golf` object to every mission:
 
@@ -462,11 +462,11 @@ golf: {
 
 Add both commands to completion, help, and the teacher usage string.
 
-- [ ] **Step 7: Run the same journey and observe GREEN**
+- [x] **Step 7: Run the same journey and observe GREEN**
 
 Assert the exact deterministic metrics above. Assert elapsed time and command strokes by label and range, not a machine-specific exact duration.
 
-- [ ] **Step 8: Commit the learning-feedback slice**
+- [x] **Step 8: Commit the learning-feedback slice**
 
 ```powershell
 git add tests/p0-teacher.spec.js js/vim.js js/vim-teacher.js js/vim-help.js

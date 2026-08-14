@@ -87,7 +87,11 @@
       outcome: ['ANALYST_NOTE: evt_014203 recorded 14203 landings before roof-array was online'],
       hint: 'Search /landings=14203, retrace with Ctrl-O and Ctrl-I, then use G and cil on ANALYST_NOTE.',
       expect: ['ANALYST_NOTE: evt_014203 recorded 14203 landings before roof-array was online'],
-      reject: ['ANALYST_NOTE: replace me']
+      reject: ['ANALYST_NOTE: replace me'],
+      golf: {
+        route: 'Gcil',
+        why: 'Use this after the timeline is understood to change the final note directly.'
+      }
     },
     {
       title: 'Compare the data',
@@ -100,7 +104,11 @@
       outcome: ['# evidence_id', 'evt_014203', '# evidence_sensor', 'desk_lamp'],
       hint: 'Search candidate_id, move to its next line, and use "ayiw. Delete the evidence TODO and put with "ap. Repeat with b.',
       expect: ['# evidence_id\nevt_014203', '# evidence_sensor\ndesk_lamp'],
-      reject: ['# evidence_id\nTODO', '# evidence_sensor\nTODO']
+      reject: ['# evidence_id\nTODO', '# evidence_sensor\nTODO'],
+      golf: {
+        route: ':registers a b',
+        why: 'Inspect the evidence and its characterwise shape before putting it.'
+      }
     },
     {
       title: 'Repair the source',
@@ -112,7 +120,11 @@
       outcome: ['  source: "roof-array",', '// CHANGE_NOTE: source corrected to roof-array'],
       hint: 'Search /desk-lamp and use ci". Use cil on CHANGE_NOTE, then try g;, g,, and `..',
       expect: ['source: "roof-array"', '// CHANGE_NOTE: source corrected to roof-array'],
-      reject: ['source: "desk-lamp"', '// CHANGE_NOTE: replace me']
+      reject: ['source: "desk-lamp"', '// CHANGE_NOTE: replace me'],
+      golf: {
+        route: '`.',
+        why: 'Return directly to the latest edit when you no longer need to tour the changelist.'
+      }
     },
     {
       title: 'Normalize the records',
@@ -132,7 +144,11 @@
         'id=evt_014205 sensor=desk_lamp status=duplicate',
         'id=evt_014206 sensor=desk_lamp status=duplicate'
       ],
-      reject: ['status : duplicated']
+      reject: ['status : duplicated'],
+      golf: {
+        route: ':%s/status : duplicated/status=duplicate/g',
+        why: 'Use one reviewed substitution when every malformed fragment needs the same repair.'
+      }
     },
     {
       title: 'Correct the launch story',
@@ -155,7 +171,11 @@
       reject: [
         'We counted every moth in the moon before breakfast.',
         'The dashboard recorded 14,203 verified roof-array landings during launch.'
-      ]
+      ],
+      golf: {
+        route: 'REVIEWED_<C-N>',
+        why: 'Complete the existing metric key instead of retyping a long identifier.'
+      }
     },
     {
       title: 'Fix operations',
@@ -177,7 +197,11 @@
         '3. Quarantine pre-deployment events and notify on-call.',
         'Operator action: Verify sensor source, deployment time, and event timestamp before publishing counts.'
       ],
-      reject: ['Reboot the moon.', 'Ask the nearest moth', 'add more adjectives']
+      reject: ['Reboot the moon.', 'Ask the nearest moth', 'add more adjectives'],
+      golf: {
+        route: 'cc',
+        why: 'Change a whole instruction line without selecting its contents first.'
+      }
     },
     {
       title: 'Write the postmortem',
@@ -205,7 +229,11 @@
         'Runbook: Verify sensor source, deployment time, and event timestamp before publishing counts.',
         'Follow-up: Add a deployment-time validation gate before ingest.'
       ],
-      reject: ['Impact: TODO', 'Evidence: TODO', 'Root cause: TODO', 'Repair: TODO', 'Launch copy: TODO', 'Runbook: TODO', 'Follow-up: TODO']
+      reject: ['Impact: TODO', 'Evidence: TODO', 'Root cause: TODO', 'Repair: TODO', 'Launch copy: TODO', 'Runbook: TODO', 'Follow-up: TODO'],
+      golf: {
+        route: '"bp then f_r-',
+        why: 'Reuse the captured sensor, then normalize its separator for configuration prose.'
+      }
     },
     {
       title: 'Retrace the work',
@@ -217,7 +245,11 @@
       outcome: ['Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'],
       hint: 'Use Ctrl-O and Ctrl-I across documents, g; and g, within changes, then return to Verified sources and use cil.',
       expect: ['Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'],
-      reject: ['Verified sources: TODO']
+      reject: ['Verified sources: TODO'],
+      golf: {
+        route: ':jumps',
+        why: 'Inspect the route before you make the final source claim.'
+      }
     }
   ];
 
@@ -247,6 +279,8 @@
       '  :teacher next    open the first or next ready mission',
       '  :teacher check   name the first unmet visible result',
       '  :teacher hint    show one command hint without editing',
+      '  :teacher score   show this session\'s flight log',
+      '  :teacher golf    reveal a shorter route after a mission passes',
       '  :teacher reset   confirm and restore these six files only',
       '  :teacher         recall the current brief',
       '  Ctrl-O           return from a brief to your work',
