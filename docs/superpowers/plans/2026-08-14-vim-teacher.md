@@ -41,7 +41,7 @@ The full browser journey reaches this result with real key events and Ex command
 - `:teacher` activation must render a usable brief within 100 ms in the focused Chromium environment.
 - All changed production assets together must add at most 16,384 bytes gzip over commit `331c890`.
 - Use one full focused Chromium journey with `--workers=1` for RED and GREEN.
-- Run every test and verification command serially. Before Playwright, require zero other `@playwright\\test\\cli.js` processes and zero listeners on port 8767.
+- Run every test and verification command serially within this repository. Before Playwright, require zero other Playwright processes for this repository and zero listeners on port 8767. Other repositories may verify concurrently on distinct ports.
 - Do not push or merge.
 
 ## File map
@@ -146,7 +146,7 @@ Starts with seven `TODO` fields plus `Verified sources: TODO`. Mission 7 require
 | 1 | `incident.log` | Incident response | Record the impossible event and timing | `/`, `n`, `Ctrl-O`, `Ctrl-I`, `cil` |
 | 2 | `events.csv` | Data analysis | Preserve and paste ID and sensor evidence | search history, named registers, `diw`, `p` |
 | 3 | `config.js` | Software maintenance | Correct source and change note | `ci"`, `cil`, `g;`, `g,`, automatic marks |
-| 4 | `incident.log` | Log cleanup | Normalize three repeated warnings | `.`, `qa`, `@a`, `n` |
+| 4 | `incident.log` | Log cleanup | Normalize three repeated warnings | `.`, `qz`, `@z`, `n` |
 | 5 | `launch-copy.md` | Copywriting | Replace unsupported claims and approved copy | `cil`, Insert `Ctrl-N`, registers |
 | 6 | `runbook.md` | Operations | Replace guesses with executable steps | search, `cil`, repeatable edits |
 | 7 | `postmortem.md` | Synthesis | Assemble impact, cause, repair, copy, and follow-up | registers, `cil`, `yal`, completion |

@@ -1,0 +1,140 @@
+import { test, expect } from '@playwright/test';
+import { open, press, type, cmd, lines, state } from './helpers.js';
+
+async function keys(page, values) {
+  for (const value of values) await press(page, value);
+}
+
+async function search(page, pattern) {
+  await press(page, '/');
+  await type(page, pattern);
+  await press(page, 'Enter');
+}
+
+async function replaceLine(page, text) {
+  await keys(page, ['0', 'c', 'i', 'l']);
+  await type(page, text);
+  await press(page, 'Escape');
+}
+
+async function nextMission(page, filename) {
+  await cmd(page, 'teacher next');
+  expect((await state(page)).file).toBe(filename);
+}
+
+test('teacher turns a corrupt launch into a verified postmortem', async ({ page }) => {
+  await open(page);
+  await press(page, ':');
+  await type(page, 'teacher');
+  const activationMs = await page.evaluate(() => {
+    const start = performance.now();
+    document.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'Enter', bubbles: true, cancelable: true
+    }));
+    return performance.now() - start;
+  });
+  console.log(JSON.stringify({ teacherActivationMs: activationMs }));
+  expect(activationMs).toBeLessThanOrEqual(100);
+  expect((await state(page)).file).toBe('[Teacher]');
+  expect((await lines(page)).join('\n')).toContain('PHALENE ANALYTICS // FIELD LAB');
+
+  page.once('dialog', dialog => dialog.accept());
+  await cmd(page, 'teacher reset');
+  expect((await lines(page)).join('\n')).toContain('PHALENE ANALYTICS // FIELD LAB');
+
+  await nextMission(page, 'incident.log');
+  await cmd(page, 'teacher hint');
+  expect((await state(page)).file).toBe('[Teacher]');
+  expect((await lines(page)).join('\n')).toContain('HINT:');
+  await press(page, 'Control+o');
+  expect((await state(page)).file).toBe('incident.log');
+  await search(page, 'landings=14203');
+  await keys(page, ['Control+o', 'Control+i', 'G']);
+  await replaceLine(page, 'ANALYST_NOTE: evt_014203 recorded 14203 landings before roof-array was online');
+  await cmd(page, 'teacher check');
+  await keys(page, [':', 'ArrowUp', 'Enter']);
+
+  await nextMission(page, 'events.csv');
+  await search(page, 'candidate_id');
+  await keys(page, ['/', 'ArrowUp', 'Enter', 'j', '0', '"', 'a', 'y', 'i', 'w']);
+  await search(page, 'evidence_id');
+  await keys(page, ['j', '0', 'd', 'i', 'w', '"', 'a', 'p']);
+  await search(page, 'candidate_sensor');
+  await keys(page, ['j', '0', '"', 'b', 'y', 'i', 'w']);
+  await search(page, 'evidence_sensor');
+  await keys(page, ['j', '0', 'd', 'i', 'w', '"', 'b', 'p']);
+
+  await nextMission(page, 'config.js');
+  await search(page, 'desk-lamp');
+  await keys(page, ['c', 'i', '"']);
+  await type(page, 'roof-array');
+  await press(page, 'Escape');
+  await search(page, 'CHANGE_NOTE');
+  await replaceLine(page, '// CHANGE_NOTE: source corrected to roof-array');
+  await keys(page, ['g', 'g', 'g', ';', 'g', ',', '`', '.']);
+
+  await nextMission(page, 'incident.log');
+  await search(page, 'status : duplicated');
+  await keys(page, ['c', '$']);
+  await type(page, 'status=duplicate');
+  await press(page, 'Escape');
+  await press(page, 'n');
+  await keys(page, ['q', 'z', '.', 'n', 'q', '@', 'z']);
+
+  await nextMission(page, 'launch-copy.md');
+  await search(page, 'We counted');
+  await replaceLine(page, 'Claim review: Desk-lamp counts before deployment were excluded.');
+  await search(page, 'The dashboard recorded');
+  await replaceLine(page, 'Evidence note: 14,203 was a pre-deployment desk-lamp event, not verified launch activity.');
+  await search(page, 'Approved copy');
+  await keys(page, ['0', 'c', 'i', 'l']);
+  await type(page, 'Approved copy: The dashboard reports REVIEWED_');
+  await press(page, 'Control+n');
+  await type(page, ' after deployment.');
+  await press(page, 'Escape');
+
+  await nextMission(page, 'runbook.md');
+  await press(page, 'j');
+  await replaceLine(page, '1. Confirm the active sensor source in config.js.');
+  await press(page, 'j');
+  await replaceLine(page, '2. Compare event time with deployedAt.');
+  await press(page, 'j');
+  await replaceLine(page, '3. Quarantine pre-deployment events and notify on-call.');
+  await press(page, 'j');
+  await replaceLine(page, 'Operator action: Verify sensor source, deployment time, and event timestamp before publishing counts.');
+
+  await nextMission(page, 'postmortem.md');
+  const reportLines = [
+    'Impact: Dashboard displayed 14,203 impossible pre-deployment landings.',
+    'Evidence: evt_014203 occurred before the roof-array was online.',
+    'Root cause: The active source was desk-lamp instead of roof-array.',
+    'Repair: Config now uses roof-array and excludes pre-deployment events.',
+    'Launch copy: The dashboard reports REVIEWED_ROOF_ARRAY_EVENTS after deployment.',
+    'Runbook: Verify sensor source, deployment time, and event timestamp before publishing counts.',
+    'Follow-up: Add a deployment-time validation gate before ingest.'
+  ];
+  await search(page, 'Impact: TODO');
+  for (let index = 0; index < reportLines.length; index++) {
+    if (index > 0) await press(page, 'j');
+    const reportLine = reportLines[index];
+    await replaceLine(page, reportLine);
+  }
+  await keys(page, ['y', 'a', 'l']);
+
+  await nextMission(page, 'postmortem.md');
+  await keys(page, ['Control+o', 'Control+o', 'Control+i', 'Control+i', 'g', ';', 'g', ',']);
+  await search(page, 'Verified sources');
+  await replaceLine(page, 'Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md');
+  await cmd(page, 'teacher next');
+
+  expect((await state(page)).file).toBe('[Teacher]');
+  expect((await lines(page)).join('\n')).toContain('PROJECT COMPLETE');
+  await press(page, 'Control+o');
+  expect((await state(page)).file).toBe('postmortem.md');
+  expect(await lines(page)).toEqual([
+    '# Phalene Analytics Incident Postmortem',
+    ' ',
+    ...reportLines,
+    'Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'
+  ]);
+});

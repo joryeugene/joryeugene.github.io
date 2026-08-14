@@ -41,19 +41,22 @@
     ];
     var launcher = compact ? [
       ':tutor          guided lesson',
+      ':teacher        applied project',
       ':Ex             browse files',
       ':help           manual'
     ] : narrow ? [
       'Ctrl-P          commands',
       ':tutor          guided lesson',
+      ':teacher        applied project',
       ':Ex             browse files',
       ':moth           kinetic field',
       ':snake          play',
       ':help           manual'
     ] : [
       'Ctrl-P          commands            :tutor        guided lesson',
-      ':Ex             browse files        :snake        play',
-      ':help           manual              :moth         kinetic field'
+      ':teacher        applied project     :Ex           browse files',
+      ':snake          play                :moth         kinetic field',
+      ':help           manual'
     ];
     var actions = compact ? [
       'i               start typing',
@@ -79,11 +82,13 @@
       '',
       'tap anywhere to type',
       'read my pick:  :e friction-economy then press Enter',
-      'new to Vim?  type :tutor then press Enter'
+      'new to Vim?  type :tutor then press Enter',
+      'ready to apply it?  type :teacher then press Enter'
     ] : [
       '',
       'read my pick:  :e friction-economy then press Enter',
-      'new to Vim?  type :tutor then press Enter'
+      'new to Vim?  type :tutor then press Enter',
+      'ready to apply it?  type :teacher then press Enter'
     ];
     var guideStart = header.length;
     var guideEnd = guideStart + guide.length;
@@ -269,6 +274,7 @@
     macroLastPlayed: null,
     macroLastRecorded: null,
     replayContext: null,
+    teacherMission: null,
     expandtab: true,
     tabstop: 4,
     shiftwidth: 2,
@@ -2215,7 +2221,7 @@
     if (state.dashboard) {
       if (line.indexOf(VIM_NAME) !== -1) escaped = '<span class="vim-dashboard-title">' + escaped + '</span>';
       else if (/h \(left\)|k  \(up\)|j  \(down\)/.test(line)) escaped = '<span class="vim-dashboard-move">' + escaped + '</span>';
-      else if (state.mode === 'normal' && !state.searchPattern && /^(Ctrl-P|:Ex|:help|i\s{2,}|\/aquarium Enter|u \/ Ctrl-r)/.test(line.replace(/^\s+/, ''))) {
+      else if (state.mode === 'normal' && !state.searchPattern && /^(Ctrl-P|:teacher|:Ex|:snake|:help|i\s{2,}|\/aquarium Enter|u \/ Ctrl-r)/.test(line.replace(/^\s+/, ''))) {
         var trimmed = line.replace(/^\s+/, '');
         var leading = line.slice(0, line.length - trimmed.length);
         var cells = trimmed.split(/(\s{2,})/);
@@ -2225,10 +2231,11 @@
           else if (dc % 4 === 0) escaped += '<span class="vim-dashboard-command">' + escHtml(cells[dc]) + '</span>';
           else escaped += '<span class="vim-dashboard-description">' + escHtml(cells[dc]) + '</span>';
         }
-      } else if (state.mode === 'normal' && !state.searchPattern && /read my pick:|new to Vim\?/.test(line)) {
+      } else if (state.mode === 'normal' && !state.searchPattern && /read my pick:|new to Vim\?|ready to apply it\?/.test(line)) {
         escaped = escHtml(line)
           .replace(':e friction-economy', '<span class="vim-dashboard-command">:e friction-economy</span>')
-          .replace(':tutor', '<span class="vim-dashboard-command">:tutor</span>');
+          .replace(':tutor', '<span class="vim-dashboard-command">:tutor</span>')
+          .replace(':teacher', '<span class="vim-dashboard-command">:teacher</span>');
       }
     }
 
@@ -3444,6 +3451,7 @@
     { label: 'New empty buffer', command: 'enew' },
     { label: 'Browse files', command: 'Ex' },
     { label: 'Open Vim tutor', command: 'tutor' },
+    { label: 'Start the applied Vim teacher project', command: 'teacher' },
     { label: 'Open command reference', command: 'help' },
     { label: 'Enter kinetic moth field', command: 'moth' },
     { label: 'Play Snake', command: 'snake' },
@@ -3574,6 +3582,189 @@
     }
     // Main help screen (lives in js/vim-help.js).
     return (window.VIM_HELP_MAIN || function() { return ['help unavailable']; })(VIM_VERSION);
+  }
+
+  // -------------------------------------------------------------------------
+  // Applied teacher project
+  // -------------------------------------------------------------------------
+  function teacherPackage() {
+    return window.VIM_TEACHER || null;
+  }
+
+  function teacherDocumentId(filename) {
+    return 'teacher:' + filename;
+  }
+
+  function teacherGuideLines(showHint) {
+    var teacher = teacherPackage();
+    if (!teacher) return ['Teacher content unavailable.'];
+    if (state.teacherMission === null || state.teacherMission < 0) return teacher.intro.slice();
+    if (state.teacherMission >= teacher.missions.length) return teacher.done.slice();
+
+    var mission = teacher.missions[state.teacherMission];
+    var guide = [
+      'PHALENE ANALYTICS // MISSION ' + (state.teacherMission + 1) + ' OF ' + teacher.missions.length,
+      '',
+      mission.title,
+      'File: ' + mission.file,
+      '',
+      'WORK REQUEST:'
+    ];
+    for (var i = 0; i < mission.request.length; i++) guide.push('  ' + mission.request[i]);
+    guide.push('', 'OBSERVABLE RESULT:');
+    for (var j = 0; j < mission.outcome.length; j++) guide.push('  ' + mission.outcome[j]);
+    guide.push(
+      '',
+      'Use :teacher check for the first unmet result.',
+      'Use :teacher next when the work is ready.',
+      'Press Ctrl-O to return to ' + mission.file + '.'
+    );
+    if (showHint) guide.push('', 'HINT:', '  ' + mission.hint);
+    return guide;
+  }
+
+  function teacherSwitch(documentId, filename, lines, status) {
+    pushUndo(false);
+    pushJump();
+    switchDocument(documentId, filename, lines, 0, 0);
+    setStatus(status);
+    render();
+  }
+
+  function teacherStart() {
+    var teacher = teacherPackage();
+    if (!teacher) {
+      setStatus('Teacher content unavailable.');
+      return;
+    }
+
+    teacherSwitch('teacher:guide', '[Teacher]', teacher.intro, ':teacher opened. Type :teacher next to start.');
+    var filenames = Object.keys(teacher.files);
+    for (var i = 0; i < filenames.length; i++) {
+      var filename = filenames[i];
+      state.documents[teacherDocumentId(filename)] = {
+        filename: filename,
+        lines: teacher.files[filename].slice()
+      };
+    }
+    state.teacherMission = -1;
+  }
+
+  function teacherShowGuide(showHint, status) {
+    teacherSwitch(
+      'teacher:guide',
+      '[Teacher]',
+      teacherGuideLines(showHint),
+      status || (showHint ? 'Hint opened. Ctrl-O returns to the work.' : 'Mission brief opened. Ctrl-O returns to the work.')
+    );
+  }
+
+  function teacherOpenMission() {
+    var teacher = teacherPackage();
+    var mission = teacher.missions[state.teacherMission];
+    var document = state.documents[teacherDocumentId(mission.file)];
+    if (!document) {
+      setStatus('Teacher file unavailable: ' + mission.file);
+      return;
+    }
+    teacherSwitch(
+      teacherDocumentId(mission.file),
+      document.filename,
+      document.lines,
+      'Mission ' + (state.teacherMission + 1) + ' of ' + teacher.missions.length + ': ' + mission.title
+    );
+  }
+
+  function teacherCheckMission() {
+    var teacher = teacherPackage();
+    if (state.teacherMission < 0) return 'Type :teacher next to start.';
+    if (state.teacherMission >= teacher.missions.length) return null;
+
+    var mission = teacher.missions[state.teacherMission];
+    if (state.documentId !== teacherDocumentId(mission.file)) {
+      return 'Return to ' + mission.file + ' before checking this mission.';
+    }
+    saveCurrentDocument();
+    var document = state.documents[teacherDocumentId(mission.file)];
+    var text = document ? document.lines.join('\n') : '';
+    var i;
+    for (i = 0; i < mission.reject.length; i++) {
+      if (text.indexOf(mission.reject[i]) !== -1) {
+        return 'Remove or replace: ' + mission.reject[i].replace(/\n/g, ' | ');
+      }
+    }
+    for (i = 0; i < mission.expect.length; i++) {
+      if (text.indexOf(mission.expect[i]) === -1) {
+        return 'Missing: ' + mission.expect[i].replace(/\n/g, ' | ');
+      }
+    }
+    return null;
+  }
+
+  function teacherCommand(arg) {
+    var teacher = teacherPackage();
+    if (!teacher) {
+      setStatus('Teacher content unavailable.');
+      return;
+    }
+    if (state.teacherMission === null) {
+      if (!arg) {
+        teacherStart();
+      } else {
+        setStatus('Start the project with :teacher.');
+      }
+      return;
+    }
+    if (!arg) {
+      teacherShowGuide(false);
+      return;
+    }
+    if (arg === 'hint') {
+      if (state.teacherMission >= teacher.missions.length) {
+        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.');
+        return;
+      }
+      teacherShowGuide(true);
+      return;
+    }
+    if (arg === 'check') {
+      if (state.teacherMission >= teacher.missions.length) {
+        setStatus('Project complete.');
+        return;
+      }
+      var unmet = teacherCheckMission();
+      setStatus(unmet || ('Mission ' + (state.teacherMission + 1) + ' ready. Type :teacher next.'));
+      return;
+    }
+    if (arg === 'reset') {
+      if (window.confirm('Reset the six teacher files and restart the project?')) teacherStart();
+      else setStatus('Teacher reset canceled.');
+      return;
+    }
+    if (arg === 'next') {
+      if (state.teacherMission < 0) {
+        state.teacherMission = 0;
+        teacherOpenMission();
+        return;
+      }
+      if (state.teacherMission >= teacher.missions.length) {
+        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.');
+        return;
+      }
+      var missing = teacherCheckMission();
+      if (missing) {
+        setStatus(missing);
+        return;
+      }
+      state.teacherMission++;
+      if (state.teacherMission >= teacher.missions.length) {
+        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.');
+      } else {
+        teacherOpenMission();
+      }
+      return;
+    }
+    setStatus('Usage: :teacher [next|check|hint|reset]');
   }
 
   // -------------------------------------------------------------------------
@@ -3818,6 +4009,10 @@
       switchDocument('tutor', '[Tutor]', window.VIM_TUTOR_LESSONS || [], 0, 0);
       setStatus(':tutor opened. Edit this buffer to practice.');
       render(); return;
+    }
+    if (cmd === 'teacher' || cmd.slice(0, 8) === 'teacher ') {
+      teacherCommand(cmd.slice(7).trim());
+      return;
     }
     if (cmd === 'agents') {
       agentsAquarium(); return;
@@ -5788,7 +5983,9 @@
     'unset et', 'unset expandtab', 'unset ai', 'unset autoindent',
     'nohlsearch', 'noh', 'nohl',
     'sort', 'sort u',
-    'r', 'zen', 'enew', 'new', 'e', 'intro', 'help', 'h', 'tutor', 'Tutor', 'agents', 'moth', 'snake',
+    'r', 'zen', 'enew', 'new', 'e', 'intro', 'help', 'h', 'tutor', 'Tutor',
+    'teacher', 'teacher next', 'teacher check', 'teacher hint', 'teacher reset',
+    'agents', 'moth', 'snake',
     'marks', 'jumps', 'clearjumps', 'pray',
     'colorscheme', 'colo', 'color', 'emacs', 'nano'
   ];
