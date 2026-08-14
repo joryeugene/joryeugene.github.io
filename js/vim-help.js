@@ -41,10 +41,16 @@
                   '"a through "z     Named registers.',
                   '"A through "Z     Append to a named register.',
                   '"_                Delete without changing registers or the clipboard.',
-                  '',
-                  'Registers remember characterwise, linewise, and blockwise shape.',
-                  'Yanks and deletes copy to the browser clipboard unless you use "_.',
-                  'Use Cmd+V to paste from the browser clipboard.'],
+                   '',
+                   'Registers remember characterwise, linewise, and blockwise shape.',
+                   'Yanks and deletes copy to the browser clipboard unless you use "_.',
+                   'Use Cmd+V to paste from the browser clipboard.',
+                   '',
+                   ':registers         Show non-empty registers.',
+                   ':registers {names} Show only the named registers.',
+                   ':display {names}   Alias for :registers.',
+                   '                   Tabs show as ^I and newlines as ^J.',
+                   '                   Press u to return to your buffer.'],
     'i':      ['i                  Enter insert mode before cursor.'],
     'I':      ['I                  Enter insert mode at first non-blank.'],
     'a':      ['a                  Enter insert mode after cursor.'],
@@ -266,6 +272,9 @@
   T['set'] = T[':set'];
   T['options'] = T[':set'];
   T['"'] = T['registers'];
+  T[':registers'] = T['registers'];
+  T[':display'] = T['registers'];
+  T['display'] = T['registers'];
   T['m'] = ['m{a-z}          Set mark at current cursor position.',
             '`{mark}         Jump to exact manual or automatic mark.',
             "'{mark}         Jump to the marked line's first non-blank.",
@@ -539,6 +548,8 @@
       '  "1 to "9   recent large deletes "-      most recent small delete',
       '  "a to "z   named registers      "A to "Z  append to named register',
       '  "_          delete without changing registers or browser clipboard',
+      '  :registers show non-empty registers; add names to filter',
+      '  :display   alias for :registers; press u to return',
       '  Registers preserve character, line, and block shape.',
       '  Yanks and deletes also copy to the browser clipboard unless you use "_.',
       '  Cmd+V pastes from the browser clipboard.',

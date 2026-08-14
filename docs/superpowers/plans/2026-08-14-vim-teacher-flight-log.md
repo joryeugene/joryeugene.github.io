@@ -275,7 +275,7 @@ git commit -m "fix(vim): restore line change undo blocks"
 - Consumes: `state.registers`, `getRegister(name)`, `nextOutputId(kind)`, `switchDocument(...)`, and `pushUndo(false)`.
 - Produces: `registerDisplayLines(filter)`, `:registers [names]`, and `:display [names]`.
 
-- [ ] **Step 1: Add the failing mission 2 display assertion**
+- [x] **Step 1: Add the failing mission 2 display assertion**
 
 After yanking `evt_014203` into `a` and `desk_lamp` into `b`, run `:registers a b`. Assert `[Registers]` contains:
 
@@ -286,11 +286,11 @@ After yanking `evt_014203` into `a` and `desk_lamp` into `b`, run `:registers a 
 
 Press `u` and assert the active file returns to `events.csv`.
 
-- [ ] **Step 2: Run the journey and observe RED**
+- [x] **Step 2: Run the journey and observe RED**
 
 Expected RED: `E492: Not an editor command: registers a b`.
 
-- [ ] **Step 3: Implement the bounded display command**
+- [x] **Step 3: Implement the bounded display command**
 
 Add:
 
@@ -316,11 +316,11 @@ function registerDisplayLines(filter) {
 
 Parse `/^(?:registers|display)(?:\s+(.*))?$/`, switch to `[Registers]` through the existing output-buffer pattern, and add both commands to `cmdCompletions`.
 
-- [ ] **Step 4: Update help and run GREEN**
+- [x] **Step 4: Update help and run GREEN**
 
 Document `:registers`, its optional names, `:display`, kinds, escaped tabs/newlines, and `u` return behavior. Run the sole journey and assert exact visible output.
 
-- [ ] **Step 5: Commit the inspection slice**
+- [x] **Step 5: Commit the inspection slice**
 
 ```powershell
 git add tests/p0-teacher.spec.js js/vim.js js/vim-help.js

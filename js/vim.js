@@ -610,6 +610,26 @@
     return name === '_' ? emptyRegister() : getRegister(name);
   }
 
+  function registerDisplayText(value) {
+    return value.text.replace(/\t/g, '^I').replace(/\n/g, '^J');
+  }
+
+  function registerDisplayLines(filter) {
+    var names = filter
+      ? filter.replace(/\s/g, '').split('')
+      : Object.keys(state.registers).sort();
+    var lines = ['register  kind  value', '--------  ----  -----'];
+    for (var i = 0; i < names.length; i++) {
+      var name = names[i].toLowerCase();
+      var value = state.registers[name];
+      if (!value || (!value.text && !value.tokens)) continue;
+      lines.push('"' + name + '  ' + value.kind + '  ' + registerDisplayText(value));
+    }
+    if (lines.length === 2) lines.push('(no registers)');
+    lines.push('', 'Press u to return to your buffer.');
+    return lines;
+  }
+
   function pasteRegister(value, before) {
     if (!value.text) { setStatus('Nothing in register'); return false; }
     var row = state.cursor.row;
@@ -3866,6 +3886,14 @@
       teacherGuideReadonlyError();
       return;
     }
+    var registerMatch = cmd.match(/^(?:registers|display)(?:\s+(.*))?$/);
+    if (registerMatch) {
+      pushUndo(false);
+      pushJump();
+      switchDocument(nextOutputId('registers'), '[Registers]',
+        registerDisplayLines(registerMatch[1]), 0, 0);
+      render(); return;
+    }
     if (cmd === 'clearjumps') {
       state.jumpList = [];
       state.jumpIdx = -1;
@@ -6091,7 +6119,7 @@
     'r', 'zen', 'enew', 'new', 'e', 'intro', 'help', 'h', 'tutor', 'Tutor',
     'teacher', 'teacher next', 'teacher check', 'teacher hint', 'teacher reset',
     'agents', 'moth', 'snake',
-    'marks', 'jumps', 'clearjumps', 'pray',
+    'marks', 'jumps', 'clearjumps', 'registers', 'display', 'pray',
     'colorscheme', 'colo', 'color', 'emacs', 'nano'
   ];
   var tabIdx = -1;

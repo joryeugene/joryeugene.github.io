@@ -100,6 +100,12 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await keys(page, ['j', '0', 'd', 'i', 'w', '"', 'a', 'p']);
   await search(page, 'candidate_sensor');
   await keys(page, ['j', '0', '"', 'b', 'y', 'i', 'w']);
+  await cmd(page, 'registers a b');
+  expect((await state(page)).file).toBe('[Registers]');
+  expect((await lines(page)).join('\n')).toContain('"a  char  evt_014203');
+  expect((await lines(page)).join('\n')).toContain('"b  char  desk_lamp');
+  await press(page, 'u');
+  expect((await state(page)).file).toBe('events.csv');
   await search(page, 'evidence_sensor');
   await keys(page, ['j', '0', 'd', 'i', 'w', '"', 'b', 'p']);
 
