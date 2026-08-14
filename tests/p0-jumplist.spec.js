@@ -87,6 +87,24 @@ test.describe('P0 jumplist', () => {
     expect(entries[0]).toMatch(/^>\s+0\s+1\s+/);
   });
 
+  test('multi-line characterwise change collapses saved rows onto the merged line', async ({ page }) => {
+    await open(page);
+    await seed(page, '(\ninside\n)');
+    await press(page, '/'); await type(page, 'inside'); await press(page, 'Enter');
+    await cmd(page, 'clearjumps');
+    await press(page, 'G');
+    await press(page, 'k'); await press(page, 'k');
+
+    await press(page, 'c'); await press(page, '%');
+    await type(page, 'changed'); await press(page, 'Escape');
+    expect(await lines(page)).toHaveLength(1);
+    await cmd(page, 'jumps');
+
+    const entries = (await lines(page)).filter(line => line.includes('untitled.txt'));
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatch(/^>\s+0\s+1\s+/);
+  });
+
   test('row adjustments deduplicate consecutive saved jump lines', async ({ page }) => {
     await open(page);
     await seed(page, 'one\ntwo\nthree');
