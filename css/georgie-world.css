@@ -203,7 +203,7 @@ button {
 
 .georgie-world__bone {
   position: absolute;
-  z-index: 4;
+  z-index: 3;
   left: 8%;
   top: 80%;
   width: 68px;
@@ -284,14 +284,13 @@ button {
 
 .georgie-world__dog {
   position: absolute;
-  z-index: 3;
+  z-index: 4;
   left: 16%;
   top: 68%;
   width: clamp(96px, 10vw, 160px);
   aspect-ratio: 192 / 208;
   transform: translate(-50%, -50%);
   transition: left 2.4s cubic-bezier(0.25, 0.78, 0.3, 1), top 2.4s cubic-bezier(0.25, 0.78, 0.3, 1);
-  will-change: left, top;
 }
 
 .georgie-world__dog[hidden] {

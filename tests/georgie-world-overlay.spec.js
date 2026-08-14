@@ -19,6 +19,21 @@ test.describe("Georgie world across the real site", () => {
     await expect(page.locator("[data-georgie-overlay]")).toHaveCount(0);
   });
 
+  test("gives an empty site a visible Georgie beat within two seconds", async ({ page }, testInfo) => {
+    const startedAt = Date.now();
+    await page.goto("/?georgie-world=1&offline=1");
+    await expect(page.locator("[data-georgie-reaction]")).toHaveText(
+      "A moth made a terrible tactical decision.",
+      { timeout: 2_000 },
+    );
+    const elapsedMs = Date.now() - startedAt;
+    expect(elapsedMs).toBeLessThan(2_000);
+    await testInfo.attach("first-solo-beat.json", {
+      body: JSON.stringify({ elapsedMs }),
+      contentType: "application/json",
+    });
+  });
+
   for (const route of previewRoutes) {
     test(`mounts one non-blocking Georgie world on ${route}`, async ({ page }) => {
       await page.goto(`${route}?georgie-world=1&offline=1&test=1`);

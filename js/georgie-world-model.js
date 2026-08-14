@@ -3,7 +3,7 @@ const RECOGNITION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const QUICK_INVITE_MS = 5_000;
 const SHARED_SCENE_BEAT_MS = 6_000;
 const SHARED_SCENES = Object.freeze([
-  { routine: "watch", x: 0.16, y: 0.68, direction: "right", message: "Georgie noticed the room." },
+  { routine: "watch", x: 0.16, y: 0.68, direction: "right", message: "Georgie noticed you. He has made no commitment." },
   { routine: "wander", x: 0.78, y: 0.7, message: "Georgie is checking the perimeter." },
   { routine: "chase-moth", x: 0.61, y: 0.24, message: "A moth made a terrible tactical decision." },
   { routine: "rest", x: 0.62, y: 0.76, direction: "right", message: "Georgie stopped exactly where he wanted." },

@@ -101,7 +101,7 @@ export class GeorgieWorld {
     this.bindBone();
 
     if (!new URLSearchParams(location.search).has("offline")) this.connectPresence();
-    if (!this.testMode && !this.reducedMotion) this.scheduleRoutine(900);
+    if (!this.testMode && !this.reducedMotion) this.scheduleRoutine(900, "chase-moth");
   }
 
   renderRecognition(remembered) {
@@ -398,13 +398,13 @@ export class GeorgieWorld {
     this.say("Georgie chose somewhere else to be.", 2_800);
   }
 
-  scheduleRoutine(delay = 3_000 + Math.random() * 2_500) {
+  scheduleRoutine(delay = 3_000 + Math.random() * 2_500, forcedRoutine = null) {
     window.clearTimeout(this.routineTimer);
-    this.routineTimer = window.setTimeout(() => this.runRoutine(), delay);
+    this.routineTimer = window.setTimeout(() => this.runRoutine(forcedRoutine), delay);
   }
 
-  runRoutine() {
-    const routine = this.behavior.chooseRoutine(this.presence.occupancy);
+  runRoutine(forcedRoutine = null) {
+    const routine = forcedRoutine || this.behavior.chooseRoutine(this.presence.occupancy);
     this.root.dataset.state = routine;
 
     if (routine === "wander") {
