@@ -4,11 +4,13 @@
   "description": "Personal site of Jory Pestorious. Static site served on GitHub Pages.",
   "type": "module",
   "scripts": {
+    "build:site": "node scripts/build-site.mjs",
     "sync": "node scripts/sync-blog-surfaces.mjs",
     "check:sync": "node scripts/sync-blog-surfaces.mjs --check",
     "lint:prose": "node scripts/prose-lint.mjs",
     "test": "playwright test",
     "test:georgie-model": "node --test tests/unit/georgie-world.test.js",
+    "test:site-artifact": "node --test tests/unit/site-artifact.test.js",
     "test:motion": "playwright test -c playwright.motion.config.js",
     "test:worker": "vitest run --config vitest.worker.config.js"
   },

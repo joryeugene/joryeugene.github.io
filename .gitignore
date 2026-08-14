@@ -38,4 +38,6 @@ test-results/
 playwright-report/
 .playwright-mcp/
 .wrangler/
+site-dist/
+site-dist-manifest.json
 docs/

@@ -68,6 +68,27 @@ afterEach(() => {
 });
 
 describe("Georgie presence room", () => {
+  it("accepts the curated Georgie preview origins", async () => {
+    for (const previewOrigin of [
+      "https://jorypestorious-preview.pages.dev",
+      "https://georgie-living-web.jorypestorious-preview.pages.dev",
+    ]) {
+      const response = await SELF.fetch(
+        `${TEST_ORIGIN}/api/presence?session=visitor-a`,
+        {
+          headers: {
+            Origin: previewOrigin,
+            Upgrade: "websocket",
+          },
+        },
+      );
+
+      expect(response.status).toBe(101);
+      response.webSocket.accept();
+      response.webSocket.close(1000, "test done");
+    }
+  });
+
   it("rejects a websocket upgrade from an unrelated origin", async () => {
     const response = await SELF.fetch(
       `${TEST_ORIGIN}/api/presence?session=visitor-a`,
