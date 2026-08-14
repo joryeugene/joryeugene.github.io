@@ -177,7 +177,7 @@
 
   function openExplorer() {
     if (isExplorerBuffer()) return;
-    pushUndo();
+    pushUndo(false);
     var expLines = buildExplorer();
     pushJump();
     switchDocument('explorer', 'netrw', expLines, expLines.firstFileRow || 0, expLines.padLeft || 0);
@@ -251,7 +251,9 @@
     pendingEditRequest: null,
     jumpList: [],
     jumpIdx: -1,
-    lastVisualRange: null,
+    changeLists: {},
+    changeListIndexes: {},
+    lastVisualRanges: {},
     confirmSub: null,
     preSearchCursor: null,
     preSearchState: null,
@@ -374,6 +376,22 @@
         state.jumpList[i].documentId = documentId;
         state.jumpList[i].filename = filename;
       }
+    }
+    if (documentId !== oldDocumentId && state.changeLists[oldDocumentId]) {
+      state.changeLists[documentId] = state.changeLists[oldDocumentId];
+      delete state.changeLists[oldDocumentId];
+    }
+    if (documentId !== oldDocumentId && state.changeListIndexes[oldDocumentId] !== undefined) {
+      state.changeListIndexes[documentId] = state.changeListIndexes[oldDocumentId];
+      delete state.changeListIndexes[oldDocumentId];
+    }
+    if (documentId !== oldDocumentId && state.marks[oldDocumentId]) {
+      state.marks[documentId] = state.marks[oldDocumentId];
+      delete state.marks[oldDocumentId];
+    }
+    if (documentId !== oldDocumentId && state.lastVisualRanges[oldDocumentId]) {
+      state.lastVisualRanges[documentId] = state.lastVisualRanges[oldDocumentId];
+      delete state.lastVisualRanges[oldDocumentId];
     }
     for (var ui = 0; ui < state.undoStack.length; ui++) {
       var undoEntry = state.undoStack[ui];
@@ -632,6 +650,31 @@
   // -------------------------------------------------------------------------
   // Undo
   // -------------------------------------------------------------------------
+  function applyRowTransformToPosition(position, startRow, endRow, delta, maxRow) {
+    if (position.row < startRow) return;
+    if (position.row < endRow) position.row = startRow;
+    else position.row += delta;
+    position.row = Math.min(maxRow, Math.max(0, position.row));
+  }
+
+  function applyReversibleRowTransform(transform, position, startRow, endRow, delta, maxRow, reverse) {
+    var positions = transform.anchorPositions || [];
+    var snapshotIndex = positions.indexOf(position);
+    if (reverse && snapshotIndex !== -1) {
+      position.row = Math.min(maxRow, Math.max(0, transform.anchorRows[snapshotIndex]));
+      return;
+    }
+    if (!reverse && position.row >= startRow && snapshotIndex === -1) {
+      if (!transform.anchorPositions) {
+        transform.anchorPositions = [];
+        transform.anchorRows = [];
+      }
+      transform.anchorPositions.push(position);
+      transform.anchorRows.push(position.row);
+    }
+    applyRowTransformToPosition(position, startRow, endRow, delta, maxRow);
+  }
+
   function applyJumpRowTransform(transform, reverse) {
     var startRow = transform.startRow;
     var removedCount = reverse ? transform.addedCount : transform.removedCount;
@@ -645,10 +688,18 @@
     for (var i = 0; i < state.jumpList.length; i++) {
       var jump = state.jumpList[i];
       if (jump.documentId !== transform.documentId || jump.row < startRow) continue;
-      if (jump.row < endRow) jump.row = startRow;
-      else jump.row += delta;
-      jump.row = Math.min(maxRow, Math.max(0, jump.row));
+      applyReversibleRowTransform(transform, jump, startRow, endRow, delta, maxRow, reverse);
     }
+    var changeList = state.changeLists[transform.documentId] || [];
+    for (var ci = 0; ci < changeList.length; ci++) {
+      if (changeList[ci] === transform.changePosition) continue;
+      applyReversibleRowTransform(transform, changeList[ci], startRow, endRow, delta, maxRow, reverse);
+    }
+    var marks = state.marks[transform.documentId] || {};
+    Object.keys(marks).forEach(function(name) {
+      if (marks[name] === transform.changeMark) return;
+      applyReversibleRowTransform(transform, marks[name], startRow, endRow, delta, maxRow, reverse);
+    });
     var deduped = [];
     var nextJumpIdx = state.jumpIdx;
     for (var j = 0; j < state.jumpList.length; j++) {
@@ -663,26 +714,97 @@
   }
 
   function adjustJumpRows(startRow, removedCount, addedCount) {
+    var undoEntry = state.undoStack[state.undoIdx];
     var transform = {
       documentId: state.documentId,
       startRow: startRow,
       removedCount: removedCount,
       addedCount: addedCount,
-      lineCountBefore: state.lines.length
+      lineCountBefore: state.lines.length,
+      changePosition: undoEntry && undoEntry.documentId === state.documentId
+        ? undoEntry.changePosition : null,
+      changeMark: undoEntry && undoEntry.documentId === state.documentId
+        ? undoEntry.changeMark : null
     };
     applyJumpRowTransform(transform, false);
-    var undoEntry = state.undoStack[state.undoIdx];
     if (undoEntry && undoEntry.documentId === state.documentId) {
       undoEntry.rowTransforms.push(transform);
     }
   }
 
-  function pushUndo() {
+  function currentChangeList() {
+    if (!state.changeLists[state.documentId]) state.changeLists[state.documentId] = [];
+    return state.changeLists[state.documentId];
+  }
+
+  function currentMarks() {
+    if (!state.marks[state.documentId]) state.marks[state.documentId] = {};
+    return state.marks[state.documentId];
+  }
+
+  function currentLastVisualRange() {
+    return state.lastVisualRanges[state.documentId] || null;
+  }
+
+  function setCurrentLastVisualRange(range) {
+    if (range) state.lastVisualRanges[state.documentId] = range;
+    else delete state.lastVisualRanges[state.documentId];
+  }
+
+  function isMarkKey(key) {
+    return (key >= 'a' && key <= 'z') || '.[]<>^'.indexOf(key) !== -1;
+  }
+
+  function recordChangePosition() {
+    var list = currentChangeList();
+    var position = { row: state.cursor.row, col: state.cursor.col };
+    var last = list[list.length - 1];
+    if (last && last.row === position.row) {
+      last.col = position.col;
+      position = last;
+    } else {
+      list.push(position);
+      if (list.length > 100) list.shift();
+    }
+    state.changeListIndexes[state.documentId] = list.length;
+    currentMarks()['.'] = { row: position.row, col: position.col };
+    return position;
+  }
+
+  function moveChangeList(direction, count) {
+    var list = currentChangeList();
+    if (!list.length) { setStatus('E664: Changelist is empty'); return; }
+    var idx = state.changeListIndexes[state.documentId];
+    if (idx === undefined || idx < 0 || idx > list.length) idx = list.length;
+    if (direction > 0 && idx >= list.length - 1) {
+      setStatus('At end of changelist');
+      return;
+    }
+    var next = idx + direction * Math.max(1, count || 1);
+    next = Math.max(0, Math.min(list.length - 1, next));
+    if (next === idx) {
+      setStatus(direction < 0 ? 'At start of changelist' : 'At end of changelist');
+      return;
+    }
+    var position = list[next];
+    if (position.row !== state.cursor.row || position.col !== state.cursor.col) pushJump();
+    state.changeListIndexes[state.documentId] = next;
+    state.cursor.row = clampRow(position.row);
+    state.cursor.col = clampCol(state.cursor.row, position.col);
+    state.curswant = state.cursor.col;
+    render();
+  }
+
+  function pushUndo(trackChange) {
+    var changePosition = trackChange !== false ? recordChangePosition() : null;
+    var changeMark = trackChange !== false ? currentMarks()['.'] : null;
     state.undoStack = state.undoStack.slice(0, state.undoIdx + 1);
     state.undoStack.push({
       lines: state.lines.slice(),
       filename: state.filename,
       documentId: state.documentId,
+      changePosition: changePosition,
+      changeMark: changeMark,
       rowTransforms: []
     });
     if (state.undoStack.length > 200) { state.undoStack.shift(); }
@@ -1386,9 +1508,11 @@
   // -------------------------------------------------------------------------
   function applyOperator(op, row, col, range) {
     var startRow, startCol, endRow, endCol;
+    var operatedStartCol = 0, operatedEndCol = 0;
     if (range.linewise) {
       startRow = Math.min(row, range.endRow);
       endRow = Math.max(row, range.endRow);
+      operatedEndCol = Math.max(0, getLine(endRow).length - 1);
       // Linewise operations
       var lines = state.lines.slice(startRow, endRow + 1);
       setRegister(lines.join('\n'), true);
@@ -1448,6 +1572,8 @@
         tmp = startRow; startRow = endRow; endRow = tmp;
         tmp = startCol; startCol = endCol; endCol = tmp;
       }
+      operatedStartCol = startCol;
+      operatedEndCol = endCol > 0 ? previousCharacterIndex(getLine(endRow), endCol) : 0;
       // Yank the text
       if (startRow === endRow) {
         setRegister(getLine(startRow).slice(startCol, endCol), false);
@@ -1503,6 +1629,9 @@
         state.cursor.col = startCol;
       }
     }
+    var operatedMarks = currentMarks();
+    operatedMarks['['] = { row: clampRow(startRow), col: operatedStartCol };
+    operatedMarks[']'] = { row: clampRow(endRow), col: operatedEndCol };
     state.curswant = state.cursor.col;
     render();
   }
@@ -1667,8 +1796,9 @@
   // -------------------------------------------------------------------------
   function resolveRange(rangeStr) {
     if (rangeStr === '%') return { start: 0, end: state.lines.length - 1 };
-    if (rangeStr === "'<,'>" && state.lastVisualRange) {
-      return { start: state.lastVisualRange.startRow, end: state.lastVisualRange.endRow };
+    var lastVisualRange = currentLastVisualRange();
+    if (rangeStr === "'<,'>" && lastVisualRange) {
+      return { start: lastVisualRange.startRow, end: lastVisualRange.endRow };
     }
     if (rangeStr) {
       var parts = rangeStr.split(',');
@@ -1717,19 +1847,35 @@
     };
   }
 
-  function exitVisual() {
+  function rememberVisualSelection() {
+    var visualRange;
     if (state.visualMode === 'block') {
-      var br = getBlockRange();
-      if (br) {
-        br.linewise = false;
-        br.blockwise = true;
-        state.lastVisualRange = br;
+      visualRange = getBlockRange();
+      if (visualRange) {
+        visualRange.linewise = false;
+        visualRange.blockwise = true;
+        setCurrentLastVisualRange(visualRange);
       }
     } else {
-      var lvr = getVisualRange();
-      if (lvr) { lvr.linewise = state.visualMode === 'line'; lvr.blockwise = false; }
-      state.lastVisualRange = lvr;
+      visualRange = getVisualRange();
+      if (visualRange) {
+        visualRange.linewise = state.visualMode === 'line';
+        visualRange.blockwise = false;
+      }
+      setCurrentLastVisualRange(visualRange);
     }
+    if (visualRange) {
+      var visualMarks = currentMarks();
+      visualMarks['<'] = { row: visualRange.startRow, col: visualRange.startCol };
+      visualMarks['>'] = {
+        row: visualRange.endRow,
+        col: visualRange.blockwise ? visualRange.endCol : Math.max(0, visualRange.endCol - 1)
+      };
+    }
+  }
+
+  function exitVisual(selectionRemembered) {
+    if (!selectionRemembered) rememberVisualSelection();
     state.visualAnchor = null;
     state.visualMode = null;
   }
@@ -3266,7 +3412,7 @@
       return;
     }
     if (cmd === 'jumps') {
-      pushUndo();
+      pushUndo(false);
       pushJump();
       var jumpLines = ['jump line  col file/text', '----+------+---+---------'];
       for (var ji = 0; ji < state.jumpList.length; ji++) {
@@ -3315,7 +3461,7 @@
     var vwMatch = cmd.match(/^'<,'>w\s+(.+)$/);
     if (vwMatch) {
       var vwName = vwMatch[1].trim();
-      var vwRange = state.lastVisualRange;
+      var vwRange = currentLastVisualRange();
       if (vwRange) {
         var vwLines = state.lines.slice(vwRange.startRow, vwRange.endRow + 1);
         var vwContent = vwLines.join('\n') + '\n';
@@ -3420,7 +3566,7 @@
       savePrefs(); render(); return;
     }
     if (cmd === 'enew' || cmd === 'new') {
-      pushUndo();
+      pushUndo(false);
       pushJump();
       switchDocument(nextUntitledId(), 'untitled.txt', [''], 0, 0);
       render(); return;
@@ -3430,7 +3576,7 @@
       var eStored = readFromLocalFS(eFname);
       var ePath = resolveBlogPath(eFname);
       if (eStored !== null) {
-        pushUndo();
+        pushUndo(false);
         pushJump();
         switchDocument(documentIdForEdit(eFname, false), eFname, eStored.split('\n'), 0, 0);
         setStatus('"' + eFname + '" ' + state.lines.length + ' lines');
@@ -3449,7 +3595,7 @@
           if (state.pendingEditRequest !== eRequest ||
               state.documentGeneration !== eRequest.generation ||
               state.documentId !== eRequest.source.documentId) return;
-          pushUndo();
+          pushUndo(false);
           pushJumpEntry(eRequest.source);
           switchDocument(documentIdForEdit(eFname, true), eFname + '.md', text.split('\n'), 0, 0);
           setStatus('"' + eFname + '" ' + state.lines.length + ' lines');
@@ -3461,7 +3607,7 @@
           }
         });
       } else {
-        pushUndo();
+        pushUndo(false);
         pushJump();
         switchDocument(documentIdForEdit(eFname, false), eFname || 'untitled.txt', [''], 0, 0);
         setStatus('"' + state.filename + '" new file');
@@ -3473,7 +3619,7 @@
       openExplorer(); return;
     }
     if (cmd === 'intro') {
-      pushUndo();
+      pushUndo(false);
       pushJump();
       var introLines = buildWelcome();
       welcomeSnapshot = introLines.join('\n');
@@ -3482,7 +3628,7 @@
     }
     if (cmd === 'help' || cmd === 'h' || cmd.slice(0, 5) === 'help ' || cmd.slice(0, 2) === 'h ') {
       var helpArg = cmd.replace(/^h(elp)?\s*/, '').trim();
-      pushUndo();
+      pushUndo(false);
       var helpLines = getHelpText(helpArg);
       pushJump();
       switchDocument('help:' + (helpArg || 'main'), '[Help]', helpLines, 0, 0);
@@ -3490,7 +3636,7 @@
       return;
     }
     if (cmd === 'tutor' || cmd === 'Tutor') {
-      pushUndo();
+      pushUndo(false);
       pushJump();
       switchDocument('tutor', '[Tutor]', window.VIM_TUTOR_LESSONS || [], 0, 0);
       setStatus(':tutor opened. Edit this buffer to practice.');
@@ -3706,9 +3852,10 @@
       if (sortRange === '%') {
         // whole buffer, already default
       } else if (sortRange === "'<,'>") {
-        if (state.lastVisualRange) {
-          sortStart = state.lastVisualRange.startRow;
-          sortEnd = state.lastVisualRange.endRow;
+        var lastSortVisualRange = currentLastVisualRange();
+        if (lastSortVisualRange) {
+          sortStart = lastSortVisualRange.startRow;
+          sortEnd = lastSortVisualRange.endRow;
         }
       } else if (sortRange) {
         var srm = sortRange.match(/^(\d+),(\d+)$/);
@@ -3738,12 +3885,13 @@
     }
     // :marks - list all set marks
     if (cmd === 'marks') {
-      var markKeys = Object.keys(state.marks).sort();
+      var marks = currentMarks();
+      var markKeys = Object.keys(marks).sort();
       if (!markKeys.length) { setStatus('No marks set'); return; }
-      pushUndo();
+      pushUndo(false);
       var markLines = ['mark line  col content', '----+------+---+-------'];
       for (var mi = 0; mi < markKeys.length; mi++) {
-        var mk = state.marks[markKeys[mi]];
+        var mk = marks[markKeys[mi]];
         var mRow = clampRow(mk.row);
         var mLine = getLine(mRow);
         var preview = mLine.length > 40 ? mLine.slice(0, 40) + '...' : mLine;
@@ -3838,15 +3986,15 @@
       // m{a-z}: set mark
       if (op === 'm') {
         if (e.key >= 'a' && e.key <= 'z') {
-          state.marks[e.key] = { row: pRow, col: pCol };
+          currentMarks()[e.key] = { row: pRow, col: pCol };
           setStatus('mark ' + e.key + ' set');
         }
         return;
       }
-      // `{a-z}: jump to exact mark position
+      // `{mark}: jump to exact mark position
       if (op === 'backtick') {
-        if (e.key >= 'a' && e.key <= 'z') {
-          var mk = state.marks[e.key];
+        if (isMarkKey(e.key)) {
+          var mk = currentMarks()[e.key];
           if (!mk) { setStatus('E20: Mark not set'); return; }
           var markRow = clampRow(mk.row);
           var markCol = clampCol(markRow, mk.col);
@@ -3858,10 +4006,10 @@
         }
         return;
       }
-      // '{a-z}: jump to first non-blank of marked line
+      // '{mark}: jump to first non-blank of marked line
       if (op === 'quote') {
-        if (e.key >= 'a' && e.key <= 'z') {
-          var mk2 = state.marks[e.key];
+        if (isMarkKey(e.key)) {
+          var mk2 = currentMarks()[e.key];
           if (!mk2) { setStatus('E20: Mark not set'); return; }
           var markLineRow = clampRow(mk2.row);
           var markLineCol = firstNonBlank(markLineRow);
@@ -3873,10 +4021,10 @@
         }
         return;
       }
-      // operator + `{a-z}: delete/yank/change to mark (character-wise)
+      // operator + `{mark}: delete/yank/change to mark (character-wise)
       if (op === 'op_backtick') {
-        if (e.key >= 'a' && e.key <= 'z') {
-          var mk3 = state.marks[e.key];
+        if (isMarkKey(e.key)) {
+          var mk3 = currentMarks()[e.key];
           if (!mk3) { setStatus('E20: Mark not set'); return; }
           var mkRow = clampRow(mk3.row);
           var mkCol = clampCol(mkRow, mk3.col);
@@ -3886,10 +4034,10 @@
         pendingOperator = null; operatorCount = 0;
         render(); return;
       }
-      // operator + '{a-z}: delete/yank/change to mark (linewise)
+      // operator + '{mark}: delete/yank/change to mark (linewise)
       if (op === 'op_quote') {
-        if (e.key >= 'a' && e.key <= 'z') {
-          var mk4 = state.marks[e.key];
+        if (isMarkKey(e.key)) {
+          var mk4 = currentMarks()[e.key];
           if (!mk4) { setStatus('E20: Mark not set'); return; }
           var mkRow2 = clampRow(mk4.row);
           applyOperator(state.pendingTextObjOp, pRow, pCol, { endRow: mkRow2, endCol: 0, linewise: true });
@@ -3993,7 +4141,7 @@
     // gv: reselect the last visual range.
     if (e.key === 'v' && gTimer) {
       clearTimeout(gTimer); gTimer = null;
-      var gvRange = state.lastVisualRange;
+      var gvRange = currentLastVisualRange();
       if (!gvRange) { setStatus('E19: No previous Visual range'); return; }
       state.mode = 'visual';
       state.visualMode = gvRange.blockwise ? 'block' : (gvRange.linewise ? 'line' : 'char');
@@ -4771,6 +4919,7 @@
       state.blockInsertCols = null;
       state.mode = 'normal';
       state.cursor.col = clampCol(row, previousCharacterIndex(line, col));
+      currentMarks()['^'] = { row: row, col: state.cursor.col };
       state.curswant = state.cursor.col;
       render(); return;
     }
@@ -5169,18 +5318,20 @@
       render(); return;
     }
     if (e.key === 'd' || e.key === 'x') {
+      rememberVisualSelection();
       if (state.visualMode === 'block') deleteBlock();
       else deleteVisual();
       state.mode = 'normal';
-      exitVisual();
+      exitVisual(true);
       render(); return;
     }
     if (e.key === 'c') {
+      rememberVisualSelection();
       if (state.visualMode === 'block') deleteBlock();
       else deleteVisual();
       state.mode = 'insert';
       state.insertText = '';
-      exitVisual();
+      exitVisual(true);
       render(); return;
     }
     if (e.key === '~') {
@@ -5248,10 +5399,11 @@
       render(); return;
     }
     if (e.key === 'y') {
+      rememberVisualSelection();
       if (state.visualMode === 'block') yankBlock();
       else yankVisual();
       state.mode = 'normal';
-      exitVisual();
+      exitVisual(true);
       setStatus('yanked');
       render(); return;
     }
@@ -5261,13 +5413,14 @@
     if (state.visualMode === 'block' && (e.key === 'I' || e.key === 'A')) {
       var biR = getBlockRange();
       if (!biR) return;
+      rememberVisualSelection();
       var biCol = e.key === 'I' ? biR.startCol : biR.endCol + 1;
       state.blockInsertCols = { col: biCol, startRow: biR.startRow, endRow: biR.endRow, prepend: e.key === 'I' };
       state.cursor.row = biR.startRow;
       state.cursor.col = biCol;
       state.mode = 'insert';
       state.insertText = '';
-      exitVisual();
+      exitVisual(true);
       render(); return;
     }
     // text objects in visual mode: viw, vaw, vip, vap, etc.
@@ -5826,6 +5979,12 @@
       if (e.key === 'x') { incrementNumber(-1); return; }
       if (e.key === 'o') { jumpOlder(getCount()); return; }
       if (e.key === 'i') { jumpNewer(getCount()); return; }
+      return;
+    }
+    // g;/g,: move through the per-buffer change list.
+    if ((e.key === ';' || e.key === ',') && gTimer) {
+      clearTimeout(gTimer); gTimer = null;
+      moveChangeList(e.key === ';' ? -1 : 1, getCount());
       return;
     }
 

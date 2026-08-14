@@ -157,6 +157,10 @@
     ':jumps': [':jumps             Show the jump list.',
                ':clearjumps        Clear the jump list.'],
     ':clearjumps': [':clearjumps   Clear the jump list.'],
+    'g;':      ['[count] g;        Jump to an older change position.',
+                '[count] g,        Jump to a newer change position.',
+                '',
+                'The changelist records edits, not ordinary cursor motions.'],
     'Ctrl-f': ['CTRL-F             Page down (forward).'],
     'Ctrl-b': ['CTRL-B             Page up (backward).'],
     'Ctrl-d': ['CTRL-D             Half page down.'],
@@ -191,7 +195,7 @@
                ':help {topic}      Show help for a specific topic.',
                '',
                'Topics: w b e d c y p u U gg G [[ ]] [] ][ g_ | _ n N / ? * # % v V',
-               '        f t r R o O i a . ~ J m q @ :s :w :q :e :r',
+               '        f t r R o O i a . ~ J m q @ g; g, :s :w :q :e :r',
                '        :set :marks :jumps :clearjumps :! Ctrl-r Ctrl-g Ctrl-o Ctrl-i',
                '        Ctrl-f Ctrl-b Ctrl-d Ctrl-u Ctrl-a Ctrl-x',
                '        Ctrl-p :color :zen :moth :snake :tutor :Ex :nohlsearch',
@@ -237,11 +241,16 @@
   T['set'] = T[':set'];
   T['options'] = T[':set'];
   T['m'] = ['m{a-z}          Set mark at current cursor position.',
-            '`{a-z}          Jump to exact mark position (row and column).',
-            "'{a-z}          Jump to first non-blank character of marked line.",
+            '`{mark}         Jump to exact manual or automatic mark.',
+            "'{mark}         Jump to the marked line's first non-blank.",
+            '`.  `^          Last change / end of last insertion.',
+            '`[  `]          Start / end of the last Normal-mode operator span.',
+            '`<  `>          Start / end of last Visual selection.',
             ':marks          List all set marks with line content preview.'];
   T['marks'] = T['m'];
   T[':marks'] = T['m'];
+  T['g,'] = T['g;'];
+  T['changelist'] = T['g;'];
   T['q'] = ['q{a-z}          Start recording macro into register {a-z}.',
             'q               Stop recording.',
             '@{a-z}          Execute the macro stored in register {a-z}.',
@@ -441,6 +450,7 @@
       '  :jumps           show jump list',
       '  :clearjumps      clear jump list',
       '  Ordinary h, j, k, l, w, and b motions are not jump history.',
+      '  [count] g; / g,  older / newer change position',
       '',
       'OPERATORS + MOTIONS',
       '  d{motion}   delete (dw, d$, dG, d%...)',
@@ -504,8 +514,11 @@
       '',
       'MARKS',
       '  m{a-z}      set mark',
-      '  `{a-z}      jump to exact mark position',
-      "  '{a-z}      jump to first non-blank of marked line",
+      '  `{mark}     jump to exact manual or automatic mark',
+      "  '{mark}     jump to first non-blank of marked line",
+      '  `. `^       last change / end of last insertion',
+      '  `[ `]       last Normal-mode operator bounds',
+      '  `< `>       last Visual selection bounds',
       '  :marks      list all marks',
       '',
       'MACROS',
