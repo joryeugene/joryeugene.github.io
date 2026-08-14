@@ -182,6 +182,7 @@
       file: 'runbook.md',
       request: [
         'Replace the three guesses with checks another operator can perform.',
+        'Use cc for each complete instruction line.',
         'Write one exact operator action that protects publication.'
       ],
       outcome: [
@@ -190,7 +191,7 @@
         '3. Quarantine pre-deployment events and notify on-call.',
         'Operator action: Verify sensor source, deployment time, and event timestamp before publishing counts.'
       ],
-      hint: 'Use j and cil to replace each complete instruction while keeping the numbered structure.',
+      hint: 'Use j and cc to replace each complete instruction. cc changes one whole line and preserves the lines around it.',
       expect: [
         '1. Confirm the active sensor source in config.js.',
         '2. Compare event time with deployedAt.',
@@ -208,6 +209,8 @@
       file: 'postmortem.md',
       request: [
         'Replace the first seven TODO fields with the evidence and repairs.',
+        'Paste desk_lamp from register b into Root cause.',
+        'Normalize the CSV underscore for prose with f_ and r- so it reads desk-lamp.',
         'Keep every claim traceable to a file you edited.'
       ],
       outcome: [
@@ -219,7 +222,7 @@
         'Runbook: Verify sensor source, deployment time, and event timestamp before publishing counts.',
         'Follow-up: Add a deployment-time validation gate before ingest.'
       ],
-      hint: 'Use cil on each TODO. Your named registers still hold the evidence, and yal can copy the completed document linewise.',
+      hint: 'Use cil on each TODO. Put register b with "bp, find the underscore with f_, replace it with r-, then use yal on the completed line.',
       expect: [
         'Impact: Dashboard displayed 14,203 impossible pre-deployment landings.',
         'Evidence: evt_014203 occurred before the roof-array was online.',
@@ -239,11 +242,12 @@
       title: 'Retrace the work',
       file: 'postmortem.md',
       request: [
-        'Use jump and change history to revisit the sources behind the report.',
+        'Ctrl-O from this brief returns to the report. Teacher briefs do not enter jump history.',
+        'Use :jumps, then jump and change history, to revisit the report sources.',
         'Replace Verified sources with the five files that support the conclusion.'
       ],
       outcome: ['Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'],
-      hint: 'Use Ctrl-O and Ctrl-I across documents, g; and g, within changes, then return to Verified sources and use cil.',
+      hint: 'Inspect :jumps, press u to return, use Ctrl-O and Ctrl-I across work files, then g; and g,. Return to Verified sources and use cil.',
       expect: ['Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'],
       reject: ['Verified sources: TODO'],
       golf: {

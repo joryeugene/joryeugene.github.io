@@ -487,33 +487,33 @@ git commit -m "feat(vim): add teacher flight log"
 - Consumes: all behavior from Tasks 1 through 4.
 - Produces: the final eight-mission route, updated teaching copy, and the exact final postmortem.
 
-- [ ] **Step 1: Change mission 6 to use corrected `cc`**
+- [x] **Step 1: Change mission 6 to use corrected `cc`**
 
 Replace each whole runbook line with `cc`, not `cil`. The visible result must preserve the heading and all four replacement lines.
 
-- [ ] **Step 2: Change mission 7 to normalize pasted evidence**
+- [x] **Step 2: Change mission 7 to normalize pasted evidence**
 
 Paste register `b` so the root-cause line first contains `desk_lamp`. Use `/desk_lamp<Enter>f_r-` to produce `desk-lamp`. Update the work request and hint to explain why the CSV and configuration use different separators.
 
-- [ ] **Step 3: Make mission 8 prove the safe return path**
+- [x] **Step 3: Make mission 8 prove the safe return path**
 
 Open its brief, return once with `Ctrl-O`, inspect `:jumps`, return with `u`, traverse work-file jump and change history, and finish `Verified sources` without reopening `[Teacher]`.
 
 Update `:help :teacher` to state that generated briefs are read-only, `Ctrl-O` returns to prepared work, and briefs do not enter forward jump history.
 
-- [ ] **Step 4: Add one deliberate course correction**
+- [x] **Step 4: Add one deliberate course correction**
 
 During mission 6, call `:teacher check` after three of four lines are correct. Assert the first missing fourth line. Repair it, check again, and preserve the final metric totals `7/8` first-pass and `1` course correction.
 
-- [ ] **Step 5: Complete the exact final artifact**
+- [x] **Step 5: Complete the exact final artifact**
 
 After `:teacher next` completes mission 8, assert `PROJECT COMPLETE`, the flight log, and `The moon was not rebooted.` Press `Ctrl-O` and assert the exact ten rendered `postmortem.md` lines already owned by the capstone.
 
-- [ ] **Step 6: Run the focused journey GREEN**
+- [x] **Step 6: Run the focused journey GREEN**
 
 Use one Chromium worker. Record activation, mission transition, score transition, golf transition, total elapsed test time, and the final visible artifact.
 
-- [ ] **Step 7: Commit the capstone route**
+- [x] **Step 7: Commit the capstone route**
 
 ```powershell
 git add tests/p0-teacher.spec.js js/vim-teacher.js js/vim-help.js
