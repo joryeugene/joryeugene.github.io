@@ -6,6 +6,11 @@ const MAX_MESSAGE_BYTES = 256;
 const HEARTBEAT_SWEEP_MS = 15_000;
 const STALE_SESSION_MS = 45_000;
 const SCENE_ID = "georgie-notices-the-room-v1";
+const MAX_ROOM_SESSIONS = 500;
+
+export function roomCanAccept(activeSessions) {
+  return activeSessions < MAX_ROOM_SESSIONS;
+}
 
 function isValidSessionId(value) {
   return /^[A-Za-z0-9_-]{8,64}$/.test(value || "");
@@ -130,6 +135,10 @@ export class GeorgieRoom extends DurableObject {
       if (socket.deserializeAttachment()?.sessionId === sessionId) {
         socket.close(1012, "Session reconnected");
       }
+    }
+
+    if (!roomCanAccept(this.activeSockets().length)) {
+      return new Response("Room at capacity", { status: 503 });
     }
 
     if (this.activeSockets().length === 0) this.resetScene(Date.now());
