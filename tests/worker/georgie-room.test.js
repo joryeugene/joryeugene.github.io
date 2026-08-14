@@ -184,6 +184,27 @@ describe("Georgie presence room", () => {
     await expect(firstClosed).resolves.toBeDefined();
   });
 
+  it("removes a session through the anonymous leave message", async () => {
+    const first = await connect("visitor-a");
+    await nextJson(first, (message) => message.type === "state" && message.occupancy === 1);
+    const stateAtTwo = nextJson(
+      first,
+      (message) => message.type === "state" && message.occupancy === 2,
+    );
+    const second = await connect("visitor-b");
+    await stateAtTwo;
+    const stateAtOne = nextJson(
+      first,
+      (message) => message.type === "state",
+    );
+    const secondClosed = new Promise((resolve) => {
+      second.addEventListener("close", resolve, { once: true });
+    });
+    second.send(JSON.stringify({ type: "leave" }));
+    expect(await stateAtOne).toMatchObject({ type: "state", occupancy: 1 });
+    await expect(secondClosed).resolves.toBeDefined();
+  });
+
   it("keeps the room alive across Durable Object hibernation", async () => {
     const stub = env.GEORGIE_ROOM.getByName("hibernate-test");
     const response = await stub.fetch(

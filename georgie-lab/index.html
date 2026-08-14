@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pixel Georgie Living Web Lab</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/favicon.png">
+  <link rel="stylesheet" href="/css/georgie-world.css">
+</head>
+<body>
+  <main class="georgie-lab" data-georgie-world data-state="peeking">
+    <header class="georgie-lab__header">
+      <div>
+        <p class="georgie-lab__eyebrow">Local interaction prototype</p>
+        <h1>Georgie has plans of his own.</h1>
+        <p class="georgie-lab__intro">The page stays alive when nobody else is here. Gold moths belong to the night. Blue lights are real connected visitors. Georgie is not tied to either one.</p>
+      </div>
+      <aside class="georgie-presence" aria-live="polite">
+        <div class="georgie-presence__row" data-visitor-lights></div>
+        <strong class="georgie-presence__aggregate" data-presence-aggregate hidden></strong>
+        <p data-room-copy>Just Georgie tonight</p>
+      </aside>
+    </header>
+
+    <section class="georgie-world" data-georgie-arena aria-label="Georgie's nighttime yard">
+      <span class="georgie-world__moon" aria-hidden="true"></span>
+      <span class="georgie-world__moth" data-presence-kind="moth" data-x="0.28" data-y="0.31" style="--moth-x: 28; --moth-y: 31; --moth-speed: 3.1s" aria-hidden="true"></span>
+      <span class="georgie-world__moth" data-presence-kind="moth" data-x="0.61" data-y="0.24" style="--moth-x: 61; --moth-y: 24; --moth-speed: 3.8s" aria-hidden="true"></span>
+      <span class="georgie-world__moth" data-presence-kind="moth" data-x="0.76" data-y="0.55" style="--moth-x: 76; --moth-y: 55; --moth-speed: 2.7s" aria-hidden="true"></span>
+
+      <button class="georgie-world__bone" type="button" data-georgie-bone data-found="false" aria-label="Georgie's hidden bone">
+        <span aria-hidden="true"></span>
+      </button>
+
+      <div class="georgie-world__dog" data-georgie-dog data-direction="right">
+        <img class="georgie-world__sprite" data-georgie-sprite src="/assets/georgie/run-right.gif" width="128" height="128" alt="Pixel Georgie, a small white and chestnut Phalene">
+        <span class="georgie-world__hearts" data-georgie-hearts aria-hidden="true"><span></span><span></span><span></span></span>
+      </div>
+
+      <div class="georgie-world__hud">
+        <p class="georgie-world__reaction" data-georgie-reaction aria-live="polite">Georgie is deciding what to do.</p>
+        <div class="georgie-world__actions">
+          <button class="georgie-world__button georgie-world__button--invite" type="button" data-invite-georgie>Invite Georgie over</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="georgie-memory">
+      <span data-recognition-copy>This browser is new to Georgie.</span>
+      <button type="button" data-forget-georgie>Forget me</button>
+    </div>
+
+    <section class="georgie-directions" aria-labelledby="direction-title">
+      <h2 id="direction-title">The same dog from every direction</h2>
+      <p>Each row preserves Georgie's head, torso, legs, tail, and baseline while changing the gait for the direction of travel. Left-facing motion mirrors the corresponding right-facing row.</p>
+      <div class="georgie-directions__grid">
+        <figure class="georgie-direction"><img src="/assets/georgie/run-right.gif" alt="Pixel Georgie running to the right"><figcaption>Across</figcaption></figure>
+        <figure class="georgie-direction"><img src="/assets/georgie/run-front-right.gif" alt="Pixel Georgie running diagonally toward the viewer"><figcaption>Toward</figcaption></figure>
+        <figure class="georgie-direction"><img src="/assets/georgie/run-front.gif" alt="Pixel Georgie running toward the viewer"><figcaption>Front</figcaption></figure>
+        <figure class="georgie-direction"><img src="/assets/georgie/run-rear.gif" alt="Pixel Georgie running away from the viewer"><figcaption>Rear</figcaption></figure>
+        <figure class="georgie-direction"><img src="/assets/georgie/run-rear-right.gif" alt="Pixel Georgie running diagonally away from the viewer"><figcaption>Away</figcaption></figure>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/js/georgie-world.js"></script>
+</body>
+</html>

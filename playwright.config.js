@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  testIgnore: 'motion.spec.js',
+  testIgnore: ['motion.spec.js', 'unit/**'],
   timeout: 30000,
   fullyParallel: false,
   use: {

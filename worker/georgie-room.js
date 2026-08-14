@@ -55,8 +55,8 @@ export class GeorgieRoom extends DurableObject {
     );
   }
 
-  stateMessage() {
-    const occupancy = this.activeSockets().length;
+  stateMessage(sockets = this.activeSockets()) {
+    const occupancy = sockets.length;
     return {
       type: "state",
       occupancy,
@@ -67,15 +67,23 @@ export class GeorgieRoom extends DurableObject {
   }
 
   send(socket, message) {
-    if (isOpen(socket)) socket.send(JSON.stringify(message));
+    try {
+      socket.send(JSON.stringify(message));
+    } catch {
+      // A socket can close between enumeration and delivery.
+    }
   }
 
   broadcast(message) {
     for (const socket of this.activeSockets()) this.send(socket, message);
   }
 
-  broadcastState() {
-    this.broadcast(this.stateMessage());
+  broadcastState(excludedSessionId = null) {
+    const sockets = this.activeSockets().filter(
+      (socket) => socket.deserializeAttachment()?.sessionId !== excludedSessionId,
+    );
+    const message = this.stateMessage(sockets);
+    for (const socket of sockets) this.send(socket, message);
   }
 
   async fetch(request) {
@@ -112,6 +120,14 @@ export class GeorgieRoom extends DurableObject {
       message = JSON.parse(rawMessage);
     } catch {
       this.send(socket, { type: "error", code: "unsupported_message" });
+      return;
+    }
+
+    if (message?.type === "leave" && Object.keys(message).length === 1) {
+      const remaining = this.activeSockets().filter((candidate) => candidate !== socket);
+      const state = this.stateMessage(remaining);
+      for (const candidate of remaining) this.send(candidate, state);
+      socket.close(1000, "Session left room");
       return;
     }
 

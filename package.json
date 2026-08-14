@@ -8,6 +8,7 @@
     "check:sync": "node scripts/sync-blog-surfaces.mjs --check",
     "lint:prose": "node scripts/prose-lint.mjs",
     "test": "playwright test",
+    "test:georgie-model": "node --test tests/unit/georgie-world.test.js",
     "test:motion": "playwright test -c playwright.motion.config.js",
     "test:worker": "vitest run --config vitest.worker.config.js"
   },
