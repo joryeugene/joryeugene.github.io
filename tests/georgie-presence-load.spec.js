@@ -13,6 +13,7 @@ test("keeps one calm room signal during a 500-visitor burst", async ({ browser }
   await Promise.all(pages.map((page) => page.goto(baseUrl)));
 
   let results;
+  let overflowResult;
   try {
     results = await Promise.all(pages.map((page, group) => page.evaluate(
       async ({ endpoint, total, startIndex, count }) => {
@@ -71,6 +72,20 @@ test("keeps one calm room signal during a 500-visitor burst", async ({ browser }
       },
       { endpoint: workerUrl, total: 500, startIndex: group * 125, count: 125 },
     )));
+
+    overflowResult = await pages[0].evaluate((endpoint) => new Promise((resolve) => {
+      const socket = new WebSocket(`${endpoint}/api/presence?session=load-overflow-501`);
+      const timer = setTimeout(() => resolve("timed-out"), 10_000);
+      socket.addEventListener("open", () => {
+        clearTimeout(timer);
+        socket.close(1000, "unexpected capacity");
+        resolve("opened");
+      }, { once: true });
+      socket.addEventListener("error", () => {
+        clearTimeout(timer);
+        resolve("rejected");
+      }, { once: true });
+    }), workerUrl);
   } finally {
     await Promise.all(contexts.map((context) => context.close()));
   }
@@ -81,6 +96,7 @@ test("keeps one calm room signal during a 500-visitor burst", async ({ browser }
     observedAtMs: Math.max(...results.map((group) => group.observedAtMs)),
     maxOccupancy: Math.max(...results.map((group) => group.maxOccupancy)),
     messages: results.reduce((sum, group) => sum + group.messages, 0),
+    overflowResult,
     browserGroups: results,
   };
 
@@ -93,4 +109,5 @@ test("keeps one calm room signal during a 500-visitor burst", async ({ browser }
   expect(result.connected).toBe(500);
   expect(result.maxOccupancy).toBeGreaterThanOrEqual(500);
   expect(result.observedAtMs).toBeLessThan(60_000);
+  expect(result.overflowResult).toBe("rejected");
 });
