@@ -52,7 +52,7 @@ jobs:
         with:
           name: verified-site-dist
           path: site-dist/
-      - run: npx wrangler pages deploy site-dist --project-name jorypestorious-preview --branch master
+      - run: npx wrangler pages deploy --cwd cloudflare-pages --branch master
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
