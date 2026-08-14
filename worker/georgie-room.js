@@ -12,6 +12,10 @@ export function roomCanAccept(activeSessions) {
   return activeSessions < MAX_ROOM_SESSIONS;
 }
 
+export function presenceChangeNeedsBroadcast(before, after) {
+  return Math.min(before, 5) !== Math.min(after, 5);
+}
+
 function isValidSessionId(value) {
   return /^[A-Za-z0-9_-]{8,64}$/.test(value || "");
 }
@@ -143,11 +147,17 @@ export class GeorgieRoom extends DurableObject {
 
     if (this.activeSockets().length === 0) this.resetScene(Date.now());
 
+    const beforeAccept = this.activeSockets().length;
     const [client, server] = Object.values(new WebSocketPair());
     this.ctx.acceptWebSocket(server, [`session:${sessionId}`]);
     server.serializeAttachment({ sessionId, lastSeenAt: Date.now() });
     await this.ctx.storage.setAlarm(Date.now() + STALE_SESSION_MS);
-    this.broadcastState();
+    const sockets = this.activeSockets();
+    if (presenceChangeNeedsBroadcast(beforeAccept, sockets.length)) {
+      this.broadcastState();
+    } else {
+      this.send(server, this.stateMessage(sockets));
+    }
 
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -198,9 +208,12 @@ export class GeorgieRoom extends DurableObject {
     }
 
     if (message?.type === "leave" && Object.keys(message).length === 1) {
-      const remaining = this.activeSockets().filter((candidate) => candidate !== socket);
-      const state = this.stateMessage(remaining);
-      for (const candidate of remaining) this.send(candidate, state);
+      const active = this.activeSockets();
+      const remaining = active.filter((candidate) => candidate !== socket);
+      if (presenceChangeNeedsBroadcast(active.length, remaining.length)) {
+        const state = this.stateMessage(remaining);
+        for (const candidate of remaining) this.send(candidate, state);
+      }
       socket.close(1000, "Session left room");
       return;
     }
@@ -247,16 +260,23 @@ export class GeorgieRoom extends DurableObject {
 
   webSocketClose(socket, code, reason) {
     socket.close(code, reason);
-    this.broadcastState();
+    const remaining = this.activeSockets();
+    if (presenceChangeNeedsBroadcast(remaining.length + 1, remaining.length)) {
+      this.broadcastState();
+    }
   }
 
   webSocketError(socket) {
     socket.close(1011, "Room connection failed");
-    this.broadcastState();
+    const remaining = this.activeSockets();
+    if (presenceChangeNeedsBroadcast(remaining.length + 1, remaining.length)) {
+      this.broadcastState();
+    }
   }
 
   async alarm() {
     const now = Date.now();
+    const activeBeforeSweep = this.activeSockets().length;
     const retained = [];
 
     for (const socket of this.activeSockets()) {
@@ -268,8 +288,10 @@ export class GeorgieRoom extends DurableObject {
       }
     }
 
-    const state = this.stateMessage(retained);
-    for (const socket of retained) this.send(socket, state);
+    if (presenceChangeNeedsBroadcast(activeBeforeSweep, retained.length)) {
+      const state = this.stateMessage(retained);
+      for (const socket of retained) this.send(socket, state);
+    }
 
     if (retained.length) {
       await this.ctx.storage.setAlarm(now + HEARTBEAT_SWEEP_MS);

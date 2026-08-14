@@ -6,7 +6,10 @@ import {
   runInDurableObject,
 } from "cloudflare:test";
 import { afterEach, describe, expect, it } from "vitest";
-import { roomCanAccept } from "../../worker/georgie-room.js";
+import {
+  presenceChangeNeedsBroadcast,
+  roomCanAccept,
+} from "../../worker/georgie-room.js";
 
 const TEST_ORIGIN = "https://jorypestorious-site.test";
 const openSockets = new Set();
@@ -72,6 +75,13 @@ describe("Georgie presence room", () => {
   it("sets the tested room boundary at 500 anonymous sessions", () => {
     expect(roomCanAccept(499)).toBe(true);
     expect(roomCanAccept(500)).toBe(false);
+  });
+
+  it("broadcasts only presence changes the room can display", () => {
+    expect(presenceChangeNeedsBroadcast(4, 5)).toBe(true);
+    expect(presenceChangeNeedsBroadcast(5, 6)).toBe(false);
+    expect(presenceChangeNeedsBroadcast(499, 500)).toBe(false);
+    expect(presenceChangeNeedsBroadcast(5, 4)).toBe(true);
   });
 
   it("accepts the curated Georgie preview origins", async () => {
