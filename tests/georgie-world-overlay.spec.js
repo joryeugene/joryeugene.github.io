@@ -2,11 +2,27 @@ import { expect, test } from "@playwright/test";
 
 const previewRoutes = [
   "/",
-  "/process/",
   "/blog/",
+  "/blog/ai-engineer-spec/",
+  "/blog/ai-engineer-verification/",
+  "/blog/calmhive/",
+  "/blog/claude-code-setups/",
+  "/blog/complexity-protects-itself/",
+  "/blog/dadbod-grip/",
+  "/blog/emergent-religion/",
   "/blog/endgame-keyboard/",
-  "/vim/",
+  "/blog/friction-economy/",
+  "/blog/knowledge-sidecar/",
+  "/blog/natural-language-first/",
+  "/blog/pig-security-wisdom/",
+  "/blog/portable-agent-factory/",
+  "/blog/spiritual-bliss-attractor-state/",
+  "/blog/terminal-velocity/",
+  "/blog/trust-your-engineers/",
+  "/blog/what-the-model-learned/",
   "/contact/",
+  "/process/",
+  "/vim/",
 ];
 
 test.describe("Georgie world across the real site", () => {
