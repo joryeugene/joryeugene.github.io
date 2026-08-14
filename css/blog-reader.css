@@ -1087,7 +1087,7 @@ body.reader-page {
 
   .reader-main {
     width: min(100% - 32px, 800px);
-    padding: var(--reader-space-6) 0 var(--reader-space-8);
+    padding: var(--reader-space-5) 0 var(--reader-space-8);
   }
 
   .reader-page .markdown-body {

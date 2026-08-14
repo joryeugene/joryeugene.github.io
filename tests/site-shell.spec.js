@@ -128,6 +128,52 @@ test('main page copyright remains visible and Writing stacks on mobile', async (
   expect(note.y + note.height).toBeLessThanOrEqual(copyright.y);
 });
 
+test('mobile pages use one content start below the top bar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+
+  const routes = [
+    ['/', '.site-header'],
+    ['/process/', '.site-header'],
+    ['/blog/', '.site-header'],
+    ['/contact/', '.site-header'],
+    ['/blog/ai-engineer-spec/', '.reader-chrome'],
+    ['/blog/ai-engineer-verification/', '.reader-chrome'],
+    ['/blog/calmhive/', '.reader-chrome'],
+    ['/blog/claude-code-setups/', '.reader-chrome'],
+    ['/blog/complexity-protects-itself/', '.reader-chrome'],
+    ['/blog/dadbod-grip/', '.reader-chrome'],
+    ['/blog/emergent-religion/', '.reader-chrome'],
+    ['/blog/endgame-keyboard/', '.reader-chrome'],
+    ['/blog/friction-economy/', '.reader-chrome'],
+    ['/blog/knowledge-sidecar/', '.reader-chrome'],
+    ['/blog/natural-language-first/', '.reader-chrome'],
+    ['/blog/pig-security-wisdom/', '.reader-chrome'],
+    ['/blog/portable-agent-factory/', '.reader-chrome'],
+    ['/blog/spiritual-bliss-attractor-state/', '.reader-chrome'],
+    ['/blog/terminal-velocity/', '.reader-chrome'],
+    ['/blog/trust-your-engineers/', '.reader-chrome'],
+    ['/blog/what-the-model-learned/', '.reader-chrome'],
+  ];
+
+  for (const [route, topBarSelector] of routes) {
+    await page.goto(route, { waitUntil: 'domcontentloaded' });
+    const heading = page.locator('h1').first();
+    await expect(heading, `${route} first heading`).toBeVisible();
+    if (topBarSelector === '.reader-chrome') {
+      await expect(page.locator('.markdown-body')).toHaveCSS('transform', 'none');
+    }
+
+    const gap = await page.evaluate(({ headingSelector, topBarSelector }) => {
+      const headingBox = document.querySelector(headingSelector).getBoundingClientRect();
+      const topBarBox = document.querySelector(topBarSelector).getBoundingClientRect();
+      return headingBox.top - topBarBox.bottom;
+    }, { headingSelector: 'h1', topBarSelector });
+
+    expect(gap, `${route} top-bar gap`).toBeCloseTo(24, 0);
+  }
+});
+
 test('reader footer remains article-specific', async ({ page }) => {
   await page.goto('/blog/terminal-velocity/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.footer')).toHaveText('© 2026 Jory Pestorious');

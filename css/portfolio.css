@@ -1914,10 +1914,19 @@ a {
     background: rgba(2, 5, 8, 0.42);
   }
 
-.site-header {
+  .site-header {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-4);
     padding: var(--space-4) 0;
+  }
+
+  .portfolio-page main > :first-child {
+    margin-top: 0;
+    padding-top: var(--space-5);
+  }
+
+  .portfolio-page .page-title {
+    margin-top: 0;
   }
 
   .site-name {
