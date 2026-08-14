@@ -221,7 +221,7 @@ export class GeorgieWorld {
           this.setPresence(message.occupancy);
           this.syncSharedScene(message);
         }
-        if (message.type === "invitation") this.say("A visitor invited Georgie. He will decide.");
+        if (message.type === "invitation") this.receiveSharedInvitation(message.reaction);
         if (message.type === "bone") this.receiveSharedBone();
       } catch {
         // A malformed presence message cannot stop the solo scene.
@@ -255,6 +255,38 @@ export class GeorgieWorld {
     this.showBoneWag();
     this.say("Someone found Georgie's bone. He knows.", 5_000);
     if (this.connectedToRoom) this.scheduleSharedScene(2_600, true);
+  }
+
+  receiveSharedInvitation(reaction) {
+    if (this.behavior.state === "gone") return;
+    if (reaction === "ignores") {
+      this.setDirection("rear", false);
+      this.dog.classList.remove("is-travelling");
+      this.root.dataset.state = "watching";
+      this.say("Georgie heard you. He is pretending he did not.");
+      this.scheduleSharedScene(2_600, true);
+    } else if (reaction === "leaves") {
+      this.leaveSharedScene();
+    } else {
+      this.setDirection("front", false);
+      this.dog.classList.remove("is-travelling");
+      this.root.dataset.state = "watching";
+      this.say("Georgie looked over. That is not the same as coming.");
+      this.scheduleSharedScene(2_600, true);
+    }
+  }
+
+  leaveSharedScene() {
+    window.clearTimeout(this.sharedSceneTimer);
+    const leavesLeft = this.position.x < 0.5;
+    this.root.dataset.state = "leaving";
+    this.setDirection(leavesLeft ? "left" : "right", !this.reducedMotion);
+    this.setPosition(leavesLeft ? -0.12 : 1.12, Math.min(0.88, this.position.y + 0.04), true);
+    this.say("Too many invitations. Georgie left the room.", 4_000);
+    window.setTimeout(() => {
+      this.dog.hidden = false;
+      this.applySharedScene(true);
+    }, this.reducedMotion ? 0 : 1_600);
   }
 
   syncSharedScene(message) {
@@ -305,6 +337,11 @@ export class GeorgieWorld {
   }
 
   invite() {
+    if (this.socket?.readyState === WebSocket.OPEN && this.connectedToRoom) {
+      this.socket.send(JSON.stringify({ type: "invite" }));
+      return;
+    }
+
     const result = this.behavior.invite();
     if (result.reaction === "ignores") {
       this.setDirection("rear", false);
@@ -330,9 +367,6 @@ export class GeorgieWorld {
       this.say("Georgie is still gone.");
     }
 
-    if (this.socket?.readyState === WebSocket.OPEN && result.reaction !== "absent") {
-      this.socket.send(JSON.stringify({ type: "invite" }));
-    }
   }
 
   setDirection(direction, animated = true) {

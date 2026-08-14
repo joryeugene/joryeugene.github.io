@@ -41,6 +41,15 @@ export class GeorgieRoom extends DurableObject {
       this.ctx.storage.sql.exec(
         "INSERT OR IGNORE INTO room_event_cooldown (event_type, last_at) VALUES ('bone', 0)",
       );
+      this.ctx.storage.sql.exec(`
+        CREATE TABLE IF NOT EXISTS room_event_sequence (
+          event_type TEXT PRIMARY KEY,
+          event_count INTEGER NOT NULL
+        )
+      `);
+      this.ctx.storage.sql.exec(
+        "INSERT OR IGNORE INTO room_event_sequence (event_type, event_count) VALUES ('invite', 0)",
+      );
     });
     this.ctx.setWebSocketAutoResponse(
       new WebSocketRequestResponsePair("ping", "pong"),
@@ -64,6 +73,9 @@ export class GeorgieRoom extends DurableObject {
       "UPDATE room_scene SET scene_id = ?, started_at = ? WHERE singleton = 1",
       SCENE_ID,
       startedAt,
+    );
+    this.ctx.storage.sql.exec(
+      "UPDATE room_event_sequence SET event_count = 0 WHERE event_type = 'invite'",
     );
   }
 
@@ -208,7 +220,20 @@ export class GeorgieRoom extends DurableObject {
       "UPDATE room_scene SET last_invite_at = ? WHERE singleton = 1",
       now,
     );
-    this.broadcast({ type: "invitation", at: now });
+    this.ctx.storage.sql.exec(
+      "UPDATE room_event_sequence SET event_count = event_count + 1 WHERE event_type = 'invite'",
+    );
+    const { eventCount } = this.ctx.storage.sql
+      .exec(
+        "SELECT event_count AS eventCount FROM room_event_sequence WHERE event_type = 'invite'",
+      )
+      .one();
+    const reactions = ["watches", "ignores", "leaves"];
+    this.broadcast({
+      type: "invitation",
+      at: now,
+      reaction: reactions[(eventCount - 1) % reactions.length],
+    });
   }
 
   webSocketClose(socket, code, reason) {

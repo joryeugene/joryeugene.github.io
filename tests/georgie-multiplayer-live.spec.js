@@ -35,7 +35,10 @@ test("two real browser contexts share lights and invitations without cursors", a
     expect(secondScene).toEqual(firstScene);
 
     await first.getByRole("button", { name: "Invite Georgie over" }).click();
-    await expect(second.locator("[data-georgie-reaction]")).toHaveText("A visitor invited Georgie. He will decide.");
+    await expect(first.locator("[data-georgie-reaction]")).toHaveText("Georgie looked over. That is not the same as coming.");
+    await expect(second.locator("[data-georgie-reaction]")).toHaveText("Georgie looked over. That is not the same as coming.");
+    await expect(first.locator("[data-georgie-dog]")).toHaveAttribute("data-direction", "front");
+    await expect(second.locator("[data-georgie-dog]")).toHaveAttribute("data-direction", "front");
 
     const bone = first.getByRole("button", { name: "Georgie's hidden bone" });
     const boneBox = await bone.boundingBox();

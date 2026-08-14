@@ -148,6 +148,7 @@ describe("Georgie presence room", () => {
     expect(await invitationForSecond).toEqual({
       type: "invitation",
       at: expect.any(Number),
+      reaction: "watches",
     });
 
     const rateLimitForFirst = nextJson(
@@ -160,6 +161,31 @@ describe("Georgie presence room", () => {
       type: "error",
       code: "invite_rate_limited",
     });
+  });
+
+  it("keeps Georgie's invitation decisions identical across the room", async () => {
+    const stub = env.GEORGIE_ROOM.getByName("invitation-sequence-test");
+    const first = await connectToRoom(stub, "visitor-a");
+    await nextJson(first, (message) => message.type === "state");
+    const stateAtTwo = nextJson(
+      first,
+      (message) => message.type === "state" && message.occupancy === 2,
+    );
+    const second = await connectToRoom(stub, "visitor-b");
+    await stateAtTwo;
+
+    for (const reaction of ["watches", "ignores", "leaves"]) {
+      await runInDurableObject(stub, (instance) => {
+        instance.ctx.storage.sql.exec(
+          "UPDATE room_scene SET last_invite_at = 0 WHERE singleton = 1",
+        );
+      });
+      const forFirst = nextJson(first, (message) => message.type === "invitation");
+      const forSecond = nextJson(second, (message) => message.type === "invitation");
+      first.send(JSON.stringify({ type: "invite" }));
+      await expect(forFirst).resolves.toMatchObject({ type: "invitation", reaction });
+      await expect(forSecond).resolves.toMatchObject({ type: "invitation", reaction });
+    }
   });
 
   it("shares a bone-found beat without sending its position", async () => {
@@ -307,6 +333,7 @@ describe("Georgie presence room", () => {
     expect(await invitation).toEqual({
       type: "invitation",
       at: expect.any(Number),
+      reaction: "watches",
     });
   });
 
