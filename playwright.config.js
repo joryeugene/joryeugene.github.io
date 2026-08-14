@@ -4,7 +4,7 @@ const previewBaseURL = process.env.GEORGIE_PREVIEW_BASE_URL;
 
 export default defineConfig({
   testDir: './tests',
-  testIgnore: ['motion.spec.js', 'unit/**'],
+  testIgnore: ['motion.spec.js', 'unit/**', 'worker/**'],
   timeout: 30000,
   fullyParallel: false,
   use: {
