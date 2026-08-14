@@ -172,7 +172,7 @@ git commit -m "fix(vim): protect teacher mission flow"
 - Consumes: `pushUndo(trackChange)`, `applyOperator(op, row, col, range)`, `handleInsert(e)`, `handleReplace(e)`, and `getCount()`.
 - Produces: `state.insertUndoOpen`, `state.replaceUndoOpen`, `ensureInsertUndo()`, `ensureReplaceUndo()`, corrected linewise change insertion, and counted Normal undo.
 
-- [ ] **Step 1: Add the failing undo and `cc` segment to the one journey**
+- [x] **Step 1: Add the failing undo and `cc` segment to the one journey**
 
 Before starting `:teacher`, seed this buffer through existing helpers:
 
@@ -189,11 +189,11 @@ In the same preflight, prove direct Insert and Replace boundaries. Append three 
 
 Expected RED: the first `cc` consumes `beta`, and `2u` does not restore two complete Insert sessions.
 
-- [ ] **Step 2: Run the sole journey and observe the exact RED output**
+- [x] **Step 2: Run the sole journey and observe the exact RED output**
 
 Use the guarded one-worker command. Record the visible four-line mismatch before editing production code.
 
-- [ ] **Step 3: Fix linewise change insertion**
+- [x] **Step 3: Fix linewise change insertion**
 
 Replace the linewise `c` branch with one splice that removes the selected range and inserts one replacement line:
 
@@ -209,7 +209,7 @@ state.insertUndoOpen = true;
 
 Do not overwrite `state.lines[startRow]` after deletion.
 
-- [ ] **Step 4: Group Insert and Replace sessions**
+- [x] **Step 4: Group Insert and Replace sessions**
 
 Add state fields:
 
@@ -236,7 +236,7 @@ function ensureReplaceUndo() {
 
 Within `handleInsert`, replace each mutation-time `pushUndo()` with `ensureInsertUndo()`. Within `handleReplace`, use `ensureReplaceUndo()`. Direct `i`, `I`, `a`, and `A` start with `insertUndoOpen = false`. Direct `R` starts with `replaceUndoOpen = false`. Commands such as `o`, `O`, change operators, and Visual block insertion already mutate and snapshot before Insert mode, so they enter with `insertUndoOpen = true`. Escape closes the matching undo session. Document switches and resets clear both flags.
 
-- [ ] **Step 5: Honor and consume Normal undo counts**
+- [x] **Step 5: Honor and consume Normal undo counts**
 
 Replace the single Normal undo call with:
 
@@ -250,11 +250,11 @@ if (e.key === 'u') {
 
 Update `:help u` to show `[count]u` and state that one Insert session is one change.
 
-- [ ] **Step 6: Run the same journey and observe GREEN through undo**
+- [x] **Step 6: Run the same journey and observe GREEN through undo**
 
 Expected: both `cc` changes preserve `tail`, `2u` restores `alpha` and `beta`, and the following `j` moves one line.
 
-- [ ] **Step 7: Commit the correctness slice**
+- [x] **Step 7: Commit the correctness slice**
 
 ```powershell
 git add tests/p0-teacher.spec.js js/vim.js js/vim-help.js

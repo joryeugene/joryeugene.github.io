@@ -236,6 +236,8 @@
     repeatCapture: null,
     editSerial: 0,
     insertText: '',
+    insertUndoOpen: false,
+    replaceUndoOpen: false,
     insertCompletion: null,
     lineUndoRow: -1,
     lineUndoText: '',
@@ -371,6 +373,8 @@
     state.selectedRegister = null;
     state.repeatCapture = null;
     state.insertCompletion = null;
+    state.insertUndoOpen = false;
+    state.replaceUndoOpen = false;
     state.documentId = documentId;
     state.filename = filename;
     state.lines = lines.slice();
@@ -981,6 +985,18 @@
     });
     if (state.undoStack.length > 200) { state.undoStack.shift(); }
     else { state.undoIdx++; }
+  }
+
+  function ensureInsertUndo() {
+    if (state.insertUndoOpen) return;
+    pushUndo();
+    state.insertUndoOpen = true;
+  }
+
+  function ensureReplaceUndo() {
+    if (state.replaceUndoOpen) return;
+    pushUndo();
+    state.replaceUndoOpen = true;
   }
 
   function restoreUndoEntry(entry) {
@@ -1709,13 +1725,13 @@
         if (n > 1) setStatus(n + ' lines deleted');
       } else if (op === 'c') {
         pushUndo();
-        for (var ci = endRow; ci >= startRow; ci--) deleteLine(ci);
-        if (!state.lines.length) state.lines = [''];
-        if (state.lines.length <= startRow) insertLine(startRow, '');
-        else state.lines[startRow] = '';
+        var changedLineCount = endRow - startRow + 1;
+        adjustJumpRows(startRow, changedLineCount, 1);
+        state.lines.splice(startRow, changedLineCount, '');
         state.cursor.row = startRow;
         state.cursor.col = 0;
         state.mode = 'insert';
+        state.insertUndoOpen = true;
       } else if (op === 'y') {
         state.cursor.row = startRow;
         state.cursor.col = firstNonBlank(startRow);
@@ -1793,6 +1809,7 @@
         state.cursor.row = startRow;
         state.cursor.col = startCol;
         state.mode = 'insert';
+        state.insertUndoOpen = true;
       } else if (op === 'y') {
         state.cursor.row = startRow;
         state.cursor.col = startCol;
@@ -5062,11 +5079,11 @@
 
     // --- enter insert mode ---
     if (e.key === 'i') {
-      state.mode = 'insert'; state.insertText = '';
+      state.mode = 'insert'; state.insertText = ''; state.insertUndoOpen = false;
       render(); return;
     }
     if (e.key === 'a') {
-      state.mode = 'insert'; state.insertText = '';
+      state.mode = 'insert'; state.insertText = ''; state.insertUndoOpen = false;
       if (col < line.length) state.cursor.col = nextCharacterIndex(line, col);
       render(); return;
     }
@@ -5077,7 +5094,7 @@
       state.cursor.row = row + 1;
       state.cursor.col = openIndent.length;
       state.curswant = state.cursor.col;
-      state.mode = 'insert'; state.insertText = '';
+      state.mode = 'insert'; state.insertText = ''; state.insertUndoOpen = true;
       render(); return;
     }
     if (e.key === 'O') {
@@ -5086,17 +5103,17 @@
       insertLine(row, openAboveIndent);
       state.cursor.col = openAboveIndent.length;
       state.curswant = state.cursor.col;
-      state.mode = 'insert'; state.insertText = '';
+      state.mode = 'insert'; state.insertText = ''; state.insertUndoOpen = true;
       render(); return;
     }
     if (e.key === 'A') {
-      state.mode = 'insert'; state.insertText = '';
+      state.mode = 'insert'; state.insertText = ''; state.insertUndoOpen = false;
       state.cursor.col = line.length;
       state.curswant = state.cursor.col;
       render(); return;
     }
     if (e.key === 'I') {
-      state.mode = 'insert'; state.insertText = '';
+      state.mode = 'insert'; state.insertText = ''; state.insertUndoOpen = false;
       state.cursor.col = firstNonBlank(row);
       state.curswant = state.cursor.col;
       render(); return;
@@ -5107,6 +5124,7 @@
       state.lines[row] = line.slice(0, col);
       state.mode = 'insert';
       state.insertText = '';
+      state.insertUndoOpen = true;
       render(); return;
     }
     if (e.key === 'D') {
@@ -5125,6 +5143,7 @@
       state.curswant = 0;
       state.mode = 'insert';
       state.insertText = '';
+      state.insertUndoOpen = true;
       render(); return;
     }
     if (e.key === 's') {
@@ -5135,6 +5154,7 @@
         state.lines[row] = line.slice(0, col) + line.slice(sEnd);
         state.mode = 'insert';
         state.insertText = '';
+        state.insertUndoOpen = true;
         render();
       }
       return;
@@ -5193,7 +5213,11 @@
       pasteRegister(readSelectedRegister(), e.key === 'P');
       return;
     }
-    if (e.key === 'u') { undo(); return; }
+    if (e.key === 'u') {
+      var undoCount = getCount();
+      for (var undoI = 0; undoI < undoCount; undoI++) undo();
+      return;
+    }
     if (e.key === 'U') {
       // Undo all changes on current line (restore to lineUndoText)
       if (state.lineUndoRow === row && state.lineUndoText !== getLine(row)) {
@@ -5225,6 +5249,7 @@
       getCount();
       state.mode = 'replace';
       state.replaceUndo = [];
+      state.replaceUndoOpen = false;
       render(); return;
     }
 
@@ -5411,7 +5436,7 @@
     var candidate = session.candidates[session.index];
     var line = getLine(state.cursor.row);
     var replacedLength = session.e - session.s;
-    pushUndo();
+    ensureInsertUndo();
     state.lines[state.cursor.row] = line.slice(0, session.s) + candidate + line.slice(session.e);
     if (state.blockInsertCols) state.insertText = state.insertText.slice(0, -replacedLength) + candidate;
     session.e = session.s + candidate.length;
@@ -5445,13 +5470,14 @@
       }
       state.blockInsertCols = null;
       state.mode = 'normal';
+      state.insertUndoOpen = false;
       state.cursor.col = clampCol(row, previousCharacterIndex(line, col));
       currentMarks()['^'] = { row: row, col: state.cursor.col };
       state.curswant = state.cursor.col;
       render(); return;
     }
     if (e.key === 'Enter') {
-      pushUndo();
+      ensureInsertUndo();
       var newLineIndent = state.autoindent ? leadingIndent(line) : '';
       state.lines[row] = line.slice(0, col);
       insertLine(row + 1, newLineIndent + line.slice(col));
@@ -5463,13 +5489,13 @@
     }
     if (e.key === 'Backspace') {
       if (col > 0) {
-        pushUndo();
+        ensureInsertUndo();
         var previousCol = previousCharacterIndex(line, col);
         state.lines[row] = line.slice(0, previousCol) + line.slice(col);
         state.cursor.col = previousCol;
         state.curswant = state.cursor.col;
       } else if (row > 0) {
-        pushUndo();
+        ensureInsertUndo();
         var prevLine = getLine(row - 1);
         var joinCol = prevLine.length;
         state.lines[row - 1] = prevLine + line;
@@ -5484,7 +5510,7 @@
     }
     if (e.key === 'Tab') {
       e.preventDefault();
-      pushUndo();
+      ensureInsertUndo();
       // :set expandtab controls tab vs spaces; :set tabstop=N controls width.
       var tabWidth = state.tabstop || 4;
       var tabInsert;
@@ -5509,14 +5535,14 @@
     if (e.ctrlKey && e.key === 'h') {
       e.preventDefault();
       if (col > 0) {
-        pushUndo();
+        ensureInsertUndo();
         var ctrlHCol = previousCharacterIndex(line, col);
         state.lines[row] = line.slice(0, ctrlHCol) + line.slice(col);
         state.cursor.col = ctrlHCol;
         state.curswant = state.cursor.col;
         state.insertText = state.insertText.slice(0, previousCharacterIndex(state.insertText, state.insertText.length));
       } else if (row > 0) {
-        pushUndo();
+        ensureInsertUndo();
         var chPrev = getLine(row - 1);
         var chJoinCol = chPrev.length;
         state.lines[row - 1] = chPrev + line;
@@ -5533,7 +5559,7 @@
     if (e.ctrlKey && e.key === 'w') {
       e.preventDefault();
       if (col === 0) return;
-      pushUndo();
+      ensureInsertUndo();
       // Walk backward past whitespace, then past a run of word/non-word chars
       // to mimic vim's Ctrl-w boundary.
       var cwEnd = col;
@@ -5553,7 +5579,7 @@
     if (e.ctrlKey && e.key === 'u') {
       e.preventDefault();
       if (col === 0) return;
-      pushUndo();
+      ensureInsertUndo();
       state.lines[row] = line.slice(col);
       state.cursor.col = 0;
       state.curswant = 0;
@@ -5562,7 +5588,7 @@
     }
 
     if (isTextCharacter(e.key) && !e.ctrlKey && !e.metaKey) {
-      pushUndo();
+      ensureInsertUndo();
       state.lines[row] = line.slice(0, col) + e.key + line.slice(col);
       state.cursor.col = col + e.key.length;
       state.curswant = state.cursor.col;
@@ -5582,6 +5608,7 @@
       state.cursor.col = clampCol(row, previousCharacterIndex(line, col));
       state.curswant = state.cursor.col;
       state.replaceUndo = [];
+      state.replaceUndoOpen = false;
       render(); return;
     }
     if (e.key === 'Backspace') {
@@ -5595,7 +5622,7 @@
       return;
     }
     if (e.key === 'Enter') {
-      pushUndo();
+      ensureReplaceUndo();
       state.replaceUndo = [];
       state.lines[row] = line.slice(0, col);
       insertLine(row + 1, line.slice(col));
@@ -5605,7 +5632,7 @@
       render(); return;
     }
     if (isTextCharacter(e.key) && !e.ctrlKey && !e.metaKey) {
-      pushUndo();
+      ensureReplaceUndo();
       if (col < line.length) {
         var replaceEnd = nextCharacterIndex(line, col);
         state.replaceUndo.push(line.slice(col, replaceEnd));
@@ -5796,6 +5823,7 @@
       else deleteVisual();
       state.mode = 'insert';
       state.insertText = '';
+      state.insertUndoOpen = true;
       exitVisual(true);
       render(); return;
     }
@@ -5885,6 +5913,7 @@
       state.cursor.col = biCol;
       state.mode = 'insert';
       state.insertText = '';
+      state.insertUndoOpen = false;
       exitVisual(true);
       render(); return;
     }
@@ -6727,7 +6756,7 @@
       var col = state.cursor.col;
       if (state.mode === 'insert') {
         state.insertCompletion = null;
-        pushUndo();
+        ensureInsertUndo();
         var lines = text.split('\n');
         var line = getLine(row);
         if (lines.length === 1) {

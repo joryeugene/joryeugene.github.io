@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { open, press, type, cmd, lines, state } from './helpers.js';
+import { open, press, type, cmd, seed, lines, state } from './helpers.js';
 
 async function keys(page, values) {
   for (const value of values) await press(page, value);
@@ -28,6 +28,28 @@ async function openMission(page, number, filename) {
 test('teacher turns a corrupt launch into a verified postmortem', async ({ page }) => {
   test.setTimeout(60_000);
   await open(page);
+
+  await seed(page, 'header\nalpha\nbeta\ntail\nfifth\nsixth');
+  await keys(page, ['j', 'c', 'c']);
+  await type(page, 'ONE');
+  await keys(page, ['Escape', 'j', 'c', 'c']);
+  await type(page, 'TWO');
+  await press(page, 'Escape');
+  expect(await lines(page)).toEqual(['header', 'ONE', 'TWO', 'tail', 'fifth', 'sixth']);
+  await keys(page, ['2', 'u']);
+  expect(await lines(page)).toEqual(['header', 'alpha', 'beta', 'tail', 'fifth', 'sixth']);
+  await press(page, 'j');
+  expect((await state(page)).pos).toMatch(/^4,/);
+
+  await keys(page, ['g', 'g', 'A']);
+  await type(page, 'xyz');
+  await keys(page, ['Escape', 'u']);
+  expect((await lines(page))[0]).toBe('header');
+  await keys(page, ['0', 'R']);
+  await type(page, 'XYZ');
+  await keys(page, ['Escape', 'u']);
+  expect((await lines(page))[0]).toBe('header');
+
   await press(page, ':');
   await type(page, 'teacher');
   const activationMs = await page.evaluate(() => {
