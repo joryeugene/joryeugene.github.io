@@ -241,6 +241,8 @@
     documents: {},
     untitledSeq: 0,
     outputSeq: 0,
+    documentGeneration: 0,
+    pendingEditRequest: null,
     jumpList: [],
     jumpIdx: -1,
     lastVisualRange: null,
@@ -278,6 +280,8 @@
 
   function switchDocument(documentId, filename, lines, row, col) {
     saveCurrentDocument();
+    state.documentGeneration++;
+    state.pendingEditRequest = null;
     state.documentId = documentId;
     state.filename = filename;
     state.lines = lines.slice();
@@ -285,6 +289,7 @@
     state.cursor.row = clampRow(state.cursor.row);
     state.cursor.col = clampCol(state.cursor.row, state.cursor.col);
     state.curswant = state.cursor.col;
+    saveCurrentDocument();
   }
 
   function renameCurrentDocument(documentId, filename) {
@@ -296,6 +301,22 @@
         state.jumpList[i].documentId = documentId;
         state.jumpList[i].filename = filename;
       }
+    }
+    for (var ui = 0; ui < state.undoStack.length; ui++) {
+      var undoEntry = state.undoStack[ui];
+      if (undoEntry.documentId === oldDocumentId) {
+        undoEntry.documentId = documentId;
+        undoEntry.filename = filename;
+      }
+      for (var ti = 0; ti < undoEntry.rowTransforms.length; ti++) {
+        if (undoEntry.rowTransforms[ti].documentId === oldDocumentId) {
+          undoEntry.rowTransforms[ti].documentId = documentId;
+        }
+      }
+    }
+    if (state.pendingEditRequest && state.pendingEditRequest.source.documentId === oldDocumentId) {
+      state.pendingEditRequest.source.documentId = documentId;
+      state.pendingEditRequest.source.filename = filename;
     }
     if (documentId !== oldDocumentId) delete state.documents[oldDocumentId];
     state.documentId = documentId;
@@ -538,15 +559,22 @@
   // -------------------------------------------------------------------------
   // Undo
   // -------------------------------------------------------------------------
-  function adjustJumpRows(startRow, removedCount, addedCount) {
+  function applyJumpRowTransform(transform, reverse) {
+    var startRow = transform.startRow;
+    var removedCount = reverse ? transform.addedCount : transform.removedCount;
+    var addedCount = reverse ? transform.removedCount : transform.addedCount;
     var endRow = startRow + removedCount;
     var delta = addedCount - removedCount;
+    var targetLineCount = reverse
+      ? transform.lineCountBefore
+      : transform.lineCountBefore - transform.removedCount + transform.addedCount;
+    var maxRow = Math.max(0, targetLineCount - 1);
     for (var i = 0; i < state.jumpList.length; i++) {
       var jump = state.jumpList[i];
-      if (jump.documentId !== state.documentId || jump.row < startRow) continue;
+      if (jump.documentId !== transform.documentId || jump.row < startRow) continue;
       if (jump.row < endRow) jump.row = startRow;
       else jump.row += delta;
-      jump.row = Math.max(0, jump.row);
+      jump.row = Math.min(maxRow, Math.max(0, jump.row));
     }
     var deduped = [];
     var nextJumpIdx = state.jumpIdx;
@@ -561,39 +589,61 @@
     state.jumpIdx = Math.max(-1, Math.min(nextJumpIdx, deduped.length - 1));
   }
 
-  function adjustJumpRowsForRestore(nextLines) {
-    var prefix = 0;
-    while (prefix < state.lines.length && prefix < nextLines.length &&
-           state.lines[prefix] === nextLines[prefix]) prefix++;
-    var currentEnd = state.lines.length;
-    var nextEnd = nextLines.length;
-    while (currentEnd > prefix && nextEnd > prefix &&
-           state.lines[currentEnd - 1] === nextLines[nextEnd - 1]) {
-      currentEnd--;
-      nextEnd--;
+  function adjustJumpRows(startRow, removedCount, addedCount) {
+    var transform = {
+      documentId: state.documentId,
+      startRow: startRow,
+      removedCount: removedCount,
+      addedCount: addedCount,
+      lineCountBefore: state.lines.length
+    };
+    applyJumpRowTransform(transform, false);
+    var undoEntry = state.undoStack[state.undoIdx];
+    if (undoEntry && undoEntry.documentId === state.documentId) {
+      undoEntry.rowTransforms.push(transform);
     }
-    adjustJumpRows(prefix, currentEnd - prefix, nextEnd - prefix);
   }
 
   function pushUndo() {
     state.undoStack = state.undoStack.slice(0, state.undoIdx + 1);
-    state.undoStack.push({ lines: state.lines.slice(), filename: state.filename, documentId: state.documentId });
+    state.undoStack.push({
+      lines: state.lines.slice(),
+      filename: state.filename,
+      documentId: state.documentId,
+      rowTransforms: []
+    });
     if (state.undoStack.length > 200) { state.undoStack.shift(); }
     else { state.undoIdx++; }
+  }
+
+  function restoreUndoEntry(entry) {
+    if (entry.documentId && entry.documentId !== state.documentId) {
+      switchDocument(entry.documentId, entry.filename, entry.lines,
+        state.cursor.row, state.cursor.col);
+    } else {
+      state.lines = entry.lines.slice();
+      if (entry.filename) state.filename = entry.filename;
+      clampCursor();
+      saveCurrentDocument();
+    }
   }
 
   function undo() {
     if (state.undoIdx < 0) { setStatus('Already at oldest change'); return; }
     // At the tip: save current state so redo can restore it
     if (state.undoIdx === state.undoStack.length - 1) {
-      state.undoStack.push({ lines: state.lines.slice(), filename: state.filename, documentId: state.documentId });
+      state.undoStack.push({
+        lines: state.lines.slice(),
+        filename: state.filename,
+        documentId: state.documentId,
+        rowTransforms: []
+      });
     }
     var entry = state.undoStack[state.undoIdx--];
-    if (entry.documentId === state.documentId) adjustJumpRowsForRestore(entry.lines);
-    state.lines = entry.lines.slice();
-    if (entry.filename) state.filename = entry.filename;
-    if (entry.documentId) state.documentId = entry.documentId;
-    clampCursor();
+    for (var i = entry.rowTransforms.length - 1; i >= 0; i--) {
+      applyJumpRowTransform(entry.rowTransforms[i], true);
+    }
+    restoreUndoEntry(entry);
     render();
   }
 
@@ -601,13 +651,13 @@
     if (state.undoIdx + 2 >= state.undoStack.length) {
       setStatus('Already at newest change'); return;
     }
+    var change = state.undoStack[state.undoIdx + 1];
     var entry = state.undoStack[state.undoIdx + 2];
-    if (entry.documentId === state.documentId) adjustJumpRowsForRestore(entry.lines);
-    state.lines = entry.lines.slice();
-    if (entry.filename) state.filename = entry.filename;
-    if (entry.documentId) state.documentId = entry.documentId;
+    for (var i = 0; i < change.rowTransforms.length; i++) {
+      applyJumpRowTransform(change.rowTransforms[i], false);
+    }
+    restoreUndoEntry(entry);
     state.undoIdx++;
-    clampCursor();
     render();
   }
 
@@ -656,6 +706,7 @@
 
   function deleteLine(r) {
     if (state.lines.length === 1) {
+      adjustJumpRows(0, 1, 1);
       state.lines[0] = '';
     } else {
       adjustJumpRows(r, 1, 0);
@@ -1466,7 +1517,10 @@
 
   function pushJumpEntry(entry) {
     var last = state.jumpList[state.jumpList.length - 1];
-    if (sameJumpLine(last, entry)) return false;
+    if (sameJumpLine(last, entry)) {
+      state.jumpIdx = state.jumpList.length - 1;
+      return false;
+    }
     state.jumpList.push(entry);
     if (state.jumpList.length > 100) state.jumpList.shift();
     state.jumpIdx = state.jumpList.length - 1;
@@ -1479,15 +1533,12 @@
 
   function activateJump(entry) {
     if (entry.documentId !== state.documentId) {
-      saveCurrentDocument();
       var target = state.documents[entry.documentId];
       if (!target) {
         setStatus('E92: Buffer not found: ' + entry.filename);
         return false;
       }
-      state.documentId = entry.documentId;
-      state.filename = target.filename;
-      state.lines = target.lines.slice();
+      switchDocument(entry.documentId, target.filename, target.lines, entry.row, entry.col);
     }
     state.cursor.row = clampRow(entry.row);
     state.cursor.col = clampCol(state.cursor.row, entry.col);
@@ -1496,7 +1547,23 @@
     return true;
   }
 
+  function cancelPendingCommand() {
+    state.pendingOp = null;
+    state.pendingGForOp = false;
+    state.pendingTextObjPrefix = null;
+    state.pendingTextObjOp = null;
+    state.pendingTextObjCount = 0;
+    state.pendingBracket = null;
+    pendingOperator = null;
+    operatorCount = 0;
+    if (gTimer) {
+      clearTimeout(gTimer);
+      gTimer = null;
+    }
+  }
+
   function jumpOlder(count) {
+    cancelPendingCommand();
     if (!state.jumpList.length) { setStatus('E662: At start of jumplist'); return; }
     if (state.jumpIdx === state.jumpList.length - 1) pushJump();
     var previousIdx = state.jumpIdx;
@@ -1510,6 +1577,7 @@
   }
 
   function jumpNewer(count) {
+    cancelPendingCommand();
     if (!state.jumpList.length) { setStatus('E663: At end of jumplist'); return; }
     var previousIdx = state.jumpIdx;
     var moved = false;
@@ -3295,19 +3363,29 @@
         setStatus('"' + eFname + '" ' + state.lines.length + ' lines');
         render();
       } else if (ePath) {
-        var eSourceJump = jumpPosition(state.cursor.row, state.cursor.col);
+        var eRequest = {
+          generation: state.documentGeneration,
+          source: jumpPosition(state.cursor.row, state.cursor.col)
+        };
+        state.pendingEditRequest = eRequest;
         setStatus('Reading "' + eFname + '"...');
         fetch(ePath).then(function(resp) {
           if (!resp.ok) throw new Error(resp.status);
           return resp.text();
         }).then(function(text) {
+          if (state.pendingEditRequest !== eRequest ||
+              state.documentGeneration !== eRequest.generation ||
+              state.documentId !== eRequest.source.documentId) return;
           pushUndo();
-          pushJumpEntry(eSourceJump);
+          pushJumpEntry(eRequest.source);
           switchDocument(documentIdForEdit(eFname, true), eFname + '.md', text.split('\n'), 0, 0);
           setStatus('"' + eFname + '" ' + state.lines.length + ' lines');
           render();
         }).catch(function() {
-          setStatus('"' + eFname + '" read error');
+          if (state.pendingEditRequest === eRequest) {
+            state.pendingEditRequest = null;
+            setStatus('"' + eFname + '" read error');
+          }
         });
       } else {
         pushUndo();
@@ -3568,15 +3646,18 @@
       }
       pushUndo();
       var sortSlice = state.lines.slice(sortStart, sortEnd + 1).sort();
-      if (sortUnique) {
-        var sortDedup = [];
-        for (var sdi = 0; sdi < sortSlice.length; sdi++) {
-          if (sdi === 0 || sortSlice[sdi] !== sortSlice[sdi - 1]) sortDedup.push(sortSlice[sdi]);
-        }
-        sortSlice = sortDedup;
-      }
       state.lines.splice(sortStart, sortEnd - sortStart + 1, ...sortSlice);
-      setStatus(sortSlice.length + ' lines sorted' + (sortUnique ? ', unique' : ''));
+      var sortRemoved = 0;
+      if (sortUnique) {
+        for (var sdi = sortSlice.length - 1; sdi > 0; sdi--) {
+          if (sortSlice[sdi] === sortSlice[sdi - 1]) {
+            deleteLine(sortStart + sdi);
+            sortRemoved++;
+          }
+        }
+      }
+      clampCursor();
+      setStatus((sortSlice.length - sortRemoved) + ' lines sorted' + (sortUnique ? ', unique' : ''));
       render();
       return;
     }
