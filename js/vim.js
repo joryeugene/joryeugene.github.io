@@ -199,7 +199,13 @@
     visualAnchor: null,
     visualMode: null,
     cmdBuf: '',
+    cmdHistory: [],
+    cmdHistoryIdx: 0,
+    cmdHistoryPrefix: '',
     searchBuf: '',
+    searchHistory: [],
+    searchHistoryIdx: 0,
+    searchHistoryPrefix: '',
     searchPattern: null,
     searchMatches: [],
     searchIdx: 0,
@@ -248,6 +254,7 @@
     lastVisualRange: null,
     confirmSub: null,
     preSearchCursor: null,
+    preSearchState: null,
     marks: {},
     pendingTextObjPrefix: null,
     pendingTextObjOp: null,
@@ -265,6 +272,72 @@
     paletteOpen: false,
     sitePaletteOpen: false
   };
+
+  var HISTORY_LIMIT = 200;
+
+  function addHistory(history, value) {
+    if (!value || !value.trim()) return;
+    for (var i = history.length - 1; i >= 0; i--) {
+      if (history[i] === value) {
+        history.splice(i, 1);
+        break;
+      }
+    }
+    history.push(value);
+    if (history.length > HISTORY_LIMIT) {
+      history.splice(0, history.length - HISTORY_LIMIT);
+    }
+  }
+
+  function resetHistoryNavigation(kind) {
+    var history = kind === 'command' ? state.cmdHistory : state.searchHistory;
+    if (kind === 'command') {
+      state.cmdHistoryIdx = history.length;
+    } else {
+      state.searchHistoryIdx = history.length;
+    }
+    updateHistoryPrefix(kind);
+  }
+
+  function updateHistoryPrefix(kind) {
+    if (kind === 'command') {
+      state.cmdHistoryPrefix = state.cmdBuf;
+    } else {
+      state.searchHistoryPrefix = state.searchBuf;
+    }
+  }
+
+  function recallHistory(kind, direction) {
+    var history = kind === 'command' ? state.cmdHistory : state.searchHistory;
+    var idx = kind === 'command' ? state.cmdHistoryIdx : state.searchHistoryIdx;
+    var prefix = kind === 'command' ? state.cmdHistoryPrefix : state.searchHistoryPrefix;
+    if (idx < 0 || idx > history.length) idx = history.length;
+
+    var next = idx + direction;
+    while (next >= 0 && next < history.length && history[next].indexOf(prefix) !== 0) {
+      next += direction;
+    }
+
+    var value;
+    if (next >= 0 && next < history.length) {
+      idx = next;
+      value = history[next];
+    } else if (direction > 0 && idx < history.length) {
+      idx = history.length;
+      value = prefix;
+    } else {
+      return false;
+    }
+
+    if (kind === 'command') {
+      state.cmdHistoryIdx = idx;
+      state.cmdBuf = value;
+    } else {
+      state.searchHistoryIdx = idx;
+      state.searchBuf = value;
+    }
+    return true;
+  }
 
   state.documents.welcome = {
     filename: state.filename,
@@ -3536,6 +3609,7 @@
       try { subRe = new RegExp(subPat, subGlobal ? 'g' : ''); } catch(ex) {
         setStatus('Invalid pattern: ' + subPat); return;
       }
+      addHistory(state.searchHistory, subPat);
       state.lastSub = { pattern: subPat, replacement: subRep, global: subGlobal };
       pushUndo();
       var subCount = 0;
@@ -3584,6 +3658,7 @@
       var gRe;
       try { gRe = new RegExp(gPat); }
       catch (ex) { setStatus('E476: Invalid pattern: ' + gPat); return; }
+      addHistory(state.searchHistory, gPat);
       pushUndo();
       if (gSub === 'd') {
         var gMatches = [];
@@ -4574,14 +4649,23 @@
     // --- enter command / search mode ---
     if (e.key === ':') {
       state.mode = 'command'; state.cmdBuf = '';
+      resetHistoryNavigation('command');
       if (state.zenMode) cmdlineEl.style.display = '';
       render(); return;
     }
     if (e.key === '/' || e.key === '?') {
+      state.preSearchState = {
+        buf: state.searchBuf,
+        pattern: state.searchPattern,
+        matches: state.searchMatches,
+        idx: state.searchIdx,
+        dir: state.searchDir
+      };
       state.mode = 'search'; state.searchBuf = '';
       state.searchDir = e.key === '/' ? 1 : -1;
       state.searchMatches = []; state.searchPattern = null;
       state.preSearchCursor = { row: state.cursor.row, col: state.cursor.col };
+      resetHistoryNavigation('search');
       if (state.zenMode) cmdlineEl.style.display = '';
       render(); return;
     }
@@ -4600,6 +4684,7 @@
         var word = line.slice(wStart, wEnd + 1);
         var pat = '\\b' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b';
         state.searchBuf = pat;
+        addHistory(state.searchHistory, pat);
         buildMatches(pat);
         if (state.searchMatches.length) {
           // find nearest match in requested direction
@@ -5326,6 +5411,7 @@
     if (e.key === ':') {
       exitVisual();
       state.mode = 'command'; state.cmdBuf = "'<,'>";
+      resetHistoryNavigation('command');
       if (state.zenMode) cmdlineEl.style.display = '';
       render(); return;
     }
@@ -5366,6 +5452,12 @@
     if (e.key === 'Escape') {
       state.mode = 'normal'; state.cmdBuf = ''; tabIdx = -1; render(); return;
     }
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      tabIdx = -1;
+      recallHistory('command', e.key === 'ArrowUp' ? -1 : 1);
+      render(); return;
+    }
     if (e.key === 'Tab') {
       e.preventDefault();
       if (tabIdx === -1) tabPrefix = state.cmdBuf;
@@ -5401,10 +5493,12 @@
           state.cmdBuf = matches[tabIdx];
         }
       }
+      updateHistoryPrefix('command');
       render(); return;
     }
     if (e.key === 'Enter') {
       var cmd = state.cmdBuf;
+      addHistory(state.cmdHistory, cmd);
       state.mode = 'normal'; state.cmdBuf = ''; tabIdx = -1;
       execCommand(cmd);
       render(); return;
@@ -5413,6 +5507,7 @@
       tabIdx = -1;
       if (state.cmdBuf.length > 0) {
         state.cmdBuf = state.cmdBuf.slice(0, previousCharacterIndex(state.cmdBuf, state.cmdBuf.length));
+        updateHistoryPrefix('command');
       } else {
         state.mode = 'normal';
       }
@@ -5420,26 +5515,45 @@
     }
     if (isTextCharacter(e.key)) {
       tabIdx = -1;
-      state.cmdBuf += e.key; render();
+      state.cmdBuf += e.key;
+      updateHistoryPrefix('command');
+      render();
     }
   }
 
   function handleSearch(e) {
     if (e.key === 'Escape') {
       state.mode = 'normal';
-      state.searchBuf = '';
-      state.searchMatches = [];
-      state.searchPattern = null;
+      if (state.preSearchState) {
+        state.searchBuf = state.preSearchState.buf;
+        state.searchPattern = state.preSearchState.pattern;
+        state.searchMatches = state.preSearchState.matches;
+        state.searchIdx = state.preSearchState.idx;
+        state.searchDir = state.preSearchState.dir;
+      } else {
+        state.searchBuf = '';
+        state.searchMatches = [];
+        state.searchPattern = null;
+      }
       if (state.preSearchCursor) {
         state.cursor.row = state.preSearchCursor.row;
         state.cursor.col = state.preSearchCursor.col;
         state.curswant = state.preSearchCursor.col;
         state.preSearchCursor = null;
       }
+      state.preSearchState = null;
+      render(); return;
+    }
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      recallHistory('search', e.key === 'ArrowUp' ? -1 : 1);
+      buildMatches(state.searchBuf);
+      if (state.incsearch) incSearchJump();
       render(); return;
     }
     if (e.key === 'Enter') {
       var pattern = state.searchBuf;
+      addHistory(state.searchHistory, pattern);
       if (state.searchMatches.length) {
         // Find nearest match in search direction from cursor
         var searchStart = state.preSearchCursor || state.cursor;
@@ -5470,16 +5584,19 @@
       }
       state.mode = 'normal';
       state.preSearchCursor = null;
+      state.preSearchState = null;
       render(); return;
     }
     if (e.key === 'Backspace') {
       state.searchBuf = state.searchBuf.slice(0, previousCharacterIndex(state.searchBuf, state.searchBuf.length));
+      updateHistoryPrefix('search');
       buildMatches(state.searchBuf);
       if (state.incsearch) incSearchJump();
       render(); return;
     }
     if (isTextCharacter(e.key)) {
       state.searchBuf += e.key;
+      updateHistoryPrefix('search');
       buildMatches(state.searchBuf);
       if (state.incsearch) incSearchJump();
       render();
