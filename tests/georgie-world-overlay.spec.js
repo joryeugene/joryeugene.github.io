@@ -39,10 +39,10 @@ test.describe("Georgie world across the real site", () => {
   test("gives an empty site a visible Georgie beat within two seconds", async ({ page }, testInfo) => {
     const startedAt = Date.now();
     await page.goto("/?georgie-world=1&offline=1");
-    await expect(page.locator("[data-georgie-reaction]")).toHaveText(
-      "A moth made a terrible tactical decision.",
-      { timeout: 2_000 },
-    );
+    await expect(page.locator("[data-georgie-sprite]")).toHaveAttribute("data-motion", "run", {
+      timeout: 2_000,
+    });
+    await expect(page.locator("[data-georgie-dog]")).toHaveClass(/is-travelling/);
     const elapsedMs = Date.now() - startedAt;
     expect(elapsedMs).toBeLessThan(2_000);
     await testInfo.attach("first-solo-beat.json", {
@@ -60,7 +60,8 @@ test.describe("Georgie world across the real site", () => {
       await expect(page.locator('[data-presence-kind="moth"]')).toHaveCount(3);
       await expect(page.locator('[data-presence-kind="visitor"]')).toHaveCount(0);
       await expect(page.locator("[data-georgie-overlay]")).not.toHaveAttribute("data-speaking", "true");
-      await expect(page.locator("[data-georgie-reaction]")).toHaveCSS("opacity", "0");
+      await expect(page.locator("[data-georgie-reaction]")).toHaveAttribute("aria-live", "polite");
+      await expect(page.locator("[data-georgie-reaction]")).toHaveCSS("clip-path", "inset(50%)");
 
       await expect(page.locator("[data-georgie-overlay]")).toHaveCSS("pointer-events", "none");
       if (!["/vim/", "/blog/ai-dev-tooling-presentation/"].includes(route)) {
@@ -103,7 +104,10 @@ test.describe("Georgie world across the real site", () => {
 
     await expect(bone).toHaveAttribute("data-found", "true");
     await expect(page.locator("[data-georgie-overlay]")).toHaveAttribute("data-state", "bone-found");
-    await expect(page.locator("[data-georgie-sprite]")).toHaveAttribute("src", /bone-wag\.gif$/);
+    await expect(page.locator("[data-georgie-sprite]")).toHaveAttribute("data-motion", "reaction");
+    expect(await page.locator("[data-georgie-sprite]").evaluate((sprite) => (
+      sprite.style.getPropertyValue("--georgie-row")
+    ))).toBe("5");
     await expect(page.locator("[data-georgie-reaction]")).toContainText("tail is still going");
   });
 

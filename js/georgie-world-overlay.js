@@ -29,10 +29,10 @@ function createOverlay() {
       <button class="georgie-overlay__bone" type="button" data-georgie-bone data-found="false" aria-label="Georgie's hidden bone"><span aria-hidden="true"></span></button>
 
       <button class="georgie-overlay__dog" type="button" data-georgie-dog data-invite-georgie data-direction="right" aria-label="Invite Georgie over">
-        <img class="georgie-overlay__sprite" data-georgie-sprite src="/assets/georgie/run-right.gif" width="128" height="139" alt="Pixel Georgie, a small white and chestnut Phalene">
+        <span class="georgie-overlay__sprite" data-georgie-sprite data-motion="still" role="img" aria-label="Pixel Georgie, a small white and chestnut Phalene"></span>
         <span class="georgie-overlay__hearts" aria-hidden="true"><span></span><span></span><span></span></span>
-        <span class="georgie-overlay__reaction" data-georgie-reaction aria-live="polite">Georgie is deciding what to do.</span>
       </button>
+      <span class="georgie-overlay__live" data-georgie-reaction aria-live="polite">Georgie is deciding what to do.</span>
 
       <details class="georgie-overlay__presence">
         <summary aria-label="Open Georgie's room details">

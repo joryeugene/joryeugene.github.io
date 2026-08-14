@@ -27,12 +27,12 @@ test.describe("Georgie's living web prototype", () => {
   test("uses directional Pixel Georgie motion and lets him leave", async ({ page }) => {
     await page.goto("/georgie-lab/?offline=1&test=1");
 
-    await page.evaluate(() => {
-      window.__georgieWorld.moveTo(0.16, 0.2);
+    await page.evaluate(async () => {
+      await window.__georgieWorld.moveTo(0.16, 0.2);
       window.__georgieWorld.moveTo(0.82, 0.78);
     });
     await expect(page.locator("[data-georgie-dog]")).toHaveAttribute("data-direction", "front-right");
-    await expect(page.locator("[data-georgie-sprite]")).toHaveAttribute("src", /run-front-right\.gif$/);
+    await expect(page.locator("[data-georgie-sprite]")).toHaveAttribute("data-motion", "run");
 
     const invite = page.getByRole("button", { name: "Invite Georgie over" });
     await invite.click();
@@ -69,7 +69,10 @@ test.describe("Georgie's living web prototype", () => {
     await expect(page.locator("[data-georgie-reaction]")).toContainText("bone");
     await page.mouse.up();
     await expect(page.locator("[data-georgie-world]")).toHaveAttribute("data-state", "bone-found");
-    await expect(page.locator("[data-georgie-sprite]")).toHaveAttribute("src", /bone-wag\.gif$/);
+    await expect(page.locator("[data-georgie-sprite]")).toHaveAttribute("data-motion", "reaction");
+    expect(await page.locator("[data-georgie-sprite]").evaluate((sprite) => (
+      sprite.style.getPropertyValue("--georgie-row")
+    ))).toBe("5");
   });
 
   test("keeps seven-day recognition local and provides Forget me", async ({ page }) => {
@@ -86,7 +89,11 @@ test.describe("Georgie's living web prototype", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/georgie-lab/?offline=1&test=1");
 
-    await expect(page.locator("[data-georgie-sprite]")).toHaveAttribute("src", /still-right\.png$/);
+    await expect(page.locator("[data-georgie-sprite]")).toHaveAttribute("data-motion", "still");
+    expect(await page.locator("[data-georgie-sprite]").evaluate((sprite) => ({
+      row: sprite.style.getPropertyValue("--georgie-row"),
+      frame: sprite.style.getPropertyValue("--georgie-frame"),
+    }))).toEqual({ row: "6", frame: "0" });
     const before = await page.locator("[data-georgie-dog]").boundingBox();
     await page.waitForTimeout(700);
     const after = await page.locator("[data-georgie-dog]").boundingBox();

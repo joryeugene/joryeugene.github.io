@@ -34,7 +34,7 @@
       </button>
 
       <div class="georgie-world__dog" data-georgie-dog data-direction="right">
-        <img class="georgie-world__sprite" data-georgie-sprite src="/assets/georgie/run-right.gif" width="128" height="128" alt="Pixel Georgie, a small white and chestnut Phalene">
+        <span class="georgie-world__sprite" data-georgie-sprite data-motion="still" role="img" aria-label="Pixel Georgie, a small white and chestnut Phalene"></span>
         <span class="georgie-world__hearts" data-georgie-hearts aria-hidden="true"><span></span><span></span><span></span></span>
       </div>
 
@@ -55,11 +55,11 @@
       <h2 id="direction-title">The same dog from every direction</h2>
       <p>Each row preserves Georgie's head, torso, legs, tail, and baseline while changing the gait for the direction of travel. Left-facing motion mirrors the corresponding right-facing row.</p>
       <div class="georgie-directions__grid">
-        <figure class="georgie-direction"><img src="/assets/georgie/run-right.gif" alt="Pixel Georgie running to the right"><figcaption>Across</figcaption></figure>
-        <figure class="georgie-direction"><img src="/assets/georgie/run-front-right.gif" alt="Pixel Georgie running diagonally toward the viewer"><figcaption>Toward</figcaption></figure>
-        <figure class="georgie-direction"><img src="/assets/georgie/run-front.gif" alt="Pixel Georgie running toward the viewer"><figcaption>Front</figcaption></figure>
-        <figure class="georgie-direction"><img src="/assets/georgie/run-rear.gif" alt="Pixel Georgie running away from the viewer"><figcaption>Rear</figcaption></figure>
-        <figure class="georgie-direction"><img src="/assets/georgie/run-rear-right.gif" alt="Pixel Georgie running diagonally away from the viewer"><figcaption>Away</figcaption></figure>
+        <figure class="georgie-direction"><span class="georgie-direction__sprite" data-motion="run" style="--georgie-row:0" role="img" aria-label="Pixel Georgie running to the right"></span><figcaption>Across</figcaption></figure>
+        <figure class="georgie-direction"><span class="georgie-direction__sprite" data-motion="run" style="--georgie-row:1" role="img" aria-label="Pixel Georgie running diagonally toward the viewer"></span><figcaption>Toward</figcaption></figure>
+        <figure class="georgie-direction"><span class="georgie-direction__sprite" data-motion="run" style="--georgie-row:2" role="img" aria-label="Pixel Georgie running toward the viewer"></span><figcaption>Front</figcaption></figure>
+        <figure class="georgie-direction"><span class="georgie-direction__sprite" data-motion="run" style="--georgie-row:4" role="img" aria-label="Pixel Georgie running away from the viewer"></span><figcaption>Rear</figcaption></figure>
+        <figure class="georgie-direction"><span class="georgie-direction__sprite" data-motion="run" style="--georgie-row:3" role="img" aria-label="Pixel Georgie running diagonally away from the viewer"></span><figcaption>Away</figcaption></figure>
       </div>
     </section>
   </main>

@@ -1,0 +1,34 @@
+{
+  "inputs": [
+    "design/georgie-world/georgie-world-locomotion-clean.png",
+    "design/georgie-world/georgie-world-stills-clean.png"
+  ],
+  "outputs": [
+    "assets/georgie/georgie-world-atlas.png",
+    "assets/georgie/georgie-world-atlas.webp"
+  ],
+  "atlasSize": [
+    1536,
+    1456
+  ],
+  "cellSize": [
+    192,
+    208
+  ],
+  "rows": {
+    "right": 0,
+    "frontRight": 1,
+    "front": 2,
+    "rearRight": 3,
+    "rear": 4,
+    "boneWag": 5,
+    "groundedStills": 6
+  },
+  "stillFrames": [
+    "right",
+    "front-right",
+    "front",
+    "rear-right",
+    "rear"
+  ]
+}

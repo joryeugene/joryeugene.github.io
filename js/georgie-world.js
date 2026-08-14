@@ -7,21 +7,10 @@ import {
   rememberVisit,
   sharedSceneAt,
 } from "./georgie-world-model.js";
+import { GeorgieActionController } from "./georgie-motion.js";
 
-const ASSET_ROOT = "/assets/georgie";
 const PRESENCE_URL = "wss://jorypestorious-site.jorypestorious-48d.workers.dev/api/presence";
 const HEARTBEAT_MS = 15_000;
-
-const DIRECTION_ASSETS = {
-  right: ["right", false],
-  left: ["right", true],
-  front: ["front", false],
-  rear: ["rear", false],
-  "front-right": ["front-right", false],
-  "front-left": ["front-right", true],
-  "rear-right": ["rear-right", false],
-  "rear-left": ["rear-right", true],
-};
 
 const BONE_HIDING_PLACES = [
   { x: 0.07, y: 0.79 },
@@ -65,7 +54,16 @@ export class GeorgieWorld {
     this.bone = root.querySelector("[data-georgie-bone]");
     this.behavior = new GeorgieBehavior();
     this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    this.position = { x: 0.16, y: 0.68 };
+    this.motion = new GeorgieActionController({
+      arena: this.arena,
+      dog: this.dog,
+      sprite: this.sprite,
+      reducedMotion: this.reducedMotion,
+      position: { x: 0.16, y: 0.68 },
+    });
+    Object.defineProperty(this, "position", {
+      get: () => this.motion.visiblePosition(),
+    });
     this.presence = presenceView(0);
     this.routineTimer = 0;
     this.sayTimer = 0;
@@ -90,8 +88,7 @@ export class GeorgieWorld {
     rememberVisit(localStorage);
     this.renderRecognition(remembered);
     this.setPresence(0);
-    this.setDirection("right", !this.reducedMotion);
-    this.setPosition(this.position.x, this.position.y, false);
+    this.motion.settle("right");
     this.root.dataset.state = "wandering";
 
     this.root.querySelector("[data-invite-georgie]")
@@ -191,10 +188,7 @@ export class GeorgieWorld {
 
   showBoneWag() {
     const mirrored = this.bonePosition.x < this.position.x;
-    this.dog.dataset.direction = mirrored ? "left" : "right";
-    this.dog.classList.remove("is-travelling");
-    this.sprite.classList.toggle("is-mirrored", mirrored);
-    this.sprite.src = `${ASSET_ROOT}/${this.reducedMotion ? "still-bone-wag.png" : "bone-wag.gif"}`;
+    this.motion.showReaction("bone-wag", mirrored ? "left" : "right");
   }
 
   connectPresence() {
@@ -260,16 +254,14 @@ export class GeorgieWorld {
   receiveSharedInvitation(reaction) {
     if (this.behavior.state === "gone") return;
     if (reaction === "ignores") {
-      this.setDirection("rear", false);
-      this.dog.classList.remove("is-travelling");
+      this.motion.settle("rear");
       this.root.dataset.state = "watching";
       this.say("Georgie heard you. He is pretending he did not.");
       this.scheduleSharedScene(2_600, true);
     } else if (reaction === "leaves") {
       this.leaveSharedScene();
     } else {
-      this.setDirection("front", false);
-      this.dog.classList.remove("is-travelling");
+      this.motion.settle("front");
       this.root.dataset.state = "watching";
       this.say("Georgie looked over. That is not the same as coming.");
       this.scheduleSharedScene(2_600, true);
@@ -280,13 +272,16 @@ export class GeorgieWorld {
     window.clearTimeout(this.sharedSceneTimer);
     const leavesLeft = this.position.x < 0.5;
     this.root.dataset.state = "leaving";
-    this.setDirection(leavesLeft ? "left" : "right", !this.reducedMotion);
-    this.setPosition(leavesLeft ? -0.12 : 1.12, Math.min(0.88, this.position.y + 0.04), true);
+    const trip = this.motion.moveTo({
+      x: leavesLeft ? -0.12 : 1.12,
+      y: Math.min(0.88, this.position.y + 0.04),
+    }, { direction: leavesLeft ? "left" : "right" });
     this.say("Too many invitations. Georgie left the room.", 4_000);
-    window.setTimeout(() => {
+    trip.then(({ status }) => {
+      if (status !== "arrived") return;
       this.dog.hidden = false;
       this.applySharedScene(true);
-    }, this.reducedMotion ? 0 : 1_600);
+    });
   }
 
   syncSharedScene(message) {
@@ -323,12 +318,9 @@ export class GeorgieWorld {
     const moved = Math.abs(scene.x - this.position.x) > 0.01
       || Math.abs(scene.y - this.position.y) > 0.01;
     if (moved) {
-      const direction = directionForDelta(scene.x - this.position.x, scene.y - this.position.y);
-      this.setDirection(direction, !this.reducedMotion);
-      this.setPosition(scene.x, scene.y, true);
+      this.moveTo(scene.x, scene.y);
     } else {
-      this.setDirection(scene.direction || "right", false);
-      this.dog.classList.remove("is-travelling");
+      this.motion.settle(scene.direction || "right");
     }
 
     this.root.dataset.state = scene.routine;
@@ -344,58 +336,42 @@ export class GeorgieWorld {
 
     const result = this.behavior.invite();
     if (result.reaction === "ignores") {
-      this.setDirection("rear", false);
-      this.dog.classList.remove("is-travelling");
+      this.motion.settle("rear");
       this.say("Georgie heard you. He is pretending he did not.");
     } else if (result.reaction === "watches") {
-      this.setDirection("front", false);
-      this.dog.classList.remove("is-travelling");
+      this.motion.settle("front");
       this.say("Georgie looked over. That is not the same as coming.");
     } else if (result.reaction === "leaves") {
       window.clearTimeout(this.routineTimer);
       window.clearTimeout(this.sharedSceneTimer);
       const leavesLeft = this.position.x < 0.5;
       this.root.dataset.state = "leaving";
-      this.setDirection(leavesLeft ? "left" : "right", !this.reducedMotion);
-      this.setPosition(leavesLeft ? -0.12 : 1.12, Math.min(0.88, this.position.y + 0.04), true);
+      const trip = this.motion.moveTo({
+        x: leavesLeft ? -0.12 : 1.12,
+        y: Math.min(0.88, this.position.y + 0.04),
+      }, { direction: leavesLeft ? "left" : "right" });
       this.say("Georgie has had enough. He left.", 5_000);
-      window.setTimeout(() => {
+      trip.then(({ status }) => {
+        if (status !== "arrived") return;
         this.root.dataset.state = "gone";
         this.dog.hidden = true;
-      }, this.reducedMotion ? 0 : 1_250);
+      });
     } else {
       this.say("Georgie is still gone.");
     }
 
   }
 
-  setDirection(direction, animated = true) {
-    const [assetDirection, mirrored] = DIRECTION_ASSETS[direction];
-    const prefix = animated ? "run" : "still";
-    const extension = animated ? "gif" : "png";
-    this.dog.dataset.direction = direction;
-    this.sprite.classList.toggle("is-mirrored", mirrored);
-    this.sprite.src = `${ASSET_ROOT}/${prefix}-${assetDirection}.${extension}`;
-  }
-
-  setPosition(x, y, animate = true) {
-    this.position = { x, y };
-    this.dog.classList.toggle("is-travelling", animate && !this.reducedMotion);
-    this.dog.style.left = `${x * 100}%`;
-    this.dog.style.top = `${y * 100}%`;
-  }
-
   moveTo(x, y) {
-    if (this.behavior.state === "gone") return;
+    if (this.behavior.state === "gone") return Promise.resolve({ status: "absent" });
     const next = {
       x: Math.max(0.05, Math.min(0.95, x)),
       y: Math.max(0.12, Math.min(0.88, y)),
     };
     const direction = directionForDelta(next.x - this.position.x, next.y - this.position.y);
-    this.setDirection(direction, !this.reducedMotion);
-    this.setPosition(next.x, next.y, true);
     this.root.dataset.state = "wandering";
     this.say("Georgie chose somewhere else to be.", 2_800);
+    return this.motion.moveTo(next, { direction });
   }
 
   scheduleRoutine(delay = 3_000 + Math.random() * 2_500, forcedRoutine = null) {
@@ -415,12 +391,10 @@ export class GeorgieWorld {
       this.moveTo(Number(moth.dataset.x), Number(moth.dataset.y));
       this.say("A moth made a terrible tactical decision.");
     } else if (routine === "watch") {
-      this.setDirection(this.position.x > 0.5 ? "left" : "right", false);
-      this.dog.classList.remove("is-travelling");
+      this.motion.settle(this.position.x > 0.5 ? "left" : "right");
       this.say("Georgie is watching the room, not obeying it.");
     } else if (routine === "rest") {
-      this.setDirection("right", false);
-      this.dog.classList.remove("is-travelling");
+      this.motion.settle("right");
       this.say("Georgie stopped exactly where he wanted.");
     } else if (routine === "hide") {
       this.moveTo(Math.random() < 0.5 ? 0.05 : 0.95, 0.72);

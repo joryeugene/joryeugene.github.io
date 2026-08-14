@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "asset": "assets/georgie/georgie-world-atlas.png",
+  "visibleGreenPixels": 0,
+  "alphaThreshold": 16,
+  "greenThreshold": 120,
+  "detector": "green > red * 1.45 and green > blue * 1.2"
+}
