@@ -194,8 +194,8 @@
     lines: welcomeLines,
     cursor: { row: welcomeLines.firstContentRow || 0, col: welcomeLines.firstContentCol || 0 },
     mode: 'normal',
-    register: '',
-    registerLinewise: false,
+    registers: {},
+    selectedRegister: null,
     visualAnchor: null,
     visualMode: null,
     cmdBuf: '',
@@ -357,6 +357,7 @@
     saveCurrentDocument();
     state.documentGeneration++;
     state.pendingEditRequest = null;
+    state.selectedRegister = null;
     state.documentId = documentId;
     state.filename = filename;
     state.lines = lines.slice();
@@ -465,18 +466,141 @@
   var countBuf = 0;
   function getCount() { var c = countBuf || 1; countBuf = 0; return c; }
 
-  // Write to register and system clipboard
-  function setRegister(text, linewise) {
-    state.register = text;
-    if (linewise !== undefined) state.registerLinewise = linewise;
+  function emptyRegister() {
+    return { text: '', kind: 'char' };
+  }
+
+  function cloneRegister(value) {
+    return { text: value.text, kind: value.kind };
+  }
+
+  function isRegisterName(name) {
+    return name === '"' || name === '-' || name === '_' ||
+      (name >= '0' && name <= '9') ||
+      (name >= 'a' && name <= 'z') ||
+      (name >= 'A' && name <= 'Z');
+  }
+
+  function getRegister(name) {
+    var key = name >= 'A' && name <= 'Z' ? name.toLowerCase() : name;
+    return state.registers[key] || emptyRegister();
+  }
+
+  function selectRegister(name) {
+    if (!isRegisterName(name)) {
+      state.selectedRegister = null;
+      setStatus('E354: Invalid register name: ' + name);
+      return false;
+    }
+    state.selectedRegister = name;
+    return true;
+  }
+
+  function takeSelectedRegisterName() {
+    var name = state.selectedRegister || '"';
+    state.selectedRegister = null;
+    return name;
+  }
+
+  function appendRegister(current, next) {
+    if (!current.text) return cloneRegister(next);
+    if (current.kind === 'block' && next.kind === 'block') {
+      var left = current.text.split('\n');
+      var right = next.text.split('\n');
+      var rows = [];
+      var count = Math.max(left.length, right.length);
+      for (var i = 0; i < count; i++) rows.push((left[i] || '') + (right[i] || ''));
+      return { text: rows.join('\n'), kind: 'block' };
+    }
+    if (current.kind === 'char' && next.kind === 'char') {
+      return { text: current.text + next.text, kind: 'char' };
+    }
+    return { text: current.text + '\n' + next.text, kind: 'line' };
+  }
+
+  function storeRegister(name, value) {
+    var append = name >= 'A' && name <= 'Z';
+    var key = append ? name.toLowerCase() : name;
+    state.registers[key] = append
+      ? appendRegister(getRegister(key), value)
+      : cloneRegister(value);
+  }
+
+  function rotateDeleteRegisters(value) {
+    for (var i = 9; i >= 2; i--) {
+      var prior = state.registers[String(i - 1)];
+      if (prior) state.registers[String(i)] = cloneRegister(prior);
+      else delete state.registers[String(i)];
+    }
+    state.registers['1'] = cloneRegister(value);
+  }
+
+  // Registers and the browser clipboard share one write seam.
+  function writeRegister(text, kind, operation) {
+    var selected = takeSelectedRegisterName();
+    if (selected === '_') return;
+    var value = { text: text, kind: kind };
+    state.registers['"'] = cloneRegister(value);
+    if (operation === 'yank') state.registers['0'] = cloneRegister(value);
+    else if (kind === 'line' || text.indexOf('\n') !== -1) rotateDeleteRegisters(value);
+    else state.registers['-'] = cloneRegister(value);
+    if (selected !== '"') storeRegister(selected, value);
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).catch(function() {
-        // fallback: textarea + execCommand
         clipboardFallback(text);
       });
     } else {
       clipboardFallback(text);
     }
+  }
+
+  function readSelectedRegister() {
+    var name = takeSelectedRegisterName();
+    return name === '_' ? emptyRegister() : getRegister(name);
+  }
+
+  function pasteRegister(value, before) {
+    if (!value.text) { setStatus('Nothing in register'); return false; }
+    var row = state.cursor.row;
+    var col = state.cursor.col;
+    pushUndo();
+    if (value.kind === 'line') {
+      var lineRows = value.text.split('\n');
+      var insertAt = before ? row : row + 1;
+      for (var i = lineRows.length - 1; i >= 0; i--) insertLine(insertAt, lineRows[i]);
+      state.cursor.row = insertAt;
+      state.cursor.col = 0;
+    } else if (value.kind === 'block') {
+      var blockRows = value.text.split('\n');
+      var blockCol = col + (before ? 0 : 1);
+      for (var bi = 0; bi < blockRows.length; bi++) {
+        var targetRow = row + bi;
+        while (targetRow >= state.lines.length) insertLine(state.lines.length, '');
+        var target = getLine(targetRow);
+        if (target.length < blockCol) target += new Array(blockCol - target.length + 1).join(' ');
+        state.lines[targetRow] = target.slice(0, blockCol) + blockRows[bi] + target.slice(blockCol);
+      }
+      state.cursor.col = blockCol + Math.max(0, blockRows[0].length - 1);
+    } else {
+      var charCol = Math.min(getLine(row).length, before ? col : col + 1);
+      var line = getLine(row);
+      var charRows = value.text.split('\n');
+      if (charRows.length === 1) {
+        state.lines[row] = line.slice(0, charCol) + value.text + line.slice(charCol);
+        state.cursor.col = charCol + value.text.length - 1;
+      } else {
+        var suffix = line.slice(charCol);
+        state.lines[row] = line.slice(0, charCol) + charRows[0];
+        for (var ci = 1; ci < charRows.length; ci++) {
+          insertLine(row + ci, charRows[ci] + (ci === charRows.length - 1 ? suffix : ''));
+        }
+        state.cursor.row = row + charRows.length - 1;
+        state.cursor.col = Math.max(0, charRows[charRows.length - 1].length - 1);
+      }
+    }
+    state.curswant = state.cursor.col;
+    render();
+    return true;
   }
 
   // Last-resort clipboard path used when navigator.clipboard.writeText rejects
@@ -1515,7 +1639,9 @@
       operatedEndCol = Math.max(0, getLine(endRow).length - 1);
       // Linewise operations
       var lines = state.lines.slice(startRow, endRow + 1);
-      setRegister(lines.join('\n'), true);
+      if (op === 'd' || op === 'c' || op === 'y') {
+        writeRegister(lines.join('\n'), 'line', op === 'y' ? 'yank' : 'delete');
+      }
       if (op === 'd') {
         pushUndo();
         for (var i = endRow; i >= startRow; i--) deleteLine(i);
@@ -1574,14 +1700,17 @@
       }
       operatedStartCol = startCol;
       operatedEndCol = endCol > 0 ? previousCharacterIndex(getLine(endRow), endCol) : 0;
-      // Yank the text
+      var registerText;
       if (startRow === endRow) {
-        setRegister(getLine(startRow).slice(startCol, endCol), false);
+        registerText = getLine(startRow).slice(startCol, endCol);
       } else {
         var parts = [getLine(startRow).slice(startCol)];
         for (var pi = startRow + 1; pi < endRow; pi++) parts.push(getLine(pi));
         parts.push(getLine(endRow).slice(0, endCol));
-        setRegister(parts.join('\n'), false);
+        registerText = parts.join('\n');
+      }
+      if (op === 'd' || op === 'c' || op === 'y') {
+        writeRegister(registerText, 'char', op === 'y' ? 'yank' : 'delete');
       }
 
       if (op === 'd') {
@@ -1876,6 +2005,7 @@
 
   function exitVisual(selectionRemembered) {
     if (!selectionRemembered) rememberVisualSelection();
+    state.selectedRegister = null;
     state.visualAnchor = null;
     state.visualMode = null;
   }
@@ -1886,7 +2016,7 @@
     pushUndo();
     if (state.visualMode === 'line') {
       var yanked = state.lines.slice(range.startRow, range.endRow + 1).join('\n');
-      setRegister(yanked, true);
+      writeRegister(yanked, 'line', 'delete');
       for (var i = range.endRow; i >= range.startRow; i--) deleteLine(i);
       if (!state.lines.length) state.lines = [''];
       state.cursor.row = clampRow(range.startRow);
@@ -1894,7 +2024,7 @@
     } else {
       if (range.startRow === range.endRow) {
         var line = getLine(range.startRow);
-        setRegister(line.slice(range.startCol, range.endCol), false);
+        writeRegister(line.slice(range.startCol, range.endCol), 'char', 'delete');
         state.lines[range.startRow] = line.slice(0, range.startCol) + line.slice(range.endCol);
         state.cursor.row = range.startRow;
         state.cursor.col = clampCol(range.startRow, range.startCol);
@@ -1905,7 +2035,7 @@
         var yankedLines = [getLine(range.startRow).slice(range.startCol)];
         for (var j = range.startRow + 1; j < range.endRow; j++) yankedLines.push(getLine(j));
         yankedLines.push(getLine(range.endRow).slice(0, range.endCol));
-        setRegister(yankedLines.join('\n'), false);
+        writeRegister(yankedLines.join('\n'), 'char', 'delete');
         adjustJumpRows(range.startRow, range.endRow - range.startRow + 1, 1);
         state.lines.splice(range.startRow, range.endRow - range.startRow + 1, firstLine + lastLine);
         state.cursor.row = range.startRow;
@@ -1918,15 +2048,15 @@
     var range = getVisualRange();
     if (!range) return;
     if (state.visualMode === 'line') {
-      setRegister(state.lines.slice(range.startRow, range.endRow + 1).join('\n'), true);
+      writeRegister(state.lines.slice(range.startRow, range.endRow + 1).join('\n'), 'line', 'yank');
     } else {
       if (range.startRow === range.endRow) {
-        setRegister(getLine(range.startRow).slice(range.startCol, range.endCol), false);
+        writeRegister(getLine(range.startRow).slice(range.startCol, range.endCol), 'char', 'yank');
       } else {
         var parts = [getLine(range.startRow).slice(range.startCol)];
         for (var i = range.startRow + 1; i < range.endRow; i++) parts.push(getLine(i));
         parts.push(getLine(range.endRow).slice(0, range.endCol));
-        setRegister(parts.join('\n'), false);
+        writeRegister(parts.join('\n'), 'char', 'yank');
       }
     }
     state.cursor.row = Math.min(state.visualAnchor.row, state.cursor.row);
@@ -1934,9 +2064,6 @@
   }
 
   // Delete / yank the rectangle defined by the current block-visual selection.
-  // Each row is sliced independently at [startCol, endCol+1] clamped to its
-  // length. The register receives the columns joined by newlines (v1 treats
-  // this as linewise for paste; a future revision can honor registerBlockwise).
   function deleteBlock() {
     var br = getBlockRange();
     if (!br) return;
@@ -1949,7 +2076,7 @@
       blockLines.push(ln.slice(bs, be));
       state.lines[r] = ln.slice(0, bs) + ln.slice(be);
     }
-    setRegister(blockLines.join('\n'), false);
+    writeRegister(blockLines.join('\n'), 'block', 'delete');
     state.cursor.row = br.startRow;
     state.cursor.col = clampCol(br.startRow, br.startCol);
   }
@@ -1963,7 +2090,7 @@
       var be = Math.min(br.endCol + 1, ln.length);
       blockLines.push(ln.slice(bs, be));
     }
-    setRegister(blockLines.join('\n'), false);
+    writeRegister(blockLines.join('\n'), 'block', 'yank');
     state.cursor.row = br.startRow;
     state.cursor.col = clampCol(br.startRow, br.startCol);
   }
@@ -3930,6 +4057,7 @@
     if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
     if (e.key === 'Escape') {
       countBuf = 0;
+      state.selectedRegister = null;
       state.pendingBracket = null;
       pendingOperator = null; operatorCount = 0;
       state.pendingGForOp = false;
@@ -3941,6 +4069,14 @@
     // Ctrl+R: redo (checked early to prevent browser interference)
     if (e.ctrlKey && (e.key === 'r' || e.key === 'R')) {
       e.preventDefault(); redo(); return;
+    }
+
+    // A register name can be a digit, so resolve it before count parsing.
+    if (state.pendingOp === 'register') {
+      if (e.key.length !== 1) return;
+      state.pendingOp = null;
+      selectRegister(e.key);
+      return;
     }
 
     // Count prefix: digits 1-9 start, 0-9 continue
@@ -4189,6 +4325,11 @@
       pendingOperator = 'g' + e.key;
       operatorCount = countBuf;
       countBuf = 0;
+      return;
+    }
+
+    if (e.key === '"') {
+      state.pendingOp = 'register';
       return;
     }
 
@@ -4606,7 +4747,7 @@
     }
     if (e.key === 'C') {
       pushUndo();
-      setRegister(line.slice(col), false);
+      writeRegister(line.slice(col), 'char', 'delete');
       state.lines[row] = line.slice(0, col);
       state.mode = 'insert';
       state.insertText = '';
@@ -4615,7 +4756,7 @@
     }
     if (e.key === 'D') {
       pushUndo();
-      setRegister(line.slice(col), false);
+      writeRegister(line.slice(col), 'char', 'delete');
       state.lines[row] = line.slice(0, col);
       state.cursor.col = clampCol(row, col - 1);
       state.curswant = state.cursor.col;
@@ -4624,7 +4765,7 @@
     }
     if (e.key === 'S') {
       pushUndo();
-      setRegister(line, false);
+      writeRegister(line, 'line', 'delete');
       state.lines[row] = '';
       state.cursor.col = 0;
       state.curswant = 0;
@@ -4637,7 +4778,7 @@
       if (line.length > 0) {
         pushUndo();
         var sEnd = nextCharacterIndex(line, col);
-        setRegister(line.slice(col, sEnd), false);
+        writeRegister(line.slice(col, sEnd), 'char', 'delete');
         state.lines[row] = line.slice(0, col) + line.slice(sEnd);
         state.mode = 'insert';
         state.insertText = '';
@@ -4690,7 +4831,7 @@
       if (line.length > 0) {
         pushUndo();
         var xEnd = moveCharacterIndex(line, col, xN, 1);
-        setRegister(line.slice(col, xEnd), false);
+        writeRegister(line.slice(col, xEnd), 'char', 'delete');
         state.lines[row] = line.slice(0, col) + line.slice(xEnd);
         state.cursor.col = clampCol(row, col);
         state.curswant = state.cursor.col;
@@ -4699,38 +4840,9 @@
       }
       return;
     }
-    if (e.key === 'p') {
-      if (!state.register) { setStatus('Nothing in register'); return; }
-      pushUndo();
-      if (state.registerLinewise || state.register.indexOf('\n') !== -1) {
-        var pasteLines = state.register.split('\n');
-        for (var pi = pasteLines.length - 1; pi >= 0; pi--) {
-          insertLine(row + 1, pasteLines[pi]);
-        }
-        state.cursor.row = row + 1;
-        state.cursor.col = 0;
-      } else {
-        state.lines[row] = line.slice(0, col + 1) + state.register + line.slice(col + 1);
-        state.cursor.col = col + state.register.length;
-      }
-      state.curswant = state.cursor.col;
-      render(); return;
-    }
-    if (e.key === 'P') {
-      if (!state.register) { setStatus('Nothing in register'); return; }
-      pushUndo();
-      if (state.registerLinewise || state.register.indexOf('\n') !== -1) {
-        var pasteLinesP = state.register.split('\n');
-        for (var pj = pasteLinesP.length - 1; pj >= 0; pj--) {
-          insertLine(row, pasteLinesP[pj]);
-        }
-        state.cursor.col = 0;
-      } else {
-        state.lines[row] = line.slice(0, col) + state.register + line.slice(col);
-        state.cursor.col = col + state.register.length - 1;
-      }
-      state.curswant = state.cursor.col;
-      render(); return;
+    if (e.key === 'p' || e.key === 'P') {
+      pasteRegister(readSelectedRegister(), e.key === 'P');
+      return;
     }
     if (e.key === 'u') { undo(); return; }
     if (e.key === 'U') {
@@ -5113,7 +5225,7 @@
       case 'dd':
         if (state.lines.length > 1) {
           pushUndo();
-          setRegister(getLine(row), true);
+          writeRegister(getLine(row), 'line', 'delete');
           deleteLine(row);
           state.cursor.row = clampRow(row);
           state.cursor.col = firstNonBlank(state.cursor.row);
@@ -5123,7 +5235,7 @@
         if (line.length > 0) {
           pushUndo();
           var xEnd = Math.min(col + (lc.count || 1), line.length);
-          setRegister(line.slice(col, xEnd), false);
+          writeRegister(line.slice(col, xEnd), 'char', 'delete');
           state.lines[row] = line.slice(0, col) + line.slice(xEnd);
           state.cursor.col = clampCol(row, col);
         }
@@ -5156,7 +5268,7 @@
         break;
       case 'D':
         pushUndo();
-        setRegister(line.slice(col), false);
+        writeRegister(line.slice(col), 'char', 'delete');
         state.lines[row] = line.slice(0, col);
         state.cursor.col = clampCol(row, col - 1);
         break;
@@ -5165,9 +5277,11 @@
       case 'cc':
         pushUndo();
         if (lc.type === 'S' || lc.type === 'cc') {
+          writeRegister(line, 'line', 'delete');
           state.lines[row] = '';
           state.cursor.col = 0;
         } else {
+          writeRegister(line.slice(col), 'char', 'delete');
           state.lines[row] = line.slice(0, col);
         }
         if (lc.insertText) {
@@ -5246,6 +5360,10 @@
       if (e.key.length !== 1) return;
       var vop = state.pendingOp;
       state.pendingOp = null;
+      if (vop === 'v_register') {
+        selectRegister(e.key);
+        return;
+      }
       // vf/vF/vt/vT
       if (vop === 'v_f' || vop === 'v_F' || vop === 'v_t' || vop === 'v_T') {
         var vfOp = vop.slice(2);
@@ -5277,6 +5395,11 @@
         }
         return;
       }
+      return;
+    }
+
+    if (e.key === '"') {
+      state.pendingOp = 'v_register';
       return;
     }
 
