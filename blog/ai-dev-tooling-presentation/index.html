@@ -238,6 +238,11 @@
         plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealZoom]
       });
     </script>
+    <script type="module">
+      if (new URLSearchParams(window.location.search).has('georgie-world')) {
+        import('/js/georgie-world-overlay.js');
+      }
+    </script>
 </body>
 
 </html>

@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 const previewRoutes = [
   "/",
   "/blog/",
+  "/blog/ai-dev-tooling-presentation/",
   "/blog/ai-engineer-spec/",
   "/blog/ai-engineer-verification/",
   "/blog/calmhive/",
@@ -62,7 +63,7 @@ test.describe("Georgie world across the real site", () => {
       await expect(page.locator("[data-georgie-reaction]")).toHaveCSS("opacity", "0");
 
       await expect(page.locator("[data-georgie-overlay]")).toHaveCSS("pointer-events", "none");
-      if (route !== "/vim/") {
+      if (!["/vim/", "/blog/ai-dev-tooling-presentation/"].includes(route)) {
         const topLink = page.locator('header a[href]:visible').first();
         await expect(topLink).toBeVisible();
         await topLink.click({ trial: true });

@@ -19,4 +19,8 @@ test("captures Georgie living on the real site before and after the bone", async
   await page.getByRole("heading", { name: "Twelve Keyboards Later", exact: true }).last().waitFor();
   await page.waitForTimeout(400);
   await page.screenshot({ path: testInfo.outputPath("georgie-article.png"), fullPage: false });
+
+  await page.goto("/blog/ai-dev-tooling-presentation/?georgie-world=1&offline=1&test=1");
+  await page.locator(".reveal.ready").waitFor();
+  await page.screenshot({ path: testInfo.outputPath("georgie-presentation.png"), fullPage: false });
 });
