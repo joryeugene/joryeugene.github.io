@@ -103,6 +103,7 @@ describe("Georgie presence room", () => {
       aggregateLabel: null,
       sceneId: "georgie-notices-the-room-v1",
       sceneStartedAt: expect.any(Number),
+      serverTime: expect.any(Number),
     });
     expect(Object.keys(state).sort()).toEqual([
       "aggregateLabel",
@@ -110,6 +111,7 @@ describe("Georgie presence room", () => {
       "renderedLights",
       "sceneId",
       "sceneStartedAt",
+      "serverTime",
       "type",
     ]);
   });

@@ -38,9 +38,12 @@ test.describe("Georgie's living web prototype", () => {
     await invite.click();
     await invite.click();
     await invite.click();
+    await expect(page.locator("[data-georgie-world]")).toHaveAttribute("data-state", "leaving");
+    await expect(page.locator("[data-georgie-dog]")).toBeVisible();
+    await expect(page.locator("[data-georgie-dog]")).toHaveAttribute("data-direction", /left|right/);
+    await expect(page.locator("[data-georgie-reaction]")).toHaveText("Georgie has had enough. He left.");
     await expect(page.locator("[data-georgie-world]")).toHaveAttribute("data-state", "gone");
     await expect(page.locator("[data-georgie-dog]")).toBeHidden();
-    await expect(page.locator("[data-georgie-reaction]")).toHaveText("Georgie has had enough. He left.");
   });
 
   test("follows the discovered bone instead of following the cursor", async ({ page }) => {

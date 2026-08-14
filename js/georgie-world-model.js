@@ -1,6 +1,17 @@
 const RECOGNITION_KEY = "georgie-world-recognition-v1";
 const RECOGNITION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const QUICK_INVITE_MS = 5_000;
+const SHARED_SCENE_BEAT_MS = 6_000;
+const SHARED_SCENES = Object.freeze([
+  { routine: "watch", x: 0.16, y: 0.68, direction: "right", message: "Georgie noticed the room." },
+  { routine: "wander", x: 0.78, y: 0.7, message: "Georgie is checking the perimeter." },
+  { routine: "chase-moth", x: 0.61, y: 0.24, message: "A moth made a terrible tactical decision." },
+  { routine: "rest", x: 0.62, y: 0.76, direction: "right", message: "Georgie stopped exactly where he wanted." },
+  { routine: "wander", x: 0.28, y: 0.31, message: "Georgie changed his mind halfway there." },
+  { routine: "hide", x: 0.05, y: 0.72, message: "Only most of Georgie is visible." },
+  { routine: "watch", x: 0.05, y: 0.72, direction: "front", message: "Georgie is checking whether you noticed." },
+  { routine: "wander", x: 0.86, y: 0.5, message: "Georgie chose somewhere else to be." },
+]);
 
 export function directionForDelta(dx, dy) {
   const horizontal = Math.abs(dx);
@@ -21,6 +32,17 @@ export function presenceView(rawOccupancy) {
     occupancy,
     renderedLights: Math.min(occupancy, 4),
     aggregateLabel: occupancy > 4 ? "5+ here" : null,
+  };
+}
+
+export function sharedSceneAt(sceneStartedAt, serverNow) {
+  const elapsed = Math.max(0, serverNow - sceneStartedAt);
+  const beat = Math.floor(elapsed / SHARED_SCENE_BEAT_MS);
+  const scene = SHARED_SCENES[beat % SHARED_SCENES.length];
+  return {
+    ...scene,
+    beat,
+    nextAt: sceneStartedAt + ((beat + 1) * SHARED_SCENE_BEAT_MS),
   };
 }
 

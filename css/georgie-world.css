@@ -298,6 +298,10 @@ button {
   display: none;
 }
 
+.georgie-lab[data-state="leaving"] .georgie-world__dog {
+  transition-duration: 1.1s;
+}
+
 .georgie-world__sprite {
   display: block;
   width: 100%;

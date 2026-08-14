@@ -138,6 +138,10 @@
 
 .georgie-overlay__dog[hidden] { display: none; }
 
+.georgie-overlay[data-state="leaving"] .georgie-overlay__dog {
+  transition-duration: 1.1s;
+}
+
 .georgie-overlay__sprite {
   display: block;
   width: 100%;

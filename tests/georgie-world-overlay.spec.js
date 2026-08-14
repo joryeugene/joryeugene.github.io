@@ -74,4 +74,18 @@ test.describe("Georgie world across the real site", () => {
     await expect(page.locator("[data-georgie-sprite]")).toHaveAttribute("src", /bone-wag\.gif$/);
     await expect(page.locator("[data-georgie-reaction]")).toContainText("tail is still going");
   });
+
+  test("makes Georgie run away instead of vanishing after repeated invitations", async ({ page }) => {
+    await page.goto("/?georgie-world=1&offline=1&test=1");
+    const georgie = page.getByRole("button", { name: "Invite Georgie over" });
+    await georgie.click();
+    await georgie.click();
+    await georgie.click();
+
+    await expect(page.locator("[data-georgie-overlay]")).toHaveAttribute("data-state", "leaving");
+    await expect(georgie).toBeVisible();
+    await expect(page.locator("[data-georgie-dog]")).toHaveAttribute("data-direction", /left|right/);
+    await expect(page.locator("[data-georgie-overlay]")).toHaveAttribute("data-state", "gone");
+    await expect(georgie).toBeHidden();
+  });
 });

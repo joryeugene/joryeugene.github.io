@@ -65,6 +65,7 @@ export class GeorgieRoom extends DurableObject {
       renderedLights: Math.min(occupancy, 4),
       aggregateLabel: occupancy > 4 ? "5+ here" : null,
       ...this.scene(),
+      serverTime: Date.now(),
     };
   }
 

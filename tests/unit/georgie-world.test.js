@@ -8,6 +8,7 @@ import {
   presenceView,
   readRecognition,
   rememberVisit,
+  sharedSceneAt,
 } from "../../js/georgie-world-model.js";
 
 class MemoryStorage {
@@ -114,4 +115,20 @@ test("an empty site still gives Georgie autonomous routines", () => {
   });
 
   assert.deepEqual(routines, ["wander", "watch", "chase-moth", "rest", "hide"]);
+});
+
+test("connected visitors derive the same Georgie scene from one room clock", () => {
+  const startedAt = Date.UTC(2026, 7, 14, 1, 0, 0);
+  const firstViewer = sharedSceneAt(startedAt, startedAt + 2_000);
+  const secondViewer = sharedSceneAt(startedAt, startedAt + 2_000);
+  const nextBeat = sharedSceneAt(startedAt, startedAt + 6_100);
+
+  assert.deepEqual(firstViewer, secondViewer);
+  assert.equal(firstViewer.beat, 0);
+  assert.equal(firstViewer.nextAt, startedAt + 6_000);
+  assert.equal(nextBeat.beat, 1);
+  assert.notDeepEqual(
+    { x: nextBeat.x, y: nextBeat.y, routine: nextBeat.routine },
+    { x: firstViewer.x, y: firstViewer.y, routine: firstViewer.routine },
+  );
 });

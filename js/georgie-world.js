@@ -5,6 +5,7 @@ import {
   presenceView,
   readRecognition,
   rememberVisit,
+  sharedSceneAt,
 } from "./georgie-world-model.js";
 
 const ASSET_ROOT = "/assets/georgie";
@@ -70,6 +71,11 @@ export class GeorgieWorld {
     this.sayTimer = 0;
     this.socket = null;
     this.heartbeatTimer = 0;
+    this.sharedSceneTimer = 0;
+    this.connectedToRoom = false;
+    this.sceneStartedAt = null;
+    this.serverClockOffset = 0;
+    this.isLeavingPage = false;
     this.draggingBone = false;
     this.bonePosition = root.hasAttribute("data-georgie-overlay")
       ? bonePositionForPath(location.pathname)
@@ -158,7 +164,11 @@ export class GeorgieWorld {
       this.root.dataset.state = "bone-found";
       this.showBoneWag();
       this.say("Georgie found his bone. His tail is still going.", 5_000);
-      if (!this.testMode && !this.reducedMotion) this.scheduleRoutine(2_600);
+      if (this.connectedToRoom) {
+        this.scheduleSharedScene(2_600, true);
+      } else if (!this.testMode && !this.reducedMotion) {
+        this.scheduleRoutine(2_600);
+      }
     };
     this.bone.addEventListener("pointerup", release);
     this.bone.addEventListener("pointercancel", release);
@@ -204,7 +214,10 @@ export class GeorgieWorld {
     socket.addEventListener("message", (event) => {
       try {
         const message = JSON.parse(event.data);
-        if (message.type === "state") this.setPresence(message.occupancy);
+        if (message.type === "state") {
+          this.setPresence(message.occupancy);
+          this.syncSharedScene(message);
+        }
         if (message.type === "invitation") this.say("A visitor invited Georgie. He will decide.");
       } catch {
         // A malformed presence message cannot stop the solo scene.
@@ -212,12 +225,19 @@ export class GeorgieWorld {
     });
     const disconnect = () => {
       window.clearInterval(this.heartbeatTimer);
+      window.clearTimeout(this.sharedSceneTimer);
+      this.connectedToRoom = false;
       this.setPresence(0);
+      if (!this.isLeavingPage && !this.testMode && !this.reducedMotion && this.behavior.state !== "gone") {
+        this.scheduleRoutine(900);
+      }
     };
     socket.addEventListener("close", disconnect);
     socket.addEventListener("error", disconnect);
     window.addEventListener("pagehide", () => {
+      this.isLeavingPage = true;
       window.clearInterval(this.heartbeatTimer);
+      window.clearTimeout(this.sharedSceneTimer);
       if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: "leave" }));
         socket.close(1000, "Page left room");
@@ -225,17 +245,75 @@ export class GeorgieWorld {
     }, { once: true });
   }
 
+  syncSharedScene(message) {
+    if (!Number.isFinite(message.sceneStartedAt) || !Number.isFinite(message.serverTime)) return;
+    this.connectedToRoom = true;
+    this.sceneStartedAt = message.sceneStartedAt;
+    this.serverClockOffset = message.serverTime - Date.now();
+    window.clearTimeout(this.routineTimer);
+    this.applySharedScene();
+  }
+
+  scheduleSharedScene(delay, force = false) {
+    window.clearTimeout(this.sharedSceneTimer);
+    this.sharedSceneTimer = window.setTimeout(() => this.applySharedScene(force), delay);
+  }
+
+  applySharedScene(force = false) {
+    if (!this.connectedToRoom || !Number.isFinite(this.sceneStartedAt)) return;
+    const serverNow = Date.now() + this.serverClockOffset;
+    const scene = sharedSceneAt(this.sceneStartedAt, serverNow);
+    const remaining = Math.max(150, scene.nextAt - serverNow + 30);
+    this.root.dataset.sharedBeat = String(scene.beat);
+
+    if (
+      this.draggingBone
+      || (!force && this.root.dataset.state === "bone-found")
+      || this.root.dataset.state === "leaving"
+      || this.root.dataset.state === "gone"
+    ) {
+      this.scheduleSharedScene(Math.min(2_600, remaining));
+      return;
+    }
+
+    const moved = Math.abs(scene.x - this.position.x) > 0.01
+      || Math.abs(scene.y - this.position.y) > 0.01;
+    if (moved) {
+      const direction = directionForDelta(scene.x - this.position.x, scene.y - this.position.y);
+      this.setDirection(direction, !this.reducedMotion);
+      this.setPosition(scene.x, scene.y, true);
+    } else {
+      this.setDirection(scene.direction || "right", false);
+      this.dog.classList.remove("is-travelling");
+    }
+
+    this.root.dataset.state = scene.routine;
+    this.say(scene.message);
+    this.scheduleSharedScene(remaining);
+  }
+
   invite() {
     const result = this.behavior.invite();
     if (result.reaction === "ignores") {
+      this.setDirection("rear", false);
+      this.dog.classList.remove("is-travelling");
       this.say("Georgie heard you. He is pretending he did not.");
     } else if (result.reaction === "watches") {
+      this.setDirection("front", false);
+      this.dog.classList.remove("is-travelling");
       this.say("Georgie looked over. That is not the same as coming.");
     } else if (result.reaction === "leaves") {
       window.clearTimeout(this.routineTimer);
-      this.root.dataset.state = "gone";
-      this.dog.hidden = true;
+      window.clearTimeout(this.sharedSceneTimer);
+      const leavesLeft = this.position.x < 0.5;
+      this.root.dataset.state = "leaving";
+      this.setDirection(leavesLeft ? "left" : "right", !this.reducedMotion);
+      this.setPosition(leavesLeft ? -0.12 : 1.12, Math.min(0.88, this.position.y + 0.04), true);
       this.say("Georgie has had enough. He left.", 5_000);
+      window.setTimeout(() => {
+        this.root.dataset.state = "gone";
+        this.dog.hidden = true;
+      }, this.reducedMotion ? 0 : 1_250);
     } else {
       this.say("Georgie is still gone.");
     }

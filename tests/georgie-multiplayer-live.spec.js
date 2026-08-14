@@ -18,6 +18,22 @@ test("two real browser contexts share lights and invitations without cursors", a
     await expect(first.locator('[data-presence-kind="moth"]')).toHaveCount(3);
     await expect(second.locator('[data-presence-kind="moth"]')).toHaveCount(3);
 
+    await expect.poll(async () => {
+      const [firstBeat, secondBeat] = await Promise.all([
+        first.locator("[data-georgie-overlay]").getAttribute("data-shared-beat"),
+        second.locator("[data-georgie-overlay]").getAttribute("data-shared-beat"),
+      ]);
+      return firstBeat && firstBeat === secondBeat ? firstBeat : "mismatch";
+    }).toMatch(/^\d+$/);
+
+    const [firstScene, secondScene] = await Promise.all([first, second].map((page) => page.evaluate(() => ({
+      beat: document.querySelector("[data-georgie-overlay]").dataset.sharedBeat,
+      direction: document.querySelector("[data-georgie-dog]").dataset.direction,
+      left: document.querySelector("[data-georgie-dog]").style.left,
+      top: document.querySelector("[data-georgie-dog]").style.top,
+    }))));
+    expect(secondScene).toEqual(firstScene);
+
     await first.getByRole("button", { name: "Invite Georgie over" }).click();
     await expect(second.locator("[data-georgie-reaction]")).toHaveText("A visitor invited Georgie. He will decide.");
 
