@@ -231,6 +231,7 @@
     repeatCapture: null,
     editSerial: 0,
     insertText: '',
+    insertCompletion: null,
     lineUndoRow: -1,
     lineUndoText: '',
     colorscheme: 'default',
@@ -362,6 +363,7 @@
     state.pendingEditRequest = null;
     state.selectedRegister = null;
     state.repeatCapture = null;
+    state.insertCompletion = null;
     state.documentId = documentId;
     state.filename = filename;
     state.lines = lines.slice();
@@ -5083,10 +5085,71 @@
     countBuf = 0;
   }
 
+  function scanInsertCandidates(prefix) {
+    var candidates = [];
+    var started = performance.now();
+    for (var row = 0; row < state.lines.length && row < 10000; row++) {
+      if (performance.now() - started >= 8) break;
+      var re = /\w+/g;
+      var match;
+      while ((match = re.exec(state.lines[row])) !== null) {
+        if (performance.now() - started >= 8) return candidates;
+        var word = match[0];
+        if (word !== prefix && word.indexOf(prefix) === 0 && candidates.indexOf(word) === -1) {
+          candidates.push(word);
+          if (candidates.length >= 200) return candidates;
+        }
+      }
+    }
+    return candidates;
+  }
+
+  function completeInsert(direction) {
+    var session = state.insertCompletion;
+    if (!session || session.e !== state.cursor.col) {
+      var line = getLine(state.cursor.row);
+      var end = state.cursor.col;
+      var start = end;
+      while (start > 0 && /\w/.test(line[start - 1])) start--;
+      var prefix = line.slice(start, end);
+      var candidates = prefix ? scanInsertCandidates(prefix) : [];
+      if (!candidates.length) {
+        state.insertCompletion = null;
+        return;
+      }
+      session = {
+        s: start,
+        e: end,
+        candidates: candidates,
+        index: direction > 0 ? 0 : candidates.length - 1
+      };
+      state.insertCompletion = session;
+    } else {
+      session.index = (session.index + direction + session.candidates.length) % session.candidates.length;
+    }
+
+    var candidate = session.candidates[session.index];
+    var line = getLine(state.cursor.row);
+    var replacedLength = session.e - session.s;
+    pushUndo();
+    state.lines[state.cursor.row] = line.slice(0, session.s) + candidate + line.slice(session.e);
+    if (state.blockInsertCols) state.insertText = state.insertText.slice(0, -replacedLength) + candidate;
+    session.e = session.s + candidate.length;
+    state.cursor.col = session.e;
+    state.curswant = state.cursor.col;
+    render();
+  }
+
   function handleInsert(e) {
     var row = state.cursor.row;
     var col = state.cursor.col;
     var line = getLine(row);
+
+    if (e.ctrlKey && (e.key === 'n' || e.key === 'p')) {
+      completeInsert(e.key === 'n' ? 1 : -1);
+      return;
+    }
+    state.insertCompletion = null;
 
     if (e.key === 'Escape') {
       // Block-insert replay: apply the typed text to every other row in the
@@ -6004,13 +6067,13 @@
     }
 
     if (e.ctrlKey) {
-      var ctrlHandled = { r: 1, R: 1, f: 1, b: 1, u: 1, d: 1, e: 1, y: 1, g: 1, a: 1, x: 1, o: 1, i: 1, h: 1, w: 1, v: 1 };
-      if (!ctrlHandled[e.key]) return;
+      if ('rRfbudeygaxoihwvnp'.indexOf(e.key) === -1) return;
       e.preventDefault();
 
       // Ctrl-o in insert mode: one normal-mode command, then back to insert.
       if (state.mode === 'insert' && e.key === 'o') {
         if (state.pendingOneNormal) return; // swallow a second Ctrl-o
+        state.insertCompletion = null;
         state.pendingOneNormal = true;
         state.mode = 'normal';
         render();
@@ -6033,8 +6096,8 @@
         return;
       }
 
-      // Insert mode owns Ctrl-h / Ctrl-w / Ctrl-u for text editing.
-      if (state.mode === 'insert' && (e.key === 'h' || e.key === 'w' || e.key === 'u')) {
+      // Insert mode owns Ctrl-h / Ctrl-w / Ctrl-u / Ctrl-n / Ctrl-p.
+      if (state.mode === 'insert' && (e.key === 'h' || e.key === 'w' || e.key === 'u' || e.key === 'n' || e.key === 'p')) {
         handleInsert(e);
         return;
       }
@@ -6052,7 +6115,7 @@
       }
       if (state.mode !== 'normal' && state.mode !== 'visual') {
         // Ctrl-R only in normal/visual for redo
-        if (e.key === 'r' || e.key === 'R') { redo(); }
+        if (e.key === 'r' || e.key === 'R') { state.insertCompletion = null; redo(); }
         return;
       }
 
@@ -6374,6 +6437,7 @@
       var row = state.cursor.row;
       var col = state.cursor.col;
       if (state.mode === 'insert') {
+        state.insertCompletion = null;
         pushUndo();
         var lines = text.split('\n');
         var line = getLine(row);

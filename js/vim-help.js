@@ -212,11 +212,12 @@
                '        :set :marks :jumps :clearjumps :! Ctrl-r Ctrl-g Ctrl-o Ctrl-i',
                '        Ctrl-f Ctrl-b Ctrl-d Ctrl-u Ctrl-a Ctrl-x',
                '        Ctrl-p :color :zen :moth :snake :tutor :Ex :nohlsearch registers',
-               '        text-objects macros marks insert-index user-manual'],
+               '        text-objects macros marks insert-index i_CTRL-N i_CTRL-P user-manual'],
     'insert-index': ['Insert mode commands:',
                      '',
                      '  Any character    Insert at cursor position.',
                      '  Backspace        Delete character before cursor.',
+                     '  Ctrl-N / Ctrl-P  Complete a word from this document.',
                      '  Escape           Return to normal mode.',
                      '  Cmd+V            Paste from system clipboard.'],
     'user-manual': ['jorypestorious.com/vim',
@@ -323,6 +324,13 @@
                    'next word and continue typing. Counts and multi-key commands',
                    'work: CTRL-O 5j moves five lines, CTRL-O dd deletes a line.',
                    'Press Escape during the pending state to stay in normal mode.'];
+  T['i_CTRL-N'] = ['CTRL-N in insert mode: complete the current word from this document.',
+                   'CTRL-P in insert mode: cycle backward through the same candidates.',
+                   '',
+                   'Candidates keep document order, wrap, and match case.',
+                   'Type or move to accept the current candidate and end completion.',
+                   'The scan stops at 200 candidates, 10,000 lines, or 8 ms.'];
+  T['i_CTRL-P'] = T['i_CTRL-N'];
 
   T['Ctrl-v'] = ['CTRL-V             Enter block (rectangular) visual mode.',
                  '',
@@ -490,6 +498,7 @@
       '  Ctrl-w      delete the word before the cursor',
       '  Ctrl-u      delete from column 0 to the cursor',
       '  Ctrl-o      run ONE normal-mode command, then return to insert',
+      '  Ctrl-n/p    complete a word forward / backward from this document',
       '  Cmd+V       paste from system clipboard',
       '  Esc         return to normal mode',
       '',

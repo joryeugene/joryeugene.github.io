@@ -52,8 +52,8 @@
 
 **Interfaces:**
 - Consumes: `state.lines`, `state.cursor`, `state.insertText`, `getLine(row)`, `pushUndo()`, `setStatus(text)`, `render()`, `handleInsert(event)`, `handleKey(event)`, and `switchDocument(...)`.
-- Produces: `clearInsertCompletion()`, `insertCompletionPrefix()`, `scanInsertCandidates(prefix)`, and `completeInsert(direction)`.
-- `InsertCompletion`: `{ row: number, start: number, end: number, current: string, candidates: string[], index: number }`.
+- Produces: `scanInsertCandidates(prefix)` and `completeInsert(direction)`.
+- `InsertCompletion`: `{ s: number, e: number, candidates: string[], index: number }` where `s` and `e` bound the active span.
 - `direction`: `1` for `Ctrl-N`, `-1` for `Ctrl-P`.
 
 - [ ] **Step 1: Write the one focused failing browser journey**
@@ -81,12 +81,16 @@ test('insert completion cycles current-buffer identifiers within its latency bud
   await keys(page, ['Control+n', 'Control+n', 'Control+n', 'Control+p']);
   await type(page, ' confirmed');
   await press(page, 'Control+p');
+  await press(page, 'Enter');
+  await type(page, 'Backward: ULTRA_');
+  await press(page, 'Control+p');
   await press(page, 'Escape');
 
   expect(await lines(page)).toEqual([
     'ULTRA_VIOLET_BEACON',
     'ULTRA_VIOLET_BEAM',
-    'Report: ULTRA_VIOLET_BEAM confirmed'
+    'Report: ULTRA_VIOLET_BEAM confirmed',
+    'Backward: ULTRA_VIOLET_BEAM'
   ]);
 
   const perfName = 'completion-10000';
@@ -141,44 +145,24 @@ Add to `state` beside the other Insert state:
 insertCompletion: null,
 ```
 
-Add:
+Set `state.insertCompletion = null` in `switchDocument()` beside the selected-register and repeat-capture resets. The state is small enough that direct assignment is clearer and smaller than a one-line reset helper.
 
-```js
-function clearInsertCompletion() {
-  state.insertCompletion = null;
-}
-```
-
-Call `clearInsertCompletion()` in `switchDocument()` beside the selected-register and repeat-capture resets.
-
-- [ ] **Step 4: Extract the active keyword prefix and scan within all hard caps**
+- [ ] **Step 4: Scan matching words within all hard caps**
 
 Add before `handleInsert()`:
 
 ```js
-function insertCompletionPrefix() {
-  var row = state.cursor.row;
-  var end = state.cursor.col;
-  var line = getLine(row);
-  var start = end;
-  while (start > 0 && /[A-Za-z0-9_]/.test(line[start - 1])) start--;
-  return { row: row, start: start, end: end, text: line.slice(start, end) };
-}
-
 function scanInsertCandidates(prefix) {
   var candidates = [];
-  var seen = Object.create(null);
   var started = performance.now();
-  var rows = Math.min(state.lines.length, 10000);
-  for (var row = 0; row < rows; row++) {
+  for (var row = 0; row < state.lines.length && row < 10000; row++) {
     if (performance.now() - started >= 8) break;
-    var re = /[A-Za-z0-9_]+/g;
+    var re = /\w+/g;
     var match;
     while ((match = re.exec(state.lines[row])) !== null) {
       if (performance.now() - started >= 8) return candidates;
       var word = match[0];
-      if (word !== prefix && word.indexOf(prefix) === 0 && !seen[word]) {
-        seen[word] = true;
+      if (word !== prefix && word.indexOf(prefix) === 0 && candidates.indexOf(word) === -1) {
         candidates.push(word);
         if (candidates.length >= 200) return candidates;
       }
@@ -197,24 +181,20 @@ Add:
 ```js
 function completeInsert(direction) {
   var session = state.insertCompletion;
-  if (!session || session.row !== state.cursor.row || session.end !== state.cursor.col) {
-    var prefix = insertCompletionPrefix();
-    if (!prefix.text) {
-      clearInsertCompletion();
-      setStatus('No completion prefix');
-      return false;
-    }
-    var candidates = scanInsertCandidates(prefix.text);
+  if (!session || session.e !== state.cursor.col) {
+    var line = getLine(state.cursor.row);
+    var end = state.cursor.col;
+    var start = end;
+    while (start > 0 && /\w/.test(line[start - 1])) start--;
+    var prefix = line.slice(start, end);
+    var candidates = prefix ? scanInsertCandidates(prefix) : [];
     if (!candidates.length) {
-      clearInsertCompletion();
-      setStatus('Pattern not found: ' + prefix.text);
-      return false;
+      state.insertCompletion = null;
+      return;
     }
     session = {
-      row: prefix.row,
-      start: prefix.start,
-      end: prefix.end,
-      current: prefix.text,
+      s: start,
+      e: end,
       candidates: candidates,
       index: direction > 0 ? 0 : candidates.length - 1
     };
@@ -224,22 +204,19 @@ function completeInsert(direction) {
   }
 
   var candidate = session.candidates[session.index];
-  var line = getLine(session.row);
+  var line = getLine(state.cursor.row);
+  var replacedLength = session.e - session.s;
   pushUndo();
-  state.lines[session.row] = line.slice(0, session.start) + candidate + line.slice(session.end);
-  if (session.current && state.insertText.slice(-session.current.length) === session.current) {
-    state.insertText = state.insertText.slice(0, -session.current.length) + candidate;
-  }
-  session.current = candidate;
-  session.end = session.start + candidate.length;
-  state.cursor.col = session.end;
+  state.lines[state.cursor.row] = line.slice(0, session.s) + candidate + line.slice(session.e);
+  if (state.blockInsertCols) state.insertText = state.insertText.slice(0, -replacedLength) + candidate;
+  session.e = session.s + candidate.length;
+  state.cursor.col = session.e;
   state.curswant = state.cursor.col;
   render();
-  return true;
 }
 ```
 
-Do not rescan during cycling. The session's row, start, and end define the only replaceable span.
+Do not rescan during cycling. The active document row plus session offsets `s` and `e` define the only replaceable span.
 
 - [ ] **Step 6: Route Insert `Ctrl-N` and `Ctrl-P`, then clear on every ordinary Insert action**
 
@@ -247,14 +224,17 @@ At the start of `handleInsert()`, after reading the current row, column, and lin
 
 ```js
 if (e.ctrlKey && (e.key === 'n' || e.key === 'p')) {
-  e.preventDefault();
   completeInsert(e.key === 'n' ? 1 : -1);
   return;
 }
-clearInsertCompletion();
+state.insertCompletion = null;
 ```
 
-Add `n` and `p` to the dispatcher's `ctrlHandled` map. Extend the Insert-owned control branch:
+Add `n` and `p` to the dispatcher's supported control-key string, then extend the Insert-owned control branch:
+
+```js
+if ('rRfbudeygaxoihwvnp'.indexOf(e.key) === -1) return;
+```
 
 ```js
 if (state.mode === 'insert' &&
@@ -264,9 +244,9 @@ if (state.mode === 'insert' &&
 }
 ```
 
-Call `clearInsertCompletion()` before the existing Insert-mode `Ctrl-O` transition. Normal/Visual `Ctrl-P` continues to open the site palette because its earlier mode-specific branch remains unchanged.
+Set `state.insertCompletion = null` before the existing Insert-mode `Ctrl-O` transition. Normal/Visual `Ctrl-P` continues to open the site palette because its earlier mode-specific branch remains unchanged.
 
-In the document `paste` listener, call `clearInsertCompletion()` before the existing Insert-mode clipboard mutation. Mobile text already passes through `handleKey` and therefore clears through `handleInsert()`.
+In the document `paste` listener, clear `state.insertCompletion` before the existing Insert-mode clipboard mutation. Mobile text already passes through `handleKey` and therefore clears through `handleInsert()`.
 
 - [ ] **Step 7: Run the same focused journey GREEN**
 
@@ -276,6 +256,7 @@ Expected:
 
 - The functional buffer ends with `Report: ULTRA_VIOLET_BEAM confirmed`.
 - The post-insertion `Ctrl-P` leaves that line unchanged, proving the old session was cleared.
+- A first `Ctrl-P` on the next line selects the final document-order candidate.
 - The 10,000-line buffer's first line visibly becomes `ULTRA_VIOLET_BEACON`.
 - `completionMs` is at most 100 ms.
 
