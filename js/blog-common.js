@@ -1937,3 +1937,9 @@ if (!document.body.classList.contains('portfolio-page')
     && !isBlogArticlePath) {
   VimNav.init();
 }
+
+if (new URLSearchParams(window.location.search).get('georgie-world') === '1') {
+  const script = document.createElement('script');
+  script.src = '/js/georgie-world.js?v=porch-1';
+  document.head.append(script);
+}
