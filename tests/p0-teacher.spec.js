@@ -267,4 +267,8 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
     ...reportLines,
     'Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'
   ]);
+  await cmd(page, 'teacher');
+  expect((await lines(page)).join('\n')).toContain('MOTH FLIGHT RECORDER');
+  await press(page, 'Control+o');
+  expect((await state(page)).file).toBe('postmortem.md');
 });

@@ -88,10 +88,7 @@
       hint: 'Search /landings=14203, retrace with Ctrl-O and Ctrl-I, then use G and cil on ANALYST_NOTE.',
       expect: ['ANALYST_NOTE: evt_014203 recorded 14203 landings before roof-array was online'],
       reject: ['ANALYST_NOTE: replace me'],
-      golf: {
-        route: 'Gcil',
-        why: 'Use this after the timeline is understood to change the final note directly.'
-      }
+      golf: ['Gcil', 'Use this after the timeline is understood to change the final note directly.']
     },
     {
       title: 'Compare the data',
@@ -105,10 +102,7 @@
       hint: 'Search candidate_id, move to its next line, and use "ayiw. Delete the evidence TODO and put with "ap. Repeat with b.',
       expect: ['# evidence_id\nevt_014203', '# evidence_sensor\ndesk_lamp'],
       reject: ['# evidence_id\nTODO', '# evidence_sensor\nTODO'],
-      golf: {
-        route: ':registers a b',
-        why: 'Inspect the evidence and its characterwise shape before putting it.'
-      }
+      golf: [':registers a b', 'Inspect evidence before putting it.']
     },
     {
       title: 'Repair the source',
@@ -121,10 +115,7 @@
       hint: 'Search /desk-lamp and use ci". Use cil on CHANGE_NOTE, then try g;, g,, and `..',
       expect: ['source: "roof-array"', '// CHANGE_NOTE: source corrected to roof-array'],
       reject: ['source: "desk-lamp"', '// CHANGE_NOTE: replace me'],
-      golf: {
-        route: '`.',
-        why: 'Return directly to the latest edit when you no longer need to tour the changelist.'
-      }
+      golf: ['`.', 'Jump to the latest edit.']
     },
     {
       title: 'Normalize the records',
@@ -145,10 +136,7 @@
         'id=evt_014206 sensor=desk_lamp status=duplicate'
       ],
       reject: ['status : duplicated'],
-      golf: {
-        route: ':%s/status : duplicated/status=duplicate/g',
-        why: 'Use one reviewed substitution when every malformed fragment needs the same repair.'
-      }
+      golf: [':%s/status : duplicated/status=duplicate/g', 'Fix identical text once.']
     },
     {
       title: 'Correct the launch story',
@@ -172,10 +160,7 @@
         'We counted every moth in the moon before breakfast.',
         'The dashboard recorded 14,203 verified roof-array landings during launch.'
       ],
-      golf: {
-        route: 'REVIEWED_<C-N>',
-        why: 'Complete the existing metric key instead of retyping a long identifier.'
-      }
+      golf: ['REVIEWED_<C-N>', 'Complete the key instead of retyping it.']
     },
     {
       title: 'Fix operations',
@@ -191,7 +176,7 @@
         '3. Quarantine pre-deployment events and notify on-call.',
         'Operator action: Verify sensor source, deployment time, and event timestamp before publishing counts.'
       ],
-      hint: 'Use j and cc to replace each complete instruction. cc changes one whole line and preserves the lines around it.',
+      hint: 'Use j and cc. cc changes one whole line and preserves its neighbors.',
       expect: [
         '1. Confirm the active sensor source in config.js.',
         '2. Compare event time with deployedAt.',
@@ -199,10 +184,7 @@
         'Operator action: Verify sensor source, deployment time, and event timestamp before publishing counts.'
       ],
       reject: ['Reboot the moon.', 'Ask the nearest moth', 'add more adjectives'],
-      golf: {
-        route: 'cc',
-        why: 'Change a whole instruction line without selecting its contents first.'
-      }
+      golf: ['cc', 'Change the whole instruction line.']
     },
     {
       title: 'Write the postmortem',
@@ -210,7 +192,7 @@
       request: [
         'Replace the first seven TODO fields with the evidence and repairs.',
         'Paste desk_lamp from register b into Root cause.',
-        'Normalize the CSV underscore for prose with f_ and r- so it reads desk-lamp.',
+        'Use f_ and r- so the CSV value reads desk-lamp in prose.',
         'Keep every claim traceable to a file you edited.'
       ],
       outcome: [
@@ -222,7 +204,7 @@
         'Runbook: Verify sensor source, deployment time, and event timestamp before publishing counts.',
         'Follow-up: Add a deployment-time validation gate before ingest.'
       ],
-      hint: 'Use cil on each TODO. Put register b with "bp, find the underscore with f_, replace it with r-, then use yal on the completed line.',
+      hint: 'Use cil. Put b with "bp, then use f_, r-, and yal.',
       expect: [
         'Impact: Dashboard displayed 14,203 impossible pre-deployment landings.',
         'Evidence: evt_014203 occurred before the roof-array was online.',
@@ -233,27 +215,21 @@
         'Follow-up: Add a deployment-time validation gate before ingest.'
       ],
       reject: ['Impact: TODO', 'Evidence: TODO', 'Root cause: TODO', 'Repair: TODO', 'Launch copy: TODO', 'Runbook: TODO', 'Follow-up: TODO'],
-      golf: {
-        route: '"bp then f_r-',
-        why: 'Reuse the captured sensor, then normalize its separator for configuration prose.'
-      }
+      golf: ['"bp then f_r-', 'Reuse and normalize the sensor.']
     },
     {
       title: 'Retrace the work',
       file: 'postmortem.md',
       request: [
-        'Ctrl-O from this brief returns to the report. Teacher briefs do not enter jump history.',
+        'Ctrl-O returns to the report. Briefs do not enter jump history.',
         'Use :jumps, then jump and change history, to revisit the report sources.',
         'Replace Verified sources with the five files that support the conclusion.'
       ],
       outcome: ['Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'],
-      hint: 'Inspect :jumps, press u to return, use Ctrl-O and Ctrl-I across work files, then g; and g,. Return to Verified sources and use cil.',
+      hint: 'Use :jumps, u, Ctrl-O, Ctrl-I, g;, and g,. Finish with cil.',
       expect: ['Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'],
       reject: ['Verified sources: TODO'],
-      golf: {
-        route: ':jumps',
-        why: 'Inspect the route before you make the final source claim.'
-      }
+      golf: [':jumps', 'Inspect the source route.']
     }
   ];
 
@@ -283,8 +259,8 @@
       '  :teacher next    open the first or next ready mission',
       '  :teacher check   name the first unmet visible result',
       '  :teacher hint    show one command hint without editing',
-      '  :teacher score   show this session\'s flight log',
-      '  :teacher golf    reveal a shorter route after a mission passes',
+      '  :teacher score   session flight log',
+      '  :teacher golf    shorter route after success',
       '  :teacher reset   confirm and restore these six files only',
       '  :teacher         recall the current brief',
       '  Ctrl-O           return from a brief to your work',

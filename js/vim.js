@@ -3634,69 +3634,27 @@
     return 'teacher:' + filename;
   }
 
-  var TEACHER_SKILL_ORDER = [
-    'jump history',
-    'named registers',
-    'changelist',
-    'dot-repeat',
-    'macros',
-    'buffer completion',
-    'line text objects',
-    'line change',
-    'character normalization'
+  var TEACHER_SKILL_TESTS = [
+    ['jump history', /<C-[oi]>/],
+    ['named registers', /" [a-z]/],
+    ['changelist', /g [;,]/],
+    ['dot-repeat', /(^| )\.($| )/],
+    ['macros', /q [a-z]|@ [a-z]|@ @|(^| )Q($| )/],
+    ['buffer completion', /i:<C-[np]>/],
+    ['line text objects', /[cyv] [ia] l/],
+    ['line change', /c c/],
+    ['character normalization', /f _ r -/]
   ];
 
-  function teacherHasSequence(tokens, keys) {
-    for (var i = 0; i <= tokens.length - keys.length; i++) {
-      var found = true;
-      for (var j = 0; j < keys.length; j++) {
-        if (tokens[i + j].token !== keys[j]) { found = false; break; }
-      }
-      if (found) return true;
-    }
-    return false;
-  }
-
-  function teacherHasRegisterChord(tokens, prefix) {
-    for (var i = 0; i < tokens.length - 1; i++) {
-      if (tokens[i].token === prefix && /^[a-z]$/.test(tokens[i + 1].token)) return true;
-    }
-    return false;
-  }
-
   function teacherObservedSkills(tokens) {
-    var found = {};
-    if (teacherHasSequence(tokens, ['<C-o>']) || teacherHasSequence(tokens, ['<C-i>'])) {
-      found['jump history'] = true;
-    }
-    if (teacherHasRegisterChord(tokens, '"')) found['named registers'] = true;
-    if (teacherHasSequence(tokens, ['g', ';']) || teacherHasSequence(tokens, ['g', ','])) {
-      found.changelist = true;
-    }
-    if (teacherHasSequence(tokens, ['.'])) found['dot-repeat'] = true;
-    if (teacherHasRegisterChord(tokens, 'q') || teacherHasRegisterChord(tokens, '@') ||
-        teacherHasSequence(tokens, ['@', '@']) || teacherHasSequence(tokens, ['Q'])) {
-      found.macros = true;
-    }
+    var route = [];
     for (var i = 0; i < tokens.length; i++) {
-      if (tokens[i].mode === 'insert' &&
-          (tokens[i].token === '<C-n>' || tokens[i].token === '<C-p>')) {
-        found['buffer completion'] = true;
-      }
+      route.push((tokens[i].mode === 'insert' ? 'i:' : '') + tokens[i].token);
     }
-    var lineObjects = [
-      ['c', 'i', 'l'], ['y', 'i', 'l'], ['c', 'a', 'l'], ['y', 'a', 'l'],
-      ['v', 'i', 'l'], ['v', 'a', 'l']
-    ];
-    for (var li = 0; li < lineObjects.length; li++) {
-      if (teacherHasSequence(tokens, lineObjects[li])) found['line text objects'] = true;
-    }
-    if (teacherHasSequence(tokens, ['c', 'c'])) found['line change'] = true;
-    if (teacherHasSequence(tokens, ['f', '_', 'r', '-'])) found['character normalization'] = true;
-
+    route = route.join(' ');
     var skills = [];
-    for (var si = 0; si < TEACHER_SKILL_ORDER.length; si++) {
-      if (found[TEACHER_SKILL_ORDER[si]]) skills.push(TEACHER_SKILL_ORDER[si]);
+    for (var si = 0; si < TEACHER_SKILL_TESTS.length; si++) {
+      if (TEACHER_SKILL_TESTS[si][1].test(route)) skills.push(TEACHER_SKILL_TESTS[si][0]);
     }
     return skills;
   }
@@ -3707,16 +3665,8 @@
     stats.missionStartedAt = performance.now();
     stats.currentHints = 0;
     stats.currentFailedChecks = 0;
-    stats.currentValidated = false;
     stats.currentCommandStrokes = 0;
     stats.currentTokens = [];
-  }
-
-  function teacherRecordValidation(missing) {
-    var stats = state.teacherStats;
-    if (!stats || !stats.missionStartedAt || stats.currentValidated) return;
-    if (missing) stats.currentFailedChecks++;
-    else stats.currentValidated = true;
   }
 
   function teacherFinishMissionStats() {
@@ -3731,10 +3681,6 @@
     });
     stats.missionStartedAt = 0;
     stats.currentTokens = [];
-  }
-
-  function teacherMetricToken(e) {
-    return e.ctrlKey ? '<C-' + e.key.toLowerCase() + '>' : e.key;
   }
 
   function teacherRecordInput(e) {
@@ -3755,7 +3701,8 @@
     if (!countable) return;
     stats.currentCommandStrokes++;
     if (stats.currentTokens.length < 600) {
-      stats.currentTokens.push({ mode: mode, token: teacherMetricToken(e) });
+      stats.currentTokens.push({ mode: mode,
+        token: e.ctrlKey ? '<C-' + e.key.toLowerCase() + '>' : e.key });
     }
   }
 
@@ -3786,8 +3733,9 @@
       for (var ci = 0; ci < currentSkills.length; ci++) observed[currentSkills[ci]] = true;
     }
     var skills = [];
-    for (var oi = 0; oi < TEACHER_SKILL_ORDER.length; oi++) {
-      if (observed[TEACHER_SKILL_ORDER[oi]]) skills.push(TEACHER_SKILL_ORDER[oi]);
+    for (var oi = 0; oi < TEACHER_SKILL_TESTS.length; oi++) {
+      var skillName = TEACHER_SKILL_TESTS[oi][0];
+      if (observed[skillName]) skills.push(skillName);
     }
     var elapsedSeconds = Math.max(0, Math.round((performance.now() - stats.startedAt) / 1000));
     return [
@@ -3914,12 +3862,7 @@
     state.teacherStats = {
       startedAt: performance.now(),
       missionStartedAt: 0,
-      missionResults: [],
-      currentHints: 0,
-      currentFailedChecks: 0,
-      currentValidated: false,
-      currentCommandStrokes: 0,
-      currentTokens: []
+      missionResults: []
     };
     teacherCaptureReturn();
     switchDocument('teacher:guide', '[Teacher]', teacher.intro, 0, 0);
@@ -4010,7 +3953,8 @@
       return;
     }
     if (!arg) {
-      teacherShowGuide(false);
+      teacherShowGuide(false, null,
+        state.teacherMission >= teacher.missions.length ? teacherCompletionLines() : null);
       return;
     }
     if (arg === 'hint') {
@@ -4024,7 +3968,7 @@
       return;
     }
     if (arg === 'score') {
-      teacherShowGuide(false, 'Flight log opened. Ctrl-O returns to the work.',
+      teacherShowGuide(false, 'Flight log open. Ctrl-O returns.',
         teacherScoreLines());
       return;
     }
@@ -4035,10 +3979,10 @@
         return;
       }
       var golf = teacher.missions[state.teacherMission].golf;
-      teacherShowGuide(false, 'Golf route opened. Ctrl-O returns to the work.', [
+      teacherShowGuide(false, 'Golf route open. Ctrl-O returns.', [
         'VIM GOLF AFTER THE RESULT',
-        'Route: ' + golf.route,
-        'Why: ' + golf.why
+        'Route: ' + golf[0],
+        'Why: ' + golf[1]
       ]);
       return;
     }
@@ -4048,9 +3992,9 @@
         return;
       }
       var unmet = teacherCheckMission();
-      teacherRecordValidation(unmet);
+      if (unmet) state.teacherStats.currentFailedChecks++;
       setStatus(unmet || ('Mission ' + (state.teacherMission + 1) +
-        ' ready. :teacher golf shows a shorter route. :teacher next continues.'));
+        ' ready. Use :teacher golf or :teacher next.'));
       return;
     }
     if (arg === 'reset') {
@@ -4070,7 +4014,7 @@
         return;
       }
       var missing = teacherCheckMission();
-      teacherRecordValidation(missing);
+      if (missing) state.teacherStats.currentFailedChecks++;
       if (missing) {
         setStatus(missing);
         return;
