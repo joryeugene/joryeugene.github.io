@@ -533,19 +533,19 @@ git commit -m "test(vim): finish teacher golf journey"
 - Consumes: final production behavior and browser output.
 - Produces: the release record, feature-to-mission map, verification receipt, clean process state, and local handoff.
 
-- [ ] **Step 1: Update the feature-to-teaching matrix**
+- [x] **Step 1: Update the feature-to-teaching matrix**
 
 Add or update rows for `cc`, Insert-session undo, counted undo, guide return, guide protection, register inspection, flight log, golf reveal, and identifier normalization. Every row names implementation owner, help topic, mission, and the single capstone journey.
 
-- [ ] **Step 2: Run serial syntax and hygiene checks**
+- [x] **Step 2: Run serial syntax and hygiene checks**
 
 Run `node --check` separately for each changed JavaScript file and the Playwright test. Run `git diff --check`. Scan ignored documentation and new files for trailing whitespace and em dashes.
 
-- [ ] **Step 3: Measure gzip against `1c3a375`**
+- [x] **Step 3: Measure gzip against `1c3a375`**
 
 Use Node `zlib.gzipSync()` on the four production assets at `1c3a375` and in the worktree. Record each asset and total. Fail if total growth exceeds 4,096 bytes.
 
-- [ ] **Step 4: Run the one final automated capstone**
+- [x] **Step 4: Run the one final automated capstone**
 
 Confirm zero repository verifiers and zero listeners on the selected port. Run:
 
@@ -555,15 +555,15 @@ npx playwright test tests/p0-teacher.spec.js --browser=chromium --workers=1 --re
 
 Do not run any other test suite.
 
-- [ ] **Step 5: Complete one manual in-app browser receipt**
+- [x] **Step 5: Complete one manual in-app browser receipt**
 
 Start one hidden static server on the selected free port. In the in-app browser, run the real teacher journey through all eight missions. Inspect mission briefs, the protected-guide error, one golf view, one score view, mission 6 `cc`, mission 7 `f_` and `r-`, the completion flight log, and the exact final postmortem. Keep one final handoff tab only while the server remains useful.
 
-- [ ] **Step 6: Clean process state**
+- [x] **Step 6: Clean process state**
 
 Stop only the verified Phalene server. Confirm zero repository verifier processes and zero listeners on the selected port.
 
-- [ ] **Step 7: Commit the release record**
+- [x] **Step 7: Commit the release record**
 
 Force-add ignored documentation as needed:
 
@@ -573,6 +573,6 @@ git diff --cached --check
 git commit -m "docs(vim): record teacher flight metrics"
 ```
 
-- [ ] **Step 8: Audit completion and report integration options**
+- [x] **Step 8: Audit completion and report integration options**
 
 Confirm every approved design requirement has direct source, test, browser, size, or process evidence. Confirm a clean worktree. Report the local commit hashes and exact user playtest commands. Do not push or merge.
