@@ -1,6 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 
 const INVITE_COOLDOWN_MS = 10_000;
+const BONE_COOLDOWN_MS = 5_000;
 const MAX_MESSAGE_BYTES = 256;
 const HEARTBEAT_SWEEP_MS = 15_000;
 const STALE_SESSION_MS = 45_000;
@@ -30,6 +31,15 @@ export class GeorgieRoom extends DurableObject {
         "INSERT OR IGNORE INTO room_scene (singleton, scene_id, started_at, last_invite_at) VALUES (1, ?, ?, 0)",
         SCENE_ID,
         Date.now(),
+      );
+      this.ctx.storage.sql.exec(`
+        CREATE TABLE IF NOT EXISTS room_event_cooldown (
+          event_type TEXT PRIMARY KEY,
+          last_at INTEGER NOT NULL
+        )
+      `);
+      this.ctx.storage.sql.exec(
+        "INSERT OR IGNORE INTO room_event_cooldown (event_type, last_at) VALUES ('bone', 0)",
       );
     });
     this.ctx.setWebSocketAutoResponse(
@@ -79,6 +89,14 @@ export class GeorgieRoom extends DurableObject {
 
   broadcast(message) {
     for (const socket of this.activeSockets()) this.send(socket, message);
+  }
+
+  broadcastExceptSession(excludedSessionId, message) {
+    for (const socket of this.activeSockets()) {
+      if (socket.deserializeAttachment()?.sessionId !== excludedSessionId) {
+        this.send(socket, message);
+      }
+    }
   }
 
   broadcastState(excludedSessionId = null) {
@@ -133,6 +151,28 @@ export class GeorgieRoom extends DurableObject {
         sessionId: attachment.sessionId,
         lastSeenAt: Date.now(),
       });
+      return;
+    }
+
+    if (message?.type === "bone" && Object.keys(message).length === 1) {
+      const now = Date.now();
+      const { lastAt } = this.ctx.storage.sql
+        .exec(
+          "SELECT last_at AS lastAt FROM room_event_cooldown WHERE event_type = 'bone'",
+        )
+        .one();
+      if (now - lastAt < BONE_COOLDOWN_MS) {
+        this.send(socket, { type: "error", code: "bone_rate_limited" });
+        return;
+      }
+      this.ctx.storage.sql.exec(
+        "UPDATE room_event_cooldown SET last_at = ? WHERE event_type = 'bone'",
+        now,
+      );
+      this.broadcastExceptSession(
+        socket.deserializeAttachment()?.sessionId,
+        { type: "bone", at: now },
+      );
       return;
     }
 

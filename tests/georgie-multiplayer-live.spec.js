@@ -37,6 +37,16 @@ test("two real browser contexts share lights and invitations without cursors", a
     await first.getByRole("button", { name: "Invite Georgie over" }).click();
     await expect(second.locator("[data-georgie-reaction]")).toHaveText("A visitor invited Georgie. He will decide.");
 
+    const bone = first.getByRole("button", { name: "Georgie's hidden bone" });
+    const boneBox = await bone.boundingBox();
+    if (!boneBox) throw new Error("The live bone has no drag target");
+    await first.mouse.move(boneBox.x + boneBox.width / 2, boneBox.y + boneBox.height * 0.75);
+    await first.mouse.down();
+    await first.mouse.move(930, 460, { steps: 8 });
+    await first.mouse.up();
+    await expect(second.locator("[data-georgie-sprite]")).toHaveAttribute("src", /bone-wag\.gif$/);
+    await expect(second.locator("[data-georgie-reaction]")).toHaveText("Someone found Georgie's bone. He knows.");
+
     await secondContext.close();
     await expect(first.locator('[data-presence-kind="visitor"]')).toHaveCount(1, { timeout: 65_000 });
   } finally {

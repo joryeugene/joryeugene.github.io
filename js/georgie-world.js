@@ -164,6 +164,9 @@ export class GeorgieWorld {
       this.root.dataset.state = "bone-found";
       this.showBoneWag();
       this.say("Georgie found his bone. His tail is still going.", 5_000);
+      if (this.socket?.readyState === WebSocket.OPEN) {
+        this.socket.send(JSON.stringify({ type: "bone" }));
+      }
       if (this.connectedToRoom) {
         this.scheduleSharedScene(2_600, true);
       } else if (!this.testMode && !this.reducedMotion) {
@@ -219,6 +222,7 @@ export class GeorgieWorld {
           this.syncSharedScene(message);
         }
         if (message.type === "invitation") this.say("A visitor invited Georgie. He will decide.");
+        if (message.type === "bone") this.receiveSharedBone();
       } catch {
         // A malformed presence message cannot stop the solo scene.
       }
@@ -243,6 +247,14 @@ export class GeorgieWorld {
         socket.close(1000, "Page left room");
       }
     }, { once: true });
+  }
+
+  receiveSharedBone() {
+    if (this.behavior.state === "gone" || this.root.dataset.state === "leaving") return;
+    this.root.dataset.state = "bone-found";
+    this.showBoneWag();
+    this.say("Someone found Georgie's bone. He knows.", 5_000);
+    if (this.connectedToRoom) this.scheduleSharedScene(2_600, true);
   }
 
   syncSharedScene(message) {

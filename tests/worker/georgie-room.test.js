@@ -162,6 +162,38 @@ describe("Georgie presence room", () => {
     });
   });
 
+  it("shares a bone-found beat without sending its position", async () => {
+    const first = await connect("visitor-a");
+    await nextJson(first, (message) => message.type === "state");
+    const stateAtTwo = nextJson(
+      first,
+      (message) => message.type === "state" && message.occupancy === 2,
+    );
+    const second = await connect("visitor-b");
+    await stateAtTwo;
+
+    const boneForSecond = nextJson(second, (message) => message.type === "bone");
+    first.send(JSON.stringify({ type: "bone" }));
+    expect(await boneForSecond).toEqual({
+      type: "bone",
+      at: expect.any(Number),
+    });
+
+    const rateLimited = nextJson(first, (message) => message.type === "error");
+    first.send(JSON.stringify({ type: "bone" }));
+    expect(await rateLimited).toEqual({
+      type: "error",
+      code: "bone_rate_limited",
+    });
+
+    const rejected = nextJson(first, (message) => message.type === "error");
+    first.send(JSON.stringify({ type: "bone", x: 0.52, y: 0.38 }));
+    expect(await rejected).toEqual({
+      type: "error",
+      code: "unsupported_message",
+    });
+  });
+
   it("rejects messages outside the one allowed invitation action", async () => {
     const socket = await connect("visitor-a");
     await nextJson(socket, (message) => message.type === "state");
