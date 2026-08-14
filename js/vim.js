@@ -275,6 +275,7 @@
     macroLastRecorded: null,
     replayContext: null,
     teacherMission: null,
+    teacherReturn: null,
     expandtab: true,
     tabstop: 4,
     shiftwidth: 2,
@@ -3623,9 +3624,70 @@
     return guide;
   }
 
+  function isTeacherGuide() {
+    return state.documentId === 'teacher:guide';
+  }
+
+  function teacherCaptureReturn() {
+    if (isTeacherGuide()) return;
+    saveCurrentDocument();
+    state.teacherReturn = {
+      documentId: state.documentId,
+      filename: state.filename,
+      row: state.cursor.row,
+      col: state.cursor.col
+    };
+  }
+
+  function teacherReturnToWork() {
+    var anchor = state.teacherReturn;
+    var document = anchor && state.documents[anchor.documentId];
+    if (!anchor || !document) {
+      setStatus('No teacher work file to return to.');
+      return;
+    }
+    state.teacherReturn = null;
+    if (state.mode === 'visual') exitVisual();
+    state.mode = 'normal';
+    switchDocument(anchor.documentId, document.filename, document.lines,
+      anchor.row, anchor.col);
+    render();
+  }
+
+  function teacherGuideReadonlyError() {
+    setStatus("E21: Cannot make changes, 'modifiable' is off");
+  }
+
+  function blockTeacherGuideEdit(e) {
+    if (!isTeacherGuide()) return false;
+    var normalEdits = 'iIaAoORsScCdDxXpPJr~><.@QuU&';
+    var visualEdits = 'cCdxsSpP~><uU';
+    var blocked = state.mode === 'insert' || state.mode === 'replace' ||
+      (state.mode === 'normal' && !e.ctrlKey && normalEdits.indexOf(e.key) !== -1) ||
+      (state.mode === 'visual' && !e.ctrlKey && visualEdits.indexOf(e.key) !== -1) ||
+      (e.ctrlKey && (e.key === 'a' || e.key === 'x' || e.key === 'r' || e.key === 'R'));
+    if (!blocked) return false;
+    countBuf = 0;
+    pendingOperator = null;
+    operatorCount = 0;
+    state.pendingOp = null;
+    state.pendingGForOp = false;
+    teacherGuideReadonlyError();
+    return true;
+  }
+
+  function teacherGuideModifyingCommand(cmd) {
+    return /^(?:\d+,\d+|%|'<,'>)?s\//.test(cmd) ||
+      /^(?:g|v)\//.test(cmd) ||
+      /^(?:\d+,\d+|%|'<,'>)?sort(?:\s|$)/.test(cmd) ||
+      cmd === 'r' || cmd.slice(0, 2) === 'r ';
+  }
+
   function teacherSwitch(documentId, filename, lines, status) {
-    pushUndo(false);
-    pushJump();
+    if (!isTeacherGuide()) {
+      pushUndo(false);
+      pushJump();
+    }
     switchDocument(documentId, filename, lines, 0, 0);
     setStatus(status);
     render();
@@ -3638,7 +3700,8 @@
       return;
     }
 
-    teacherSwitch('teacher:guide', '[Teacher]', teacher.intro, ':teacher opened. Type :teacher next to start.');
+    teacherCaptureReturn();
+    switchDocument('teacher:guide', '[Teacher]', teacher.intro, 0, 0);
     var filenames = Object.keys(teacher.files);
     for (var i = 0; i < filenames.length; i++) {
       var filename = filenames[i];
@@ -3648,15 +3711,19 @@
       };
     }
     state.teacherMission = -1;
+    setStatus(':teacher opened. Type :teacher next to start.');
+    render();
   }
 
-  function teacherShowGuide(showHint, status) {
-    teacherSwitch(
-      'teacher:guide',
-      '[Teacher]',
-      teacherGuideLines(showHint),
-      status || (showHint ? 'Hint opened. Ctrl-O returns to the work.' : 'Mission brief opened. Ctrl-O returns to the work.')
-    );
+  function teacherShowGuide(showHint, status, extraLines) {
+    teacherCaptureReturn();
+    var guide = teacherGuideLines(showHint);
+    if (extraLines && extraLines.length) guide = guide.concat(['']).concat(extraLines);
+    switchDocument('teacher:guide', '[Teacher]', guide, 0, 0);
+    setStatus(status || (showHint
+      ? 'Hint opened. Ctrl-O returns to the work.'
+      : 'Mission brief opened. Ctrl-O returns to the work.'));
+    render();
   }
 
   function teacherOpenMission() {
@@ -3673,6 +3740,11 @@
       document.lines,
       'Mission ' + (state.teacherMission + 1) + ' of ' + teacher.missions.length + ': ' + mission.title
     );
+  }
+
+  function teacherOpenMissionBrief() {
+    teacherOpenMission();
+    teacherShowGuide(false);
   }
 
   function teacherCheckMission() {
@@ -3744,7 +3816,7 @@
     if (arg === 'next') {
       if (state.teacherMission < 0) {
         state.teacherMission = 0;
-        teacherOpenMission();
+        teacherOpenMissionBrief();
         return;
       }
       if (state.teacherMission >= teacher.missions.length) {
@@ -3760,7 +3832,7 @@
       if (state.teacherMission >= teacher.missions.length) {
         teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.');
       } else {
-        teacherOpenMission();
+        teacherOpenMissionBrief();
       }
       return;
     }
@@ -3773,6 +3845,10 @@
   function execCommand(cmd) {
     cmd = cmd.trim();
     if (cmd) triggerTouch();
+    if (isTeacherGuide() && teacherGuideModifyingCommand(cmd)) {
+      teacherGuideReadonlyError();
+      return;
+    }
     if (cmd === 'clearjumps') {
       state.jumpList = [];
       state.jumpIdx = -1;
@@ -6266,6 +6342,8 @@
       return;
     }
 
+    if (blockTeacherGuideEdit(e)) return;
+
     // Macro recording: capture every key except the q that stops recording
     if (state.macroRecording && !state.replayContext) {
       var isStopQ = (e.key === 'q' && state.mode === 'normal' && !state.pendingOp && !pendingOperator);
@@ -6327,6 +6405,11 @@
 
       var visRows = Math.floor(bodyEl.clientHeight / lineH);
       var row = state.cursor.row;
+      if (e.key === 'o' && isTeacherGuide()) {
+        getCount();
+        teacherReturnToWork();
+        return;
+      }
       if (e.key === 'r' || e.key === 'R') { redo(); return; }
       if (e.key === 'f') {
         state.cursor.row = clampRow(row + visRows);

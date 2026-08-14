@@ -18,7 +18,7 @@
 - Add at most 4,096 gzip bytes over commit `1c3a375` across `js/vim.js`, `js/vim-teacher.js`, `js/vim-help.js`, and `vim/index.html`.
 - Keep mission brief, score, golf, and return transitions at or below 100 ms in the focused Chromium environment.
 - Keep one Playwright test named `teacher turns a corrupt launch into a verified postmortem`.
-- Run one verifier for this repository at a time. Use one Chromium worker and port 8767.
+- Run one verifier for this repository at a time. Use one Chromium worker. Default to port 8767. If another project owns that port, set `PHALENE_PLAYWRIGHT_PORT` to one inspected free port.
 - Run every test, syntax check, size check, and browser receipt serially.
 - Do not push, merge, or deploy.
 
@@ -43,7 +43,7 @@
 - Consumes: `switchDocument(documentId, filename, lines, row, col)`, `teacherDocumentId(filename)`, `teacherGuideLines(showHint)`, and the central `dispatchKey(e)`.
 - Produces: `state.teacherReturn`, `isTeacherGuide()`, `teacherCaptureReturn()`, `teacherReturnToWork()`, `teacherShowGuide(showHint, status, extraLines)`, and `teacherOpenMissionBrief()`.
 
-- [ ] **Step 1: Change the existing test to require the mission brief first**
+- [x] **Step 1: Change the existing test to require the mission brief first**
 
 Replace the old `nextMission` helper with:
 
@@ -59,17 +59,24 @@ async function openMission(page, number, filename) {
 
 After mission 1 opens, attempt `i`, assert `#vim-cmdline` contains `E21`, and assert the brief text did not change. Attempt `:%s/PHALENE/BROKEN/`, assert the same E21 status, and assert the guide still contains `PHALENE`. Return with `Ctrl-O`, press `Ctrl-I`, and assert the active file is not `[Teacher]`.
 
-- [ ] **Step 2: Run the sole Chromium journey and observe RED**
+- [x] **Step 2: Run the sole Chromium journey and observe RED**
 
-First confirm no verifier and no port listener. Then run:
+First confirm no verifier and no listener on the selected port. When 8767 belongs to another project, inspect a free port and set it for this process. Then run:
 
 ```powershell
 npx playwright test tests/p0-teacher.spec.js --browser=chromium --workers=1 --reporter=line
 ```
 
+Example safe override:
+
+```powershell
+$env:PHALENE_PLAYWRIGHT_PORT='8768'
+npx playwright test tests/p0-teacher.spec.js --browser=chromium --workers=1 --reporter=line
+```
+
 Expected RED: `:teacher next` opens `incident.log` instead of `[Teacher]`.
 
-- [ ] **Step 3: Add an explicit teacher return anchor**
+- [x] **Step 3: Add an explicit teacher return anchor**
 
 Add this state field:
 
@@ -115,7 +122,7 @@ Keep the existing `showHint` and `status` arguments. Add optional `extraLines`. 
 
 At the start of the Normal or Visual Ctrl-O branch, route `isTeacherGuide()` to `teacherReturnToWork()` before ordinary `jumpOlder(getCount())`. Consume any count before the special return.
 
-- [ ] **Step 4: Protect the generated guide**
+- [x] **Step 4: Protect the generated guide**
 
 Add a bounded guide-only key guard before mode dispatch. Permit motions, searches, yanks, marks, help, and teacher commands. Reject editing initiators and pending editing chords:
 
@@ -140,11 +147,11 @@ function blockTeacherGuideEdit(e) {
 
 Handle modifying Ex branches for substitute, global delete, sort, and read with the same E21 status when `isTeacherGuide()` is true. Regenerate guide lines every time a teacher guide opens.
 
-- [ ] **Step 5: Run the same journey and observe GREEN through mission 1**
+- [x] **Step 5: Run the same journey and observe GREEN through mission 1**
 
 Use the same one-worker command. Expected: mission 1 brief appears, `i` reports E21, `Ctrl-O` returns to `incident.log`, and `Ctrl-I` does not reopen `[Teacher]`.
 
-- [ ] **Step 6: Commit the completed flow slice**
+- [x] **Step 6: Commit the completed flow slice**
 
 ```powershell
 git add tests/p0-teacher.spec.js js/vim.js
@@ -540,7 +547,7 @@ Use Node `zlib.gzipSync()` on the four production assets at `1c3a375` and in the
 
 - [ ] **Step 4: Run the one final automated capstone**
 
-Confirm zero repository verifiers and zero listeners on port 8767. Run:
+Confirm zero repository verifiers and zero listeners on the selected port. Run:
 
 ```powershell
 npx playwright test tests/p0-teacher.spec.js --browser=chromium --workers=1 --reporter=line
@@ -550,11 +557,11 @@ Do not run any other test suite.
 
 - [ ] **Step 5: Complete one manual in-app browser receipt**
 
-Start one hidden static server on port 8767. In the in-app browser, run the real teacher journey through all eight missions. Inspect mission briefs, the protected-guide error, one golf view, one score view, mission 6 `cc`, mission 7 `f_` and `r-`, the completion flight log, and the exact final postmortem. Keep one final handoff tab only while the server remains useful.
+Start one hidden static server on the selected free port. In the in-app browser, run the real teacher journey through all eight missions. Inspect mission briefs, the protected-guide error, one golf view, one score view, mission 6 `cc`, mission 7 `f_` and `r-`, the completion flight log, and the exact final postmortem. Keep one final handoff tab only while the server remains useful.
 
 - [ ] **Step 6: Clean process state**
 
-Stop only the verified Phalene server. Confirm zero repository verifier processes and zero listeners on port 8767.
+Stop only the verified Phalene server. Confirm zero repository verifier processes and zero listeners on the selected port.
 
 - [ ] **Step 7: Commit the release record**
 

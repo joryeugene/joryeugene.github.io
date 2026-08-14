@@ -17,12 +17,16 @@ async function replaceLine(page, text) {
   await press(page, 'Escape');
 }
 
-async function nextMission(page, filename) {
+async function openMission(page, number, filename) {
   await cmd(page, 'teacher next');
+  expect((await state(page)).file).toBe('[Teacher]');
+  expect((await lines(page)).join('\n')).toContain(`MISSION ${number} OF 8`);
+  await press(page, 'Control+o');
   expect((await state(page)).file).toBe(filename);
 }
 
 test('teacher turns a corrupt launch into a verified postmortem', async ({ page }) => {
+  test.setTimeout(60_000);
   await open(page);
   await press(page, ':');
   await type(page, 'teacher');
@@ -42,7 +46,20 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await cmd(page, 'teacher reset');
   expect((await lines(page)).join('\n')).toContain('PHALENE ANALYTICS // FIELD LAB');
 
-  await nextMission(page, 'incident.log');
+  await cmd(page, 'teacher next');
+  expect((await state(page)).file).toBe('[Teacher]');
+  const missionOneBrief = (await lines(page)).join('\n');
+  expect(missionOneBrief).toContain('MISSION 1 OF 8');
+  await press(page, 'i');
+  await expect(page.locator('#vim-cmdline')).toContainText("E21: Cannot make changes, 'modifiable' is off");
+  expect((await lines(page)).join('\n')).toBe(missionOneBrief);
+  await cmd(page, '%s/PHALENE/BROKEN/');
+  await expect(page.locator('#vim-cmdline')).toContainText("E21: Cannot make changes, 'modifiable' is off");
+  expect((await lines(page)).join('\n')).toBe(missionOneBrief);
+  await press(page, 'Control+o');
+  expect((await state(page)).file).toBe('incident.log');
+  await press(page, 'Control+i');
+  expect((await state(page)).file).toBe('incident.log');
   await cmd(page, 'teacher hint');
   expect((await state(page)).file).toBe('[Teacher]');
   expect((await lines(page)).join('\n')).toContain('HINT:');
@@ -54,7 +71,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await cmd(page, 'teacher check');
   await keys(page, [':', 'ArrowUp', 'Enter']);
 
-  await nextMission(page, 'events.csv');
+  await openMission(page, 2, 'events.csv');
   await search(page, 'candidate_id');
   await keys(page, ['/', 'ArrowUp', 'Enter', 'j', '0', '"', 'a', 'y', 'i', 'w']);
   await search(page, 'evidence_id');
@@ -64,7 +81,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await search(page, 'evidence_sensor');
   await keys(page, ['j', '0', 'd', 'i', 'w', '"', 'b', 'p']);
 
-  await nextMission(page, 'config.js');
+  await openMission(page, 3, 'config.js');
   await search(page, 'desk-lamp');
   await keys(page, ['c', 'i', '"']);
   await type(page, 'roof-array');
@@ -73,7 +90,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await replaceLine(page, '// CHANGE_NOTE: source corrected to roof-array');
   await keys(page, ['g', 'g', 'g', ';', 'g', ',', '`', '.']);
 
-  await nextMission(page, 'incident.log');
+  await openMission(page, 4, 'incident.log');
   await search(page, 'status : duplicated');
   await keys(page, ['c', '$']);
   await type(page, 'status=duplicate');
@@ -81,7 +98,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await press(page, 'n');
   await keys(page, ['q', 'z', '.', 'n', 'q', '@', 'z']);
 
-  await nextMission(page, 'launch-copy.md');
+  await openMission(page, 5, 'launch-copy.md');
   await search(page, 'We counted');
   await replaceLine(page, 'Claim review: Desk-lamp counts before deployment were excluded.');
   await search(page, 'The dashboard recorded');
@@ -93,7 +110,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await type(page, ' after deployment.');
   await press(page, 'Escape');
 
-  await nextMission(page, 'runbook.md');
+  await openMission(page, 6, 'runbook.md');
   await press(page, 'j');
   await replaceLine(page, '1. Confirm the active sensor source in config.js.');
   await press(page, 'j');
@@ -103,7 +120,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await press(page, 'j');
   await replaceLine(page, 'Operator action: Verify sensor source, deployment time, and event timestamp before publishing counts.');
 
-  await nextMission(page, 'postmortem.md');
+  await openMission(page, 7, 'postmortem.md');
   const reportLines = [
     'Impact: Dashboard displayed 14,203 impossible pre-deployment landings.',
     'Evidence: evt_014203 occurred before the roof-array was online.',
@@ -121,7 +138,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   }
   await keys(page, ['y', 'a', 'l']);
 
-  await nextMission(page, 'postmortem.md');
+  await openMission(page, 8, 'postmortem.md');
   await keys(page, ['Control+o', 'Control+o', 'Control+i', 'Control+i', 'g', ';', 'g', ',']);
   await search(page, 'Verified sources');
   await replaceLine(page, 'Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md');
