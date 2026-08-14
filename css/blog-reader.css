@@ -362,7 +362,6 @@ body.reader-page {
 .reader-page .markdown-body h2,
 .reader-page .markdown-body h3,
 .reader-page .markdown-body h4 {
-  scroll-margin-top: var(--reader-reading-offset);
   color: var(--reader-text);
   font-family: var(--reader-sans);
   font-weight: 680;
@@ -1088,7 +1087,7 @@ body.reader-page {
 
   .reader-main {
     width: min(100% - 32px, 800px);
-    padding: var(--reader-space-6) 0 var(--reader-space-8);
+    padding: var(--reader-space-5) 0 var(--reader-space-8);
   }
 
   .reader-page .markdown-body {
@@ -1101,12 +1100,6 @@ body.reader-page {
   .reader-page .markdown-body > h1:first-child {
     font-size: clamp(2.05rem, 11vw, 2.8rem);
     line-height: 1.02;
-  }
-
-  .reader-page .markdown-body h2,
-  .reader-page .markdown-body h3,
-  .reader-page .markdown-body h4 {
-    scroll-margin-top: var(--reader-reading-offset);
   }
 
   .reader-page .markdown-body h2 {

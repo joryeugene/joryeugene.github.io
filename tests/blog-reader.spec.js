@@ -324,6 +324,21 @@ test.describe('shared blog reader', () => {
     expect(headingTop).toBeGreaterThan(geometry.readingOffset);
   });
 
+  test('keeps each clicked contents section highlighted after scrolling', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/blog/portable-agent-factory/');
+    await page.evaluate(() => window.scrollTo(0, 520));
+    await expect(page.locator('.reader-toc')).toBeVisible();
+
+    const links = page.locator('.reader-toc-link');
+    for (let index = 1; index < await links.count(); index += 1) {
+      const link = links.nth(index);
+      await link.click();
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      await expect(link).toHaveAttribute('aria-current', 'location');
+    }
+  });
+
   test('updates progress and keeps the active contents link in the visible rail', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/blog/portable-agent-factory/');

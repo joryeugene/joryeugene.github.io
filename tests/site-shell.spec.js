@@ -27,6 +27,8 @@ const publicRoutes = [
   '/vim/',
 ];
 
+const mainRoutes = ['/', '/process/', '/blog/', '/contact/'];
+
 test('every public page uses the canonical site icons', async ({ page }) => {
   for (const route of publicRoutes) {
     await page.goto(route, { waitUntil: 'domcontentloaded' });
@@ -76,4 +78,104 @@ test('reader desktop header matches the main site header', async ({ page }) => {
   expect(readerHeader.navGap).toBe(mainHeader.navGap);
   expect(readerHeader.actionsGap).toBe(mainHeader.actionsGap);
   await expect(page.locator('.markdown-body')).toHaveCSS('max-width', '780px');
+});
+
+test('main page footers show the current copyright year', async ({ page }) => {
+  const currentYear = String(new Date().getFullYear());
+
+  for (const route of mainRoutes) {
+    await page.goto(route, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.site-footer__copyright')).toHaveText(`© ${currentYear} Jory Pestorious`);
+    await expect(page.locator('[data-current-year]')).toHaveAttribute('datetime', currentYear);
+  }
+});
+
+test('Writing keeps its edge content around a centered copyright on desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/blog/', { waitUntil: 'domcontentloaded' });
+
+  const positions = await page.locator('.site-footer').evaluate((footer) => {
+    const box = (element) => {
+      const rect = element.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, center: rect.left + rect.width / 2 };
+    };
+
+    return {
+      footer: box(footer),
+      left: box(footer.querySelector('.desktop-hints')),
+      copyright: box(footer.querySelector('.site-footer__copyright')),
+      right: box(footer.querySelector('.site-footer__note')),
+    };
+  });
+
+  expect(positions.left.left).toBeCloseTo(positions.footer.left, 0);
+  expect(positions.copyright.center).toBeCloseTo(positions.footer.center, 0);
+  expect(positions.right.right).toBeCloseTo(positions.footer.right, 0);
+});
+
+test('main page copyright remains visible and Writing stacks on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  for (const route of mainRoutes) {
+    await page.goto(route, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.site-footer__copyright')).toBeVisible();
+    await expect(page.locator('.desktop-hints')).toBeHidden();
+  }
+
+  await page.goto('/blog/', { waitUntil: 'domcontentloaded' });
+  const note = await page.locator('.site-footer__note').boundingBox();
+  const copyright = await page.locator('.site-footer__copyright').boundingBox();
+  expect(note.y + note.height).toBeLessThanOrEqual(copyright.y);
+});
+
+test('mobile pages use one content start below the top bar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+
+  const routes = [
+    ['/', '.site-header'],
+    ['/process/', '.site-header'],
+    ['/blog/', '.site-header'],
+    ['/contact/', '.site-header'],
+    ['/blog/ai-engineer-spec/', '.reader-chrome'],
+    ['/blog/ai-engineer-verification/', '.reader-chrome'],
+    ['/blog/calmhive/', '.reader-chrome'],
+    ['/blog/claude-code-setups/', '.reader-chrome'],
+    ['/blog/complexity-protects-itself/', '.reader-chrome'],
+    ['/blog/dadbod-grip/', '.reader-chrome'],
+    ['/blog/emergent-religion/', '.reader-chrome'],
+    ['/blog/endgame-keyboard/', '.reader-chrome'],
+    ['/blog/friction-economy/', '.reader-chrome'],
+    ['/blog/knowledge-sidecar/', '.reader-chrome'],
+    ['/blog/natural-language-first/', '.reader-chrome'],
+    ['/blog/pig-security-wisdom/', '.reader-chrome'],
+    ['/blog/portable-agent-factory/', '.reader-chrome'],
+    ['/blog/spiritual-bliss-attractor-state/', '.reader-chrome'],
+    ['/blog/terminal-velocity/', '.reader-chrome'],
+    ['/blog/trust-your-engineers/', '.reader-chrome'],
+    ['/blog/what-the-model-learned/', '.reader-chrome'],
+  ];
+
+  for (const [route, topBarSelector] of routes) {
+    await page.goto(route, { waitUntil: 'domcontentloaded' });
+    const heading = page.locator('h1').first();
+    await expect(heading, `${route} first heading`).toBeVisible();
+    if (topBarSelector === '.reader-chrome') {
+      await expect(page.locator('.markdown-body')).toHaveCSS('transform', 'none');
+    }
+
+    const gap = await page.evaluate(({ headingSelector, topBarSelector }) => {
+      const headingBox = document.querySelector(headingSelector).getBoundingClientRect();
+      const topBarBox = document.querySelector(topBarSelector).getBoundingClientRect();
+      return headingBox.top - topBarBox.bottom;
+    }, { headingSelector: 'h1', topBarSelector });
+
+    expect(gap, `${route} top-bar gap`).toBeCloseTo(24, 0);
+  }
+});
+
+test('reader footer remains article-specific', async ({ page }) => {
+  await page.goto('/blog/terminal-velocity/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.footer')).toHaveText('© 2026 Jory Pestorious');
+  await expect(page.locator('.site-footer__copyright')).toHaveCount(0);
 });

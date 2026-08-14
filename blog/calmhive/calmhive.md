@@ -16,14 +16,14 @@ Calmhive v3.0.19 wraps the Claude Code CLI around those problems. The wrapper ha
 - `calmhive chat`: Start an interactive Claude session with a configured tool list.
 - `calmhive run`: Send one task through a noninteractive Claude process.
 - `calmhive afk`: Run a task in repeated background iterations.
-- `calmhive voice`: Use OpenAI speech recognition and text-to-speech around Claude commands.
+- `calmhive voice`: Use RealtimeSTT for speech recognition and OpenAI for spoken responses around Claude commands.
 - `calmhive tui`: View session status and logs in a terminal interface.
 
-Calmhive requires Node.js 18 or later and the Claude CLI. Speech control also requires an OpenAI API key and listens for “hey friend,” “calmhive,” “ok friend,” and “now friend.”
+Calmhive requires Node.js 18 or later and the Claude CLI. Voice mode also requires RealtimeSTT and an OpenAI API key for spoken responses. Voice mode listens for “hey friend,” “calmhive,” “ok friend,” and “now friend.”
 
 ## What adaptive retry does
 
-During an AFK run, Calmhive starts one iteration at a time. When Claude prints `Claude Max usage limit reached`, v3 waits and retries that iteration. The delay doubles from 30 seconds to one minute, two minutes, four minutes, and eventually a maximum of 60 minutes.
+During an AFK run, Calmhive starts one iteration at a time. In v3, I match `Claude Max usage limit reached`, wait, and retry that iteration. The delay doubles from 30 seconds to one minute, two minutes, four minutes, and eventually a maximum of 60 minutes.
 
 ```text
 Iteration 10 ✓
@@ -32,19 +32,19 @@ Iteration 10 ✓
 🔄 Retrying iteration 10 after usage limit delay...
 ```
 
-The retry loop handles the rate-limit delay. The loop does not guarantee that a task will finish, classify every failure, or preserve work after every process or network error.
+The retry loop does not guarantee that a task will finish, classify every failure, or preserve work after every process or network error.
 
 ## Process and permission boundaries
 
-An AFK session stores its state in SQLite and records a process ID. The status and log commands read that session record, while `afk stop` targets the recorded process. A process command is only as safe as its ownership checks, so verify the target before stopping it.
+In v3, I store each AFK session in SQLite with its process ID. I use that record for status and logs, while `afk stop` targets the recorded process. A process command is only as safe as its ownership checks, so verify the target before stopping it.
 
 The chat and run modes can preapprove a configured tool list. Fewer prompts also mean fewer chances to catch an unintended action. Review every listed tool and credential before an unattended run. Treat preapproval as permission, not a safety review.
 
-For a voice request, Calmhive sends speech to OpenAI for transcription and text-to-speech, then passes the resulting command to Claude. An OpenAI API key is required only for voice requests.
+For a voice request, RealtimeSTT transcribes speech locally, Calmhive passes the resulting command to Claude, and OpenAI converts response text to speech. The OpenAI API key is used for spoken responses, not transcription.
 
 ## The job Calmhive does
 
-Calmhive gives me one place to start a background task, leave the terminal, and return to its status and logs. A known rate-limit message starts the retry path, and the session record makes the running work visible. I built Calmhive for the moment an overnight task stops at a usage limit.
+When an overnight task reaches the known usage-limit message, Calmhive waits, retries the same iteration, and keeps the session visible for me to inspect later.
 
 **lets bee friends**
 

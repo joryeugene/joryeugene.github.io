@@ -38,9 +38,9 @@
       layers: {
         brief: '<h2>Edit, query, and analyze data without leaving Neovim.</h2><p>Dadbod Grip adds editable grids, generated SQL previews, cross-database queries, schema navigation, profiling, notebooks, and schema-aware AI to the editor.</p>',
         constraints: '<h2>Keep the database and existing connection tools authoritative.</h2><p>Dadbod manages connections. DuckDB joins databases and files. Dadbod Grip adds workflows without hiding the SQL or replacing either system.</p>',
-        changes: '<h2>Make edits and federation inspectable.</h2><pre class="code-window" aria-label="Example staged SQL change"><code><span class="remove">- ALTER TABLE users ADD last_seen_at TIMESTAMP;</span>\n<span class="add">+ ALTER TABLE users ADD last_seen_at TIMESTAMPTZ;</span>\n<span class="add">+ CREATE INDEX idx_users_last_seen_at</span>\n<span class="add">+   ON users (last_seen_at DESC);</span></code></pre><div class="decision-note"><strong>Decision</strong>Show the generated mutation SQL before apply, then inspect database state after any CLI error.</div><div class="proof-strip"><span>Editable grids</span><span>DuckDB federation</span><span>SQL notebooks</span></div>',
-        tests: '<h2>Run the workbench on both supported Neovim targets.</h2><p>The test matrix covers editing state, generated SQL, adapters, the interface, and regression paths on Neovim stable and 0.10 with DuckDB installed. PostgreSQL and MySQL integration remain outside that matrix, so it does not prove every database and CLI combination.</p><p class="proof-line"><a href="/blog/dadbod-grip/">Read the build story</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>',
-        visual: '<h2>Keep the investigation visible in one frame.</h2><p>The Softrear fixture puts a 17-table schema tree, query editor, staged grid markers, and the generated Live SQL in one Neovim view. Review checks that the selected table, pending edits, and exact statement remain legible together before apply.</p>'
+        changes: '<h2>Make edits and federation inspectable.</h2><pre class="code-window" aria-label="Example staged SQL change"><code><span class="remove">- ALTER TABLE users ADD last_seen_at TIMESTAMP;</span>\n<span class="add">+ ALTER TABLE users ADD last_seen_at TIMESTAMPTZ;</span>\n<span class="add">+ CREATE INDEX idx_users_last_seen_at</span>\n<span class="add">+   ON users (last_seen_at DESC);</span></code></pre><div class="decision-note"><strong>Decision</strong>Show the generated mutation SQL before apply, then inspect database state after any CLI error.</div>',
+        tests: '<h2>Run the workbench on both supported Neovim targets.</h2><p>The test matrix covers editing state, generated SQL, adapters, the interface, and regression paths on Neovim stable and 0.10 with DuckDB installed.</p><p class="proof-line"><a href="/blog/dadbod-grip/">Read the build story</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>',
+        visual: '<h2>Keep the investigation visible in one frame.</h2><p>The Softrear demo database puts a 17-table schema tree, query editor, staged grid markers, and the generated Live SQL in one Neovim view. Review checks that the selected table, pending edits, and exact statement remain legible together before apply.</p>'
       },
       wrongTurns: [['Separate desktop app', 'It breaks editor flow and adds another interface to install, learn, and maintain.'], ['Hide generated SQL', 'Users need to inspect generated query or mutation SQL before it reaches a database.']]
     },
@@ -50,7 +50,7 @@
       layers: {
         brief: '<h2>Keep every grip, body, joint, and vehicle live online.</h2><p>Four players can grab one another into a physical chain while one flies a jetpack. The mechanic only works when the shared simulation stays responsive.</p>',
         constraints: '<h2>Network real ragdolls instead of canned reactions.</h2><p>Rigid bodies, joints, collisions, players, and vehicles affect one another continuously. Synchronization cost grows with every connected body and moving object.</p>',
-        changes: '<h2>Profile the interactions players can feel.</h2><p>I led the Unity and C# multiplayer architecture with Photon and PlayFab, reduced synchronization work, tuned smoothing, and traced lower-level failures into compiled vendor code.</p><div class="decision-note"><strong>Decision</strong>Spend network work on the bodies and interactions visible to players.</div><div class="proof-strip"><span>Ragdolls + joints</span><span>Vehicles + objects</span><span>Bandwidth + smoothing</span></div><p class="proof-line"><a href="https://www.totallyreliable.com/post/pc-mac-2-03-03-update">Read a shipped update</a></p>',
+        changes: '<h2>Profile the interactions players can feel.</h2><p>I led the Unity and C# multiplayer architecture with Photon and PlayFab, reduced synchronization work, tuned smoothing, and traced lower-level failures into compiled vendor code.</p><div class="decision-note"><strong>Decision</strong>Spend network work on the bodies and interactions visible to players.</div><p class="proof-line"><a href="https://www.totallyreliable.com/post/pc-mac-2-03-03-update">Read a shipped update</a></p>',
         tests: '<h2>Test the combinations players create.</h2><p>I tested four-player grip chains, moving vehicles, joints, collisions, and physics objects in live multiplayer sessions under real network conditions.</p><div class="proof-strip"><span>Four live players</span><span>Grip chains</span><span>Moving physics</span></div>',
         visual: '<h2>Judge the chain as a player sees it.</h2><p>The captured scene keeps the jetpack wearer, three hanging ragdolls, their grips, and the delivery objective legible in one frame.</p>'
       },
@@ -578,7 +578,16 @@
     selectCase(requestedTab || tabs.find((tab) => tab.getAttribute('aria-selected') === 'true') || tabs[0]);
   }
 
+  function initializeCopyrightYears() {
+    const currentYear = String(new Date().getFullYear());
+    document.querySelectorAll('[data-current-year]').forEach((year) => {
+      year.textContent = currentYear;
+      year.setAttribute('datetime', currentYear);
+    });
+  }
+
   function init() {
+    initializeCopyrightYears();
     initializeDepthTabs();
     initializeProjectDepth();
     initializeProcessLayers();
