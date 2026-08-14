@@ -227,7 +227,9 @@
     pendingGForOp: false,
     lastFind: null,
     searchDir: 1,
-    lastChange: null,
+    lastRepeat: null,
+    repeatCapture: null,
+    editSerial: 0,
     insertText: '',
     lineUndoRow: -1,
     lineUndoText: '',
@@ -261,10 +263,11 @@
     pendingTextObjPrefix: null,
     pendingTextObjOp: null,
     pendingTextObjCount: 0,
-    macroRegisters: {},
     macroRecording: null,
+    macroCapture: [],
     macroLastPlayed: null,
-    macroDepth: 0,
+    macroLastRecorded: null,
+    replayContext: null,
     expandtab: true,
     tabstop: 4,
     shiftwidth: 2,
@@ -358,6 +361,7 @@
     state.documentGeneration++;
     state.pendingEditRequest = null;
     state.selectedRegister = null;
+    state.repeatCapture = null;
     state.documentId = documentId;
     state.filename = filename;
     state.lines = lines.slice();
@@ -466,12 +470,46 @@
   var countBuf = 0;
   function getCount() { var c = countBuf || 1; countBuf = 0; return c; }
 
+  function normalizeKeyToken(e) {
+    return {
+      key: e.key,
+      ctrlKey: !!e.ctrlKey,
+      shiftKey: !!e.shiftKey,
+      altKey: !!e.altKey
+    };
+  }
+
+  function cloneKeyToken(token) {
+    return {
+      key: token.key,
+      ctrlKey: !!token.ctrlKey,
+      shiftKey: !!token.shiftKey,
+      altKey: !!token.altKey
+    };
+  }
+
+  function keyEventFromToken(token) {
+    return {
+      key: token.key,
+      ctrlKey: !!token.ctrlKey,
+      shiftKey: !!token.shiftKey,
+      altKey: !!token.altKey,
+      metaKey: false,
+      preventDefault: function() {}
+    };
+  }
+
   function emptyRegister() {
     return { text: '', kind: 'char' };
   }
 
   function cloneRegister(value) {
-    return { text: value.text, kind: value.kind };
+    var copy = { text: value.text, kind: value.kind };
+    if (value.tokens) {
+      copy.tokens = [];
+      for (var i = 0; i < value.tokens.length; i++) copy.tokens.push(cloneKeyToken(value.tokens[i]));
+    }
+    return copy;
   }
 
   function isRegisterName(name) {
@@ -920,6 +958,7 @@
   }
 
   function pushUndo(trackChange) {
+    state.editSerial++;
     var changePosition = trackChange !== false ? recordChangePosition() : null;
     var changeMark = trackChange !== false ? currentMarks()['.'] : null;
     state.undoStack = state.undoStack.slice(0, state.undoIdx + 1);
@@ -4039,6 +4078,48 @@
   var pendingOperator = null;
   var operatorCount = 0;
 
+  function normalCommandIdle() {
+    return state.mode === 'normal' &&
+      !pendingOperator && !state.pendingOp && !state.pendingTextObjOp &&
+      !state.pendingGForOp && !state.pendingBracket && !state.selectedRegister &&
+      !state.pendingOneNormal && !gTimer && countBuf === 0 && !state.paletteOpen;
+  }
+
+  function repeatCountSpan(tokens) {
+    var start = tokens.length > 1 && tokens[0].key === '"' ? 2 : 0;
+    var end = start;
+    if (tokens[end] && /^[1-9]$/.test(tokens[end].key) && !tokens[end].ctrlKey && !tokens[end].altKey) {
+      end++;
+      while (tokens[end] && /^\d$/.test(tokens[end].key) && !tokens[end].ctrlKey && !tokens[end].altKey) end++;
+    }
+    return { start: start, length: end - start };
+  }
+
+  function beginRepeatCapture(e) {
+    if (state.replayContext) return;
+    if (!state.repeatCapture && normalCommandIdle()) {
+      state.repeatCapture = { tokens: [], startSerial: state.editSerial };
+    }
+    if (state.repeatCapture) state.repeatCapture.tokens.push(normalizeKeyToken(e));
+  }
+
+  function finishRepeatCapture() {
+    var capture = state.repeatCapture;
+    if (!capture || state.replayContext || !normalCommandIdle()) return;
+    state.repeatCapture = null;
+    if (state.editSerial === capture.startSerial) return;
+    var span = repeatCountSpan(capture.tokens);
+    state.lastRepeat = {
+      tokens: capture.tokens,
+      countStart: span.start,
+      countLength: span.length
+    };
+  }
+
+  function cancelRepeatCapture() {
+    state.repeatCapture = null;
+  }
+
   function handleEscInNormal() {
     if (state.escTimer) clearTimeout(state.escTimer);
     state.escCount++;
@@ -4116,7 +4197,6 @@
         }
         state.lines[pRow] = pLine;
         state.cursor.col = clampCol(pRow, pCol + rN - 1);
-        recordChange('r', { ch: e.key });
         render(); return;
       }
       // m{a-z}: set mark
@@ -4204,7 +4284,7 @@
       if (op === 'q_start') {
         if (e.key >= 'a' && e.key <= 'z') {
           state.macroRecording = e.key;
-          state.macroRegisters[e.key] = [];
+          state.macroCapture = [];
           setStatus('recording @' + e.key);
           render();
         }
@@ -4342,11 +4422,7 @@
         var opN = (operatorCount > 1 ? operatorCount : 1) * getCount();
         var opEnd = Math.min(row + opN - 1, state.lines.length - 1);
         applyOperator(e.key, row, col, { endRow: opEnd, endCol: 0, linewise: true });
-        if (e.key === 'd') recordChange('dd');
-        if (e.key === 'c') { recordChange('cc'); state.insertText = ''; }
-        if (e.key === '>') recordChange('>>');
-        if (e.key === '<') recordChange('<<');
-        if (e.key === 'y') recordChange('yy');
+        if (e.key === 'c') state.insertText = '';
         pendingOperator = null; operatorCount = 0;
         return;
       }
@@ -4705,12 +4781,12 @@
     // --- enter insert mode ---
     if (e.key === 'i') {
       state.mode = 'insert'; state.insertText = '';
-      recordChange('insert', { entryKey: 'i' }); render(); return;
+      render(); return;
     }
     if (e.key === 'a') {
       state.mode = 'insert'; state.insertText = '';
       if (col < line.length) state.cursor.col = nextCharacterIndex(line, col);
-      recordChange('insert', { entryKey: 'a' }); render(); return;
+      render(); return;
     }
     if (e.key === 'o') {
       pushUndo();
@@ -4720,7 +4796,6 @@
       state.cursor.col = openIndent.length;
       state.curswant = state.cursor.col;
       state.mode = 'insert'; state.insertText = '';
-      recordChange('o');
       render(); return;
     }
     if (e.key === 'O') {
@@ -4730,20 +4805,19 @@
       state.cursor.col = openAboveIndent.length;
       state.curswant = state.cursor.col;
       state.mode = 'insert'; state.insertText = '';
-      recordChange('O');
       render(); return;
     }
     if (e.key === 'A') {
       state.mode = 'insert'; state.insertText = '';
       state.cursor.col = line.length;
       state.curswant = state.cursor.col;
-      recordChange('insert', { entryKey: 'A' }); render(); return;
+      render(); return;
     }
     if (e.key === 'I') {
       state.mode = 'insert'; state.insertText = '';
       state.cursor.col = firstNonBlank(row);
       state.curswant = state.cursor.col;
-      recordChange('insert', { entryKey: 'I' }); render(); return;
+      render(); return;
     }
     if (e.key === 'C') {
       pushUndo();
@@ -4751,7 +4825,6 @@
       state.lines[row] = line.slice(0, col);
       state.mode = 'insert';
       state.insertText = '';
-      recordChange('C');
       render(); return;
     }
     if (e.key === 'D') {
@@ -4760,7 +4833,6 @@
       state.lines[row] = line.slice(0, col);
       state.cursor.col = clampCol(row, col - 1);
       state.curswant = state.cursor.col;
-      recordChange('D');
       render(); return;
     }
     if (e.key === 'S') {
@@ -4771,7 +4843,6 @@
       state.curswant = 0;
       state.mode = 'insert';
       state.insertText = '';
-      recordChange('S');
       render(); return;
     }
     if (e.key === 's') {
@@ -4782,7 +4853,6 @@
         state.lines[row] = line.slice(0, col) + line.slice(sEnd);
         state.mode = 'insert';
         state.insertText = '';
-        recordChange('insert');
         render();
       }
       return;
@@ -4801,7 +4871,6 @@
           state.lines.splice(row + 1, 1);
         }
         state.curswant = state.cursor.col;
-        recordChange('J');
         render();
       }
       return;
@@ -4819,7 +4888,6 @@
         state.lines[row] = tilLine;
         state.cursor.col = clampCol(row, col + tilN);
         state.curswant = state.cursor.col;
-        recordChange('~');
         render();
       }
       return;
@@ -4835,7 +4903,6 @@
         state.lines[row] = line.slice(0, col) + line.slice(xEnd);
         state.cursor.col = clampCol(row, col);
         state.curswant = state.cursor.col;
-        recordChange('x', { count: xN });
         render();
       }
       return;
@@ -4881,14 +4948,11 @@
 
     // . dot repeat
     if (e.key === '.') {
-      if (state.lastChange) {
-        var lc = state.lastChange;
-        var dotCount = getCount();
-        for (var doti = 0; doti < dotCount; doti++) {
-          replayChange(lc);
-        }
-        render();
-      }
+      var explicitDotCount = countBuf;
+      countBuf = 0;
+      cancelRepeatCapture();
+      repeatLastChange(explicitDotCount);
+      render();
       return;
     }
 
@@ -4991,6 +5055,7 @@
       if (state.macroRecording) {
         // stop recording
         var recLetter = state.macroRecording;
+        storeMacro(recLetter);
         state.macroRecording = null;
         setStatus('Recorded @' + recLetter);
         render();
@@ -5002,8 +5067,16 @@
     }
     // @{a-z} or @@: replay macro
     if (e.key === '@') {
+      cancelRepeatCapture();
       state.pendingOp = 'at';
       return;
+    }
+    // Neovim-style Q: replay the most recently recorded macro.
+    if (e.key === 'Q') {
+      var qCount = getCount();
+      cancelRepeatCapture();
+      replayMacro(state.macroLastRecorded, qCount);
+      render(); return;
     }
 
     // consume any remaining count on unhandled keys
@@ -5016,7 +5089,6 @@
     var line = getLine(row);
 
     if (e.key === 'Escape') {
-      if (state.lastChange) state.lastChange.insertText = state.insertText;
       // Block-insert replay: apply the typed text to every other row in the
       // saved rectangle at the recorded column. Only replay single-line text;
       // newlines would desync the rectangle.
@@ -5206,147 +5278,74 @@
   }
 
   // -------------------------------------------------------------------------
-  // Dot repeat: replay last change
+  // Shared dot and macro replay
   // -------------------------------------------------------------------------
-  function recordChange(type, extra) {
-    state.lastChange = { type: type };
-    if (extra) {
-      for (var k in extra) {
-        if (extra.hasOwnProperty(k)) state.lastChange[k] = extra[k];
+  function replayTokens(tokens, count) {
+    var root = !state.replayContext;
+    if (root) state.replayContext = { depth: 0, remaining: 1000, stopped: false };
+    var context = state.replayContext;
+    if (context.depth >= 10) {
+      context.stopped = true;
+      setStatus('E169: Macro recursion limit reached');
+      if (root) state.replayContext = null;
+      return false;
+    }
+    context.depth++;
+    for (var i = 0; i < count && !context.stopped; i++) {
+      for (var j = 0; j < tokens.length; j++) {
+        if (context.remaining <= 0) {
+          context.stopped = true;
+          setStatus('Replay safety limit (1000 keystrokes)');
+          break;
+        }
+        context.remaining--;
+        handleKey(keyEventFromToken(tokens[j]));
+        if (context.stopped) break;
       }
     }
+    context.depth--;
+    var completed = !context.stopped;
+    if (root) state.replayContext = null;
+    return completed;
   }
 
-  function replayChange(lc) {
-    var row = state.cursor.row;
-    var col = state.cursor.col;
-    var line = getLine(row);
-    switch (lc.type) {
-      case 'dd':
-        if (state.lines.length > 1) {
-          pushUndo();
-          writeRegister(getLine(row), 'line', 'delete');
-          deleteLine(row);
-          state.cursor.row = clampRow(row);
-          state.cursor.col = firstNonBlank(state.cursor.row);
-        }
-        break;
-      case 'x':
-        if (line.length > 0) {
-          pushUndo();
-          var xEnd = Math.min(col + (lc.count || 1), line.length);
-          writeRegister(line.slice(col, xEnd), 'char', 'delete');
-          state.lines[row] = line.slice(0, col) + line.slice(xEnd);
-          state.cursor.col = clampCol(row, col);
-        }
-        break;
-      case 'r':
-        if (line.length > 0 && lc.ch) {
-          pushUndo();
-          state.lines[row] = line.slice(0, col) + lc.ch + line.slice(col + 1);
-        }
-        break;
-      case '~':
-        if (line.length > col) {
-          pushUndo();
-          var tch = line[col];
-          var ttog = tch === tch.toLowerCase() ? tch.toUpperCase() : tch.toLowerCase();
-          state.lines[row] = line.slice(0, col) + ttog + line.slice(col + 1);
-          state.cursor.col = clampCol(row, col + 1);
-        }
-        break;
-      case 'J':
-        if (row < state.lines.length - 1) {
-          pushUndo();
-          var jNext = getLine(row + 1).replace(/^\s+/, '');
-          var jSep = line.length > 0 ? ' ' : '';
-          state.cursor.col = line.length;
-          state.lines[row] = line + jSep + jNext;
-          adjustJumpRows(row + 1, 1, 0);
-          state.lines.splice(row + 1, 1);
-        }
-        break;
-      case 'D':
-        pushUndo();
-        writeRegister(line.slice(col), 'char', 'delete');
-        state.lines[row] = line.slice(0, col);
-        state.cursor.col = clampCol(row, col - 1);
-        break;
-      case 'C':
-      case 'S':
-      case 'cc':
-        pushUndo();
-        if (lc.type === 'S' || lc.type === 'cc') {
-          writeRegister(line, 'line', 'delete');
-          state.lines[row] = '';
-          state.cursor.col = 0;
-        } else {
-          writeRegister(line.slice(col), 'char', 'delete');
-          state.lines[row] = line.slice(0, col);
-        }
-        if (lc.insertText) {
-          state.lines[row] = state.lines[row].slice(0, state.cursor.col) + lc.insertText + state.lines[row].slice(state.cursor.col);
-          state.cursor.col += lc.insertText.length;
-        }
-        break;
-      case 'o':
-      case 'O':
-        pushUndo();
-        var oRow = lc.type === 'o' ? row + 1 : row;
-        insertLine(oRow, lc.insertText || '');
-        state.cursor.row = oRow;
-        state.cursor.col = (lc.insertText || '').length;
-        break;
-      case '>>':
-        pushUndo();
-        state.lines[row] = indentUnit() + line;
-        state.cursor.col = firstNonBlank(row);
-        break;
-      case '<<':
-        pushUndo();
-        state.lines[row] = dedent(line);
-        state.cursor.col = firstNonBlank(row);
-        break;
-      case 'yy':
-        // yy doesn't modify buffer, nothing to replay
-        break;
-      case 'insert':
-        if (lc.insertText) {
-          pushUndo();
-          // Replicate cursor positioning from original entry command
-          if (lc.entryKey === 'a' && col < getLine(row).length) col = col + 1;
-          else if (lc.entryKey === 'A') col = getLine(row).length;
-          else if (lc.entryKey === 'I') col = firstNonBlank(row);
-          state.cursor.col = col;
-          line = getLine(row);
-          state.lines[row] = line.slice(0, col) + lc.insertText + line.slice(col);
-          state.cursor.col = col + lc.insertText.length;
-        }
-        break;
-      default:
-        break;
-    }
-    state.curswant = state.cursor.col;
+  function replaceRepeatCount(change, count) {
+    var tokens = [];
+    var before = change.tokens.slice(0, change.countStart);
+    var after = change.tokens.slice(change.countStart + change.countLength);
+    for (var i = 0; i < before.length; i++) tokens.push(cloneKeyToken(before[i]));
+    var digits = String(count);
+    for (var d = 0; d < digits.length; d++) tokens.push(normalizeKeyToken({ key: digits[d] }));
+    for (var j = 0; j < after.length; j++) tokens.push(cloneKeyToken(after[j]));
+    return tokens;
   }
 
-  // -------------------------------------------------------------------------
-  // Macro replay
-  // -------------------------------------------------------------------------
-  function replayMacro(letter, count) {
-    var keys = state.macroRegisters[letter];
-    if (!keys || !keys.length) { setStatus('E748: No previously used register'); return; }
-    state.macroLastPlayed = letter;
-    state.macroDepth++;
-    if (state.macroDepth > 10) { setStatus('E169: Macro recursion limit reached'); state.macroDepth--; return; }
-    var total = 0;
-    for (var i = 0; i < count; i++) {
-      for (var j = 0; j < keys.length; j++) {
-        handleKey(new KeyboardEvent('keydown', keys[j]));
-        total++;
-        if (total > 1000) { setStatus('Macro safety limit (1000 keystrokes)'); state.macroDepth--; return; }
-      }
+  function repeatLastChange(count) {
+    if (!state.lastRepeat || !state.lastRepeat.tokens.length) {
+      setStatus('E749: Empty buffer for dot command');
+      return false;
     }
-    state.macroDepth--;
+    var tokens = count > 0
+      ? replaceRepeatCount(state.lastRepeat, count)
+      : state.lastRepeat.tokens;
+    return replayTokens(tokens, 1);
+  }
+
+  function storeMacro(registerName) {
+    var tokens = [];
+    for (var i = 0; i < state.macroCapture.length; i++) tokens.push(cloneKeyToken(state.macroCapture[i]));
+    state.registers[registerName] = { text: '', kind: 'char', tokens: tokens };
+    state.macroLastRecorded = registerName;
+  }
+
+  function replayMacro(registerName, count) {
+    var value = registerName ? getRegister(registerName) : null;
+    if (!value || !value.tokens || !value.tokens.length) {
+      setStatus('E748: No previously used register');
+      return false;
+    }
+    state.macroLastPlayed = registerName;
+    return replayTokens(value.tokens, count);
   }
 
   function handleVisual(e) {
@@ -5941,7 +5940,7 @@
     }
   }
 
-  function handleKey(e) {
+  function dispatchKey(e) {
     if (state.sitePaletteOpen) {
       if (e.ctrlKey && e.key.toLowerCase() === 'p') {
         e.preventDefault();
@@ -5999,13 +5998,9 @@
     }
 
     // Macro recording: capture every key except the q that stops recording
-    if (state.macroRecording) {
+    if (state.macroRecording && !state.replayContext) {
       var isStopQ = (e.key === 'q' && state.mode === 'normal' && !state.pendingOp && !pendingOperator);
-      if (!isStopQ) {
-        state.macroRegisters[state.macroRecording].push({
-          key: e.key, ctrlKey: !!e.ctrlKey, shiftKey: !!e.shiftKey, altKey: !!e.altKey
-        });
-      }
+      if (!isStopQ) state.macroCapture.push(normalizeKeyToken(e));
     }
 
     if (e.ctrlKey) {
@@ -6144,6 +6139,15 @@
         state.insertText = state.insertText || '';
         render();
       }
+    }
+  }
+
+  function handleKey(e) {
+    beginRepeatCapture(e);
+    try {
+      dispatchKey(e);
+    } finally {
+      finishRepeatCapture();
     }
   }
 

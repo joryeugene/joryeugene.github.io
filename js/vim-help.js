@@ -75,7 +75,8 @@
     'T':      ['T{char}            Move to just after {char} backward.'],
     ';':      [';                  Repeat last f/F/t/T search.'],
     ',':      [',                  Repeat last f/F/t/T in opposite direction.'],
-    '.':      ['.                  Repeat last change.'],
+    '.':      ['.                  Repeat the last completed change.',
+               '[count].           Replace its original leading count.'],
     '~':      ['~                  Toggle case of character under cursor.'],
     'J':      ['J                  Join current line with next (add space).'],
     'gJ':     ['gJ                 Join current line with next (no space).'],
@@ -207,7 +208,7 @@
                ':help {topic}      Show help for a specific topic.',
                '',
                'Topics: w b e d c y p u U gg G [[ ]] [] ][ g_ | _ n N / ? * # % v V',
-               '        f t r R o O i a . ~ J m q @ g; g, :s :w :q :e :r',
+               '        f t r R o O i a . ~ J m q Q @ g; g, :s :w :q :e :r',
                '        :set :marks :jumps :clearjumps :! Ctrl-r Ctrl-g Ctrl-o Ctrl-i',
                '        Ctrl-f Ctrl-b Ctrl-d Ctrl-u Ctrl-a Ctrl-x',
                '        Ctrl-p :color :zen :moth :snake :tutor :Ex :nohlsearch registers',
@@ -264,15 +265,18 @@
   T[':marks'] = T['m'];
   T['g,'] = T['g;'];
   T['changelist'] = T['g;'];
-  T['q'] = ['q{a-z}          Start recording macro into register {a-z}.',
+  T['q'] = ['q{a-z}          Record keys into register {a-z}.',
             'q               Stop recording.',
             '@{a-z}          Execute the macro stored in register {a-z}.',
             '@@              Repeat the most recently played macro.',
             '{count}@{a-z}   Execute macro N times.',
+            'Q               Repeat the most recently recorded macro.',
             '',
-            'Safety limits: 10 recursion depth, 1000 keystrokes per replay.'];
+            'Playback stops at recursion depth 10 or 1,000 replayed keys.',
+            'Canceled and incomplete commands do not replace the change repeated by dot.'];
   T['macros'] = T['q'];
   T['@'] = T['q'];
+  T['Q'] = T['q'];
   T['text-objects'] = ['Text objects select regions of text for operators.',
                        '',
                        'WORDS AND PARAGRAPHS',
@@ -549,6 +553,8 @@
       '  q           stop recording',
       '  @{a-z}      play macro     @@  repeat last macro',
       '  {count}@a   play macro N times',
+      '  Q           play the most recently recorded macro',
+      '  Playback stops at depth 10 or 1,000 replayed keys.',
       '',
       'VISUAL MODE',
       '  v           character-wise     V       line-wise',
