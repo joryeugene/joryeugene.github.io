@@ -548,6 +548,17 @@
       else jump.row += delta;
       jump.row = Math.max(0, jump.row);
     }
+    var deduped = [];
+    var nextJumpIdx = state.jumpIdx;
+    for (var j = 0; j < state.jumpList.length; j++) {
+      if (sameJumpLine(deduped[deduped.length - 1], state.jumpList[j])) {
+        if (j <= state.jumpIdx) nextJumpIdx--;
+        continue;
+      }
+      deduped.push(state.jumpList[j]);
+    }
+    state.jumpList = deduped;
+    state.jumpIdx = Math.max(-1, Math.min(nextJumpIdx, deduped.length - 1));
   }
 
   function adjustJumpRowsForRestore(nextLines) {
@@ -1329,7 +1340,7 @@
           state.lines[startRow] = getLine(startRow).slice(0, startCol) + getLine(startRow).slice(endCol);
         } else {
           state.lines[startRow] = getLine(startRow).slice(0, startCol) + getLine(endRow).slice(endCol);
-          adjustJumpRows(startRow + 1, endRow - startRow, 0);
+          adjustJumpRows(startRow, endRow - startRow + 1, 1);
           state.lines.splice(startRow + 1, endRow - startRow);
         }
         state.cursor.row = startRow;
@@ -1340,7 +1351,7 @@
           state.lines[startRow] = getLine(startRow).slice(0, startCol) + getLine(startRow).slice(endCol);
         } else {
           state.lines[startRow] = getLine(startRow).slice(0, startCol) + getLine(endRow).slice(endCol);
-          adjustJumpRows(startRow + 1, endRow - startRow, 0);
+          adjustJumpRows(startRow, endRow - startRow + 1, 1);
           state.lines.splice(startRow + 1, endRow - startRow);
         }
         state.cursor.row = startRow;

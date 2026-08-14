@@ -70,6 +70,40 @@ test.describe('P0 jumplist', () => {
     expect((await lines(page))[(parseInt((await state(page)).pos, 10) - 1)]).toBe('anchor');
   });
 
+  test('multi-line characterwise delete collapses saved rows onto the merged line', async ({ page }) => {
+    await open(page);
+    await seed(page, '(\ninside\n)');
+    await press(page, '/'); await type(page, 'inside'); await press(page, 'Enter');
+    await cmd(page, 'clearjumps');
+    await press(page, 'G');
+    await press(page, 'k'); await press(page, 'k');
+
+    await press(page, 'd'); await press(page, '%');
+    expect(await lines(page)).toHaveLength(1);
+    await cmd(page, 'jumps');
+
+    const entries = (await lines(page)).filter(line => line.includes('untitled.txt'));
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatch(/^>\s+0\s+1\s+/);
+  });
+
+  test('row adjustments deduplicate consecutive saved jump lines', async ({ page }) => {
+    await open(page);
+    await seed(page, 'one\ntwo\nthree');
+    await press(page, 'j');
+    await cmd(page, 'clearjumps');
+    await press(page, 'G');
+    await press(page, 'g'); await press(page, 'g');
+    await press(page, 'j');
+
+    await press(page, 'd'); await press(page, 'd');
+    await cmd(page, 'jumps');
+
+    const entries = (await lines(page)).filter(line => line.includes('untitled.txt'));
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatch(/^>\s+0\s+2\s+/);
+  });
+
   test('a new jump after Ctrl-O preserves newer entries', async ({ page }) => {
     await open(page);
     await seed(page, 'one\ntwo\nthree\nfour\nfive');
