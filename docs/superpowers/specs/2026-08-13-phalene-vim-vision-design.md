@@ -170,11 +170,11 @@ Write a postmortem sentence containing `ULTRA_VIOLET_BEACON`, type `ULTRA_`, cyc
 
 #### User unlock
 
-Operators can target the smallest remaining high-value units without manual Visual selection. Start with Neovim's `il` for the trimmed current line and `al` for the current line including its surrounding line boundary. Add another object only when a concrete capstone edit cannot be expressed clearly with the objects already implemented.
+Operators can target the smallest remaining high-value units without manual Visual selection. Start with Neovim's `il` for the trimmed current line and `al` for all lines in the current buffer. `al` is linewise. Add another object only when a concrete capstone edit cannot be expressed clearly with the objects already implemented.
 
 #### Inspectable journey
 
-Use `cil` to replace a padded launch-copy line, then use `yal` to capture one completed report line for reuse in the final output buffer.
+Use `cil` to replace a padded launch-copy line, then use `yal` to capture a complete two-line brief for reuse below an archive heading. Use both objects from Visual mode in the same focused journey.
 
 #### KPI and stop condition
 
