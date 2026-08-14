@@ -1937,3 +1937,8 @@ if (!document.body.classList.contains('portfolio-page')
     && !isBlogArticlePath) {
   VimNav.init();
 }
+
+// Georgie remains behind an explicit preview flag until the living-web scene is approved.
+if (new URLSearchParams(window.location.search).has('georgie-world')) {
+  import('/js/georgie-world-overlay.js');
+}

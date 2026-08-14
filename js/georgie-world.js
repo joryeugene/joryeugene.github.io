@@ -21,6 +21,21 @@ const DIRECTION_ASSETS = {
   "rear-left": ["rear-right", true],
 };
 
+const BONE_HIDING_PLACES = [
+  { x: 0.07, y: 0.79 },
+  { x: 0.84, y: 0.72 },
+  { x: 0.62, y: 0.84 },
+  { x: 0.28, y: 0.76 },
+  { x: 0.9, y: 0.54 },
+  { x: 0.47, y: 0.69 },
+];
+
+export function bonePositionForPath(pathname) {
+  const index = Array.from(pathname).reduce((sum, character) => sum + character.codePointAt(0), 0)
+    % BONE_HIDING_PLACES.length;
+  return BONE_HIDING_PLACES[index];
+}
+
 function randomSessionId() {
   const values = new Uint32Array(4);
   crypto.getRandomValues(values);
@@ -34,7 +49,7 @@ function roomCopy({ occupancy, aggregateLabel }) {
   return `${occupancy} visitor lights are here`;
 }
 
-class GeorgieWorld {
+export class GeorgieWorld {
   constructor(root) {
     this.root = root;
     this.arena = root.querySelector("[data-georgie-arena]");
@@ -51,9 +66,14 @@ class GeorgieWorld {
     this.position = { x: 0.16, y: 0.68 };
     this.presence = presenceView(0);
     this.routineTimer = 0;
+    this.sayTimer = 0;
     this.socket = null;
     this.draggingBone = false;
-    this.bonePosition = { x: 0.08, y: 0.8 };
+    this.bonePosition = root.hasAttribute("data-georgie-overlay")
+      ? bonePositionForPath(location.pathname)
+      : { x: 0.08, y: 0.8 };
+    this.bone.style.left = `${this.bonePosition.x * 100}%`;
+    this.bone.style.top = `${this.bonePosition.y * 100}%`;
     this.testMode = new URLSearchParams(location.search).has("test");
   }
 
@@ -85,7 +105,16 @@ class GeorgieWorld {
   forget() {
     forgetRecognition(localStorage);
     this.renderRecognition(null);
-    this.reaction.textContent = "Georgie forgot this browser. Nothing else left the page.";
+    this.say("Georgie forgot this browser. Nothing else left the page.");
+  }
+
+  say(message, duration = 3_600) {
+    this.reaction.textContent = message;
+    this.root.dataset.speaking = "true";
+    window.clearTimeout(this.sayTimer);
+    this.sayTimer = window.setTimeout(() => {
+      delete this.root.dataset.speaking;
+    }, duration);
   }
 
   setPresence(occupancy) {
@@ -126,7 +155,7 @@ class GeorgieWorld {
       if (this.bone.hasPointerCapture(event.pointerId)) this.bone.releasePointerCapture(event.pointerId);
       this.root.dataset.state = "bone-found";
       this.showBoneWag();
-      this.reaction.textContent = "Georgie found his bone. His tail is still going.";
+      this.say("Georgie found his bone. His tail is still going.", 5_000);
       if (!this.testMode && !this.reducedMotion) this.scheduleRoutine(2_600);
     };
     this.bone.addEventListener("pointerup", release);
@@ -142,7 +171,7 @@ class GeorgieWorld {
     this.bonePosition = { x, y };
     this.moveTo(x > this.position.x ? x - 0.12 : x + 0.12, y + 0.14);
     this.root.dataset.state = "following-bone";
-    this.reaction.textContent = "The bone has Georgie's full attention. His tail is wagging.";
+    this.say("The bone has Georgie's full attention. His tail is wagging.");
   }
 
   showBoneWag() {
@@ -166,7 +195,7 @@ class GeorgieWorld {
       try {
         const message = JSON.parse(event.data);
         if (message.type === "state") this.setPresence(message.occupancy);
-        if (message.type === "invitation") this.reaction.textContent = "A visitor invited Georgie. He will decide.";
+        if (message.type === "invitation") this.say("A visitor invited Georgie. He will decide.");
       } catch {
         // A malformed presence message cannot stop the solo scene.
       }
@@ -184,16 +213,16 @@ class GeorgieWorld {
   invite() {
     const result = this.behavior.invite();
     if (result.reaction === "ignores") {
-      this.reaction.textContent = "Georgie heard you. He is pretending he did not.";
+      this.say("Georgie heard you. He is pretending he did not.");
     } else if (result.reaction === "watches") {
-      this.reaction.textContent = "Georgie looked over. That is not the same as coming.";
+      this.say("Georgie looked over. That is not the same as coming.");
     } else if (result.reaction === "leaves") {
       window.clearTimeout(this.routineTimer);
       this.root.dataset.state = "gone";
       this.dog.hidden = true;
-      this.reaction.textContent = "Georgie has had enough. He left.";
+      this.say("Georgie has had enough. He left.", 5_000);
     } else {
-      this.reaction.textContent = "Georgie is still gone.";
+      this.say("Georgie is still gone.");
     }
 
     if (this.socket?.readyState === WebSocket.OPEN && result.reaction !== "absent") {
@@ -227,7 +256,7 @@ class GeorgieWorld {
     this.setDirection(direction, !this.reducedMotion);
     this.setPosition(next.x, next.y, true);
     this.root.dataset.state = "wandering";
-    this.reaction.textContent = "Georgie chose somewhere else to be.";
+    this.say("Georgie chose somewhere else to be.", 2_800);
   }
 
   scheduleRoutine(delay = 3_000 + Math.random() * 2_500) {
@@ -245,27 +274,30 @@ class GeorgieWorld {
       const moths = Array.from(this.arena.querySelectorAll('[data-presence-kind="moth"]'));
       const moth = moths[Math.floor(Math.random() * moths.length)];
       this.moveTo(Number(moth.dataset.x), Number(moth.dataset.y));
-      this.reaction.textContent = "A moth made a terrible tactical decision.";
+      this.say("A moth made a terrible tactical decision.");
     } else if (routine === "watch") {
       this.setDirection(this.position.x > 0.5 ? "left" : "right", false);
       this.dog.classList.remove("is-travelling");
-      this.reaction.textContent = "Georgie is watching the room, not obeying it.";
+      this.say("Georgie is watching the room, not obeying it.");
     } else if (routine === "rest") {
       this.setDirection("right", false);
       this.dog.classList.remove("is-travelling");
-      this.reaction.textContent = "Georgie stopped exactly where he wanted.";
+      this.say("Georgie stopped exactly where he wanted.");
     } else if (routine === "hide") {
       this.moveTo(Math.random() < 0.5 ? 0.05 : 0.95, 0.72);
-      this.reaction.textContent = "Only most of Georgie is visible.";
+      this.say("Only most of Georgie is visible.");
     }
 
     this.scheduleRoutine();
   }
 }
 
-const root = document.querySelector("[data-georgie-world]");
-if (root) {
+export function startGeorgieWorld(root = document.querySelector("[data-georgie-world]")) {
+  if (!root) return null;
   const world = new GeorgieWorld(root);
   world.start();
   window.__georgieWorld = world;
+  return world;
 }
+
+startGeorgieWorld();
