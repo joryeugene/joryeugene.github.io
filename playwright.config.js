@@ -7,6 +7,7 @@ export default defineConfig({
   testIgnore: 'motion.spec.js',
   timeout: 30000,
   fullyParallel: false,
+  workers: 1,
   use: {
     baseURL: `http://localhost:${port}`,
     actionTimeout: 5000,
