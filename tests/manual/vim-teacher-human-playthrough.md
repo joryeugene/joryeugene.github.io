@@ -4,6 +4,8 @@
 
 Round one has not started. This file contains the session protocol and empty evidence records. Browser automation must not be entered as human evidence.
 
+On 2026-08-15, one serial browser journey completed all eight core lessons and all eight applied-project missions in 49.0 seconds. It finished with the required postmortem and an 8/8 project map. This proves continuous product progression only. It does not count as a learner session, retention result, usability observation, or curriculum approval.
+
 ## Release decision
 
 On 2026-08-15, the owner approved a production playtest before the human rounds. This live build is an owner-led validation release, not evidence that the curriculum has passed the human learning gate. Do not publish speed, fluency, or retention claims until both human rounds pass.

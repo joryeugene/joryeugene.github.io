@@ -388,3 +388,141 @@ test('teacher records one stable edit and replays it across matching routes', as
   expect(await courseText(page)).toContain('[ ] 1. Make one safe edit');
   expect(await courseText(page)).toContain('[x] 8. Automate a stable edit');
 });
+
+test('one fresh learner can finish the core course and applied project continuously', async ({ page }) => {
+  test.setTimeout(120000);
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+
+  const search = async pattern => {
+    await press(page, '/');
+    await type(page, pattern);
+    await press(page, 'Enter');
+  };
+  const changeLine = async (pattern, replacement) => {
+    await search(pattern);
+    for (const key of ['c', 'i', 'l']) await press(page, key);
+    await type(page, replacement);
+    await press(page, 'Escape');
+  };
+  const changeFollowingLine = async (pattern, replacement) => {
+    await search(pattern);
+    await press(page, 'j');
+    for (const key of ['c', 'i', 'l']) await press(page, key);
+    await type(page, replacement);
+    await press(page, 'Escape');
+  };
+  const openWork = async filename => {
+    await press(page, 'Control+o');
+    expect((await state(page)).file).toBe(filename);
+  };
+
+  await cmd(page, 'teacher');
+  await cmd(page, 'teacher next');
+  await openWork('01-handoff.txt');
+  await changeLine('status:', 'status: draft');
+  await changeLine('owner:', 'owner: team');
+  await changeLine('recovery:', 'recovery: ready');
+
+  await cmd(page, 'teacher next');
+  await openWork('02-service.js');
+  await changeLine('environment', 'export const environment = "production";');
+  await search('obsolete');
+  for (const key of ['d', 'd']) await press(page, key);
+  await changeLine('title', 'export const title = "ready";');
+  await changeLine('retries', 'export const retries = retryPolicy(4);');
+
+  await cmd(page, 'teacher next');
+  await openWork('03-requests.log');
+  await changeLine('ANALYSIS:', 'ANALYSIS: warning preceded timeout');
+  await changeLine('SUMMARY:', 'SUMMARY: req_42 had a 910 ms warning before timeout');
+
+  await cmd(page, 'teacher next');
+  await openWork('04-status.txt');
+  await cmd(page, '%s/ : pending/=ready/g');
+
+  await cmd(page, 'teacher next');
+  await openWork('05-evidence.md');
+  await changeFollowingLine('evidence_id', 'req_42');
+  await changeFollowingLine('evidence_owner', 'platform');
+  await changeFollowingLine('approved_metric', 'REVIEWED_PRODUCTION_EVENTS');
+
+  await cmd(page, 'teacher next');
+  await openWork('06-project.md');
+  await changeLine('API route:', 'API route: /v2/reports');
+  await changeLine('UI screen:', 'UI screen: review');
+  await changeLine('Sources:', 'Sources: 06-api.js, 06-ui.js');
+
+  await cmd(page, 'teacher next');
+  await openWork('07-records.csv');
+  await cmd(page, 'g/^ignore/d');
+  await cmd(page, '%s/^pending/ready/');
+  await cmd(page, 'sort u');
+  for (const key of ['g', 'g', 'Control+v', 'G', 'I']) await press(page, key);
+  await type(page, 'verified,');
+  await press(page, 'Escape');
+
+  await cmd(page, 'teacher next');
+  await openWork('08-routes.txt');
+  await cmd(page, '%s/v1/v2/g');
+  await cmd(page, '%s/deprecated/active/g');
+  await cmd(page, 'teacher next');
+  expect(await courseText(page)).toContain('VIM TEACHER // CORE COURSE COMPLETE');
+  await cmd(page, 'teacher map');
+  for (let lesson = 1; lesson <= 8; lesson++) {
+    expect(await courseText(page)).toContain(`[x] ${lesson}.`);
+  }
+
+  await cmd(page, 'teacher project');
+  await cmd(page, 'teacher next');
+  await openWork('incident.log');
+  await changeLine('ANALYST_NOTE:', 'ANALYST_NOTE: evt_014203 recorded 14203 records before production-api was online');
+
+  await cmd(page, 'teacher next');
+  await openWork('events.csv');
+  await changeFollowingLine('# evidence_id', 'evt_014203');
+  await changeFollowingLine('# evidence_source', 'demo_importer');
+
+  await cmd(page, 'teacher next');
+  await openWork('config.js');
+  await changeLine('source:', 'source: "production-api",');
+  await changeLine('CHANGE_NOTE:', '// CHANGE_NOTE: source corrected to production-api');
+
+  await cmd(page, 'teacher next');
+  await openWork('incident.log');
+  await cmd(page, '%s/status : duplicated/status=duplicate/g');
+
+  await cmd(page, 'teacher next');
+  await openWork('launch-copy.md');
+  await changeLine('Every imported', 'Claim review: The 14,203 demo-importer records are not production activity.');
+  await changeLine('The dashboard recorded', 'Evidence note: evt_014203 occurred before production-api was online.');
+  await changeLine('Approved copy:', 'Approved copy: The dashboard reports REVIEWED_PRODUCTION_EVENTS after deployment.');
+
+  await cmd(page, 'teacher next');
+  await openWork('runbook.md');
+  await changeLine('1.', '1. Confirm the active event source in config.js.');
+  await changeLine('2.', '2. Compare event time with deployedAt.');
+  await changeLine('3.', '3. Quarantine pre-deployment events and notify on-call.');
+  await changeLine('Operator action:', 'Operator action: Verify event source, deployment time, and event timestamp before publishing counts.');
+
+  await cmd(page, 'teacher next');
+  await openWork('postmortem.md');
+  await changeLine('Impact:', 'Impact: Dashboard displayed 14,203 unverified pre-deployment records.');
+  await changeLine('Evidence:', 'Evidence: evt_014203 occurred before production-api was online.');
+  await changeLine('Root cause:', 'Root cause: The active source was demo-importer instead of production-api.');
+  await changeLine('Repair:', 'Repair: Config now uses production-api.');
+  await changeLine('Launch copy:', 'Launch copy: The dashboard reports REVIEWED_PRODUCTION_EVENTS after deployment.');
+  await changeLine('Runbook:', 'Runbook: Verify event source, deployment time, and event timestamp before publishing counts.');
+  await changeLine('Follow-up:', 'Follow-up: Add a deployment-time validation gate before ingest.');
+
+  await cmd(page, 'teacher next');
+  await openWork('postmortem.md');
+  await changeLine('Verified sources:', 'Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md');
+  await cmd(page, 'teacher next');
+  expect(await courseText(page)).toContain('APPLIED VIM PROJECT // COMPLETE');
+  await press(page, 'Control+o');
+  expect((await state(page)).file).toBe('postmortem.md');
+  expect(await lines(page)).toContain('Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md');
+  await cmd(page, 'teacher map');
+  expect(await courseText(page)).toContain('Applied project: 8/8 missions complete');
+});
