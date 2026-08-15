@@ -44,14 +44,19 @@ test.describe('dashboard and runner experience', () => {
     await expect(page.locator('#vim-content')).toContainText('/moth Enter');
     expect(((await page.locator('#vim-content').innerText()).match(/moth/g) || []).length).toBeGreaterThanOrEqual(2);
     await expect(page.locator('#vim-content')).not.toContainText('/GEORGIE Enter');
-    await expect(page.locator('#vim-content')).toContainText('type :teacher then press Enter');
-    await expect(page.locator('#vim-content')).toContainText('type :teacher project then press Enter');
-    await expect(page.locator('#vim-content')).toContainText(':e friction-economy then press Enter');
+    await expect(page.locator('#vim-content')).toContainText(':teacher then Enter');
+    await expect(page.locator('#vim-content')).toContainText(':teacher project then Enter');
+    await expect(page.locator('#vim-content')).toContainText(':e friction-economy then Enter');
     await expect(page.locator('#vim-content')).not.toContainText('[[ ]]');
     const narrowRows = (await page.locator('#vim-content').innerText()).split('\n');
     const narrowCommands = ['Ctrl-P', ':tutor', ':Ex'].map(text => narrowRows.find(row => row.includes(text)));
     expect(new Set(narrowCommands.map(row => row.search(/\S/))).size).toBe(1);
     expect(narrowCommands.map(row => row.indexOf(row.trim().split(/\s{2,}/)[1]))).toEqual([17, 17, 17].map(col => col + narrowCommands[0].search(/\S/)));
+    const narrowFooter = ['read:', 'learn Vim:', 'incident project:']
+      .map(text => narrowRows.find(row => row.includes(text)));
+    expect(new Set(narrowFooter.map(row => row.search(/\S/))).size).toBe(1);
+    expect(narrowFooter.map((row, index) => row.indexOf([':e friction-economy', ':teacher', ':teacher project'][index])))
+      .toEqual(narrowFooter.map(row => narrowFooter[0].indexOf(':e friction-economy')));
 
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.waitForTimeout(150);
@@ -106,6 +111,11 @@ test.describe('dashboard and runner experience', () => {
     expectOneColumn(['start typing', 'search', 'undo / redo']);
     expectOneColumn(['Esc', 'n / N', ':intro']);
     expectOneColumn(['normal mode', 'next / previous', 'reset home']);
+    const wideFooter = ['read my pick:', 'learn Vim by editing?', 'want the incident project?']
+      .map(text => wideRows.find(row => row.includes(text)));
+    expect(new Set(wideFooter.map(row => row.search(/\S/))).size).toBe(1);
+    expect(wideFooter.map((row, index) => row.indexOf([':e friction-economy', ':teacher', ':teacher project'][index])))
+      .toEqual(wideFooter.map(row => wideFooter[0].indexOf(':e friction-economy')));
   });
 
   test('Ctrl-P filters and runs commands', async ({ page }) => {
@@ -117,6 +127,13 @@ test.describe('dashboard and runner experience', () => {
     await press(page, 'Enter');
     await expect(page.locator('#vim-content')).toContainText('Lesson 1.1:  MOVING THE CURSOR');
     await expect(page.locator('#vim-palette')).toBeHidden();
+
+    await cmd(page, 'intro');
+    await press(page, 'Control+p');
+    await page.locator('#vim-palette-input').fill('yank');
+    await expect(page.locator('.vim-palette-item')).toContainText('Insert a yank into : or /');
+    await press(page, 'Enter');
+    await expect(page.locator('#vim-content')).toContainText('CTRL-R 0 uses the most recent yank.');
   });
 
   test('Ctrl-K opens site commands without replacing Ctrl-P Vim commands', async ({ page }) => {
@@ -139,8 +156,43 @@ test.describe('dashboard and runner experience', () => {
 
   test('dashboard blog example opens the recommended post', async ({ page }) => {
     await open(page);
-    await cmd(page, 'e friction-economy');
+    await press(page, 'k');
+    await press(page, 'Enter');
     await expect(page.locator('#vim-content')).toContainText('Friction Economy: Unconscious Productivity Drains');
+  });
+
+  test('dashboard Enter keeps each paired description with its command', async ({ page }) => {
+    await open(page);
+    await press(page, '/');
+    await type(page, 'core course');
+    await press(page, 'Enter');
+    await press(page, 'e');
+    await press(page, 'e');
+    await press(page, 'Enter');
+
+    await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 1 OF 12');
+    await expect(page.locator('#vim-content')).not.toContainText('netrw Directory Listing');
+  });
+
+  test('gx opens the external or internal link under the cursor', async ({ page }) => {
+    await open(page);
+    await seed(page, 'https://example.com/docs /blog/friction-economy/');
+    await page.evaluate(() => {
+      window.__openedLinks = [];
+      window.open = (url, target) => { window.__openedLinks.push({ url, target }); };
+    });
+
+    await press(page, '$');
+    await press(page, 'g');
+    await press(page, 'x');
+    await press(page, '0');
+    await press(page, 'g');
+    await press(page, 'x');
+
+    expect(await page.evaluate(() => window.__openedLinks)).toEqual([
+      { url: '/blog/friction-economy/', target: '_blank' },
+      { url: 'https://example.com/docs', target: '_blank' }
+    ]);
   });
 
   test('Snake fills the viewport with aligned ASCII and preserves the buffer', async ({ page }) => {
@@ -336,9 +388,9 @@ test.describe('dashboard and runner experience', () => {
         .map(url => [url.pathname, url.searchParams.get('v')])
     ));
     expect(versions).toEqual({
-      '/js/vim-help.js': 'vim-teacher-3',
-      '/js/vim-teacher.js': 'vim-teacher-3',
-      '/js/vim.js': 'vim-teacher-3'
+      '/js/vim-help.js': 'vim-teacher-6',
+      '/js/vim-teacher.js': 'vim-teacher-6',
+      '/js/vim.js': 'vim-teacher-6'
     });
   });
 

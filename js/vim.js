@@ -28,6 +28,50 @@
     return left + new Array(8).join(' ') + dashboardCell(rightCommand, rightDescription);
   }
 
+  function dashboardFooter(label, command, narrow) {
+    return dashboardPad(label, narrow ? 19 : 28) + command +
+      (narrow ? ' then Enter' : ' then press Enter');
+  }
+
+  var dashboardActions = [
+    { label: ':teacher project', command: 'teacher project' },
+    { label: ':e friction-economy', command: 'e friction-economy' },
+    { label: 'Ctrl-P', palette: true },
+    { label: ':tutor', command: 'tutor' },
+    { label: ':teacher', command: 'teacher' },
+    { label: ':Ex', command: 'Ex' },
+    { label: ':snake', command: 'snake' },
+    { label: ':moth', command: 'moth' },
+    { label: ':help', command: 'help' },
+    { label: ':jumps', command: 'jumps' },
+    { label: ':intro', command: 'intro' }
+  ];
+
+  function dashboardActionUnderCursor(line, col) {
+    var matches = [];
+    for (var i = 0; i < dashboardActions.length; i++) {
+      var action = dashboardActions[i];
+      var start = line.indexOf(action.label);
+      if (start === -1) continue;
+      var end = start + action.label.length;
+      var overlaps = false;
+      for (var m = 0; m < matches.length; m++) {
+        if (start < matches[m].end && end > matches[m].start) {
+          overlaps = true;
+          break;
+        }
+      }
+      if (!overlaps) matches.push({ action: action, start: start, end: end });
+    }
+    matches.sort(function(a, b) { return a.start - b.start; });
+    var best = matches.length ? matches[0].action : null;
+    for (var j = 0; j < matches.length; j++) {
+      if (col < matches[j].start) break;
+      best = matches[j].action;
+    }
+    return best;
+  }
+
   function buildWelcome() {
     var narrow = window.innerWidth < 640;
     var touchLayout = narrow || window.matchMedia('(pointer: coarse)').matches;
@@ -92,21 +136,22 @@
       dashboardPair('u / Ctrl-r', 'undo / redo', ':intro', 'reset home')
     ];
     var guide = movement.concat(launcher, [''], actions);
+    var footerActions = touchLayout ? [
+      dashboardFooter('read:', ':e friction-economy', true),
+      dashboardFooter('learn Vim:', ':teacher', true),
+      dashboardFooter('incident project:', ':teacher project', true)
+    ] : [
+      dashboardFooter('read my pick:', ':e friction-economy', false),
+      dashboardFooter('learn Vim by editing?', ':teacher', false),
+      dashboardFooter('want the incident project?', ':teacher project', false)
+    ];
     var footer = compact ? [
       '',
       'tap anywhere to type'
     ] : touchLayout ? [
       '',
-      'tap anywhere to type',
-      'read my pick:  :e friction-economy then press Enter',
-      'learn Vim by editing?  type :teacher then press Enter',
-      'want the incident project?  type :teacher project then press Enter'
-    ] : [
-      '',
-      'read my pick:  :e friction-economy then press Enter',
-      'learn Vim by editing?  type :teacher then press Enter',
-      'want the incident project?  type :teacher project then press Enter'
-    ];
+      'tap anywhere to type'
+    ].concat(footerActions) : [''].concat(footerActions);
     var guideStart = header.length;
     var guideEnd = guideStart + guide.length;
     var movementEnd = guideStart + movement.length;
@@ -121,12 +166,20 @@
     var guideWidth = 0;
     var gridRows = launcher.concat(actions);
     for (var i = 0; i < gridRows.length; i++) guideWidth = Math.max(guideWidth, gridRows[i].length);
+    var footerActionWidth = 0;
+    for (var a = 0; a < footerActions.length; a++) {
+      footerActionWidth = Math.max(footerActionWidth, footerActions[a].length);
+    }
+    var footerActionCount = compact ? 0 : footerActions.length;
+    var footerActionStart = content.length - footerActionCount;
     var lines = [];
     for (var t = 0; t < padTop; t++) lines.push('');
     for (var j = 0; j < content.length; j++) {
       var inMovement = j >= guideStart && j < movementEnd;
       var inGrid = j >= movementEnd && j < guideEnd;
-      var width = inMovement ? movement[1].length : (inGrid ? guideWidth : content[j].length);
+      var inFooterActions = footerActionCount && j >= footerActionStart;
+      var width = inMovement ? movement[1].length :
+        (inGrid ? guideWidth : (inFooterActions ? footerActionWidth : content[j].length));
       var linePad = Math.max(0, Math.floor((cols - width) / 2));
       lines.push(content[j] ? new Array(linePad + 1).join(' ') + content[j] : '');
     }
@@ -227,6 +280,7 @@
     visualAnchor: null,
     visualMode: null,
     cmdBuf: '',
+    promptRegisterPending: false,
     cmdHistory: [],
     cmdHistoryIdx: 0,
     cmdHistoryPrefix: '',
@@ -284,8 +338,10 @@
     pendingEditRequest: null,
     jumpList: [],
     jumpIdx: -1,
+    lastJumpTraversal: null,
     changeLists: {},
     changeListIndexes: {},
+    lastChangeTraversal: null,
     lastVisualRanges: {},
     confirmSub: null,
     preSearchCursor: null,
@@ -306,6 +362,15 @@
     teacherReviewId: null,
     teacherReturn: null,
     teacherStats: null,
+    teacherSavedText: {},
+    teacherRepair: null,
+    teacherNotice: null,
+    teacherLastCompleted: null,
+    splitPeer: null,
+    splitSide: 'left',
+    pendingWindowCommand: false,
+    tabPages: [],
+    activeTabPage: 0,
     expandtab: true,
     tabstop: 4,
     shiftwidth: 2,
@@ -394,6 +459,220 @@
     };
   }
 
+  function documentIdByFilename(filename) {
+    var ids = Object.keys(state.documents);
+    for (var i = 0; i < ids.length; i++) {
+      if (state.documents[ids[i]].filename === filename) return ids[i];
+    }
+    return null;
+  }
+
+  function currentWindowSnapshot() {
+    saveCurrentDocument();
+    return {
+      documentId: state.documentId,
+      filename: state.filename,
+      row: state.cursor.row,
+      col: state.cursor.col
+    };
+  }
+
+  function copyWindowSnapshot(snapshot) {
+    if (!snapshot) return null;
+    return {
+      documentId: snapshot.documentId,
+      filename: snapshot.filename,
+      row: snapshot.row,
+      col: snapshot.col
+    };
+  }
+
+  function currentTabPageSnapshot(activationCount) {
+    return {
+      activeWindow: currentWindowSnapshot(),
+      splitPeer: copyWindowSnapshot(state.splitPeer),
+      splitSide: state.splitSide,
+      activationCount: activationCount || 0
+    };
+  }
+
+  function ensureTabPages() {
+    if (state.tabPages.length) return;
+    state.tabPages = [currentTabPageSnapshot(1)];
+    state.activeTabPage = 0;
+  }
+
+  function saveActiveTabPage() {
+    if (!state.tabPages.length) return;
+    var previous = state.tabPages[state.activeTabPage];
+    state.tabPages[state.activeTabPage] = currentTabPageSnapshot(
+      previous ? previous.activationCount : 0);
+  }
+
+  function activateStoredTabPage(index) {
+    var page = state.tabPages[index];
+    if (!page || !page.activeWindow) return;
+    var activeDocument = state.documents[page.activeWindow.documentId];
+    if (!activeDocument) {
+      setStatus('Tab buffer is unavailable.');
+      return;
+    }
+    state.activeTabPage = index;
+    page.activationCount = (page.activationCount || 0) + 1;
+    state.splitPeer = copyWindowSnapshot(page.splitPeer);
+    state.splitSide = page.splitSide || 'left';
+    switchDocument(page.activeWindow.documentId, activeDocument.filename,
+      activeDocument.lines, page.activeWindow.row, page.activeWindow.col);
+    setStatus('Tab page ' + (index + 1) + ': ' + activeDocument.filename);
+    render();
+  }
+
+  function switchTabPage(index) {
+    ensureTabPages();
+    if (state.tabPages.length < 2) {
+      setStatus('E784: Cannot move to another tab page');
+      return;
+    }
+    var normalized = (index % state.tabPages.length + state.tabPages.length) %
+      state.tabPages.length;
+    if (normalized === state.activeTabPage) return;
+    saveActiveTabPage();
+    activateStoredTabPage(normalized);
+  }
+
+  function switchRelativeTabPage(direction, count) {
+    ensureTabPages();
+    var steps = Math.max(1, count || 1);
+    switchTabPage(state.activeTabPage + direction * steps);
+  }
+
+  function openTabPage(filename) {
+    saveCurrentDocument();
+    var targetId = documentIdByFilename(filename);
+    if (!targetId) {
+      setStatus('E94: No matching buffer for ' + filename);
+      return;
+    }
+    ensureTabPages();
+    if (state.tabPages.length >= 3) {
+      setStatus('E36: This web editor supports at most three tab pages.');
+      return;
+    }
+    saveActiveTabPage();
+    var target = state.documents[targetId];
+    state.tabPages.push({
+      activeWindow: {
+        documentId: targetId,
+        filename: target.filename,
+        row: 0,
+        col: 0
+      },
+      splitPeer: null,
+      splitSide: 'left',
+      activationCount: 1
+    });
+    state.activeTabPage = state.tabPages.length - 1;
+    state.splitPeer = null;
+    state.splitSide = 'left';
+    switchDocument(targetId, target.filename, target.lines, 0, 0);
+    setStatus('Tab page ' + state.tabPages.length + ': ' + target.filename);
+    render();
+  }
+
+  function closeActiveTabPage() {
+    ensureTabPages();
+    if (state.tabPages.length < 2) {
+      setStatus('E784: Cannot close the last tab page');
+      return;
+    }
+    saveActiveTabPage();
+    var closedIndex = state.activeTabPage;
+    state.tabPages.splice(closedIndex, 1);
+    activateStoredTabPage(Math.min(closedIndex, state.tabPages.length - 1));
+  }
+
+  function keepOnlyTabPage() {
+    ensureTabPages();
+    if (state.tabPages.length < 2) {
+      setStatus('Already only one tab page');
+      return;
+    }
+    var active = currentTabPageSnapshot(1);
+    state.tabPages = [active];
+    state.activeTabPage = 0;
+    setStatus('Only tab page kept. Buffers remain loaded.');
+    render();
+  }
+
+  function openVerticalSplit(filename) {
+    if (state.splitPeer) {
+      setStatus('E36: Only one split is supported in this web editor.');
+      return;
+    }
+    saveCurrentDocument();
+    var targetId = documentIdByFilename(filename);
+    if (!targetId) {
+      setStatus('E94: No matching buffer for ' + filename);
+      return;
+    }
+    var target = state.documents[targetId];
+    state.splitPeer = currentWindowSnapshot();
+    state.splitSide = 'right';
+    switchDocument(targetId, target.filename, target.lines, 0, 0);
+    setStatus('"' + target.filename + '" opened in a vertical split');
+    render();
+  }
+
+  function switchSplitWindow() {
+    if (!state.splitPeer) {
+      setStatus('E444: No other window');
+      return;
+    }
+    var current = currentWindowSnapshot();
+    var peer = state.splitPeer;
+    var peerDocument = state.documents[peer.documentId];
+    if (!peerDocument) {
+      setStatus('Split buffer is unavailable.');
+      return;
+    }
+    state.splitPeer = current;
+    state.splitSide = state.splitSide === 'left' ? 'right' : 'left';
+    switchDocument(peer.documentId, peerDocument.filename, peerDocument.lines,
+      peer.row, peer.col);
+    setStatus('Active window: ' + peerDocument.filename);
+    render();
+  }
+
+  function closeActiveSplit() {
+    if (!state.splitPeer) {
+      setStatus('E444: Cannot close last window');
+      return;
+    }
+    var peer = state.splitPeer;
+    var peerDocument = state.documents[peer.documentId];
+    state.splitPeer = null;
+    state.splitSide = 'left';
+    if (!peerDocument) {
+      render();
+      return;
+    }
+    switchDocument(peer.documentId, peerDocument.filename, peerDocument.lines,
+      peer.row, peer.col);
+    setStatus('Closed window. Buffer remains loaded.');
+    render();
+  }
+
+  function keepOnlyWindow() {
+    if (!state.splitPeer) {
+      setStatus('Already only one window');
+      return;
+    }
+    state.splitPeer = null;
+    state.splitSide = 'left';
+    setStatus('Only window kept. Other buffer remains loaded.');
+    render();
+  }
+
   function switchDocument(documentId, filename, lines, row, col) {
     saveCurrentDocument();
     state.documentGeneration++;
@@ -454,6 +733,21 @@
     if (state.pendingEditRequest && state.pendingEditRequest.source.documentId === oldDocumentId) {
       state.pendingEditRequest.source.documentId = documentId;
       state.pendingEditRequest.source.filename = filename;
+    }
+    if (state.splitPeer && state.splitPeer.documentId === oldDocumentId) {
+      state.splitPeer.documentId = documentId;
+      state.splitPeer.filename = filename;
+    }
+    for (var tpi = 0; tpi < state.tabPages.length; tpi++) {
+      var tabPage = state.tabPages[tpi];
+      if (tabPage.activeWindow && tabPage.activeWindow.documentId === oldDocumentId) {
+        tabPage.activeWindow.documentId = documentId;
+        tabPage.activeWindow.filename = filename;
+      }
+      if (tabPage.splitPeer && tabPage.splitPeer.documentId === oldDocumentId) {
+        tabPage.splitPeer.documentId = documentId;
+        tabPage.splitPeer.filename = filename;
+      }
     }
     if (documentId !== oldDocumentId) delete state.documents[oldDocumentId];
     state.documentId = documentId;
@@ -744,7 +1038,8 @@
   // -------------------------------------------------------------------------
   // DOM refs
   // -------------------------------------------------------------------------
-  var bodyEl, gutterEl, contentEl, cursorEl, cmdlineEl,
+  var bodyEl, viewportEl, gutterEl, contentEl, cursorEl, cmdlineEl, tabBarEl,
+      splitPeerEl, splitPeerFileEl, splitPeerContentEl,
       statusModeEl, statusFileEl, statusPosEl, mobileInputEl, mobileKeysEl;
 
   var charW = 8;
@@ -1010,11 +1305,25 @@
       return;
     }
     var position = list[next];
+    var changeFrom = {
+      documentId: state.documentId,
+      row: state.cursor.row,
+      col: state.cursor.col
+    };
     if (position.row !== state.cursor.row || position.col !== state.cursor.col) pushJump();
     state.changeListIndexes[state.documentId] = next;
     state.cursor.row = clampRow(position.row);
     state.cursor.col = clampCol(state.cursor.row, position.col);
     state.curswant = state.cursor.col;
+    state.lastChangeTraversal = {
+      direction: direction,
+      from: changeFrom,
+      to: {
+        documentId: state.documentId,
+        row: state.cursor.row,
+        col: state.cursor.col
+      }
+    };
     render();
   }
 
@@ -2010,10 +2319,7 @@
     state.pendingBracket = null;
     pendingOperator = null;
     operatorCount = 0;
-    if (gTimer) {
-      clearTimeout(gTimer);
-      gTimer = null;
-    }
+    gTimer = null;
   }
 
   function jumpOlder(count) {
@@ -2021,12 +2327,29 @@
     if (!state.jumpList.length) { setStatus('E662: At start of jumplist'); return; }
     if (state.jumpIdx === state.jumpList.length - 1) pushJump();
     var previousIdx = state.jumpIdx;
+    var jumpFrom = {
+      documentId: state.documentId,
+      row: state.cursor.row,
+      col: state.cursor.col
+    };
     var moved = false;
     for (var i = 0; i < count && state.jumpIdx > 0; i++) {
       state.jumpIdx--;
       moved = true;
     }
-    if (moved && !activateJump(state.jumpList[state.jumpIdx])) state.jumpIdx = previousIdx;
+    if (moved && !activateJump(state.jumpList[state.jumpIdx])) {
+      state.jumpIdx = previousIdx;
+    } else if (moved) {
+      state.lastJumpTraversal = {
+        direction: -1,
+        from: jumpFrom,
+        to: {
+          documentId: state.documentId,
+          row: state.cursor.row,
+          col: state.cursor.col
+        }
+      };
+    }
     if (moved === false || i < count) setStatus('E662: At start of jumplist');
   }
 
@@ -2034,12 +2357,29 @@
     cancelPendingCommand();
     if (!state.jumpList.length) { setStatus('E663: At end of jumplist'); return; }
     var previousIdx = state.jumpIdx;
+    var jumpFrom = {
+      documentId: state.documentId,
+      row: state.cursor.row,
+      col: state.cursor.col
+    };
     var moved = false;
     for (var i = 0; i < count && state.jumpIdx < state.jumpList.length - 1; i++) {
       state.jumpIdx++;
       moved = true;
     }
-    if (moved && !activateJump(state.jumpList[state.jumpIdx])) state.jumpIdx = previousIdx;
+    if (moved && !activateJump(state.jumpList[state.jumpIdx])) {
+      state.jumpIdx = previousIdx;
+    } else if (moved) {
+      state.lastJumpTraversal = {
+        direction: 1,
+        from: jumpFrom,
+        to: {
+          documentId: state.documentId,
+          row: state.cursor.row,
+          col: state.cursor.col
+        }
+      };
+    }
     if (moved === false || i < count) setStatus('E663: At end of jumplist');
   }
 
@@ -2285,6 +2625,11 @@
       escaped = '<span style="background:rgba(255,255,255,0.06);display:inline-block;width:100%">' + escaped + '</span>';
     }
 
+    if (state.teacherTrack === 'course' && state.teacherMission === 0 &&
+        state.documentId === teacherDocumentId('01-handoff.txt') && row === 1) {
+      escaped = '<span class="vim-teacher-target">' + escaped + '</span>';
+    }
+
     if (state.dashboard) {
       if (line.indexOf(VIM_NAME) !== -1) escaped = '<span class="vim-dashboard-title">' + escaped + '</span>';
       else if (/h \(left\)|h\s{2,}<|k\s+\(up\)|j\s+\(down\)/.test(line)) escaped = '<span class="vim-dashboard-move">' + escaped + '</span>';
@@ -2299,7 +2644,7 @@
           else escaped += '<span class="vim-dashboard-description">' + escHtml(cells[dc]) + '</span>';
         }
       } else if (state.mode === 'normal' && !state.searchPattern &&
-          /read my pick:|learn Vim by editing\?|want the incident project\?/.test(line)) {
+          /read my pick:|learn Vim by editing\?|want the incident project\?|read:|learn Vim:|incident project:/.test(line)) {
         escaped = escHtml(line);
         if (line.indexOf(':e friction-economy') !== -1) {
           escaped = escaped.replace(':e friction-economy',
@@ -2320,7 +2665,7 @@
   function renderGutter() {
     if (state.zenMode || state.dashboard) { gutterEl.style.display = 'none'; return; }
     gutterEl.style.display = 'block';
-    var visibleRows = Math.floor(bodyEl.clientHeight / lineH);
+    var visibleRows = Math.floor(viewportEl.clientHeight / lineH);
     var extraRows = Math.max(0, visibleRows - state.lines.length);
     var parts = [];
 
@@ -2367,6 +2712,53 @@
     statusModeEl.textContent = modeLabel;
     statusFileEl.textContent = state.filename;
     statusPosEl.textContent = (state.cursor.row + 1) + ',' + (state.cursor.col + 1);
+  }
+
+  function renderTabBar() {
+    if (!tabBarEl) return;
+    tabBarEl.textContent = '';
+    if (state.tabPages.length < 2) return;
+    for (var i = 0; i < state.tabPages.length; i++) {
+      var tabPage = state.tabPages[i];
+      var active = i === state.activeTabPage;
+      var activeWindow = active
+        ? { filename: state.filename }
+        : tabPage.activeWindow;
+      var splitWindow = active ? state.splitPeer : tabPage.splitPeer;
+      var label = (i + 1) + ' ' + activeWindow.filename;
+      if (splitWindow) label += ' + ' + splitWindow.filename;
+      var item = document.createElement('span');
+      item.className = 'vim-tab';
+      item.setAttribute('role', 'tab');
+      item.setAttribute('aria-selected', active ? 'true' : 'false');
+      item.textContent = label;
+      tabBarEl.appendChild(item);
+    }
+  }
+
+  function renderSplitPeer() {
+    var editor = document.getElementById('vim-editor');
+    var peer = state.splitPeer;
+    editor.classList.toggle('vim-split', !!peer);
+    editor.classList.toggle('vim-split-active-right',
+      !!peer && state.splitSide === 'right');
+    if (!splitPeerEl || !splitPeerFileEl || !splitPeerContentEl) return;
+    if (!peer) {
+      splitPeerFileEl.textContent = '';
+      splitPeerContentEl.textContent = '';
+      return;
+    }
+    var peerDocument = peer.documentId === state.documentId
+      ? { filename: state.filename, lines: state.lines }
+      : state.documents[peer.documentId];
+    if (!peerDocument) {
+      splitPeerFileEl.textContent = '[missing buffer]';
+      splitPeerContentEl.textContent = '';
+      return;
+    }
+    splitPeerFileEl.textContent = peerDocument.filename + '  (inactive)';
+    splitPeerContentEl.textContent = peerDocument.lines.join('\n');
+    splitPeerEl.scrollTop = Math.max(0, peer.row * lineH - lineH);
   }
 
   function positionDashboardPet() {
@@ -2456,6 +2848,9 @@
 
     renderGutter();
     renderStatus();
+    renderTabBar();
+    renderSplitPeer();
+    renderTeacherNext();
 
     // command line display
     if (state.mode === 'command') {
@@ -2635,7 +3030,7 @@
     // Use content container width (respects zen mode 65ch constraint)
     var wrapEl = document.getElementById('vim-lines-wrap');
     var cols = Math.floor(wrapEl.clientWidth / charW) - 1;
-    var rows = Math.floor(bodyEl.clientHeight / lineH);
+    var rows = Math.floor(viewportEl.clientHeight / lineH);
     var running = true;
     var tickCount = 0;
 
@@ -3534,6 +3929,10 @@
     { label: 'Start the Vim teacher course', command: 'teacher' },
     { label: 'Start the applied Vim incident project', command: 'teacher project' },
     { label: 'Open command reference', command: 'help' },
+    { label: 'Copy, paste, and inspect registers', command: 'help registers' },
+    { label: 'Insert a yank into : or /', command: 'help Ctrl-r' },
+    { label: 'Manage buffers, splits, and tabs', command: 'help :buffer' },
+    { label: 'Stop Teacher and keep progress', command: 'teacher off' },
     { label: 'Enter kinetic moth field', command: 'moth' },
     { label: 'Play Snake', command: 'snake' },
     { label: 'Watch agent aquarium', command: 'agents' },
@@ -3697,6 +4096,19 @@
     return 'teacher:' + (trackId || state.teacherTrack || 'course') + ':' + filename;
   }
 
+  function teacherBundledDocument(documentId) {
+    var match = documentId && documentId.match(/^teacher:(course|project):(.+)$/);
+    if (!match) return null;
+    var track = teacherTrackData(match[1]);
+    var lines = track && track.files && track.files[match[2]];
+    if (!lines) return null;
+    return {
+      documentId: documentId,
+      filename: match[2],
+      lines: lines.slice()
+    };
+  }
+
   function teacherDocumentByFilename(filename) {
     if (!filename || !state.teacherTrack) return null;
     var documentId = teacherDocumentId(filename);
@@ -3711,11 +4123,11 @@
 
   function teacherEmptyProgress() {
     return {
-      version: 2,
+      version: 3,
       completedLessons: [],
       completedProjectMissions: [],
       reviews: {},
-      summaries: { hints: 0, retriedChecks: 0, observedSkills: [] }
+      summaries: { hints: 0, retries: 0, observedSkills: [] }
     };
   }
 
@@ -3724,13 +4136,15 @@
     var progress = teacherEmptyProgress();
     try {
       var stored = JSON.parse(localStorage.getItem(TEACHER_PROGRESS_KEY) || 'null');
-      if (stored && stored.version === 2) {
+      if (stored && (stored.version === 2 || stored.version === 3)) {
         progress.completedLessons = Array.isArray(stored.completedLessons) ? stored.completedLessons.slice() : [];
         progress.completedProjectMissions = Array.isArray(stored.completedProjectMissions) ? stored.completedProjectMissions.slice() : [];
         progress.reviews = stored.reviews && typeof stored.reviews === 'object' ? stored.reviews : {};
         if (stored.summaries && typeof stored.summaries === 'object') {
           progress.summaries.hints = Number(stored.summaries.hints) || 0;
-          progress.summaries.retriedChecks = Number(stored.summaries.retriedChecks) || 0;
+          var storedRetries = stored.summaries.retries;
+          if (storedRetries === undefined) storedRetries = stored.summaries.retriedChecks;
+          progress.summaries.retries = Number(storedRetries) || 0;
           progress.summaries.observedSkills = Array.isArray(stored.summaries.observedSkills)
             ? stored.summaries.observedSkills.slice() : [];
         }
@@ -3811,13 +4225,13 @@
       if (Array.isArray(progress.reviews[id])) reviews[id] = progress.reviews[id].slice();
     });
     var exported = {
-      version: 2,
+      version: 3,
       completedLessons: progress.completedLessons.slice(),
       completedProjectMissions: progress.completedProjectMissions.slice(),
       reviews: reviews,
       summaries: {
         hints: progress.summaries.hints,
-        retriedChecks: progress.summaries.retriedChecks,
+        retries: progress.summaries.retries,
         observedSkills: progress.summaries.observedSkills.slice()
       }
     };
@@ -3832,7 +4246,7 @@
     var firstCompletion = completed.indexOf(item.id) === -1;
     if (firstCompletion) completed.push(item.id);
     progress.summaries.hints += result ? result.hints : 0;
-    progress.summaries.retriedChecks += result ? result.failedChecks : 0;
+    progress.summaries.retries += result ? result.retries : 0;
     var skills = result ? result.skills : [];
     for (var i = 0; i < skills.length; i++) {
       if (progress.summaries.observedSkills.indexOf(skills[i]) === -1) {
@@ -3887,7 +4301,7 @@
     if (!stats) return;
     stats.missionStartedAt = performance.now();
     stats.currentHints = 0;
-    stats.currentFailedChecks = 0;
+    stats.currentRetries = 0;
     stats.currentCommandStrokes = 0;
     stats.currentTokens = [];
   }
@@ -3898,7 +4312,7 @@
     var result = {
       completedMs: Math.max(0, performance.now() - stats.missionStartedAt),
       hints: stats.currentHints,
-      failedChecks: stats.currentFailedChecks,
+      retries: stats.currentRetries,
       commandStrokes: stats.currentCommandStrokes,
       skills: teacherObservedSkills(stats.currentTokens)
     };
@@ -3937,23 +4351,21 @@
     if (!track || !stats) return ['TEACHER SESSION SUMMARY', '', 'No teacher session has started.'];
     var items = teacherItems(track);
     var completed = stats.missionResults.length;
-    var firstPass = 0;
     var hints = 0;
-    var corrections = 0;
+    var retries = 0;
     var strokes = 0;
     var observed = {};
     for (var i = 0; i < stats.missionResults.length; i++) {
       var result = stats.missionResults[i];
-      if (result.failedChecks === 0) firstPass++;
       hints += result.hints;
-      corrections += result.failedChecks;
+      retries += result.retries;
       strokes += result.commandStrokes;
       for (var si = 0; si < result.skills.length; si++) observed[result.skills[si]] = true;
     }
     if (state.teacherMission >= 0 && state.teacherMission < items.length &&
         stats.missionStartedAt) {
       hints += stats.currentHints;
-      corrections += stats.currentFailedChecks;
+      retries += stats.currentRetries;
       strokes += stats.currentCommandStrokes;
       var currentSkills = teacherObservedSkills(stats.currentTokens);
       for (var ci = 0; ci < currentSkills.length; ci++) observed[currentSkills[ci]] = true;
@@ -3970,9 +4382,8 @@
       '',
       'Track: ' + (state.teacherTrack === 'project' ? 'applied project' : 'core course'),
       'Progress: ' + completed + '/' + items.length + ' ' + unit,
-      'First-pass checks: ' + firstPass + '/' + completed,
       'Hints used: ' + hints,
-      'Checks retried: ' + corrections,
+      'Retries used: ' + retries,
       'Command keystrokes: ' + strokes,
       'Skills observed: ' + (skills.length ? skills.join(', ') : 'none yet'),
       'Active time: ' + elapsedSeconds + 's'
@@ -3993,6 +4404,268 @@
     var mission = items[state.teacherMission];
     var course = state.teacherTrack !== 'project';
     var review = course && state.teacherReviewId === mission.id;
+    if (course && mission.firstJourney && !review) {
+      var firstGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will fix this line in ' + mission.file + ':',
+        '  BEFORE  status: draf',
+        '  AFTER   status: draft',
+        'In Vim, :e opens a named file.',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.',
+        '',
+        'The Teacher panel at the top of the editor shows one action at a time.'
+      ];
+      if (showHint) {
+        var firstHints = mission.hints || [mission.hint];
+        var firstHintLevel = Math.max(1, Math.min(state.teacherHintLevel, firstHints.length));
+        firstGuide.push('', 'HINT ' + firstHintLevel + ' OF ' + firstHints.length,
+          '  ' + firstHints[firstHintLevel - 1]);
+      }
+      return firstGuide;
+    }
+    if (course && mission.recoveryJourney && !review) {
+      var recoveryGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will fix one extra letter, undo the fix, then redo it.',
+        'Teacher will explain each new key before you use it.',
+        '  BEFORE  status: draftt',
+        '  AFTER   status: draft',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var recoveryHints = mission.hints || [mission.hint];
+        var recoveryHintLevel = Math.max(1, Math.min(state.teacherHintLevel, recoveryHints.length));
+        recoveryGuide.push('', 'HINT ' + recoveryHintLevel + ' OF ' + recoveryHints.length,
+          '  ' + recoveryHints[recoveryHintLevel - 1]);
+      }
+      return recoveryGuide;
+    }
+    if (course && mission.grammarJourney && !review) {
+      var grammarGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will change one word and remove one whole line.',
+        'Teacher will build each command one key at a time.',
+        '  CHANGE  draft: release notes',
+        '  TO      ready: release notes',
+        '  REMOVE  REMOVE: temporary placeholder',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var grammarHints = mission.hints || [mission.hint];
+        var grammarHintLevel = Math.max(1, Math.min(state.teacherHintLevel, grammarHints.length));
+        grammarGuide.push('', 'HINT ' + grammarHintLevel + ' OF ' + grammarHints.length,
+          '  ' + grammarHints[grammarHintLevel - 1]);
+      }
+      return grammarGuide;
+    }
+    if (course && mission.searchJourney && !review) {
+      var searchGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will find two log lines with the same request ID.',
+        'Then you will write one conclusion supported by both lines.',
+        '  WRITE  finding: warning before timeout',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var searchHints = mission.hints || [mission.hint];
+        var searchHintLevel = Math.max(1, Math.min(state.teacherHintLevel, searchHints.length));
+        searchGuide.push('', 'HINT ' + searchHintLevel + ' OF ' + searchHints.length,
+          '  ' + searchHints[searchHintLevel - 1]);
+      }
+      return searchGuide;
+    }
+    if (course && mission.repeatJourney && !review) {
+      var repeatGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will make one status change and inspect the result.',
+        'Then you will repeat that exact change on two matching lines.',
+        '  FINISH  api=ready, worker=ready, web=ready',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var repeatHints = mission.hints || [mission.hint];
+        var repeatHintLevel = Math.max(1, Math.min(state.teacherHintLevel, repeatHints.length));
+        repeatGuide.push('', 'HINT ' + repeatHintLevel + ' OF ' + repeatHints.length,
+          '  ' + repeatHints[repeatHintLevel - 1]);
+      }
+      return repeatGuide;
+    }
+    if (course && mission.copyJourney && !review) {
+      var copyGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will copy one request ID into an evidence field.',
+        'The source must stay unchanged, and you will not retype the ID.',
+        '  COPY  req_42',
+        '  FROM  source req_42  TO  evidence req_42',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var copyHints = mission.hints || [mission.hint];
+        var copyHintLevel = Math.max(1, Math.min(state.teacherHintLevel, copyHints.length));
+        copyGuide.push('', 'HINT ' + copyHintLevel + ' OF ' + copyHints.length,
+          '  ' + copyHints[copyHintLevel - 1]);
+      }
+      return copyGuide;
+    }
+    if (course && mission.fileJourney && !review) {
+      var fileGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will find one source file and copy its endpoint.',
+        'Then you will return to the report buffer without reopening it.',
+        '  COPY  /v2/reports',
+        '  FROM  07-api.js  INTO  07-project.md',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var fileHints = mission.hints || [mission.hint];
+        var fileHintLevel = Math.max(1, Math.min(state.teacherHintLevel, fileHints.length));
+        fileGuide.push('', 'HINT ' + fileHintLevel + ' OF ' + fileHints.length,
+          '  ' + fileHints[fileHintLevel - 1]);
+      }
+      return fileGuide;
+    }
+    if (course && mission.windowJourney && !review) {
+      var windowGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will keep a source file visible beside a report.',
+        'Use a split only while seeing both files helps the comparison.',
+        '  COPY  warning before timeout',
+        '  FROM  the source  INTO  the report',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var windowHints = mission.hints || [mission.hint];
+        var windowHintLevel = Math.max(1, Math.min(state.teacherHintLevel, windowHints.length));
+        windowGuide.push('', 'HINT ' + windowHintLevel + ' OF ' + windowHints.length,
+          '  ' + windowHints[windowHintLevel - 1]);
+      }
+      return windowGuide;
+    }
+    if (course && mission.tabJourney && !review) {
+      var tabGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will keep a review layout in one tab page.',
+        'A second tab page will hold temporary test output.',
+        '  COPY  test: retries stay bounded',
+        '  FROM  the test tab  INTO  the review',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var tabHints = mission.hints || [mission.hint];
+        var tabHintLevel = Math.max(1, Math.min(state.teacherHintLevel, tabHints.length));
+        tabGuide.push('', 'HINT ' + tabHintLevel + ' OF ' + tabHints.length,
+          '  ' + tabHints[tabHintLevel - 1]);
+      }
+      return tabGuide;
+    }
+    if (course && mission.historyJourney && !review) {
+      var historyGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will retrace a meaningful jump and a recent edit.',
+        'Ordinary h, j, k, and l movement stays out of both histories.',
+        '  WRITE  finding: timeout recovered after retry',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var historyHints = mission.hints || [mission.hint];
+        var historyHintLevel = Math.max(1, Math.min(state.teacherHintLevel, historyHints.length));
+        historyGuide.push('', 'HINT ' + historyHintLevel + ' OF ' + historyHints.length,
+          '  ' + historyHints[historyHintLevel - 1]);
+      }
+      return historyGuide;
+    }
+    if (course && mission.bulkJourney && !review) {
+      var bulkGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will run three bulk commands with a visible review between them.',
+        'Each command has one job: exclude, normalize, or deduplicate.',
+        '  FINISH  ready,acct_1 through ready,acct_3 only',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var bulkHints = mission.hints || [mission.hint];
+        var bulkHintLevel = Math.max(1, Math.min(state.teacherHintLevel, bulkHints.length));
+        bulkGuide.push('', 'HINT ' + bulkHintLevel + ' OF ' + bulkHints.length,
+          '  ' + bulkHints[bulkHintLevel - 1]);
+      }
+      return bulkGuide;
+    }
+    if (course && mission.macroJourney && !review) {
+      var macroGuide = [
+        'VIM TEACHER // LESSON ' + (state.teacherMission + 1) + ' OF ' + items.length,
+        '',
+        mission.title.toUpperCase(),
+        '',
+        'You will record one complete route migration, inspect it, then replay it.',
+        'A macro is useful when the edit follows a stable cursor path.',
+        '  CHANGE  /v1/ to /v2/ and deprecated to active',
+        '',
+        'DO THIS NOW',
+        '  Type :e ' + mission.file + ' and press Enter.'
+      ];
+      if (showHint) {
+        var macroHints = mission.hints || [mission.hint];
+        var macroHintLevel = Math.max(1, Math.min(state.teacherHintLevel, macroHints.length));
+        macroGuide.push('', 'HINT ' + macroHintLevel + ' OF ' + macroHints.length,
+          '  ' + macroHints[macroHintLevel - 1]);
+      }
+      return macroGuide;
+    }
     var guide = [
       (course ? (review
         ? 'VIM TEACHER // REVIEW // LESSON '
@@ -4003,24 +4676,33 @@
       'File: ' + mission.file
     ];
     if (mission.purpose) guide.push('', 'PURPOSE:', '  ' + mission.purpose);
-    if (!review && mission.worked && mission.worked.length) {
+    if (course && !review && mission.worked && mission.worked.length) {
       guide.push('', 'WORKED EXAMPLE:');
       for (var wi = 0; wi < mission.worked.length; wi++) guide.push('  ' + mission.worked[wi]);
     }
     guide.push('', review ? 'RETRIEVAL TASK:' : (course ? 'GUIDED PRACTICE:' : 'WORK REQUEST:'));
     for (var i = 0; i < mission.request.length; i++) guide.push('  ' + mission.request[i]);
     if (mission.transfer && mission.transfer.length) {
-      guide.push('', 'INDEPENDENT TRANSFER:');
+      guide.push('', course ? 'INDEPENDENT TRANSFER:' : 'KEEP TRUE:');
       for (var ti = 0; ti < mission.transfer.length; ti++) guide.push('  ' + mission.transfer[ti]);
     }
-    guide.push('', 'OBSERVABLE RESULT:');
-    for (var j = 0; j < mission.outcome.length; j++) guide.push('  ' + mission.outcome[j]);
-    guide.push(
-      '',
-      'Use :teacher check for the first unmet result.',
-      'Use :teacher next when the work is ready.',
-      'Press Ctrl-O to return to ' + mission.file + '.'
-    );
+    if (course) {
+      guide.push('', 'OBSERVABLE RESULT:');
+      for (var j = 0; j < mission.outcome.length; j++) guide.push('  ' + mission.outcome[j]);
+      guide.push(
+        '',
+        'Save the finished file with :w.',
+        'Teacher validates the saved result and shows the next lesson.',
+        'Press Ctrl-O to return to ' + mission.file + ' from this optional guide.'
+      );
+    } else {
+      guide.push(
+        '',
+        'Save the finished file with :w.',
+        'Teacher validates the saved result and shows the next mission.',
+        'Press Ctrl-O to return to ' + mission.file + ' from this optional guide.'
+      );
+    }
     if (showHint) {
       var hints = mission.hints || [mission.hint];
       var hintLevel = Math.max(1, Math.min(state.teacherHintLevel, hints.length));
@@ -4028,6 +4710,708 @@
         '  ' + hints[hintLevel - 1]);
     }
     return guide;
+  }
+
+  function teacherMissionText(mission) {
+    if (!mission) return '';
+    var documentId = teacherDocumentId(mission.file);
+    if (state.documentId === documentId) return state.lines.join('\n');
+    var document = state.documents[documentId];
+    return document ? document.lines.join('\n') : '';
+  }
+
+  function teacherMissionContentIssue(mission, text) {
+    var textLines = text.split('\n');
+    var rejectLines = mission.rejectLines || [];
+    var i;
+    for (i = 0; i < rejectLines.length; i++) {
+      if (textLines.indexOf(rejectLines[i]) !== -1) {
+        return 'Remove or replace: ' + rejectLines[i];
+      }
+    }
+    var reject = mission.reject || [];
+    for (i = 0; i < reject.length; i++) {
+      if (text.indexOf(reject[i]) !== -1) {
+        return 'Remove or replace: ' + reject[i].replace(/\n/g, ' | ');
+      }
+    }
+    var expected = mission.expect || mission.outcome;
+    for (i = 0; i < expected.length; i++) {
+      if (text.indexOf(expected[i]) === -1) {
+        return 'Missing: ' + expected[i].replace(/\n/g, ' | ');
+      }
+    }
+    if (Array.isArray(mission.answer)) {
+      var answerLines = mission.answer;
+      for (i = 0; i < Math.max(textLines.length, answerLines.length); i++) {
+        if (textLines[i] === answerLines[i]) continue;
+        if (textLines[i] === undefined) return 'Missing line ' + (i + 1) + ': ' + answerLines[i];
+        if (answerLines[i] === undefined) return 'Remove unexpected line ' + (i + 1) + ': ' + textLines[i];
+        return 'Line ' + (i + 1) + ' should be: ' + answerLines[i];
+      }
+    }
+    return null;
+  }
+
+  function teacherSavedCurrent(mission, text) {
+    return state.teacherSavedText[teacherDocumentId(mission.file)] === text;
+  }
+
+  function teacherRepairCurrent(mission, text) {
+    var repair = state.teacherRepair;
+    return !!repair && repair.id === mission.id &&
+      repair.documentId === teacherDocumentId(mission.file) &&
+      repair.text === text;
+  }
+
+  function teacherTokenSeen(token) {
+    var stats = state.teacherStats;
+    var tokens = stats ? stats.currentTokens : [];
+    for (var i = 0; i < tokens.length; i++) {
+      if (tokens[i].token === token) return true;
+    }
+    return false;
+  }
+
+  function teacherNextAction() {
+    var track = teacherActiveTrack();
+    if (!track || state.teacherMission === null) return '';
+    var items = teacherItems(track);
+    if (state.teacherMission < 0 || state.teacherMission >= items.length) return '';
+    var mission = items[state.teacherMission];
+    var documentId = teacherDocumentId(mission.file);
+    if (isTeacherGuide()) {
+      return state.teacherReturn
+        ? 'Hold Ctrl and press o to return to ' + state.teacherReturn.filename + '.'
+        : 'Type :e ' + mission.file + ' and press Enter.';
+    }
+    if (state.teacherTrack === 'project') {
+      var projectText = teacherMissionText(mission);
+      if (state.documentId !== documentId) {
+        return 'Type :e ' + mission.file + ' and press Enter.';
+      }
+      var projectIssue = teacherMissionContentIssue(mission, projectText);
+      if (projectIssue) return 'Complete the requested result, or type :teacher hint.';
+      if (!teacherSavedCurrent(mission, projectText)) {
+        return 'Type :w and press Enter to save the finished mission.';
+      }
+      return 'The saved mission is complete.';
+    }
+    if (!mission.firstJourney && !mission.recoveryJourney && !mission.grammarJourney &&
+        !mission.searchJourney && !mission.repeatJourney && !mission.copyJourney &&
+        !mission.fileJourney && !mission.windowJourney && !mission.tabJourney &&
+        !mission.historyJourney && !mission.bulkJourney && !mission.macroJourney) return '';
+    var originalText = (track.files[mission.file] || []).join('\n');
+    var currentText = teacherMissionText(mission);
+    if (mission.bulkJourney) {
+      var bulkText = teacherMissionText(mission);
+      var bulkAfterExclude = [
+        'pending,acct_3',
+        'pending,acct_1',
+        'pending,acct_1',
+        'pending,acct_2'
+      ].join('\n');
+      var bulkAfterNormalize = [
+        'ready,acct_3',
+        'ready,acct_1',
+        'ready,acct_1',
+        'ready,acct_2'
+      ].join('\n');
+      if (state.documentId !== documentId) {
+        return 'Type :e ' + mission.file + ' and press Enter.';
+      }
+      if (bulkText.indexOf('ignore,test_account') !== -1) {
+        return 'Type :g/^ignore/d and press Enter to remove the excluded row.';
+      }
+      if (bulkText === bulkAfterExclude) {
+        return 'Type :%s/^pending/ready/ and press Enter to normalize the status.';
+      }
+      if (bulkText === bulkAfterNormalize) {
+        return 'Type :sort u and press Enter to sort and remove duplicates.';
+      }
+      if (!teacherMissionContentIssue(mission, bulkText)) {
+        if (!teacherSavedCurrent(mission, bulkText)) {
+          return 'Type :w and press Enter to save the cleaned data.';
+        }
+        return 'The saved data is complete.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (mission.macroJourney) {
+      var macroText = teacherMissionText(mission);
+      var macroLines = macroText.split('\n');
+      var migratedRoutes = 0;
+      for (var mri = 0; mri < macroLines.length; mri++) {
+        if (/^GET \/v2\/\w+ active$/.test(macroLines[mri])) migratedRoutes++;
+      }
+      var macroLine = state.lines[state.cursor.row] || '';
+      if (state.documentId !== documentId) {
+        return 'Type :e ' + mission.file + ' and press Enter.';
+      }
+      if (state.pendingOp === 'q_start') {
+        return 'press q again. The second q selects register q.';
+      }
+      if (state.macroRecording === 'q') {
+        if (state.mode === 'insert') {
+          if (/^GET \/v2\/users active$/.test(macroLine)) {
+            return 'press Esc to finish the word change.';
+          }
+          return 'type active.';
+        }
+        if (state.pendingOp === 'f') return 'press 1. f1 finds the version digit.';
+        if (state.pendingOp === 'r') return 'press 2. r2 replaces the digit.';
+        if (state.pendingOp === 'textobj_i') {
+          return 'press w. ciw changes the word under the cursor.';
+        }
+        if (pendingOperator === 'c') return 'press i. It starts the inner-word target.';
+        if (state.cursor.row === 0) {
+          var versionOne = macroLine.indexOf('1');
+          var versionTwo = macroLine.indexOf('2');
+          var deprecated = macroLine.indexOf('deprecated');
+          if (versionOne !== -1) {
+            if (state.cursor.col === versionOne) {
+              return 'press r. It starts a one-character replacement.';
+            }
+            return 'press f. It starts a character search on this line.';
+          }
+          if (deprecated !== -1) {
+            if (state.cursor.col === versionTwo) {
+              return 'press $. It moves to the end of the line.';
+            }
+            if (state.cursor.col >= macroLine.length - 1) {
+              return 'press b. It moves back to the start of deprecated.';
+            }
+            if (state.cursor.col === deprecated) {
+              return 'press c. It starts a change.';
+            }
+          }
+          if (/^GET \/v2\/users active$/.test(macroLine)) {
+            return 'press j. It moves to the next route before the macro stops.';
+          }
+        }
+        if (state.cursor.row === 1) {
+          if (state.cursor.col !== 0) {
+            return 'press 0. It moves to the start of the next route.';
+          }
+          return 'press q. It stops recording before the next route changes.';
+        }
+      }
+      if (migratedRoutes === 0) {
+        return 'press q. It starts a macro recording command.';
+      }
+      if (migratedRoutes === 1) {
+        if (state.pendingOp === 'at') return 'press q. @q replays register q.';
+        return 'press @. It starts the replay command.';
+      }
+      if (migratedRoutes === 2) {
+        if (state.pendingOp === 'at') return 'press @ again. @@ repeats the last macro.';
+        return 'press @. It starts @@ for the final route.';
+      }
+      if (!teacherMissionContentIssue(mission, macroText)) {
+        if (!teacherSavedCurrent(mission, macroText)) {
+          return 'Type :w and press Enter to save the migrated routes.';
+        }
+        return 'The saved routes are complete.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (mission.historyJourney) {
+      var historyText = teacherMissionText(mission);
+      var historyLine = state.lines[state.cursor.row] || '';
+      var jumpTraversal = state.lastJumpTraversal;
+      var changeTraversal = state.lastChangeTraversal;
+      if (state.documentId !== documentId) {
+        return 'Type :e ' + mission.file + ' and press Enter.';
+      }
+      if (state.mode === 'search') {
+        if (state.searchBuf === 'timeout') {
+          return 'press Enter to jump to the timeout line.';
+        }
+        return 'type timeout.';
+      }
+      if (pendingOperator === 'c') {
+        return 'press c again. cc changes the whole finding line.';
+      }
+      if (state.mode === 'insert') {
+        if (historyLine === 'finding: timeout recovered after retry') {
+          return 'press Esc to return to Normal mode.';
+        }
+        return 'type finding: timeout recovered after retry.';
+      }
+      if (historyText.indexOf('finding: TODO') !== -1) {
+        if (state.cursor.row === 1) {
+          if (jumpTraversal && jumpTraversal.direction === -1 &&
+              jumpTraversal.to.documentId === documentId && jumpTraversal.to.row === 1) {
+            return 'hold Ctrl and press i. Ctrl-I returns to the newer finding location.';
+          }
+          return 'press G. It jumps to the final finding line.';
+        }
+        if (state.cursor.row === 3) {
+          if (jumpTraversal && jumpTraversal.direction === 1 &&
+              jumpTraversal.to.documentId === documentId && jumpTraversal.to.row === 3) {
+            return 'press c. It starts a whole-line change.';
+          }
+          return 'hold Ctrl and press o. Ctrl-O returns to the older timeout location.';
+        }
+        return 'press /. It starts a search for the evidence.';
+      }
+      if (!teacherMissionContentIssue(mission, historyText)) {
+        if (state.cursor.row === 3 && changeTraversal &&
+            changeTraversal.direction === -1 &&
+            changeTraversal.to.documentId === documentId && changeTraversal.to.row === 3) {
+          if (!teacherSavedCurrent(mission, historyText)) {
+            return 'Type :w and press Enter to save this finding.';
+          }
+          return 'The saved finding is complete.';
+        }
+        if (state.cursor.row === 0) {
+          if (gTimer) return 'press ;. g; returns to the latest changed location.';
+          return 'press g. It starts g;, the change-history command.';
+        }
+        if (gTimer) return 'press g again. gg moves to the first line.';
+        return 'press g. It starts gg so you can move away from the edit.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (mission.tabJourney) {
+      var tabChangeId = teacherDocumentId('09-change.diff');
+      var tabTestsId = teacherDocumentId('09-tests.log');
+      var copiedTestResult = getRegister('"').kind === 'line' &&
+        getRegister('"').text === 'test: retries stay bounded';
+      var tabReviewText = teacherMissionText(mission);
+      var activeTab = state.tabPages[state.activeTabPage];
+      var activeTabVisits = activeTab ? activeTab.activationCount || 0 : 0;
+      if (state.documentId === tabTestsId) {
+        if (activeTabVisits < 2) {
+          if (gTimer) return 'press t. gt moves to the next tab page.';
+          return 'press g. It starts gt, the command for the next tab page.';
+        }
+        if (!copiedTestResult) {
+          if (pendingOperator === 'y') {
+            return 'press y again. yy yanks the whole test result line.';
+          }
+          return 'press y. It starts a yank.';
+        }
+        return 'Type :tabclose and press Enter to close the temporary tab page.';
+      }
+      if (state.documentId === tabChangeId) {
+        if (state.tabPages.length < 2) {
+          if (copiedTestResult && state.splitPeer) {
+            if (state.pendingWindowCommand) {
+              return 'press w again. Ctrl-W w moves to the report window.';
+            }
+            return 'hold Ctrl and press w. Ctrl-W starts a window command.';
+          }
+          return 'Type :tabedit 09-tests.log and press Enter.';
+        }
+        if (gTimer) return 'press t. gt returns to the test tab page.';
+        return 'press g. The split stayed intact; start gt to return to the tests.';
+      }
+      if (state.documentId !== documentId) {
+        return 'Type :e ' + mission.file + ' and press Enter.';
+      }
+      if (!state.splitPeer && tabReviewText === '# Retry review\nkeep: compare change and test') {
+        return 'Type :vsplit 09-change.diff and press Enter.';
+      }
+      if (tabReviewText === '# Retry review\nkeep: compare change and test' && copiedTestResult) {
+        return 'press p. It puts the copied test result after the heading.';
+      }
+      if (!teacherMissionContentIssue(mission, tabReviewText)) {
+        if (state.splitPeer) {
+          return 'Type :only and press Enter to keep the review window.';
+        }
+        if (!teacherSavedCurrent(mission, tabReviewText)) {
+          return 'Type :w and press Enter to save this review.';
+        }
+        return 'The saved review is complete.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (mission.windowJourney) {
+      var splitSourceId = teacherDocumentId('08-source.log');
+      var copiedComparison = getRegister('"').kind === 'line' &&
+        getRegister('"').text === 'warning before timeout';
+      var comparisonText = teacherMissionText(mission);
+      if (state.documentId === splitSourceId) {
+        if (!copiedComparison) {
+          if (pendingOperator === 'y') {
+            return 'press y again. yy yanks the whole source line.';
+          }
+          return 'press y. It starts a yank.';
+        }
+        if (state.pendingWindowCommand) {
+          return 'press w again. Ctrl-W w moves to the other window.';
+        }
+        return 'hold Ctrl and press w. Ctrl-W starts a window command.';
+      }
+      if (state.documentId !== documentId) {
+        return 'Type :e ' + mission.file + ' and press Enter.';
+      }
+      if (!state.splitPeer && comparisonText === '# Comparison\nkeep: source visible') {
+        return 'Type :vsplit 08-source.log and press Enter.';
+      }
+      if (comparisonText === '# Comparison\nkeep: source visible' && copiedComparison) {
+        return 'press p. It puts the copied source line after the heading.';
+      }
+      if (!teacherMissionContentIssue(mission, comparisonText)) {
+        if (state.splitPeer) {
+          return 'Type :only and press Enter to keep the report window.';
+        }
+        if (!teacherSavedCurrent(mission, comparisonText)) {
+          return 'Type :w and press Enter to save this report.';
+        }
+        return 'The saved report is complete.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (mission.fileJourney) {
+      var sourceFilename = '07-api.js';
+      var sourceDocumentId = teacherDocumentId(sourceFilename);
+      var copiedEndpoint = getRegister('"').kind === 'line' &&
+        getRegister('"').text === '/v2/reports';
+      var reportText = teacherMissionText(mission);
+      if (state.documentId === 'explorer') {
+        if (state.mode === 'search') {
+          if (state.searchBuf === sourceFilename) {
+            return 'press Enter to find 07-api.js in the explorer.';
+          }
+          return 'type 07-api.js.';
+        }
+        if ((state.lines[state.cursor.row] || '').trim() === sourceFilename) {
+          return 'press Enter to open 07-api.js.';
+        }
+        return 'press /. It starts a search inside the explorer.';
+      }
+      if (state.documentId === sourceDocumentId) {
+        if (!copiedEndpoint) {
+          if (state.cursor.row === 0) {
+            return 'press j. It moves to the endpoint line.';
+          }
+          if (pendingOperator === 'y') {
+            return 'press y again. yy yanks the whole line.';
+          }
+          return 'press y. It starts a yank.';
+        }
+        return 'Type :buffer 07-project.md and press Enter to return.';
+      }
+      if (state.documentId !== documentId) {
+        return 'Type :e ' + mission.file + ' and press Enter.';
+      }
+      if (reportText === '# Project index\nkeep: reviewed') {
+        if (copiedEndpoint) {
+          return 'press p. It puts the copied line after the heading.';
+        }
+        return 'Type :Ex and press Enter to open the file explorer.';
+      }
+      if (!teacherMissionContentIssue(mission, reportText)) {
+        if (!teacherSavedCurrent(mission, reportText)) {
+          return 'Type :w and press Enter to save this report.';
+        }
+        return 'The saved report is complete.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (state.documentId !== documentId) {
+      return 'Type :e ' + mission.file + ' and press Enter.';
+    }
+
+    var text = state.lines.join('\n');
+    var targetLine = state.lines[1] || '';
+    if (mission.copyJourney) {
+      var copiedRequest = getRegister('"').text === 'req_42';
+      if (!copiedRequest) {
+        if (state.cursor.row !== 0) {
+          return 'move to the source line, or type :teacher hint.';
+        }
+        if (state.cursor.col === 0) {
+          return 'press w. It moves to the next word, req_42.';
+        }
+        if (state.mode === 'visual') {
+          if (state.pendingOp === 'v_textobj_i') {
+            return 'press w again. iw expands the selection to the inner word.';
+          }
+          if (state.visualAnchor && state.visualAnchor.row === state.cursor.row &&
+              state.visualAnchor.col === state.cursor.col) {
+            return 'press i. It starts an inner text object.';
+          }
+          return 'press y. It yanks the selected word and returns to Normal mode.';
+        }
+        return 'press v. It starts a visible character selection.';
+      }
+      if (state.lines[1] === 'evidence ') {
+        if (state.cursor.row === 0) {
+          return 'press j. It moves to the evidence field.';
+        }
+        if (state.cursor.row !== 1) {
+          return 'move to the evidence field, or type :teacher hint.';
+        }
+        if (state.cursor.col < state.lines[1].length - 1) {
+          return 'press $. It moves to the end of this line.';
+        }
+        return 'press p. It puts the copied word after the cursor.';
+      }
+      if (!teacherMissionContentIssue(mission, text)) {
+        if (!teacherSavedCurrent(mission, text)) {
+          return 'Type :w and press Enter to save this file.';
+        }
+        return 'The saved file is complete.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (mission.repeatJourney) {
+      var repeatPattern = ' : pending';
+      var repeatSearch = state.searchHistory.length
+        ? state.searchHistory[state.searchHistory.length - 1] : '';
+      var repeatSearched = teacherTokenSeen('/') && repeatSearch === repeatPattern;
+      var pendingRows = [];
+      var readyCount = 0;
+      for (var repeatRow = 0; repeatRow < state.lines.length; repeatRow++) {
+        if (state.lines[repeatRow].indexOf(repeatPattern) !== -1) pendingRows.push(repeatRow);
+        if (/^(?:api|worker|web)=ready$/.test(state.lines[repeatRow])) readyCount++;
+      }
+      if (state.mode === 'search') {
+        if (state.searchBuf === repeatPattern) {
+          return 'press Enter to run the search.';
+        }
+        return 'type the search text " : pending".';
+      }
+      if (state.mode === 'insert' || state.mode === 'replace') {
+        if (/^(?:api|worker|web)=ready$/.test(state.lines[state.cursor.row] || '')) {
+          return 'press Esc to return to Normal mode.';
+        }
+        return 'type =ready.';
+      }
+      if (pendingRows.length) {
+        if (readyCount === 0) {
+          if (!repeatSearched) return 'press /. It starts a forward search.';
+          if (state.cursor.row !== pendingRows[0]) {
+            return 'run the search and stop on the first match, or type :teacher hint.';
+          }
+          if (pendingOperator === 'c') {
+            return 'press $. It makes the change reach the end of this line.';
+          }
+          return 'press c. It starts the first change.';
+        }
+        if (state.cursor.row === pendingRows[0]) {
+          return 'press the . key. It repeats the last complete change.';
+        }
+        return 'press n. It moves to the next matching status.';
+      }
+      if (!teacherMissionContentIssue(mission, text)) {
+        if (!teacherSavedCurrent(mission, text)) {
+          return 'Type :w and press Enter to save this file.';
+        }
+        return 'The saved file is complete.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (mission.searchJourney) {
+      var finding = 'finding: warning before timeout';
+      var lastSearch = state.searchHistory.length
+        ? state.searchHistory[state.searchHistory.length - 1] : '';
+      var searched = teacherTokenSeen('/') && lastSearch === 'req_42';
+      var sawNextMatch = teacherTokenSeen('n');
+      if (state.mode === 'search') {
+        if (state.searchBuf === 'req_42') {
+          return 'press Enter to run the search.';
+        }
+        return 'type req_42. It is the request ID shared by both lines.';
+      }
+      if (state.mode === 'insert' || state.mode === 'replace') {
+        if (state.lines[state.lines.length - 1] === finding) {
+          return 'press Esc to return to Normal mode.';
+        }
+        return 'type finding: warning before timeout.';
+      }
+      if (state.lines[state.lines.length - 1] === 'finding: TODO') {
+        if (!searched) return 'press /. It starts a forward search.';
+        if (!sawNextMatch) {
+          if (state.cursor.row === 1) {
+            return 'press n. It moves to the next req_42 match.';
+          }
+          return 'run /req_42 and press Enter, or type :teacher hint.';
+        }
+        if (state.cursor.row !== state.lines.length - 1) {
+          return 'press G. It moves to the last line.';
+        }
+        if (pendingOperator === 'c') {
+          return 'press c again. cc changes the whole line.';
+        }
+        return 'press c. It starts a change command.';
+      }
+      if (!teacherMissionContentIssue(mission, text)) {
+        if (!teacherSavedCurrent(mission, text)) {
+          return 'Type :w and press Enter to save this file.';
+        }
+        return 'The saved file is complete.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (mission.grammarJourney) {
+      var firstLine = state.lines[0] || '';
+      var removeLine = 'REMOVE: temporary placeholder';
+      var removeRow = state.lines.indexOf(removeLine);
+      if (state.mode === 'insert' || state.mode === 'replace') {
+        if (firstLine === 'ready: release notes') {
+          return 'press Esc to return to Normal mode.';
+        }
+        return 'type ready to replace the word draft.';
+      }
+      if (firstLine === 'draft: release notes') {
+        if (state.cursor.row !== 0 || state.cursor.col !== 0) {
+          return 'move to the first word, or type :teacher hint.';
+        }
+        if (pendingOperator === 'c') {
+          return 'press w. It makes the change cover one word.';
+        }
+        return 'press c. It starts a change command.';
+      }
+      if (firstLine === 'ready: release notes' && removeRow !== -1) {
+        if (state.cursor.row !== removeRow) {
+          return 'press j. It moves to the REMOVE line.';
+        }
+        if (pendingOperator === 'd') {
+          return 'press d again. dd deletes the whole line.';
+        }
+        return 'press d. It starts a delete command.';
+      }
+      if (!teacherMissionContentIssue(mission, text)) {
+        if (!teacherSavedCurrent(mission, text)) {
+          return 'Type :w and press Enter to save this file.';
+        }
+        return 'The saved file is complete.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (mission.recoveryJourney) {
+      var sawUndo = teacherTokenSeen('u');
+      var sawRedo = teacherTokenSeen('<C-r>');
+      if (targetLine === 'status: draftt') {
+        if (sawUndo && !sawRedo) {
+          return 'hold Ctrl and press r. Ctrl-R redoes the correction.';
+        }
+        if (state.cursor.row === 0) return 'press j. It moves down one line.';
+        if (state.cursor.row === 1 && state.cursor.col < targetLine.length - 1) {
+          return 'press $. It jumps to the end of this line.';
+        }
+        if (state.cursor.row === 1) return 'press x. It deletes the character under the cursor.';
+        return 'move to status: draftt, or type :teacher hint.';
+      }
+      if (targetLine === 'status: draft') {
+        if (!sawUndo) return 'press u. It undoes the last change.';
+        if (!sawRedo) return 'hold Ctrl and press r. Ctrl-R redoes the change.';
+        if (!teacherSavedCurrent(mission, text)) {
+          return 'Type :w and press Enter to save this file.';
+        }
+        return 'The saved file is complete.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (state.mode === 'insert' || state.mode === 'replace') {
+      if (targetLine === 'status: draf') return 'type t to complete the word draft.';
+      if (targetLine === 'status: draft') return 'press Esc to return to Normal mode.';
+      return 'press Esc, then type :teacher hint for repair help.';
+    }
+    if (teacherMissionContentIssue(mission, text)) {
+      if (teacherRepairCurrent(mission, text)) {
+        return 'Type :teacher retry and press Enter to restore this lesson file.';
+      }
+      if (state.cursor.row === 0) return 'press j. It moves down one line.';
+      if (state.cursor.row === 1 && targetLine === 'status: draf') {
+        return 'press A. It enters Insert mode at the end of this line.';
+      }
+      return 'Fix the visible result, or type :teacher hint.';
+    }
+    if (!teacherSavedCurrent(mission, text)) {
+      return 'Type :w and press Enter to save this file.';
+    }
+    return 'The saved file is complete.';
+  }
+
+  function teacherPanelText(action) {
+    var track = teacherActiveTrack();
+    var items = teacherItems(track);
+    if (!track || state.teacherMission === null) return '';
+
+    if (state.teacherMission >= items.length) {
+      return (state.teacherTrack === 'project' ? 'APPLIED PROJECT COMPLETE' : 'CORE COURSE COMPLETE') +
+        (state.teacherTrack === 'course' ? '\nNEXT  :teacher project' : '');
+    }
+
+    var item = items[state.teacherMission];
+    var activeDocumentId = teacherDocumentId(item.file);
+    if (state.teacherNotice && state.documentId === activeDocumentId) {
+      state.teacherNotice = null;
+    }
+
+    var lines;
+    if (state.teacherNotice) {
+      lines = [
+        'SAVED · ' + state.teacherNotice.label.toUpperCase() + ' ' +
+          state.teacherNotice.number + ' COMPLETE',
+        'NEXT ' + teacherItemLabel().toUpperCase() + '  ' +
+          (state.teacherMission + 1) + ' · ' + item.title,
+        'NEXT  ' + action
+      ];
+    } else if (teacherRepairCurrent(item, teacherMissionText(item))) {
+      lines = [
+        'SAVED · ' + teacherItemLabel().toUpperCase() + ' ' +
+          (state.teacherMission + 1) + ' NOT COMPLETE',
+        'REPAIR  ' + (state.teacherRepair.issue || item.panelTarget || item.outcome[0]),
+        'NEXT  ' + action
+      ];
+    } else {
+      lines = [
+        teacherItemLabel().toUpperCase() + ' ' + (state.teacherMission + 1) +
+          ' OF ' + items.length + ' · ' + item.title.toUpperCase(),
+        'TARGET  ' + (item.panelTarget || item.outcome[0])
+      ];
+      if (state.teacherHintLevel > 0) {
+        var hints = item.hints || [item.hint];
+        lines.push('HINT ' + state.teacherHintLevel + '  ' +
+          hints[Math.min(state.teacherHintLevel, hints.length) - 1]);
+      }
+      lines.push('NEXT  ' + action);
+    }
+    return lines.join('\n');
+  }
+
+  function renderTeacherNext() {
+    var nextEl = document.getElementById('vim-teacher-next');
+    if (!nextEl) return;
+    var action = teacherNextAction();
+    if (action && state.mode === 'command') {
+      var commandMatch = action.match(/^Type :(.+?) and press Enter(?:\.|\s.*)$/);
+      if (commandMatch) {
+        var expectedCommand = commandMatch[1];
+        if (state.cmdBuf === expectedCommand) {
+          action = 'Press Enter to run :' + expectedCommand + '.';
+        } else if (expectedCommand.indexOf(state.cmdBuf) === 0) {
+          action = state.cmdBuf
+            ? 'Continue typing "' + expectedCommand.slice(state.cmdBuf.length) + '", then press Enter.'
+            : 'Type ' + expectedCommand + ', then press Enter.';
+        } else {
+          action = 'Press Esc to cancel this command, then follow the step again.';
+        }
+      }
+    }
+    if (nextEl.dataset.action !== action) {
+      nextEl.dataset.action = action;
+      nextEl.classList.remove('changed');
+      void nextEl.offsetWidth;
+      nextEl.classList.add('changed');
+    }
+    var panel = teacherPanelText(action);
+    nextEl.textContent = panel;
+    nextEl.classList.toggle('visible', !!panel);
+    nextEl.classList.toggle('completed', !!panel &&
+      (state.teacherMission >= teacherItems(teacherActiveTrack()).length || !!state.teacherNotice));
+    var panelTrack = teacherActiveTrack();
+    var panelItems = teacherItems(panelTrack);
+    var panelItem = state.teacherMission >= 0 && state.teacherMission < panelItems.length
+      ? panelItems[state.teacherMission] : null;
+    nextEl.classList.toggle('repair', !!panelItem &&
+      teacherRepairCurrent(panelItem, teacherMissionText(panelItem)));
   }
 
   function teacherMapLines() {
@@ -4093,7 +5477,8 @@
     var blocked = state.mode === 'insert' || state.mode === 'replace' ||
       (state.mode === 'normal' && !e.ctrlKey && normalEdits.indexOf(e.key) !== -1) ||
       (state.mode === 'visual' && !e.ctrlKey && visualEdits.indexOf(e.key) !== -1) ||
-      (e.ctrlKey && (e.key === 'a' || e.key === 'x' || e.key === 'r' || e.key === 'R'));
+      ((state.mode === 'normal' || state.mode === 'visual') && e.ctrlKey &&
+        (e.key === 'a' || e.key === 'x' || e.key === 'r' || e.key === 'R'));
     if (!blocked) return false;
     countBuf = 0;
     pendingOperator = null;
@@ -4111,16 +5496,6 @@
       cmd === 'r' || cmd.slice(0, 2) === 'r ';
   }
 
-  function teacherSwitch(documentId, filename, lines, status) {
-    if (!isTeacherGuide()) {
-      pushUndo(false);
-      pushJump();
-    }
-    switchDocument(documentId, filename, lines, 0, 0);
-    setStatus(status);
-    render();
-  }
-
   function teacherStart(trackId, resetFiles) {
     var teacher = teacherPackage();
     if (!teacher) {
@@ -4133,6 +5508,10 @@
     state.teacherTrack = trackId;
     state.teacherHintLevel = 0;
     state.teacherReviewId = null;
+    state.teacherRepair = null;
+    state.teacherNotice = null;
+    state.teacherLastCompleted = null;
+    if (resetFiles) state.teacherSavedText = {};
     teacherLoadProgress();
     state.teacherStats = {
       startedAt: performance.now(),
@@ -4140,8 +5519,6 @@
       missionStartedAt: 0,
       missionResults: []
     };
-    teacherCaptureReturn();
-    switchDocument('teacher:guide', '[Teacher]', track.intro, 0, 0);
     var filenames = Object.keys(track.files);
     for (var i = 0; i < filenames.length; i++) {
       var filename = filenames[i];
@@ -4153,10 +5530,13 @@
         };
       }
     }
-    state.teacherMission = -1;
-    setStatus(trackId === 'project'
-      ? 'Applied project opened. Type :teacher next to start.'
-      : 'Vim course opened. Type :teacher next to start Lesson 1.');
+    state.teacherMission = teacherFirstIncomplete();
+    if (state.teacherMission < teacherItems(track).length) teacherStartMissionStats();
+    setStatus(state.teacherMission >= teacherItems(track).length
+      ? (trackId === 'project' ? 'Applied project complete.' : 'Core course complete.')
+      : (trackId === 'project'
+        ? 'Applied project ready. Follow the Teacher panel.'
+        : 'Lesson ' + (state.teacherMission + 1) + ' ready. Follow the Teacher panel.'));
     render();
   }
 
@@ -4172,69 +5552,140 @@
     var guide = teacherGuideLines(showHint);
     if (extraLines && extraLines.length) guide = guide.concat(['']).concat(extraLines);
     switchDocument('teacher:guide', '[Teacher]', guide, 0, 0);
-    setStatus(status || (showHint
-      ? 'Hint opened. Ctrl-O returns to the work.'
-      : teacherItemLabel() + ' brief opened. Ctrl-O returns to the work.'));
+    var track = teacherActiveTrack();
+    var items = teacherItems(track);
+    var current = state.teacherMission >= 0 && state.teacherMission < items.length
+      ? items[state.teacherMission] : null;
+    setStatus(status || (current && (current.firstJourney || current.recoveryJourney ||
+      current.grammarJourney || current.searchJourney || current.repeatJourney ||
+      current.copyJourney || current.fileJourney || current.windowJourney)
+      ? (showHint ? 'Hint opened. Follow the Teacher panel.'
+        : 'Lesson ' + (state.teacherMission + 1) + ' ready. Follow the Teacher panel.')
+      : (showHint ? 'Hint opened. Ctrl-O returns to the work.'
+        : teacherItemLabel() + ' brief opened. Ctrl-O returns to the work.')));
     render();
   }
 
-  function teacherOpenMission() {
-    var track = teacherActiveTrack();
-    var items = teacherItems(track);
-    var mission = items[state.teacherMission];
-    var document = state.documents[teacherDocumentId(mission.file)];
-    if (!document) {
-      setStatus('Teacher file unavailable: ' + mission.file);
-      return;
-    }
-    teacherSwitch(
-      teacherDocumentId(mission.file),
-      document.filename,
-      document.lines,
-      teacherItemLabel() + ' ' + (state.teacherMission + 1) + ' of ' + items.length + ': ' + mission.title
-    );
-  }
-
-  function teacherOpenMissionBrief() {
+  function teacherActivateMission() {
     state.teacherHintLevel = 0;
+    state.teacherRepair = null;
+    state.teacherNotice = null;
     teacherStartMissionStats();
-    teacherOpenMission();
-    teacherShowGuide(false);
+    setStatus(teacherItemLabel() + ' ' + (state.teacherMission + 1) +
+      ' ready. Follow the Teacher panel.');
+    render();
   }
 
   function teacherCheckMission() {
     var track = teacherActiveTrack();
     var items = teacherItems(track);
-    if (state.teacherMission < 0) return 'Type :teacher next to start.';
+    if (state.teacherMission < 0) return 'Type :teacher to start.';
     if (state.teacherMission >= items.length) return null;
 
     var mission = items[state.teacherMission];
-    if (state.documentId !== teacherDocumentId(mission.file)) {
-      return 'Return to ' + mission.file + ' before checking this mission.';
+    var missionDocumentId = teacherDocumentId(mission.file);
+    if (state.documentId !== missionDocumentId && !isTeacherGuide()) {
+      return 'Return to ' + mission.file + ' before saving this mission.';
     }
-    saveCurrentDocument();
-    var document = state.documents[teacherDocumentId(mission.file)];
+    if (state.documentId === missionDocumentId) saveCurrentDocument();
+    var document = state.documents[missionDocumentId];
+    if (!document) return 'Open ' + mission.file + ' before saving this mission.';
     var text = document ? document.lines.join('\n') : '';
-    var i;
-    var textLines = text.split('\n');
-    var rejectLines = mission.rejectLines || [];
-    for (i = 0; i < rejectLines.length; i++) {
-      if (textLines.indexOf(rejectLines[i]) !== -1) {
-        return 'Remove or replace: ' + rejectLines[i];
+    var contentIssue = teacherMissionContentIssue(mission, text);
+    if (contentIssue) return contentIssue;
+    var requiredSkills = mission.requireSkills || [];
+    if (requiredSkills.length) {
+      var observedSkills = teacherObservedSkills(
+        state.teacherStats ? state.teacherStats.currentTokens : []);
+      for (var rsi = 0; rsi < requiredSkills.length; rsi++) {
+        if (observedSkills.indexOf(requiredSkills[rsi]) === -1) {
+          return 'Practice ' + requiredSkills[rsi] + ' in this lesson before saving.';
+        }
       }
     }
-    for (i = 0; i < mission.reject.length; i++) {
-      if (text.indexOf(mission.reject[i]) !== -1) {
-        return 'Remove or replace: ' + mission.reject[i].replace(/\n/g, ' | ');
-      }
-    }
-    var expected = mission.expect || mission.outcome;
-    for (i = 0; i < expected.length; i++) {
-      if (text.indexOf(expected[i]) === -1) {
-        return 'Missing: ' + expected[i].replace(/\n/g, ' | ');
-      }
+    if (mission.requireSave && !teacherSavedCurrent(mission, text)) {
+      return 'Save this version with :w.';
     }
     return null;
+  }
+
+  function teacherHandleSavedDocument() {
+    var track = teacherActiveTrack();
+    var items = teacherItems(track);
+    if (!track || state.teacherMission === null ||
+        state.teacherMission < 0 || state.teacherMission >= items.length) return false;
+
+    var completedIndex = state.teacherMission;
+    var item = items[completedIndex];
+    var documentId = teacherDocumentId(item.file);
+    if (state.documentId !== documentId) return false;
+
+    var issue = teacherCheckMission();
+    var text = teacherMissionText(item);
+    if (issue) {
+      state.teacherNotice = null;
+      state.teacherRepair = {
+        id: item.id,
+        documentId: documentId,
+        text: text,
+        issue: issue
+      };
+      setStatus('Saved ' + item.file + '. Lesson not complete.');
+      return true;
+    }
+
+    state.teacherRepair = null;
+    var result = teacherFinishMissionStats();
+    teacherMarkComplete(item, result);
+    state.teacherLastCompleted = {
+      trackId: state.teacherTrack,
+      index: completedIndex
+    };
+    state.teacherNotice = {
+      label: teacherItemLabel(),
+      number: completedIndex + 1,
+      filename: item.file
+    };
+    state.teacherHintLevel = 0;
+    state.teacherMission = state.teacherTrack === 'course'
+      ? teacherFirstIncomplete()
+      : completedIndex + 1;
+
+    if (state.teacherMission >= items.length) {
+      if (state.teacherStats) state.teacherStats.finishedAt = performance.now();
+      setStatus('Saved ' + item.file + '. ' +
+        (state.teacherTrack === 'project' ? 'Applied project complete.' : 'Core course complete.'));
+    } else {
+      teacherStartMissionStats();
+      setStatus('Saved ' + item.file + '. ' + teacherItemLabel() + ' ' +
+        (completedIndex + 1) + ' complete.');
+    }
+    return true;
+  }
+
+  function teacherTurnOff() {
+    var wasActive = state.teacherMission !== null || state.teacherTrack !== null;
+    var anchor = isTeacherGuide() ? state.teacherReturn : null;
+    var document = anchor && state.documents[anchor.documentId];
+    if (state.mode === 'visual') exitVisual();
+    state.mode = 'normal';
+    state.teacherMission = null;
+    state.teacherTrack = null;
+    state.teacherHintLevel = 0;
+    state.teacherReviewId = null;
+    state.teacherReturn = null;
+    state.teacherStats = null;
+    state.teacherRepair = null;
+    state.teacherNotice = null;
+    state.teacherLastCompleted = null;
+    if (anchor && document) {
+      switchDocument(anchor.documentId, document.filename, document.lines,
+        anchor.row, anchor.col);
+    }
+    setStatus(wasActive
+      ? 'Teacher off. Progress kept. Type :teacher to resume.'
+      : 'Teacher is already off. Type :teacher to start.');
+    render();
   }
 
   function teacherCommand(arg) {
@@ -4243,27 +5694,79 @@
       setStatus('Teacher content unavailable.');
       return;
     }
+    if (arg === 'off') {
+      teacherTurnOff();
+      return;
+    }
     if (arg === 'export') {
       teacherExportProgress();
       return;
     }
     if (arg === 'reset') {
       if (window.confirm('Reset Teacher progress and restore its bundled files?')) {
+        var resetActiveDocument = teacherBundledDocument(state.documentId);
+        var resetWasGuide = isTeacherGuide();
+        var resetWasRunning = state.teacherMission !== null;
+        var resetTrackId = state.teacherTrack;
         try { localStorage.removeItem(TEACHER_PROGRESS_KEY); } catch (e) {}
         state.teacherProgress = teacherEmptyProgress();
         state.teacherReviewId = null;
+        state.teacherRepair = null;
+        state.teacherNotice = null;
+        state.teacherLastCompleted = null;
+        state.teacherSavedText = {};
         Object.keys(state.documents).forEach(function(documentId) {
           if (/^teacher:(?:course|project):/.test(documentId)) {
             delete state.documents[documentId];
           }
         });
-        if (state.teacherMission === null) {
+        if (resetWasRunning) {
+          teacherStart(resetTrackId, true);
+        }
+        if (resetActiveDocument) {
+          state.documents[resetActiveDocument.documentId] = {
+            filename: resetActiveDocument.filename,
+            lines: resetActiveDocument.lines.slice()
+          };
+          state.lines = resetActiveDocument.lines.slice();
+          switchDocument(resetActiveDocument.documentId, resetActiveDocument.filename,
+            resetActiveDocument.lines, 0, 0);
+          setStatus('Teacher progress reset. Current lesson file restored.' +
+            (resetWasRunning ? '' : ' Type :teacher to start.'));
+          render();
+        } else if (resetWasGuide) {
+          teacherShowLines(teacherMapLines(),
+            'Teacher progress reset. Course map restored.');
+        } else if (!resetWasRunning) {
           setStatus('Teacher progress reset. Start with :teacher.');
-        } else {
-          teacherStart(state.teacherTrack, true);
         }
       }
       else setStatus('Teacher reset canceled.');
+      return;
+    }
+    if (arg === 'retry') {
+      var retryTrack = teacherActiveTrack();
+      var retryItems = teacherItems(retryTrack);
+      var retryItem = state.teacherMission >= 0 && state.teacherMission < retryItems.length
+        ? retryItems[state.teacherMission] : null;
+      var retryText = retryItem ? teacherMissionText(retryItem) : '';
+      if (state.teacherTrack !== 'course' || !retryItem ||
+          !teacherRepairCurrent(retryItem, retryText)) {
+        setStatus('Save an incorrect core lesson before using :teacher retry.');
+        return;
+      }
+      var retryDocumentId = teacherDocumentId(retryItem.file);
+      var retryLines = retryTrack.files[retryItem.file].slice();
+      delete state.teacherSavedText[retryDocumentId];
+      state.teacherRepair = null;
+      state.teacherNotice = null;
+      if (state.teacherStats) state.teacherStats.currentRetries++;
+      if (state.mode === 'visual') exitVisual();
+      state.mode = 'normal';
+      switchDocument(retryDocumentId, retryItem.file, retryLines, 0, 0);
+      setStatus('Lesson ' + (state.teacherMission + 1) +
+        ' restored. Follow the Teacher panel.');
+      render();
       return;
     }
     if (arg === 'review') {
@@ -4276,11 +5779,18 @@
       state.teacherReviewId = dueReview.id;
       state.teacherMission = dueReview.lessonIndex;
       var reviewLesson = teacherItems(teacher.course)[dueReview.lessonIndex];
-      state.documents[teacherDocumentId(reviewLesson.file, 'course')] = {
+      var reviewDocumentId = teacherDocumentId(reviewLesson.file, 'course');
+      var reviewLines = teacher.course.files[reviewLesson.file].slice();
+      state.documents[reviewDocumentId] = {
         filename: reviewLesson.file,
-        lines: teacher.course.files[reviewLesson.file].slice()
+        lines: reviewLines.slice()
       };
-      teacherOpenMissionBrief();
+      if (state.documentId === reviewDocumentId) {
+        state.lines = reviewLines.slice();
+        state.cursor = { row: 0, col: 0 };
+        saveCurrentDocument();
+      }
+      teacherActivateMission();
       setStatus('Review opened. Complete the file without relying on the worked route.');
       return;
     }
@@ -4294,7 +5804,7 @@
       }
       if (state.teacherTrack !== 'course') teacherStart('course');
       state.teacherMission = lessonIndex;
-      teacherOpenMissionBrief();
+      teacherActivateMission();
       return;
     }
     if (state.teacherMission === null) {
@@ -4310,7 +5820,12 @@
     }
     if (arg === 'project') {
       if (state.teacherTrack !== 'project') teacherStart('project');
-      else teacherShowGuide(false);
+      else {
+        setStatus(state.teacherMission >= teacherItems(teacher.project).length
+          ? 'Applied project complete.'
+          : 'Mission ' + (state.teacherMission + 1) + ' ready. Follow the Teacher panel.');
+        render();
+      }
       return;
     }
     if (arg === 'map') {
@@ -4320,14 +5835,20 @@
     var track = teacherActiveTrack();
     var items = teacherItems(track);
     if (!arg) {
-      teacherShowGuide(false, null,
-        state.teacherMission >= items.length ? teacherCompletionLines() : null);
+      if (isTeacherGuide() && state.teacherReturn) {
+        teacherReturnToWork();
+      } else {
+        setStatus(state.teacherMission >= items.length
+          ? (state.teacherTrack === 'project' ? 'Applied project complete.' : 'Core course complete.')
+          : teacherItemLabel() + ' ' + (state.teacherMission + 1) +
+            ' active. Follow the Teacher panel.');
+        render();
+      }
       return;
     }
     if (arg === 'hint') {
       if (state.teacherMission >= items.length) {
-        teacherShowGuide(false, teacherItemLabel() + ' work is complete. Ctrl-O returns.',
-          teacherCompletionLines());
+        setStatus(teacherItemLabel() + ' work is complete.');
         return;
       }
       if (state.teacherMission >= 0 && state.teacherStats) {
@@ -4336,7 +5857,8 @@
         state.teacherHintLevel = Math.min(hintCount, state.teacherHintLevel + 1);
         state.teacherStats.currentHints++;
       }
-      teacherShowGuide(true);
+      setStatus('Hint ' + state.teacherHintLevel + ' opened in the Teacher panel.');
+      render();
       return;
     }
     if (arg === 'score') {
@@ -4345,12 +5867,13 @@
       return;
     }
     if (arg === 'golf') {
-      if (state.teacherMission < 0 || state.teacherMission >= items.length ||
-          teacherCheckMission()) {
+      var completed = state.teacherLastCompleted;
+      if (!completed || completed.trackId !== state.teacherTrack ||
+          completed.index < 0 || completed.index >= items.length) {
         setStatus('Finish the visible result before opening the golf route.');
         return;
       }
-      var golf = items[state.teacherMission].golf;
+      var golf = items[completed.index].golf;
       teacherShowGuide(false, 'Golf route open. Ctrl-O returns.', [
         'VIM GOLF AFTER THE RESULT',
         'Route: ' + golf[0],
@@ -4358,62 +5881,7 @@
       ]);
       return;
     }
-    if (arg === 'check') {
-      if (state.teacherMission >= items.length) {
-        setStatus((state.teacherTrack === 'project' ? 'Project' : 'Course') + ' complete.');
-        return;
-      }
-      var unmet = teacherCheckMission();
-      if (unmet) state.teacherStats.currentFailedChecks++;
-      setStatus(unmet || (teacherItemLabel() + ' ' + (state.teacherMission + 1) +
-        ' ready. Use :teacher golf or :teacher next.'));
-      return;
-    }
-    if (arg === 'next') {
-      if (state.teacherMission < 0) {
-        state.teacherMission = teacherFirstIncomplete();
-        if (state.teacherMission >= items.length) {
-          state.teacherStats.finishedAt = performance.now();
-          teacherShowGuide(false, (state.teacherTrack === 'project'
-            ? 'Project complete. Ctrl-O returns to the postmortem.'
-            : 'Core course complete. Use :teacher project for the applied project.'),
-            teacherCompletionLines());
-          return;
-        }
-        teacherOpenMissionBrief();
-        return;
-      }
-      if (state.teacherMission >= items.length) {
-        teacherShowGuide(false, (state.teacherTrack === 'project'
-          ? 'Project complete. Ctrl-O returns to the postmortem.'
-          : 'Core course complete. Use :teacher project for the applied project.'),
-          teacherCompletionLines());
-        return;
-      }
-      var missing = teacherCheckMission();
-      if (missing) state.teacherStats.currentFailedChecks++;
-      if (missing) {
-        setStatus(missing);
-        return;
-      }
-      var completedItem = items[state.teacherMission];
-      var result = teacherFinishMissionStats();
-      teacherMarkComplete(completedItem, result);
-      state.teacherMission = state.teacherTrack === 'course'
-        ? teacherFirstIncomplete()
-        : state.teacherMission + 1;
-      if (state.teacherMission >= items.length) {
-        state.teacherStats.finishedAt = performance.now();
-        teacherShowGuide(false, (state.teacherTrack === 'project'
-          ? 'Project complete. Ctrl-O returns to the postmortem.'
-          : 'Core course complete. Use :teacher project for the applied project.'),
-          teacherCompletionLines());
-      } else {
-        teacherOpenMissionBrief();
-      }
-      return;
-    }
-    setStatus('Usage: :teacher [map|next|check|hint|lesson N|review|project|score|golf|export|reset]');
+    setStatus('Usage: :teacher [map|retry|hint|lesson N|review|project|score|golf|export|reset|off]');
   }
 
   // -------------------------------------------------------------------------
@@ -4473,8 +5941,18 @@
       return;
     }
     if (cmd === 'w') {
+      if (isTeacherDocument() && !isTeacherGuide() && state.teacherMission !== null) {
+        saveCurrentDocument();
+        state.teacherSavedText[state.documentId] = state.lines.join('\n');
+        if (!teacherHandleSavedDocument()) {
+          setStatus('Saved ' + state.filename + ' inside Teacher. No download created.');
+        }
+        return;
+      }
       downloadText(state.lines.join('\n'), state.filename);
-      if (!isTeacherDocument()) saveToLocalFS(state.filename, state.lines.join('\n'));
+      if (!isTeacherDocument() || state.teacherMission === null) {
+        saveToLocalFS(state.filename, state.lines.join('\n'));
+      }
       return;
     }
     if (cmd.slice(0, 2) === 'w ') {
@@ -4599,6 +6077,57 @@
       pushJump();
       switchDocument(nextUntitledId(), 'untitled.txt', [''], 0, 0);
       render(); return;
+    }
+    var tabEditMatch = cmd.match(/^(?:tabedit|tabe|tabnew)\s+(.+)$/);
+    if (tabEditMatch) {
+      openTabPage(tabEditMatch[1].trim());
+      return;
+    }
+    if (cmd === 'tabnext' || cmd === 'tabn' || cmd === 'tn') {
+      switchRelativeTabPage(1, 1);
+      return;
+    }
+    if (cmd === 'tabprevious' || cmd === 'tabprev' || cmd === 'tabp' || cmd === 'tp') {
+      switchRelativeTabPage(-1, 1);
+      return;
+    }
+    if (cmd === 'tabclose' || cmd === 'tabc') {
+      closeActiveTabPage();
+      return;
+    }
+    if (cmd === 'tabonly' || cmd === 'tabo') {
+      keepOnlyTabPage();
+      return;
+    }
+    var verticalSplitMatch = cmd.match(/^(?:vsplit|vs)\s+(.+)$/);
+    if (verticalSplitMatch) {
+      openVerticalSplit(verticalSplitMatch[1].trim());
+      return;
+    }
+    if (cmd === 'close' || cmd === 'clo') {
+      closeActiveSplit();
+      return;
+    }
+    if (cmd === 'only' || cmd === 'on') {
+      keepOnlyWindow();
+      return;
+    }
+    var bufferMatch = cmd.match(/^(?:b|buffer)\s+(.+)$/);
+    if (bufferMatch) {
+      var bufferName = bufferMatch[1].trim();
+      saveCurrentDocument();
+      var bufferId = documentIdByFilename(bufferName);
+      if (!bufferId) {
+        setStatus('E94: No matching buffer for ' + bufferName);
+        return;
+      }
+      var bufferDocument = state.documents[bufferId];
+      pushUndo(false);
+      pushJump();
+      switchDocument(bufferId, bufferDocument.filename, bufferDocument.lines, 0, 0);
+      setStatus('"' + bufferDocument.filename + '" ' + state.lines.length + ' lines');
+      render();
+      return;
     }
     if (cmd === 'e' || cmd.slice(0, 2) === 'e ') {
       var eFname = cmd.slice(2).trim();
@@ -5020,6 +6549,7 @@
       state.pendingBracket = null;
       pendingOperator = null; operatorCount = 0;
       state.pendingGForOp = false;
+      gTimer = null;
       if (state.pendingOp) { state.pendingOp = null; return; }
       handleEscInNormal();
       return;
@@ -5061,10 +6591,10 @@
       }
       if (op === 'z') {
         var scrollTarget;
-        if (e.key === 'z') scrollTarget = pRow * lineH - bodyEl.clientHeight / 2 + lineH / 2;
+        if (e.key === 'z') scrollTarget = pRow * lineH - viewportEl.clientHeight / 2 + lineH / 2;
         else if (e.key === 't') scrollTarget = pRow * lineH;
-        else if (e.key === 'b') scrollTarget = pRow * lineH - bodyEl.clientHeight + lineH;
-        if (scrollTarget !== undefined) bodyEl.scrollTop = Math.max(0, scrollTarget);
+        else if (e.key === 'b') scrollTarget = pRow * lineH - viewportEl.clientHeight + lineH;
+        if (scrollTarget !== undefined) viewportEl.scrollTop = Math.max(0, scrollTarget);
         render(); return;
       }
       if (op === 'r') {
@@ -5205,19 +6735,19 @@
     // --- two-key timers ---
     if (e.key === 'g' && !pendingOperator) {
       if (gTimer) {
-        clearTimeout(gTimer); gTimer = null;
+        gTimer = null;
         if (state.cursor.row !== 0 || state.cursor.col !== clampCol(0, state.curswant)) pushJump();
         state.cursor.row = 0;
         state.cursor.col = clampCol(0, state.curswant);
         render();
       } else {
-        gTimer = setTimeout(function() { gTimer = null; }, 500);
+        gTimer = true;
       }
       return;
     }
     // ge/gE: end of previous word/WORD
     if ((e.key === 'e' || e.key === 'E') && gTimer) {
-      clearTimeout(gTimer); gTimer = null;
+      gTimer = null;
       var geN = getCount();
       var geR = row, geC = col;
       var geFn = e.key === 'e' ? wordEndBackward : WORDEndBackward;
@@ -5227,7 +6757,7 @@
     }
     // g_: last non-blank character of the line.
     if (e.key === '_' && gTimer) {
-      clearTimeout(gTimer); gTimer = null;
+      gTimer = null;
       var lastNonBlank = getLine(row).search(/\s*$/) - 1;
       state.cursor.col = Math.max(0, lastNonBlank);
       state.curswant = state.cursor.col;
@@ -5235,7 +6765,7 @@
     }
     // gv: reselect the last visual range.
     if (e.key === 'v' && gTimer) {
-      clearTimeout(gTimer); gTimer = null;
+      gTimer = null;
       var gvRange = currentLastVisualRange();
       if (!gvRange) { setStatus('E19: No previous Visual range'); return; }
       state.mode = 'visual';
@@ -5247,28 +6777,32 @@
       render();
       return;
     }
-    // gx: open URL under cursor (supports https:// and bare domains)
+    // gx: open the external or site-local URL under the cursor.
     if (e.key === 'x' && gTimer) {
-      clearTimeout(gTimer); gTimer = null;
-      var urlMatch = line.match(/https?:\/\/[^\s)>\]]+/);
-      if (urlMatch) {
-        window.open(urlMatch[0], '_blank');
-        setStatus('Opened: ' + urlMatch[0]);
-      } else {
-        var bareMatch = line.match(/[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}[^\s)>\]]*/);
-        if (bareMatch) {
-          var bareUrl = 'https://' + bareMatch[0];
-          window.open(bareUrl, '_blank');
-          setStatus('Opened: ' + bareUrl);
-        } else {
-          setStatus('No URL found on this line');
+      gTimer = null;
+      var linkPattern = /https?:\/\/[^\s)>\]]+|mailto:[^\s)>\]]+|\/[a-zA-Z0-9][^\s)>\]]*|[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}[^\s)>\]]*/g;
+      var linkMatch;
+      var link = null;
+      while ((linkMatch = linkPattern.exec(line)) !== null) {
+        var linkEnd = linkMatch.index + linkMatch[0].length;
+        if (col >= linkMatch.index && col < linkEnd) {
+          link = linkMatch[0].replace(/[.,;:'"]+$/, '');
+          break;
         }
+      }
+      if (link) {
+        var openUrl = link.charAt(0) === '/' || /^(?:https?:\/\/|mailto:)/.test(link)
+          ? link : 'https://' + link;
+        window.open(openUrl, '_blank');
+        setStatus('Opened: ' + openUrl);
+      } else {
+        setStatus('No URL under cursor');
       }
       return;
     }
     // gJ: join without space
     if (e.key === 'J' && gTimer) {
-      clearTimeout(gTimer); gTimer = null;
+      gTimer = null;
       getCount();
       if (row < state.lines.length - 1) {
         pushUndo();
@@ -5280,7 +6814,7 @@
     }
     // g~/gu/gU: case change operators (wait for motion)
     if ((e.key === '~' || e.key === 'u' || e.key === 'U') && gTimer) {
-      clearTimeout(gTimer); gTimer = null;
+      gTimer = null;
       pendingOperator = 'g' + e.key;
       operatorCount = countBuf;
       countBuf = 0;
@@ -5413,7 +6947,7 @@
     if (handleSectionKey(e.key)) return;
 
     // clear gTimer on unrelated keys
-    if (gTimer && e.key !== 'g') { clearTimeout(gTimer); gTimer = null; }
+    if (gTimer && e.key !== 'g') gTimer = null;
 
     // --- navigation (all support count prefix) ---
     if (e.key === 'h' || e.key === 'ArrowLeft' || e.key === 'Backspace') {
@@ -5531,7 +7065,7 @@
     // H/M/L screen-relative jumps
     if (e.key === 'H') {
       getCount();
-      var scrollTop = Math.floor(bodyEl.scrollTop / lineH);
+      var scrollTop = Math.floor(viewportEl.scrollTop / lineH);
       var targetHRow = clampRow(scrollTop);
       var targetHCol = firstNonBlank(targetHRow);
       if (targetHRow !== state.cursor.row || targetHCol !== state.cursor.col) pushJump();
@@ -5542,8 +7076,8 @@
     }
     if (e.key === 'M') {
       getCount();
-      var scrollTopM = Math.floor(bodyEl.scrollTop / lineH);
-      var visRowsM = Math.floor(bodyEl.clientHeight / lineH);
+      var scrollTopM = Math.floor(viewportEl.scrollTop / lineH);
+      var visRowsM = Math.floor(viewportEl.clientHeight / lineH);
       var targetMRow = clampRow(scrollTopM + Math.floor(visRowsM / 2));
       var targetMCol = firstNonBlank(targetMRow);
       if (targetMRow !== state.cursor.row || targetMCol !== state.cursor.col) pushJump();
@@ -5554,8 +7088,8 @@
     }
     if (e.key === 'L') {
       getCount();
-      var scrollTopL = Math.floor(bodyEl.scrollTop / lineH);
-      var visRowsL = Math.floor(bodyEl.clientHeight / lineH);
+      var scrollTopL = Math.floor(viewportEl.scrollTop / lineH);
+      var visRowsL = Math.floor(viewportEl.clientHeight / lineH);
       var targetLRow = clampRow(scrollTopL + visRowsL - 1);
       var targetLCol = firstNonBlank(targetLRow);
       if (targetLRow !== state.cursor.row || targetLCol !== state.cursor.col) pushJump();
@@ -5565,6 +7099,15 @@
       render(); return;
     }
     if (e.key === 'Enter' || e.key === '+') {
+      if (e.key === 'Enter' && state.dashboard &&
+          state.lines.join('\n') === welcomeSnapshot) {
+        var dashboardAction = dashboardActionUnderCursor(state.lines[row], col);
+        if (dashboardAction) {
+          if (dashboardAction.palette) openPalette();
+          else execCommand(dashboardAction.command);
+          return;
+        }
+      }
       if (isExplorerBuffer()) {
         var eLine = state.lines[row].trim();
         var explorerTeacher = teacherDocumentByFilename(eLine);
@@ -6512,7 +8055,7 @@
     // movement in visual
     if (e.key === 'g') {
       if (gTimer) {
-        clearTimeout(gTimer); gTimer = null;
+        gTimer = null;
         var ggN = countBuf > 0 ? countBuf - 1 : 0; countBuf = 0;
         var ggRow = clampRow(ggN);
         var ggCol = clampCol(ggRow, state.curswant);
@@ -6521,26 +8064,26 @@
         state.cursor.col = ggCol;
         render();
       } else {
-        gTimer = setTimeout(function() { gTimer = null; }, 500);
+        gTimer = true;
       }
       return;
     }
     // ge/gE in visual mode
     if ((e.key === 'e' || e.key === 'E') && gTimer) {
-      clearTimeout(gTimer); gTimer = null;
+      gTimer = null;
       var geVN = getCount(); var vgeFn = e.key === 'e' ? wordEndBackward : WORDEndBackward;
       var vgep = {row: row, col: col}; for (var gei = 0; gei < geVN; gei++) vgep = vgeFn(vgep.row, vgep.col);
       state.cursor.row = vgep.row; state.cursor.col = vgep.col; state.curswant = vgep.col;
       render(); return;
     }
     if (e.key === '_' && gTimer) {
-      clearTimeout(gTimer); gTimer = null;
+      gTimer = null;
       var vLastNonBlank = getLine(row).search(/\s*$/) - 1;
       state.cursor.col = Math.max(0, vLastNonBlank); state.curswant = state.cursor.col;
       render(); return;
     }
     if (handleSectionKey(e.key)) return;
-    if (gTimer && e.key !== 'g') { clearTimeout(gTimer); gTimer = null; }
+    if (gTimer && e.key !== 'g') gTimer = null;
     if (e.key === 'h' || e.key === 'ArrowLeft' || e.key === 'Backspace') { var hN = getCount(); state.cursor.col = clampCol(row, moveCharacterIndex(visualLine, col, hN, -1)); state.curswant = state.cursor.col; render(); return; }
     if (e.key === 'l' || e.key === 'ArrowRight' || e.key === ' ') { var lN = getCount(); state.cursor.col = clampCol(row, moveCharacterIndex(visualLine, col, lN, 1)); state.curswant = state.cursor.col; render(); return; }
     if (e.key === 'j' || e.key === 'ArrowDown') {
@@ -6568,7 +8111,7 @@
     }
     if (e.key === 'H') {
       getCount();
-      var visualHRow = clampRow(Math.floor(bodyEl.scrollTop / lineH));
+      var visualHRow = clampRow(Math.floor(viewportEl.scrollTop / lineH));
       var visualHCol = firstNonBlank(visualHRow);
       if (visualHRow !== state.cursor.row || visualHCol !== state.cursor.col) pushJump();
       state.cursor.row = visualHRow;
@@ -6578,7 +8121,7 @@
     }
     if (e.key === 'M') {
       getCount();
-      var visualMRow = clampRow(Math.floor(bodyEl.scrollTop / lineH) + Math.floor(bodyEl.clientHeight / lineH / 2));
+      var visualMRow = clampRow(Math.floor(viewportEl.scrollTop / lineH) + Math.floor(viewportEl.clientHeight / lineH / 2));
       var visualMCol = firstNonBlank(visualMRow);
       if (visualMRow !== state.cursor.row || visualMCol !== state.cursor.col) pushJump();
       state.cursor.row = visualMRow;
@@ -6588,7 +8131,7 @@
     }
     if (e.key === 'L') {
       getCount();
-      var visualLRow = clampRow(Math.floor(bodyEl.scrollTop / lineH) + Math.floor(bodyEl.clientHeight / lineH) - 1);
+      var visualLRow = clampRow(Math.floor(viewportEl.scrollTop / lineH) + Math.floor(viewportEl.clientHeight / lineH) - 1);
       var visualLCol = firstNonBlank(visualLRow);
       if (visualLRow !== state.cursor.row || visualLCol !== state.cursor.col) pushJump();
       state.cursor.row = visualLRow;
@@ -6675,11 +8218,15 @@
     'unset et', 'unset expandtab', 'unset ai', 'unset autoindent',
     'nohlsearch', 'noh', 'nohl',
     'sort', 'sort u',
-    'r', 'zen', 'enew', 'new', 'e', 'intro', 'help', 'h', 'tutor', 'Tutor',
-    'teacher', 'teacher next', 'teacher check', 'teacher hint',
+    'r', 'zen', 'enew', 'new', 'e', 'buffer', 'b',
+    'vsplit', 'vs', 'close', 'only',
+    'tabedit', 'tabe', 'tabnew', 'tabnext', 'tabn', 'tabprevious', 'tabprev',
+    'tabclose', 'tabonly',
+    'intro', 'help', 'h', 'tutor', 'Tutor',
+    'teacher', 'teacher retry', 'teacher hint',
     'teacher map', 'teacher lesson 1', 'teacher review', 'teacher project',
     'teacher export',
-    'teacher score', 'teacher golf', 'teacher reset',
+    'teacher score', 'teacher golf', 'teacher reset', 'teacher off',
     'agents', 'moth', 'snake',
     'marks', 'jumps', 'clearjumps', 'registers', 'display', 'pray',
     'colorscheme', 'colo', 'color', 'emacs', 'nano'
@@ -6687,7 +8234,51 @@
   var tabIdx = -1;
   var tabPrefix = '';
 
+  function promptRegisterText(name) {
+    if (!isRegisterName(name)) {
+      setStatus('E354: Invalid register name: ' + name);
+      return null;
+    }
+    var value = getRegister(name);
+    if (!value.text) {
+      setStatus('Nothing in register ' + name);
+      return null;
+    }
+    return value.text.replace(/\r\n?|\n/g, ' ');
+  }
+
+  function insertPromptRegister(e, prompt) {
+    if (!state.promptRegisterPending) return false;
+    if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') {
+      return true;
+    }
+    state.promptRegisterPending = false;
+    if (e.key === 'Escape') {
+      setStatus('Register insertion canceled');
+      render();
+      return true;
+    }
+    var text = promptRegisterText(e.key);
+    if (text === null) {
+      render();
+      return true;
+    }
+    tabIdx = -1;
+    if (prompt === 'command') {
+      state.cmdBuf += text;
+      updateHistoryPrefix('command');
+    } else {
+      state.searchBuf += text;
+      updateHistoryPrefix('search');
+      buildMatches(state.searchBuf);
+      if (state.incsearch) incSearchJump();
+    }
+    render();
+    return true;
+  }
+
   function handleCommand(e) {
+    if (insertPromptRegister(e, 'command')) return;
     if (e.key === 'Escape') {
       state.mode = 'normal'; state.cmdBuf = ''; tabIdx = -1; render(); return;
     }
@@ -6701,18 +8292,27 @@
       e.preventDefault();
       if (tabIdx === -1) tabPrefix = state.cmdBuf;
       var dir = e.shiftKey ? -1 : 1;
-      // :e filename completion
-      var ePrefix = tabPrefix.match(/^(?:e|r)\s+(\S*)$/);
+      // Loaded-file and blog-slug completion for commands that accept a file.
+      var filePrefix = tabPrefix.match(/^(e|r|b|buffer|vs|vsplit|tabe|tabedit|tabnew)\s+(\S*)$/);
       // colorscheme name completion
       var csPrefix = tabPrefix.match(/^(?:colorscheme|colo|color)\s+(\S*)$/);
       var matches;
-      if (ePrefix) {
-        var ePartial = ePrefix[1];
-        var eSlugs = Object.keys(blogFiles).sort();
-        var eMatches = eSlugs.filter(function(s) { return s.indexOf(ePartial) === 0; });
-        if (eMatches.length) {
-          tabIdx = (tabIdx + dir + eMatches.length) % eMatches.length;
-          state.cmdBuf = tabPrefix.replace(/\S*$/, '') + eMatches[tabIdx];
+      if (filePrefix) {
+        var fileCommand = filePrefix[1];
+        var filePartial = filePrefix[2];
+        var fileNames = fileCommand === 'e' || fileCommand === 'r'
+          ? Object.keys(blogFiles) : [];
+        Object.keys(state.documents).forEach(function(documentId) {
+          var filename = state.documents[documentId].filename;
+          if (filename && fileNames.indexOf(filename) === -1) fileNames.push(filename);
+        });
+        fileNames.sort();
+        var fileMatches = fileNames.filter(function(filename) {
+          return filename.indexOf(filePartial) === 0;
+        });
+        if (fileMatches.length) {
+          tabIdx = (tabIdx + dir + fileMatches.length) % fileMatches.length;
+          state.cmdBuf = tabPrefix.replace(/\S*$/, '') + fileMatches[tabIdx];
         }
       } else if (csPrefix) {
         var csPartial = csPrefix[1];
@@ -6761,6 +8361,7 @@
   }
 
   function handleSearch(e) {
+    if (insertPromptRegister(e, 'search')) return;
     if (e.key === 'Escape') {
       state.mode = 'normal';
       if (state.preSearchState) {
@@ -6969,9 +8570,52 @@
       if (!isStopQ) state.macroCapture.push(normalizeKeyToken(e));
     }
 
+    if (state.pendingWindowCommand &&
+        (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta')) {
+      return;
+    }
+    if (state.pendingWindowCommand) {
+      state.pendingWindowCommand = false;
+      if (e.ctrlKey) e.preventDefault();
+      if (e.key === 'w' || e.key === 'h' || e.key === 'j' ||
+          e.key === 'k' || e.key === 'l') {
+        switchSplitWindow();
+      } else if (e.key === 'Escape') {
+        setStatus('Window command canceled');
+      } else {
+        setStatus('Use Ctrl-W w to move to the other window.');
+      }
+      return;
+    }
+    // gt/gT: next or previous tab page. A count before gt selects that tab.
+    if ((e.key === 't' || e.key === 'T') && gTimer) {
+      gTimer = null;
+      var hadTabCount = countBuf > 0;
+      var tabCount = getCount();
+      if (e.key === 't' && hadTabCount) {
+        ensureTabPages();
+        switchTabPage(tabCount - 1);
+      } else {
+        switchRelativeTabPage(e.key === 't' ? 1 : -1, tabCount);
+      }
+      return;
+    }
+
+    if (e.ctrlKey && e.key.toLowerCase() === 'v' &&
+        (state.mode === 'insert' || state.mode === 'command' || state.mode === 'search')) {
+      return;
+    }
+
     if (e.ctrlKey) {
       if ('rRfbudeygaxoihwvnp'.indexOf(e.key) === -1) return;
       e.preventDefault();
+
+      if (state.mode === 'normal' && e.key === 'w') {
+        state.pendingWindowCommand = true;
+        setStatus('Window command: press w for the other window.');
+        renderTeacherNext();
+        return;
+      }
 
       // Ctrl-o in insert mode: one normal-mode command, then back to insert.
       if (state.mode === 'insert' && e.key === 'o') {
@@ -7005,6 +8649,13 @@
         return;
       }
 
+      if ((state.mode === 'command' || state.mode === 'search') &&
+          e.key.toLowerCase() === 'r') {
+        state.promptRegisterPending = true;
+        setStatus('Insert register: press ", 0, or a-z.');
+        render();
+        return;
+      }
       if (state.mode === 'command' && e.key === 'd') {
         // Ctrl-D in command mode: show matching completions
         var cdPrefix = state.cmdBuf;
@@ -7022,7 +8673,7 @@
         return;
       }
 
-      var visRows = Math.floor(bodyEl.clientHeight / lineH);
+      var visRows = Math.floor(viewportEl.clientHeight / lineH);
       var row = state.cursor.row;
       if (e.key === 'o' && isTeacherGuide()) {
         getCount();
@@ -7051,11 +8702,11 @@
         render(); return;
       }
       if (e.key === 'e') {
-        bodyEl.scrollTop += lineH;
+        viewportEl.scrollTop += lineH;
         return;
       }
       if (e.key === 'y') {
-        bodyEl.scrollTop = Math.max(0, bodyEl.scrollTop - lineH);
+        viewportEl.scrollTop = Math.max(0, viewportEl.scrollTop - lineH);
         return;
       }
       if (e.key === 'g') {
@@ -7072,7 +8723,7 @@
     }
     // g;/g,: move through the per-buffer change list.
     if ((e.key === ';' || e.key === ',') && gTimer) {
-      clearTimeout(gTimer); gTimer = null;
+      gTimer = null;
       moveChangeList(e.key === ';' ? -1 : 1, getCount());
       return;
     }
@@ -7120,6 +8771,7 @@
       dispatchKey(e);
     } finally {
       finishRepeatCapture();
+      renderTeacherNext();
     }
   }
 
@@ -7161,7 +8813,6 @@
 
   function focusMobileInput(e) {
     if (!mobileInputEl || state.paletteOpen || state.immersiveMode) return;
-    if (window.innerWidth > 640 && !window.matchMedia('(pointer: coarse)').matches) return;
     if (e.target.closest('button, input, textarea')) return;
     mobileInputEl.focus({ preventScroll: true });
   }
@@ -7188,10 +8839,15 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
+    tabBarEl    = document.getElementById('vim-tabbar');
     bodyEl      = document.getElementById('vim-body');
+    viewportEl  = document.getElementById('vim-active-window');
     gutterEl    = document.getElementById('vim-gutter');
     contentEl   = document.getElementById('vim-content');
     cursorEl    = document.getElementById('vim-cursor');
+    splitPeerEl = document.getElementById('vim-split-peer');
+    splitPeerFileEl = document.getElementById('vim-split-peer-file');
+    splitPeerContentEl = document.getElementById('vim-split-peer-content');
     cmdlineEl   = document.getElementById('vim-cmdline');
     statusModeEl = document.getElementById('vim-status-mode');
     statusFileEl = document.getElementById('vim-status-file');
@@ -7337,9 +8993,9 @@
       window.visualViewport.addEventListener('scroll', syncViewportLayout);
     }
 
-    // Cmd+V paste support: insert clipboard text into buffer
+    // Clipboard paste follows the active Vim prompt or buffer mode.
     document.addEventListener('paste', function(e) {
-      if (isTeacherGuide()) {
+      if (isTeacherGuide() && state.mode !== 'command' && state.mode !== 'search') {
         e.preventDefault();
         teacherGuideReadonlyError();
         return;
@@ -7348,6 +9004,23 @@
       var text = e.clipboardData.getData('text');
       if (!text) return;
       e.preventDefault();
+      if (state.mode === 'command') {
+        state.promptRegisterPending = false;
+        tabIdx = -1;
+        state.cmdBuf += text.replace(/\r\n?|\n/g, ' ');
+        updateHistoryPrefix('command');
+        render();
+        return;
+      }
+      if (state.mode === 'search') {
+        state.promptRegisterPending = false;
+        state.searchBuf += text.replace(/\r\n?|\n/g, ' ');
+        updateHistoryPrefix('search');
+        buildMatches(state.searchBuf);
+        if (state.incsearch) incSearchJump();
+        render();
+        return;
+      }
       var row = state.cursor.row;
       var col = state.cursor.col;
       if (state.mode === 'insert') {

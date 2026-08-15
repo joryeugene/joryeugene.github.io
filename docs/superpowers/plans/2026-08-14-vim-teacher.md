@@ -1,5 +1,7 @@
 # Vim Teacher Mode Design and Implementation Plan
 
+> Superseded on 2026-08-15 after the owner could not complete Lesson 1 without coaching. The original plan overloaded the first unit despite its own cognitive-load requirements. Preserve the plan below as the decision record. The current curriculum lives in [vim-teacher.js](../../../js/vim-teacher.js). The current release gates and human evidence records live in [vim-teacher-human-playthrough.md](../../../tests/manual/vim-teacher-human-playthrough.md).
+
 ## Outcome
 
 Build one `:teacher` course that takes a new Vim user from the first safe edit to an independent multi-file project.
@@ -178,7 +180,7 @@ Store only completion IDs, review dates, and summary counts. Do not store these 
 
 An incomplete lesson starts from its bundled file after reload. A completed lesson stays complete. Export uses the same summary schema and contains no document text.
 
-Plain `:w` downloads a Teacher file but does not copy its contents into the browser filesystem. `:w NAME` creates a named browser file because the learner explicitly requested that copy.
+Plain `:w` saves a Teacher file only inside the current lesson session. It does not download the exercise or copy its contents into the browser filesystem. `:w NAME` creates a named browser file because the learner explicitly requested that copy.
 
 ## Feedback rules
 

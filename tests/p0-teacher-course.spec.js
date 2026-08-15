@@ -5,197 +5,265 @@ async function courseText(page) {
   return (await lines(page)).join('\n');
 }
 
-test('teacher starts at zero and completes the safe editing lesson', async ({ page }) => {
-  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+test('teacher guides a first learner through open, edit, save, and automatic advance', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('teacher_first_journey_initialized')) return;
+    localStorage.removeItem('vim_teacher_progress_v2');
+    sessionStorage.setItem('teacher_first_journey_initialized', '1');
+  });
   await open(page);
 
   await cmd(page, 'teacher');
-  expect((await state(page)).file).toBe('[Teacher]');
-  expect(await courseText(page)).toContain('VIM TEACHER // COURSE');
-  expect(await courseText(page)).toContain('Start with one safe edit');
+  expect((await state(page)).file).toBe('untitled.txt');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 1 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText('TARGET  status: draf');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 01-handoff.txt');
 
-  await cmd(page, 'teacher next');
-  expect((await state(page)).file).toBe('[Teacher]');
-  expect(await courseText(page)).toContain('LESSON 1 OF 8');
-  expect(await courseText(page)).toContain('WORKED EXAMPLE');
-  expect(await courseText(page)).toContain('INDEPENDENT TRANSFER');
+  await page.locator('#vim-content').click();
+  expect(await page.evaluate(() => document.activeElement.id)).toBe('vim-mobile-input');
+  await page.keyboard.type(':x');
+  await expect(page.locator('#vim-teacher-next')).toContainText('Press Esc to cancel');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 01-handoff.txt');
 
-  await press(page, 'Control+o');
+  await page.keyboard.type(':');
+  await expect(page.locator('#vim-teacher-next')).toContainText('Type e 01-handoff.txt');
+  await page.keyboard.type('e 01-handoff.txt');
+  await expect(page.locator('#vim-teacher-next')).toContainText('Press Enter to run :e 01-handoff.txt');
+  await page.keyboard.press('Enter');
   expect((await state(page)).file).toBe('01-handoff.txt');
   expect(await lines(page)).toEqual([
     '# Release handoff',
     'status: draf',
-    'owner: TOD0',
-    'recovery: readyy',
     'keep: audit enabled'
   ]);
-
-  await cmd(page, 'teacher hint');
-  expect(await courseText(page)).toContain('HINT 1 OF 3');
-  expect(await courseText(page)).not.toContain('$at<Esc>');
-  await press(page, 'Control+o');
-
-  await cmd(page, 'teacher hint');
-  expect(await courseText(page)).toContain('HINT 2 OF 3');
-  expect(await courseText(page)).toContain('Normal mode');
-  await press(page, 'Control+o');
-
-  await cmd(page, 'teacher hint');
-  expect(await courseText(page)).toContain('HINT 3 OF 3');
-  expect(await courseText(page)).toContain('$at<Esc>');
-  await press(page, 'Control+o');
+  await expect(page.locator('.vim-teacher-target')).toContainText('status: draf');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press j');
 
   await press(page, 'j');
-  await press(page, '$');
-  await press(page, 'a');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press A');
+  await press(page, 'A');
+  await expect(page.locator('#vim-teacher-next')).toContainText('type t');
   await type(page, 't');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press Esc');
   await press(page, 'Escape');
-
-  await press(page, 'j');
-  await press(page, '0');
-  await press(page, '7');
-  await press(page, 'l');
-  await press(page, '4');
-  await press(page, 'x');
-  await press(page, 'a');
-  await type(page, 'team');
-  await press(page, 'Escape');
-
-  await press(page, 'j');
-  await press(page, '$');
-  await press(page, 'x');
-  await press(page, 'u');
-  await press(page, 'Control+r');
   expect(await lines(page)).toEqual([
     '# Release handoff',
     'status: draft',
-    'owner: team',
-    'recovery: ready',
     'keep: audit enabled'
   ]);
+  await expect(page.locator('#vim-teacher-next')).toContainText(':w');
+
   await cmd(page, 'w');
+  expect((await state(page)).file).toBe('01-handoff.txt');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 1 COMPLETE');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 02-recovery.txt');
 
-  await cmd(page, 'teacher check');
-  await expect(page.locator('#vim-cmdline')).toContainText('Lesson 1 ready');
-
-  await cmd(page, 'teacher next');
-  expect((await state(page)).file).toBe('[Teacher]');
-  expect(await courseText(page)).toContain('LESSON 2 OF 8');
+  await page.reload();
+  await cmd(page, 'teacher');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 2 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 02-recovery.txt');
 });
 
-test('teacher composes operators, motions, text objects, and counts in code', async ({ page }) => {
+test('teacher restores a mistaken first lesson without requiring undo', async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
   await open(page);
 
-  await cmd(page, 'teacher lesson 2');
-  expect(await courseText(page)).toContain('LESSON 2 OF 8');
-  expect(await courseText(page)).toContain('operator');
-  await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('02-service.js');
-
-  for (const key of ['f', '"', 'c', 'i', '"']) await press(page, key);
-  await type(page, 'production');
+  await cmd(page, 'teacher lesson 1');
+  await cmd(page, 'e 01-handoff.txt');
+  await press(page, 'j');
+  await press(page, 'A');
+  await type(page, 'x');
   await press(page, 'Escape');
+  expect((await lines(page))[1]).toBe('status: drafx');
 
-  for (const key of ['0', '3', 'j', 'f', '(', '%', '%', 'f', '2', 'c', 'i', 'w']) await press(page, key);
-  await type(page, '4');
-  await press(page, 'Escape');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-cmdline')).toContainText('Lesson not complete.');
+  await expect(page.locator('#vim-teacher-next')).toContainText('Missing: status: draft');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':teacher retry');
 
-  for (const key of ['k', '0', 'f', '"', 'c', 'i', '"']) await press(page, key);
-  await type(page, 'ready');
-  await press(page, 'Escape');
-  await press(page, 'k');
-  await press(page, 'd');
-  await press(page, 'd');
-
+  await cmd(page, 'teacher retry');
+  expect((await state(page)).file).toBe('01-handoff.txt');
   expect(await lines(page)).toEqual([
-    'export const environment = "production";',
-    'export const title = "ready";',
-    'export const retries = retryPolicy(4);'
+    '# Release handoff',
+    'status: draf',
+    'keep: audit enabled'
   ]);
+  await expect(page.locator('#vim-teacher-next')).toContainText('press j');
 
-  await cmd(page, 'teacher check');
-  await expect(page.locator('#vim-cmdline')).toContainText('Lesson 2 ready');
+  await press(page, 'j');
+  await press(page, 'A');
+  await type(page, 't');
+  await press(page, 'Escape');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 1 COMPLETE');
 });
 
-test('teacher investigates a log with search, marks, jumps, and change history', async ({ page }) => {
+test('applied project keeps the answer hidden and shows one file-opening action', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+
+  await cmd(page, 'teacher project');
+  await expect(page.locator('#vim-teacher-next')).toContainText('MISSION 1 OF 8');
+  await expect(page.locator('#vim-teacher-next')).not.toContainText('ANALYST_NOTE: evt_014203');
+  await expect(page.locator('#vim-teacher-next')).toContainText('incident.log');
+
+  await cmd(page, 'e incident.log');
+  await press(page, 'G');
+  await press(page, 'c');
+  await press(page, 'c');
+  await type(page, 'ANALYST_NOTE: evt_014203 recorded 14203 records before production-api was online');
+  await press(page, 'Escape');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · MISSION 1 COMPLETE');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e events.csv');
+});
+
+test('teacher guides one correction through undo, redo, and save', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+
+  await cmd(page, 'teacher');
+  await cmd(page, 'teacher lesson 2');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 2 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText('status: draftt');
+  await expect(page.locator('#vim-cmdline')).toContainText('Lesson 2 ready. Follow the Teacher panel.');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 02-recovery.txt');
+
+  await cmd(page, 'e 02-recovery.txt');
+  expect(await lines(page)).toEqual([
+    '# Deployment note',
+    'status: draftt',
+    'keep: rollback ready'
+  ]);
+  await expect(page.locator('#vim-teacher-next')).toContainText('press j');
+
+  await press(page, 'j');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press $');
+  await press(page, '$');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press x');
+  await press(page, 'x');
+  expect((await lines(page))[1]).toBe('status: draft');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press u');
+
+  await press(page, 'u');
+  expect((await lines(page))[1]).toBe('status: draftt');
+  await expect(page.locator('#vim-teacher-next')).toContainText('Ctrl-R redoes the correction');
+  await press(page, 'Control+r');
+  expect((await lines(page))[1]).toBe('status: draft');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':w');
+
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 2 COMPLETE');
+});
+
+test('teacher builds one word change and one line deletion a key at a time', async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
   await open(page);
 
   await cmd(page, 'teacher lesson 3');
-  expect(await courseText(page)).toContain('LESSON 3 OF 8');
-  await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('03-requests.log');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 3 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 03-release-note.txt');
 
-  await press(page, '/');
-  await type(page, 'req_42');
-  await press(page, 'Enter');
-  expect((await state(page)).pos).toMatch(/^2,/);
-  await press(page, 'm');
-  await press(page, 'a');
+  await cmd(page, 'e 03-release-note.txt');
+  expect(await lines(page)).toEqual([
+    'draft: release notes',
+    'REMOVE: temporary placeholder',
+    'keep: audit link'
+  ]);
+  await expect(page.locator('#vim-teacher-next')).toContainText('press c');
 
-  await press(page, 'n');
-  expect((await state(page)).pos).toMatch(/^4,/);
-  await press(page, 'N');
-  expect((await state(page)).pos).toMatch(/^2,/);
-  await press(page, '*');
-  expect((await state(page)).pos).toMatch(/^4,/);
-
-  await press(page, 'G');
-  for (const key of ['c', 'i', 'l']) await press(page, key);
-  await type(page, 'SUMMARY: req_42 had a 910 ms warning before timeout');
+  await press(page, 'c');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press w');
+  await press(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('type ready');
+  await type(page, 'ready');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press Esc');
   await press(page, 'Escape');
-  await press(page, 'k');
-  for (const key of ['c', 'i', 'l']) await press(page, key);
-  await type(page, 'ANALYSIS: warning preceded timeout');
-  await press(page, 'Escape');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press j');
+  await press(page, 'j');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press d');
+  await press(page, 'd');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press d again');
+  await press(page, 'd');
 
-  await press(page, 'g');
-  await press(page, 'g');
-  await press(page, '0');
-  await press(page, 'g');
-  await press(page, ';');
-  expect((await state(page)).pos).toMatch(/^6,/);
-  await press(page, 'g');
-  await press(page, ';');
-  expect((await state(page)).pos).toMatch(/^7,/);
-  await press(page, 'g');
-  await press(page, ',');
-  expect((await state(page)).pos).toMatch(/^6,/);
-
-  await press(page, '`');
-  await press(page, 'a');
-  expect((await state(page)).pos).toMatch(/^2,/);
-  await press(page, 'Control+o');
-  expect((await state(page)).pos).toMatch(/^6,/);
-  await press(page, 'Control+i');
-  expect((await state(page)).pos).toMatch(/^2,/);
-
-  expect(await lines(page)).toContain('ANALYSIS: warning preceded timeout');
-  expect(await lines(page)).toContain('SUMMARY: req_42 had a 910 ms warning before timeout');
-  await cmd(page, 'teacher check');
-  await expect(page.locator('#vim-cmdline')).toContainText('Lesson 3 ready');
+  expect(await lines(page)).toEqual([
+    'ready: release notes',
+    'keep: audit link'
+  ]);
+  await expect(page.locator('#vim-teacher-next')).toContainText(':w');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 3 COMPLETE');
 });
 
-test('teacher repeats one verified change and recovers it as one action', async ({ page }) => {
+test('teacher finds two related log lines and writes one supported finding', async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
   await open(page);
 
   await cmd(page, 'teacher lesson 4');
-  expect(await courseText(page)).toContain('LESSON 4 OF 8');
-  await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('04-status.txt');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 4 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 04-requests.log');
+
+  await cmd(page, 'e 04-requests.log');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press /');
 
   await press(page, '/');
-  await type(page, ' : pending');
+  await expect(page.locator('#vim-teacher-next')).toContainText('type req_42');
+  await type(page, 'req_42');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press Enter');
   await press(page, 'Enter');
+  expect((await state(page)).pos).toMatch(/^2,/);
+  await expect(page.locator('#vim-teacher-next')).toContainText('press n');
+
+  await press(page, 'n');
+  expect((await state(page)).pos).toMatch(/^4,/);
+  await expect(page.locator('#vim-teacher-next')).toContainText('press G');
+
+  await press(page, 'G');
+  expect((await state(page)).pos).toMatch(/^5,/);
+  await expect(page.locator('#vim-teacher-next')).toContainText('press c');
   await press(page, 'c');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press c again');
+  await press(page, 'c');
+  await expect(page.locator('#vim-teacher-next')).toContainText('type finding: warning before timeout');
+  await type(page, 'finding: warning before timeout');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press Esc');
+  await press(page, 'Escape');
+
+  expect(await lines(page)).toContain('finding: warning before timeout');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 4 COMPLETE');
+});
+
+test('teacher repeats one verified change on the next two matches', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+
+  await cmd(page, 'teacher lesson 5');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 5 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 05-status.txt');
+  await cmd(page, 'e 05-status.txt');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press /');
+
+  await press(page, '/');
+  await expect(page.locator('#vim-teacher-next')).toContainText('search text " : pending"');
+  await type(page, ' : pending');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press Enter');
+  await press(page, 'Enter');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press c');
+  await press(page, 'c');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press $');
   await press(page, '$');
+  await expect(page.locator('#vim-teacher-next')).toContainText('type =ready');
   await type(page, '=ready');
   await press(page, 'Escape');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press n');
   await press(page, 'n');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press the . key');
   await press(page, '.');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press n');
   await press(page, 'n');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press the . key');
   await press(page, '.');
 
   const normalized = [
@@ -205,114 +273,242 @@ test('teacher repeats one verified change and recovers it as one action', async 
     'keep = enabled'
   ];
   expect(await lines(page)).toEqual(normalized);
-  await press(page, 'u');
-  expect(await lines(page)).toContain('web : pending');
-  await press(page, 'Control+r');
-  expect(await lines(page)).toEqual(normalized);
-
-  await press(page, '/');
-  await press(page, 'ArrowUp');
-  await expect(page.locator('#vim-cmdline')).toHaveText('/ : pending');
-  await press(page, 'Enter');
-  expect(await lines(page)).toEqual(normalized);
-
-  await cmd(page, 'teacher check');
-  await expect(page.locator('#vim-cmdline')).toContainText('Lesson 4 ready');
-  await cmd(page, 'teacher golf');
-  expect(await courseText(page)).toContain('VIM GOLF AFTER THE RESULT');
-  expect(await courseText(page)).toContain(':%s/ : pending/=ready/g');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 5 COMPLETE');
 });
 
-test('teacher carries exact evidence with named registers and completion', async ({ page }) => {
-  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
-  await open(page);
-
-  await cmd(page, 'teacher lesson 5');
-  expect(await courseText(page)).toContain('LESSON 5 OF 8');
-  await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('05-evidence.md');
-
-  for (const key of ['2', 'j', '0', '"', 'a', 'y', 'i', 'w']) await press(page, key);
-  for (const key of ['2', 'j', '0', '"', 'b', 'y', 'i', 'w']) await press(page, key);
-  await cmd(page, 'registers a b');
-  expect((await state(page)).file).toBe('[Registers]');
-  expect(await courseText(page)).toContain('"a  char  req_42');
-  expect(await courseText(page)).toContain('"b  char  platform');
-  await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('05-evidence.md');
-
-  for (const key of ['2', 'j', '0', 'd', 'i', 'w', '"', 'a', 'p']) await press(page, key);
-  for (const key of ['2', 'j', '0', 'd', 'i', 'w', '"', 'b', 'p']) await press(page, key);
-  for (const key of ['4', 'j', 'A', 'Control+n', 'Escape']) await press(page, key);
-
-  expect(await lines(page)).toContain('req_42');
-  expect(await lines(page)).toContain('platform');
-  expect(await lines(page)).toContain('REVIEWED_PRODUCTION_EVENTS');
-  await cmd(page, 'teacher check');
-  await expect(page.locator('#vim-cmdline')).toContainText('Lesson 5 ready');
-});
-
-test('teacher inspects project files and returns to one working report', async ({ page }) => {
+test('teacher yanks one exact word and puts it into an evidence field', async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
   await open(page);
 
   await cmd(page, 'teacher lesson 6');
-  expect(await courseText(page)).toContain('LESSON 6 OF 8');
-  await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('06-project.md');
-
-  await cmd(page, 'Ex');
-  expect((await state(page)).file).toBe('netrw');
-  expect(await courseText(page)).toContain('06-api.js');
-  expect(await courseText(page)).toContain('06-ui.js');
-  for (let i = 0; i < 5; i++) await press(page, 'j');
-  await press(page, 'Enter');
-  expect((await state(page)).file).toBe('06-api.js');
-  for (const key of ['f', '"', '"', 'a', 'y', 'i', '"']) await press(page, key);
-  await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('06-project.md');
-  for (const key of ['j', '0', 'f', 'T', 'd', 'i', 'w', '"', 'a', 'p']) await press(page, key);
-
-  await cmd(page, 'e 06-ui.js');
-  expect((await state(page)).file).toBe('06-ui.js');
-  for (const key of ['f', '"', '"', 'b', 'y', 'i', '"']) await press(page, key);
-  await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('06-project.md');
-  await press(page, '/');
-  await type(page, 'TODO');
-  await press(page, 'Enter');
-  for (const key of ['d', 'i', 'w', '"', 'b', 'p']) await press(page, key);
-  await press(page, '/');
-  await type(page, 'TODO');
-  await press(page, 'Enter');
-  for (const key of ['c', 'i', 'w']) await press(page, key);
-  await type(page, '06-api.js, 06-ui.js');
-  await press(page, 'Escape');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 6 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 06-evidence.txt');
+  await cmd(page, 'teacher hint');
+  await expect(page.locator('#vim-teacher-next')).toContainText(
+    'Ctrl-R 0 inserts the most recent yank into a : or / prompt.'
+  );
+  await cmd(page, 'e 06-evidence.txt');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press w');
+  await press(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press v');
+  await press(page, 'v');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press i');
+  await press(page, 'i');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press w again');
+  await press(page, 'w');
+  expect((await state(page)).mode).toBe('--VISUAL--');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press y');
+  await press(page, 'y');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press j');
+  await press(page, 'j');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press p');
+  await press(page, 'p');
 
   expect(await lines(page)).toEqual([
-    '# Project index',
-    'API route: /v2/reports',
-    'UI screen: review',
-    'Sources: 06-api.js, 06-ui.js'
+    'source req_42',
+    'evidence req_42',
+    'keep reviewed'
   ]);
-  await cmd(page, 'jumps');
-  expect((await state(page)).file).toBe('[Jumps]');
-  expect(await courseText(page)).toContain('06-project.md');
-  expect(await courseText(page)).toContain('06-ui.js');
-  await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('06-project.md');
-  await cmd(page, 'teacher check');
-  await expect(page.locator('#vim-cmdline')).toContainText('Lesson 6 ready');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 6 COMPLETE');
 });
 
-test('teacher makes reversible bulk changes to imported records', async ({ page }) => {
+test('teacher opens a source with Ex and returns to the report buffer', async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
   await open(page);
 
   await cmd(page, 'teacher lesson 7');
-  expect(await courseText(page)).toContain('LESSON 7 OF 8');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 7 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 07-project.md');
+  await cmd(page, 'e 07-project.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':Ex');
+
+  await cmd(page, 'Ex');
+  expect((await state(page)).file).toBe('netrw');
+  expect(await courseText(page)).toContain('07-api.js');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press /');
+  await press(page, '/');
+  await expect(page.locator('#vim-teacher-next')).toContainText('type 07-api.js');
+  await type(page, '07-api.js');
+  await press(page, 'Enter');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press Enter to open');
+  await press(page, 'Enter');
+  expect((await state(page)).file).toBe('07-api.js');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press j');
+  await press(page, 'j');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press y');
+  await press(page, 'y');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press y again');
+  await press(page, 'y');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':buffer 07-project.md');
+
+  await cmd(page, 'buffer 07-project.md');
+  expect((await state(page)).file).toBe('07-project.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press p');
+  await press(page, 'p');
+
+  expect(await lines(page)).toEqual([
+    '# Project index',
+    '/v2/reports',
+    'keep: reviewed'
+  ]);
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 7 COMPLETE');
+});
+
+test('teacher keeps source evidence visible while updating a report', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+
+  await cmd(page, 'teacher lesson 8');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 8 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 08-report.md');
+
+  await cmd(page, 'e 08-report.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':vsplit 08-source.log');
+  await cmd(page, 'vsplit 08-source.log');
+  expect((await state(page)).file).toBe('08-source.log');
+  await expect(page.locator('#vim-split-peer')).toBeVisible();
+  await expect(page.locator('#vim-split-peer-file')).toContainText('08-report.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press y');
+
+  await press(page, 'y');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press y again');
+  await press(page, 'y');
+  await expect(page.locator('#vim-teacher-next')).toContainText('hold Ctrl and press w');
+  await press(page, 'Control+w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press w again');
+  await press(page, 'w');
+  expect((await state(page)).file).toBe('08-report.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press p');
+
+  await press(page, 'p');
+  expect(await lines(page)).toEqual([
+    '# Comparison',
+    'warning before timeout',
+    'keep: source visible'
+  ]);
+  await expect(page.locator('#vim-teacher-next')).toContainText(':only');
+  await cmd(page, 'only');
+  await expect(page.locator('#vim-split-peer')).toBeHidden();
+  await expect(page.locator('#vim-teacher-next')).toContainText(':w');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 8 COMPLETE');
+});
+
+test('teacher preserves a review layout while visiting a separate tab page', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+
+  await cmd(page, 'teacher lesson 9');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 9 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 09-review.md');
+  await cmd(page, 'e 09-review.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':vsplit 09-change.diff');
+  await cmd(page, 'vsplit 09-change.diff');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':tabedit 09-tests.log');
+
+  await cmd(page, 'tabedit 09-tests.log');
+  expect((await state(page)).file).toBe('09-tests.log');
+  await expect(page.locator('#vim-tabbar')).toBeVisible();
+  await expect(page.locator('#vim-teacher-next')).toContainText('press g');
+  await press(page, 'g');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press t');
+  await press(page, 't');
+  expect((await state(page)).file).toBe('09-change.diff');
+  await expect(page.locator('#vim-split-peer-file')).toContainText('09-review.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press g');
+  await press(page, 'g');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press t');
+  await press(page, 't');
+  expect((await state(page)).file).toBe('09-tests.log');
+
+  await expect(page.locator('#vim-teacher-next')).toContainText('press y');
+  await press(page, 'y');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press y again');
+  await press(page, 'y');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':tabclose');
+  await cmd(page, 'tabclose');
+  expect((await state(page)).file).toBe('09-change.diff');
+  await expect(page.locator('#vim-tabbar')).toBeHidden();
+  await expect(page.locator('#vim-split-peer-file')).toContainText('09-review.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText('hold Ctrl and press w');
+
+  await press(page, 'Control+w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press w again');
+  await press(page, 'w');
+  expect((await state(page)).file).toBe('09-review.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press p');
+  await press(page, 'p');
+  expect(await lines(page)).toEqual([
+    '# Retry review',
+    'test: retries stay bounded',
+    'keep: compare change and test'
+  ]);
+  await cmd(page, 'only');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 9 COMPLETE');
+});
+
+test('teacher retraces meaningful jumps and the latest change', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+
+  await cmd(page, 'teacher lesson 10');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 10 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 10-trace.log');
+  await cmd(page, 'e 10-trace.log');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press /');
+
+  await press(page, '/');
+  await expect(page.locator('#vim-teacher-next')).toContainText('type timeout');
+  await type(page, 'timeout');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press Enter');
+  await press(page, 'Enter');
+  expect((await state(page)).pos).toMatch(/^2,/);
+  await expect(page.locator('#vim-teacher-next')).toContainText('press G');
+  await press(page, 'G');
+  expect((await state(page)).pos).toMatch(/^4,/);
+  await expect(page.locator('#vim-teacher-next')).toContainText('Ctrl-O');
+
   await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('07-records.csv');
+  expect((await state(page)).pos).toMatch(/^2,/);
+  await expect(page.locator('#vim-teacher-next')).toContainText('Ctrl-I');
+  await press(page, 'Control+i');
+  expect((await state(page)).pos).toMatch(/^4,/);
+  await expect(page.locator('#vim-teacher-next')).toContainText('press c');
+  await press(page, 'c');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press c again');
+  await press(page, 'c');
+  await expect(page.locator('#vim-teacher-next')).toContainText('type finding: timeout recovered after retry');
+  await type(page, 'finding: timeout recovered after retry');
+  await press(page, 'Escape');
+
+  await expect(page.locator('#vim-teacher-next')).toContainText('press g');
+  await press(page, 'g');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press g again');
+  await press(page, 'g');
+  expect((await state(page)).pos).toMatch(/^1,/);
+  await expect(page.locator('#vim-teacher-next')).toContainText('press g');
+  await press(page, 'g');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press ;');
+  await press(page, ';');
+  expect((await state(page)).pos).toMatch(/^4,/);
+  await expect(page.locator('#vim-teacher-next')).toContainText(':w');
+
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 10 COMPLETE');
+});
+
+test('teacher reviews each bulk data change before the next command', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+
+  await cmd(page, 'teacher lesson 11');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 11 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 11-records.csv');
+  await cmd(page, 'e 11-records.csv');
   const original = [
     'pending,acct_3',
     'ignore,test_account',
@@ -321,54 +517,71 @@ test('teacher makes reversible bulk changes to imported records', async ({ page 
     'pending,acct_2'
   ];
   expect(await lines(page)).toEqual(original);
+  await expect(page.locator('#vim-teacher-next')).toContainText(':g/^ignore/d');
 
   await cmd(page, 'g/^ignore/d');
+  expect(await lines(page)).not.toContain('ignore,test_account');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':%s/^pending/ready/');
   await cmd(page, '%s/^pending/ready/');
-  await press(page, ':');
-  await press(page, 'ArrowUp');
-  await expect(page.locator('#vim-cmdline')).toHaveText(':%s/^pending/ready/');
-  await press(page, 'Escape');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':sort u');
   await cmd(page, 'sort u');
-  for (const key of ['g', 'g', 'Control+v', 'G', 'I']) await press(page, key);
-  await type(page, 'verified,');
-  await press(page, 'Escape');
 
   const finalRecords = [
-    'verified,ready,acct_1',
-    'verified,ready,acct_2',
-    'verified,ready,acct_3'
+    'ready,acct_1',
+    'ready,acct_2',
+    'ready,acct_3'
   ];
   expect(await lines(page)).toEqual(finalRecords);
-
-  for (let i = 0; i < 4; i++) await press(page, 'u');
-  expect(await lines(page)).toEqual(original);
-  for (let i = 0; i < 4; i++) await press(page, 'Control+r');
-  expect(await lines(page)).toEqual(finalRecords);
-
-  await cmd(page, 'teacher check');
-  await expect(page.locator('#vim-cmdline')).toContainText('Lesson 7 ready');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':w');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 11 COMPLETE');
 });
 
 test('teacher records one stable edit and replays it across matching routes', async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
   await open(page);
 
-  await cmd(page, 'teacher lesson 8');
-  expect(await courseText(page)).toContain('LESSON 8 OF 8');
-  await press(page, 'Control+o');
-  expect((await state(page)).file).toBe('08-routes.txt');
+  await cmd(page, 'teacher lesson 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 12 OF 12');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 12-routes.txt');
+  await cmd(page, 'e 12-routes.txt');
+  expect((await state(page)).file).toBe('12-routes.txt');
 
+  await expect(page.locator('#vim-teacher-next')).toContainText('press q');
   await press(page, 'q');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press q again');
   await press(page, 'q');
-  for (const key of ['f', '1', 'r', '2', '$', 'b', 'c', 'i', 'w']) await press(page, key);
+  await expect(page.locator('#vim-teacher-next')).toContainText('press f');
+  for (const [key, next] of [
+    ['f', 'press 1'],
+    ['1', 'press r'],
+    ['r', 'press 2'],
+    ['2', 'press $'],
+    ['$', 'press b'],
+    ['b', 'press c'],
+    ['c', 'press i'],
+    ['i', 'press w'],
+    ['w', 'type active']
+  ]) {
+    await press(page, key);
+    await expect(page.locator('#vim-teacher-next')).toContainText(next);
+  }
   await type(page, 'active');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press Esc');
   await press(page, 'Escape');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press j');
   await press(page, 'j');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press 0');
   await press(page, '0');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press q');
   await press(page, 'q');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press @');
   await press(page, '@');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press q');
   await press(page, 'q');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press @');
   await press(page, '@');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press @ again');
   await press(page, '@');
 
   expect(await lines(page)).toEqual([
@@ -376,17 +589,18 @@ test('teacher records one stable edit and replays it across matching routes', as
     'GET /v2/orders active',
     'GET /v2/reports active'
   ]);
-  await cmd(page, 'teacher check');
-  await expect(page.locator('#vim-cmdline')).toContainText('Lesson 8 ready');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':w');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 12 COMPLETE');
   await cmd(page, 'teacher golf');
   expect(await courseText(page)).toContain('Route: @q then Q');
   expect(await courseText(page)).toContain('follows Neovim');
   await press(page, 'Control+o');
-  await cmd(page, 'teacher next');
-  expect(await courseText(page)).toContain('LESSON 1 OF 8');
+  await expect(page.locator('#vim-teacher-next')).toContainText('NEXT LESSON');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':e 01-handoff.txt');
   await cmd(page, 'teacher map');
-  expect(await courseText(page)).toContain('[ ] 1. Make one safe edit');
-  expect(await courseText(page)).toContain('[x] 8. Automate a stable edit');
+  expect(await courseText(page)).toContain('[ ] 1. Open, edit, and save one file');
+  expect(await courseText(page)).toContain('[x] 12. Replay one verified route migration');
 });
 
 test('one fresh learner can finish the core course and applied project continuously', async ({ page }) => {
@@ -413,99 +627,133 @@ test('one fresh learner can finish the core course and applied project continuou
     await press(page, 'Escape');
   };
   const openWork = async filename => {
-    await press(page, 'Control+o');
+    await cmd(page, `e ${filename}`);
     expect((await state(page)).file).toBe(filename);
   };
 
   await cmd(page, 'teacher');
-  await cmd(page, 'teacher next');
-  await openWork('01-handoff.txt');
-  await changeLine('status:', 'status: draft');
-  await changeLine('owner:', 'owner: team');
-  await changeLine('recovery:', 'recovery: ready');
+  await cmd(page, 'e 01-handoff.txt');
+  for (const key of ['j', 'A']) await press(page, key);
+  await type(page, 't');
+  await press(page, 'Escape');
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
-  await openWork('02-service.js');
-  await changeLine('environment', 'export const environment = "production";');
-  await search('obsolete');
-  for (const key of ['d', 'd']) await press(page, key);
-  await changeLine('title', 'export const title = "ready";');
-  await changeLine('retries', 'export const retries = retryPolicy(4);');
+  await cmd(page, 'e 02-recovery.txt');
+  for (const key of ['j', '$', 'x', 'u', 'Control+r']) await press(page, key);
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
-  await openWork('03-requests.log');
-  await changeLine('ANALYSIS:', 'ANALYSIS: warning preceded timeout');
-  await changeLine('SUMMARY:', 'SUMMARY: req_42 had a 910 ms warning before timeout');
+  await cmd(page, 'e 03-release-note.txt');
+  await press(page, 'c');
+  await press(page, 'w');
+  await type(page, 'ready');
+  await press(page, 'Escape');
+  for (const key of ['j', 'd', 'd']) await press(page, key);
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
-  await openWork('04-status.txt');
-  await cmd(page, '%s/ : pending/=ready/g');
+  await cmd(page, 'e 04-requests.log');
+  await search('req_42');
+  await press(page, 'n');
+  await press(page, 'G');
+  await press(page, 'c');
+  await press(page, 'c');
+  await type(page, 'finding: warning before timeout');
+  await press(page, 'Escape');
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
-  await openWork('05-evidence.md');
-  await changeFollowingLine('evidence_id', 'req_42');
-  await changeFollowingLine('evidence_owner', 'platform');
-  await changeFollowingLine('approved_metric', 'REVIEWED_PRODUCTION_EVENTS');
+  await cmd(page, 'e 05-status.txt');
+  await search(' : pending');
+  await press(page, 'c');
+  await press(page, '$');
+  await type(page, '=ready');
+  await press(page, 'Escape');
+  for (const key of ['n', '.', 'n', '.']) await press(page, key);
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
-  await openWork('06-project.md');
-  await changeLine('API route:', 'API route: /v2/reports');
-  await changeLine('UI screen:', 'UI screen: review');
-  await changeLine('Sources:', 'Sources: 06-api.js, 06-ui.js');
+  await cmd(page, 'e 06-evidence.txt');
+  for (const key of ['w', 'v', 'i', 'w', 'y', 'j', 'p']) await press(page, key);
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
-  await openWork('07-records.csv');
+  await cmd(page, 'e 07-project.md');
+  await cmd(page, 'Ex');
+  await search('07-api.js');
+  await press(page, 'Enter');
+  for (const key of ['j', 'y', 'y']) await press(page, key);
+  await cmd(page, 'buffer 07-project.md');
+  await press(page, 'p');
+  await cmd(page, 'w');
+
+  await cmd(page, 'e 08-report.md');
+  await cmd(page, 'vsplit 08-source.log');
+  for (const key of ['y', 'y', 'Control+w', 'w', 'p']) await press(page, key);
+  await cmd(page, 'only');
+  await cmd(page, 'w');
+
+  await cmd(page, 'e 09-review.md');
+  await cmd(page, 'vsplit 09-change.diff');
+  await cmd(page, 'tabedit 09-tests.log');
+  for (const key of ['g', 't', 'g', 't', 'y', 'y']) await press(page, key);
+  await cmd(page, 'tabclose');
+  for (const key of ['Control+w', 'w', 'p']) await press(page, key);
+  await cmd(page, 'only');
+  await cmd(page, 'w');
+
+  await cmd(page, 'e 10-trace.log');
+  await search('timeout');
+  for (const key of ['G', 'Control+o', 'Control+i', 'c', 'c']) await press(page, key);
+  await type(page, 'finding: timeout recovered after retry');
+  await press(page, 'Escape');
+  for (const key of ['g', 'g', 'g', ';']) await press(page, key);
+  await cmd(page, 'w');
+
+  await cmd(page, 'e 11-records.csv');
   await cmd(page, 'g/^ignore/d');
   await cmd(page, '%s/^pending/ready/');
   await cmd(page, 'sort u');
-  for (const key of ['g', 'g', 'Control+v', 'G', 'I']) await press(page, key);
-  await type(page, 'verified,');
-  await press(page, 'Escape');
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
-  await openWork('08-routes.txt');
-  await cmd(page, '%s/v1/v2/g');
-  await cmd(page, '%s/deprecated/active/g');
-  await cmd(page, 'teacher next');
-  expect(await courseText(page)).toContain('VIM TEACHER // CORE COURSE COMPLETE');
+  await cmd(page, 'e 12-routes.txt');
+  for (const key of ['q', 'q', 'f', '1', 'r', '2', '$', 'b', 'c', 'i', 'w']) await press(page, key);
+  await type(page, 'active');
+  for (const key of ['Escape', 'j', '0', 'q', '@', 'q', '@', '@']) await press(page, key);
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('CORE COURSE COMPLETE');
   await cmd(page, 'teacher map');
-  for (let lesson = 1; lesson <= 8; lesson++) {
+  for (let lesson = 1; lesson <= 12; lesson++) {
     expect(await courseText(page)).toContain(`[x] ${lesson}.`);
   }
 
   await cmd(page, 'teacher project');
-  await cmd(page, 'teacher next');
   await openWork('incident.log');
   await changeLine('ANALYST_NOTE:', 'ANALYST_NOTE: evt_014203 recorded 14203 records before production-api was online');
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
   await openWork('events.csv');
   await changeFollowingLine('# evidence_id', 'evt_014203');
   await changeFollowingLine('# evidence_source', 'demo_importer');
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
   await openWork('config.js');
   await changeLine('source:', 'source: "production-api",');
   await changeLine('CHANGE_NOTE:', '// CHANGE_NOTE: source corrected to production-api');
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
   await openWork('incident.log');
   await cmd(page, '%s/status : duplicated/status=duplicate/g');
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
   await openWork('launch-copy.md');
   await changeLine('Every imported', 'Claim review: The 14,203 demo-importer records are not production activity.');
   await changeLine('The dashboard recorded', 'Evidence note: evt_014203 occurred before production-api was online.');
   await changeLine('Approved copy:', 'Approved copy: The dashboard reports REVIEWED_PRODUCTION_EVENTS after deployment.');
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
   await openWork('runbook.md');
   await changeLine('1.', '1. Confirm the active event source in config.js.');
   await changeLine('2.', '2. Compare event time with deployedAt.');
   await changeLine('3.', '3. Quarantine pre-deployment events and notify on-call.');
   await changeLine('Operator action:', 'Operator action: Verify event source, deployment time, and event timestamp before publishing counts.');
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
   await openWork('postmortem.md');
   await changeLine('Impact:', 'Impact: Dashboard displayed 14,203 unverified pre-deployment records.');
   await changeLine('Evidence:', 'Evidence: evt_014203 occurred before production-api was online.');
@@ -514,13 +762,12 @@ test('one fresh learner can finish the core course and applied project continuou
   await changeLine('Launch copy:', 'Launch copy: The dashboard reports REVIEWED_PRODUCTION_EVENTS after deployment.');
   await changeLine('Runbook:', 'Runbook: Verify event source, deployment time, and event timestamp before publishing counts.');
   await changeLine('Follow-up:', 'Follow-up: Add a deployment-time validation gate before ingest.');
+  await cmd(page, 'w');
 
-  await cmd(page, 'teacher next');
   await openWork('postmortem.md');
   await changeLine('Verified sources:', 'Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md');
-  await cmd(page, 'teacher next');
-  expect(await courseText(page)).toContain('APPLIED VIM PROJECT // COMPLETE');
-  await press(page, 'Control+o');
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText('APPLIED PROJECT COMPLETE');
   expect((await state(page)).file).toBe('postmortem.md');
   expect(await lines(page)).toContain('Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md');
   await cmd(page, 'teacher map');

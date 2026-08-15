@@ -5,68 +5,75 @@
     '01-handoff.txt': [
       '# Release handoff',
       'status: draf',
-      'owner: TOD0',
-      'recovery: readyy',
       'keep: audit enabled'
     ],
-    '02-service.js': [
-      'export const environment = "development";',
-      'export const obsolete = "remove this line";',
-      'export const title = "draft";',
-      'export const retries = retryPolicy(2);'
+    '02-recovery.txt': [
+      '# Deployment note',
+      'status: draftt',
+      'keep: rollback ready'
     ],
-    '03-requests.log': [
-      '09:14:01 INFO request=req_17 status=ok latency=82',
-      '09:14:03 WARN request=req_42 status=slow latency=910',
-      '09:14:04 INFO request=req_18 status=ok latency=77',
-      '09:14:05 ERROR request=req_42 status=timeout latency=1000',
-      '09:14:06 INFO request=req_19 status=ok latency=91',
-      'ANALYSIS: TODO',
-      'SUMMARY: TODO'
+    '03-release-note.txt': [
+      'draft: release notes',
+      'REMOVE: temporary placeholder',
+      'keep: audit link'
     ],
-    '04-status.txt': [
+    '04-requests.log': [
+      '09:14:01 req_17 ok 82ms',
+      '09:14:03 req_42 warning 910ms',
+      '09:14:04 req_18 ok 77ms',
+      '09:14:05 req_42 timeout 1000ms',
+      'finding: TODO'
+    ],
+    '05-status.txt': [
       'api : pending',
       'worker : pending',
       'web : pending',
       'keep = enabled'
     ],
-    '05-evidence.md': [
-      '# Evidence transfer',
-      'candidate_id',
-      'req_42',
-      'candidate_owner',
-      'platform',
-      'evidence_id',
-      'TODO',
-      'evidence_owner',
-      'TODO',
-      'metric',
-      'REVIEWED_PRODUCTION_EVENTS',
-      'approved_metric',
-      'REVIEWED_'
+    '06-evidence.txt': [
+      'source req_42',
+      'evidence ',
+      'keep reviewed'
     ],
-    '06-api.js': [
-      'export const endpoint = "/v2/reports";',
-      'export const timeoutMs = 1000;'
+    '07-api.js': [
+      '# API source',
+      '/v2/reports'
     ],
-    '06-ui.js': [
-      'export const screen = "review";',
-      'export const refreshMs = 1000;'
-    ],
-    '06-project.md': [
+    '07-project.md': [
       '# Project index',
-      'API route: TODO',
-      'UI screen: TODO',
-      'Sources: TODO'
+      'keep: reviewed'
     ],
-    '07-records.csv': [
+    '08-report.md': [
+      '# Comparison',
+      'keep: source visible'
+    ],
+    '08-source.log': [
+      'warning before timeout'
+    ],
+    '09-review.md': [
+      '# Retry review',
+      'keep: compare change and test'
+    ],
+    '09-change.diff': [
+      'change: retry limit 3'
+    ],
+    '09-tests.log': [
+      'test: retries stay bounded'
+    ],
+    '10-trace.log': [
+      '09:14:01 request started',
+      '09:14:02 timeout req_42',
+      '09:14:03 retry recovered',
+      'finding: TODO'
+    ],
+    '11-records.csv': [
       'pending,acct_3',
       'ignore,test_account',
       'pending,acct_1',
       'pending,acct_1',
       'pending,acct_2'
     ],
-    '08-routes.txt': [
+    '12-routes.txt': [
       'GET /v1/users deprecated',
       'GET /v1/orders deprecated',
       'GET /v1/reports deprecated'
@@ -76,108 +83,156 @@
   var courseLessons = [
     {
       id: 'safe-editing',
-      title: 'Make one safe edit',
-      purpose: 'Change a small handoff file, recover a mistake, and preserve unrelated text.',
+      title: 'Open, edit, and save one file',
+      purpose: 'Complete one small edit from opening the file through checking the saved result.',
+      panelTarget: 'status: draf  →  status: draft',
       file: '01-handoff.txt',
+      firstJourney: true,
+      requireSave: true,
       worked: [
         'Before: status: draf',
-        'Command: move to the line end with $, append with a, type t, then press Esc.',
+        'Move down with j. Press A to insert at the end. Type t. Press Esc.',
         'After:  status: draft'
       ],
       request: [
-        'Complete the status line with Normal mode, Insert mode, and Escape.',
-        'Replace TOD0 with team using movement, x, and Insert mode.',
-        'Delete the extra y in readyy. Undo that edit, then redo it.'
+        'Open 01-handoff.txt with :e.',
+        'Complete status: draft, return to Normal mode, and save with :w.',
+        'Save the finished file. Teacher validates it automatically.'
       ],
       transfer: [
-        'Leave keep: audit enabled unchanged.',
-        'Write the file after every required line is correct.'
+        'Leave keep: audit enabled unchanged.'
       ],
       outcome: [
         'status: draft',
-        'owner: team',
-        'recovery: ready',
         'keep: audit enabled'
       ],
-      reject: ['owner: TOD0', 'recovery: readyy'],
+      answer: ['# Release handoff', 'status: draft', 'keep: audit enabled'],
+      reject: [],
       rejectLines: ['status: draf'],
       hints: [
-        'Work on one line at a time. Return to Normal mode after each edit.',
-        'Use $ and a for the status. Use 0, counted l, 4x, and a for the owner. Use u and Ctrl-R for recovery.',
-        'Status: $at<Esc>. Owner: j07l4xateam<Esc>. Recovery: j$x, then u and Ctrl-R.'
+        'The Teacher panel at the top of the editor keeps the current action visible.',
+        'From the first line, press j. On the status line, A enters Insert mode at the end.',
+        'Use j, A, t, Esc, then :w.'
       ],
-      golf: ['$at then j0wcwteam', 'Use a word change after the first safe pass.']
+      golf: ['$at', 'After the guided pass, $ and a can reach the same insertion point.']
+    },
+    {
+      id: 'recover-edit',
+      title: 'Correct and recover one edit',
+      purpose: 'Fix one extra character, practice undo and redo, then save the recovered result.',
+      panelTarget: 'status: draftt  →  status: draft',
+      file: '02-recovery.txt',
+      recoveryJourney: true,
+      requireSave: true,
+      worked: [
+        'Before: status: draftt',
+        'Move to the end with $, delete with x, undo with u, then redo with Ctrl-R.',
+        'After:  status: draft'
+      ],
+      request: [
+        'Delete the extra t in draftt.',
+        'Undo the correction, then redo it.',
+        'Save the recovered result. Teacher validates it automatically.'
+      ],
+      transfer: [
+        'Leave keep: rollback ready unchanged.'
+      ],
+      outcome: [
+        'status: draft',
+        'keep: rollback ready'
+      ],
+      answer: ['# Deployment note', 'status: draft', 'keep: rollback ready'],
+      reject: [],
+      rejectLines: ['status: draftt'],
+      hints: [
+        'The Teacher panel follows the cursor and the undo state.',
+        'Use $ for line end, x to delete, u to undo, and Ctrl-R to redo.',
+        'Use j, $, x, u, Ctrl-R, then :w.'
+      ],
+      golf: ['$x', 'The direct correction is short; undo and redo are the safety practice.']
     },
     {
       id: 'vim-grammar',
-      title: 'Edit code by meaning',
-      purpose: 'Change values and remove a line without selecting characters manually.',
-      file: '02-service.js',
+      title: 'Change a word and remove a line',
+      purpose: 'Use one operator with a motion, then use one line command.',
+      panelTarget: 'draft → ready; remove the REMOVE line',
+      file: '03-release-note.txt',
+      grammarJourney: true,
+      requireSave: true,
       worked: [
-        'Before: environment = "development"',
-        'Command: ci"production<Esc>',
-        'After:  environment = "production"'
+        'Before: draft: release notes',
+        'Use cw to change the first word to ready.',
+        'After:  ready: release notes'
       ],
       request: [
-        'Change the environment string to production with a quote text object.',
-        'Change the title string to ready.',
-        'Delete the obsolete line with a line operator.'
+        'Change draft to ready with cw.',
+        'Delete the REMOVE line with dd.',
+        'Save the finished result. Teacher validates it automatically.'
       ],
       transfer: [
-        'Before deleting a line, return to the first line and use 3j to reach retries.',
-        'Use % to inspect the matching parentheses in retryPolicy(2).',
-        'Change its argument from 2 to 4 without changing the call or semicolon.'
+        'Leave keep: audit link unchanged.'
       ],
       outcome: [
-        'environment = "production"',
-        'title = "ready"',
-        'retries = retryPolicy(4)'
+        'ready: release notes',
+        'keep: audit link'
       ],
-      reject: ['environment = "development"', 'obsolete', 'title = "draft"', 'retryPolicy(2)'],
+      answer: ['ready: release notes', 'keep: audit link'],
+      reject: ['REMOVE: temporary placeholder'],
+      rejectLines: ['draft: release notes'],
       hints: [
-        'Treat each quoted value and each complete line as a text object.',
-        'Use ci" for quoted values, % for the call pair, dd for the obsolete line, and ciw for the argument.',
-        'Use f"ci"production<Esc>, 03jf(%%f2ciw4<Esc>, k0f"ci"ready<Esc>, then kdd.'
+        'The Teacher panel builds each command one key at a time.',
+        'c starts a change. w makes that change cover one word. dd deletes one whole line.',
+        'Use c, w, ready, Esc, j, d, d, then :w.'
       ],
-      golf: ['f"ci", 3j, f(%%, f2ciw, kf"ci", kdd', 'Inspect the call boundary, then use one operator for each semantic target.']
+      golf: ['cwready<Esc>jdd', 'One word change and one line deletion match the two visible targets.']
     },
     {
       id: 'search-navigation',
-      title: 'Find evidence and return',
-      purpose: 'Locate related log entries and write one supported summary.',
-      file: '03-requests.log',
+      title: 'Find evidence in a log',
+      purpose: 'Find two related log lines and write one supported finding.',
+      panelTarget: 'finding: warning before timeout',
+      file: '04-requests.log',
+      searchJourney: true,
+      requireSave: true,
       worked: [
-        'Search: /req_42',
-        'Move between matches: n and N. Search the word under the cursor: *.',
-        'Save a useful location with ma. Return to it with `a.'
+        'Search for req_42 with /req_42 and Enter.',
+        'Use n to inspect the next matching line.',
+        'The warning appears before the timeout.'
       ],
       request: [
-        'Find both req_42 entries and compare the warning with the timeout.',
-        'Mark the warning line with ma.',
-        'Use Ctrl-O and Ctrl-I to retrace one mark jump.'
+        'Find both req_42 lines.',
+        'Replace finding: TODO with finding: warning before timeout.',
+        'Save the supported finding. Teacher validates it automatically.'
       ],
       transfer: [
-        'Replace ANALYSIS with: warning preceded timeout.',
-        'Replace SUMMARY with the request ID, warning latency, and final status.',
-        'Use g; and g, to revisit both edits without searching for them.'
+        'Leave every log line unchanged.'
       ],
       outcome: [
-        'ANALYSIS: warning preceded timeout',
-        'SUMMARY: req_42 had a 910 ms warning before timeout'
+        'finding: warning before timeout'
       ],
-      reject: ['ANALYSIS: TODO', 'SUMMARY: TODO'],
+      answer: [
+        '09:14:01 req_17 ok 82ms',
+        '09:14:03 req_42 warning 910ms',
+        '09:14:04 req_18 ok 77ms',
+        '09:14:05 req_42 timeout 1000ms',
+        'finding: warning before timeout'
+      ],
+      reject: ['finding: TODO'],
       hints: [
-        'Search by the shared request ID. Save the warning before you write the analysis.',
-        'Use /req_42, n, N, *, ma, `a, Ctrl-O, Ctrl-I, g;, and g,.',
-        'Find and mark the warning. Use G and cil for SUMMARY, then k and cil for ANALYSIS. Use g; and g, after both edits.'
+        'The Teacher panel builds the search and the finding one action at a time.',
+        '/ starts a search. n moves to the next match. G moves to the last line. cc changes that line.',
+        'Use /, req_42, Enter, n, G, c, c, the finding, Esc, then :w.'
       ],
-      golf: ['/req_42, ma, n, Gcil, kcil', 'Search by the shared identifier and keep one evidence location marked.']
+      golf: ['/req_42<Enter>nGcc', 'Search the shared ID before writing the conclusion.']
     },
     {
       id: 'repeat-recover',
       title: 'Repeat a verified change',
       purpose: 'Normalize repeated status text after checking one correct edit.',
-      file: '04-status.txt',
+      panelTarget: 'api, worker, and web → =ready',
+      file: '05-status.txt',
+      repeatJourney: true,
+      requireSave: true,
       worked: [
         'Before: api : pending',
         'Command: find the suffix, change it to =ready, then press Esc.',
@@ -188,117 +243,234 @@
         'Reuse the verified change on the next two lines.'
       ],
       transfer: [
-        'Leave keep = enabled unchanged. Undo and redo the last repeat to verify recovery.',
-        'Recall the search with / and Up. Run it once more to confirm no matching suffix remains.'
+        'Leave keep = enabled unchanged.'
       ],
       outcome: ['api=ready', 'worker=ready', 'web=ready', 'keep = enabled'],
+      answer: ['api=ready', 'worker=ready', 'web=ready', 'keep = enabled'],
       reject: [' : pending'],
       hints: [
         'Make one complete change. Repeat it only after the first result is correct.',
-        'Search for the shared suffix. Use c$ once, then n and dot repeat. Recall the search after the edits.',
-        'Use / : pending<Enter>, c$=ready<Esc>, then n., then n. again. Undo and redo. Use /, Up, Enter to verify.'
+        'Search for the shared suffix. Use c$ once, then n and dot repeat.',
+        'Use / : pending, Enter, c, $, =ready, Esc, n, dot, n, dot, then :w.'
       ],
       golf: [':%s/ : pending/=ready/g', 'Use one substitution when every target is identical.']
     },
     {
       id: 'registers-completion',
-      title: 'Carry exact text',
-      purpose: 'Reuse identifiers without retyping them.',
-      file: '05-evidence.md',
+      title: 'Copy exact text without retyping',
+      purpose: 'Select one word, yank it, and put the exact value into an evidence field.',
+      panelTarget: 'copy req_42 into the evidence field',
+      file: '06-evidence.txt',
+      copyJourney: true,
+      requireSave: true,
       worked: [
-        'Yank req_42 into register a with "ayiw.',
-        'Inspect it with :registers a before changing a destination.',
-        'Delete the destination TODO, then put register a with "ap.'
+        'Move to req_42 with w.',
+        'Use viw to show the inner-word selection, then y to yank it.',
+        'Use p to put the copied word at the destination.',
+        'In a : or / prompt, Ctrl-R 0 inserts the most recent yank.'
       ],
       request: [
-        'Copy the candidate ID and owner into registers a and b.',
-        'Put those values into the matching evidence fields.'
+        'Visually select and copy req_42 from the source field.',
+        'Put it after evidence without retyping it.',
+        'Save the exact copied result. Teacher validates it automatically.'
       ],
       transfer: [
-        'Complete REVIEWED_ from another word in this file with Insert Ctrl-N.'
+        'Leave keep reviewed unchanged.'
       ],
-      outcome: ['evidence_id\nreq_42', 'evidence_owner\nplatform', 'approved_metric\nREVIEWED_PRODUCTION_EVENTS'],
-      reject: ['evidence_id\nTODO', 'evidence_owner\nTODO'],
-      rejectLines: ['REVIEWED_'],
+      outcome: ['source req_42', 'evidence req_42', 'keep reviewed'],
+      answer: ['source req_42', 'evidence req_42', 'keep reviewed'],
+      reject: [],
+      rejectLines: ['evidence '],
       hints: [
-        'Store each source value before you change its destination.',
-        'Use named registers with yiw and p. Use Insert Ctrl-N for the metric.',
-        'Use 2j0"ayiw, 2j0"byiw, and :registers a b. Return with Ctrl-O. Replace each TODO with its register. Use A and Ctrl-N on REVIEWED_.'
+        'Ctrl-R 0 inserts the most recent yank into a : or / prompt.',
+        'v starts a selection. iw selects the inner word. y yanks it. p puts the copied text.',
+        'Use w, v, i, w, y, j, p, then :w.'
       ],
-      golf: [':registers a b', 'Inspect stored text before you put it.']
+      golf: ['wyiwj$p', 'After the guided selection, yiw yanks the inner word without entering Visual mode.']
     },
     {
       id: 'project-files',
-      title: 'Work across files',
-      purpose: 'Collect exact evidence from code files without losing the route back to the report.',
-      file: '06-project.md',
+      title: 'Open a source file and return to your report',
+      purpose: 'Use the explorer to find a source, then return to an existing report buffer.',
+      panelTarget: 'copy /v2/reports into the project index',
+      file: '07-project.md',
+      fileJourney: true,
+      requireSave: true,
       worked: [
-        'Open :Ex, select 06-api.js, and press Enter.',
-        'Yank the route with yi". Use Ctrl-O once to return to the report.'
+        'Open the explorer with :Ex.',
+        'Open 07-api.js and yank the endpoint line with yy.',
+        'Return with :buffer 07-project.md.'
       ],
       request: [
-        'Read the endpoint in 06-api.js and the screen in 06-ui.js.',
-        'Return to 06-project.md after each source.',
-        'Run :jumps after both returns to inspect the route you took.'
+        'Find and open 07-api.js from :Ex.',
+        'Copy /v2/reports without retyping it.',
+        'Return to 07-project.md and put the copied line after the heading.'
       ],
       transfer: [
-        'Replace every TODO in the project index and name both source files.'
+        'Leave keep: reviewed unchanged. Save the report.'
       ],
-      outcome: ['API route: /v2/reports', 'UI screen: review', 'Sources: 06-api.js, 06-ui.js'],
-      reject: ['TODO'],
+      outcome: ['# Project index', '/v2/reports', 'keep: reviewed'],
+      answer: ['# Project index', '/v2/reports', 'keep: reviewed'],
+      reject: [],
       hints: [
-        'Use the file explorer or :e to inspect each source. Keep the report as your return point.',
-        'Use :Ex for the API and :e for the UI. Yank each quoted value, then Ctrl-O and put it in the index.',
-        'Open 06-api.js with :Ex and 06-ui.js with :e. Use yi" into registers a and b. Return with Ctrl-O, replace each TODO, then inspect :jumps.'
+        'The explorer is a buffer that lists available files. Search inside it for the source name.',
+        ':buffer NAME opens a file that is already loaded. yy copies one whole line.',
+        'Use :Ex, /07-api.js, Enter, Enter, j, y, y, :buffer 07-project.md, p, then :w.'
       ],
-      golf: [':Ex plus Ctrl-O', 'Use the explorer and jump history as one file-navigation loop.']
+      golf: [':Ex then :buffer', 'Use the explorer to discover a file and the buffer command to return.']
+    },
+    {
+      id: 'split-windows',
+      title: 'Compare a source in another window',
+      purpose: 'Keep source evidence visible while you add it to a report.',
+      panelTarget: 'copy warning before timeout into the report',
+      file: '08-report.md',
+      windowJourney: true,
+      requireSave: true,
+      worked: [
+        'Open 08-source.log with :vsplit so both buffers stay visible.',
+        'Copy the source line with yy.',
+        'Use Ctrl-W w to move to the report window.'
+      ],
+      request: [
+        'Put warning before timeout after the report heading.',
+        'Use :only to close the extra view after the comparison.',
+        'Save the report. Teacher validates it automatically.'
+      ],
+      transfer: [
+        'Leave keep: source visible unchanged.'
+      ],
+      outcome: ['# Comparison', 'warning before timeout', 'keep: source visible'],
+      answer: ['# Comparison', 'warning before timeout', 'keep: source visible'],
+      reject: [],
+      hints: [
+        'A window is a view onto a buffer. Both files remain loaded when one view closes.',
+        ':vsplit opens a second view. Ctrl-W w changes the active window. :only keeps the active view.',
+        'Use :vsplit 08-source.log, y, y, Ctrl-W, w, p, :only, then :w.'
+      ],
+      golf: [':vsplit, Ctrl-W w, :only', 'Keep both files visible only while the comparison needs both views.']
+    },
+    {
+      id: 'tab-workspaces',
+      title: 'Keep a separate task in another tab page',
+      purpose: 'Preserve a comparison layout while you inspect temporary test output elsewhere.',
+      panelTarget: 'copy the bounded-retry test result into the review',
+      file: '09-review.md',
+      tabJourney: true,
+      requireSave: true,
+      worked: [
+        'Build one review layout with :vsplit 09-change.diff.',
+        'Open the test output in a separate tab page with :tabedit 09-tests.log.',
+        'Use gt to move between the two workspaces.'
+      ],
+      request: [
+        'Confirm that the review split remains intact after a tab round trip.',
+        'Copy the test result, close its tab page, and put the result in the review.',
+        'Close the extra window and save the review.'
+      ],
+      transfer: [
+        'Use a split for simultaneous comparison. Use a tab page for a separate workspace.'
+      ],
+      outcome: ['# Retry review', 'test: retries stay bounded', 'keep: compare change and test'],
+      answer: ['# Retry review', 'test: retries stay bounded', 'keep: compare change and test'],
+      reject: [],
+      hints: [
+        'A tab page stores a window layout. It is not one file with a decorative tab.',
+        'Use gt to move to the next tab page. :tabclose closes the current tab page.',
+        'Use :vsplit 09-change.diff, :tabedit 09-tests.log, gt, gt, yy, :tabclose, Ctrl-W w, p, :only, then :w.'
+      ],
+      golf: ['gt and :tabclose', 'Keep the temporary test task separate, then close its tab page when the result is captured.']
+    },
+    {
+      id: 'navigation-history',
+      title: 'Retrace evidence and recent changes',
+      purpose: 'Return to a distant source or edit without rebuilding the route from memory.',
+      panelTarget: 'finding: timeout recovered after retry',
+      file: '10-trace.log',
+      historyJourney: true,
+      requireSkills: ['jump history', 'changelist'],
+      requireSave: true,
+      worked: [
+        'Search for timeout, then jump to the final finding with G.',
+        'Ctrl-O returns to the older source. Ctrl-I returns to the newer location.',
+        'After an edit, g; returns to the latest changed location.'
+      ],
+      request: [
+        'Retrace the timeout and finding with the jump list.',
+        'Write finding: timeout recovered after retry.',
+        'Move away, use the change list to return, then save.'
+      ],
+      transfer: [
+        'Small h, j, k, and l moves do not belong in jump history.'
+      ],
+      outcome: ['finding: timeout recovered after retry'],
+      answer: [
+        '09:14:01 request started',
+        '09:14:02 timeout req_42',
+        '09:14:03 retry recovered',
+        'finding: timeout recovered after retry'
+      ],
+      reject: ['finding: TODO'],
+      hints: [
+        'The jump list records meaningful jumps, not every cursor step.',
+        'Ctrl-O goes to an older jump. Ctrl-I goes to a newer jump. g; goes to an older change.',
+        'Use /timeout, Enter, G, Ctrl-O, Ctrl-I, cc, the finding, Esc, gg, g;, then :w.'
+      ],
+      golf: ['Ctrl-O, Ctrl-I, and g;', 'Use jump history for locations and change history for edits.']
     },
     {
       id: 'bulk-editing',
-      title: 'Change many records safely',
-      purpose: 'Normalize, sort, and deduplicate a small CSV file with reversible commands.',
-      file: '07-records.csv',
+      title: 'Clean a small data file safely',
+      purpose: 'Remove one excluded row, normalize one field, then sort and deduplicate the reviewed result.',
+      panelTarget: 'three unique ready account rows',
+      file: '11-records.csv',
+      bulkJourney: true,
+      requireSave: true,
       worked: [
-        'Remove the test row with :g/^ignore/d.',
-        'Change every leading pending value with :%s/^pending/ready/.',
-        'Review each result before the next command.'
+        'Remove the excluded test row with :g/^ignore/d.',
+        'Change each leading pending value with :%s/^pending/ready/.',
+        'Use :sort u only after the remaining rows are correct.'
       ],
       request: [
         'Remove the ignored test account.',
-        'Change pending to ready on every row.',
-        'Sort the complete file and remove duplicate rows.',
-        'Use block Visual insert to add verified, at the start of every remaining row.'
+        'Change pending to ready on every remaining row.',
+        'Sort the file, remove duplicates, then save it.'
       ],
       transfer: [
-        'Recall the substitution with command history before you sort.',
-        'Undo every bulk step, then redo each step to recover the final file.'
+        'Review the result after each command. Undo immediately if a command changes the wrong rows.'
       ],
-      outcome: ['verified,ready,acct_1', 'verified,ready,acct_2', 'verified,ready,acct_3'],
+      outcome: ['ready,acct_1', 'ready,acct_2', 'ready,acct_3'],
+      answer: ['ready,acct_1', 'ready,acct_2', 'ready,acct_3'],
       reject: ['pending,', 'ignore,', 'ready,acct_1\nready,acct_1'],
       hints: [
-        'Remove the known test row. Normalize values before sorting and deduplicating.',
-        'Use :g to delete the test row, a whole-file substitution, :sort u, and block Visual insert.',
-        'Run :g/^ignore/d, :%s/^pending/ready/, and :sort u. Use gg, Ctrl-V, G, I, type verified,, then Escape.'
+        'Each command has one job. Check the visible rows before the next command.',
+        ':g deletes matching rows. :%s changes matching text across the file. :sort u sorts and removes duplicate lines.',
+        'Run :g/^ignore/d, then :%s/^pending/ready/, then :sort u and :w.'
       ],
-      golf: [':g, :%s, :sort u, then block I', 'Keep deletion, normalization, ordering, and annotation as separate recovery steps.']
+      golf: [':g, :%s, then :sort u', 'Keep exclusion, normalization, and deduplication as separate reviewable steps.']
     },
     {
       id: 'macros',
-      title: 'Automate a stable edit',
-      purpose: 'Record one correct route change and replay it on matching lines.',
-      file: '08-routes.txt',
+      title: 'Replay one verified route migration',
+      purpose: 'Record one structure-aware edit and replay it only after the first result is correct.',
+      panelTarget: 'all three routes use /v2/ and active',
+      file: '12-routes.txt',
+      macroJourney: true,
+      requireSkills: ['macros'],
+      requireSave: true,
       worked: [
         'Start recording with qq. Change v1 to v2 and deprecated to active.',
         'Stop recording only after the cursor is ready for the next line.'
       ],
       request: [
         'Record the first complete change in register q.',
-        'Replay it on the remaining two routes.'
+        'Replay it on the remaining two routes, then save the file.'
       ],
       transfer: [
         'Inspect all three lines before accepting the result.'
       ],
       outcome: ['GET /v2/users active', 'GET /v2/orders active', 'GET /v2/reports active'],
+      answer: ['GET /v2/users active', 'GET /v2/orders active', 'GET /v2/reports active'],
       reject: ['/v1/', 'deprecated'],
       hints: [
         'Make the cursor path repeatable before you record it.',
@@ -389,6 +561,7 @@
       id: 'timeline',
       title: 'Establish the timeline',
       purpose: 'Decide whether the large record count belongs to the production deployment.',
+      panelTarget: 'record the event, count, and pre-production timing',
       file: 'incident.log',
       worked: [
         'Evidence: evt_014203 recorded 14,203 rows at 02:11:09.',
@@ -401,6 +574,16 @@
       ],
       transfer: ['Preserve the raw log lines. Put the conclusion only in ANALYST_NOTE.'],
       outcome: ['ANALYST_NOTE: evt_014203 recorded 14203 records before production-api was online'],
+      answer: [
+        '2026-08-14T02:11:04Z INFO deploy source=production-api status=scheduled',
+        '2026-08-14T02:11:09Z EVENT id=evt_014203 source=demo_importer records=14203',
+        '2026-08-14T02:12:00Z INFO deploy source=production-api status=online',
+        '2026-08-14T02:14:17Z WARN id=evt_014204 source=demo_importer status : duplicated',
+        '2026-08-14T02:14:18Z WARN id=evt_014205 source=demo_importer status : duplicated',
+        '2026-08-14T02:14:19Z WARN id=evt_014206 source=demo_importer status : duplicated',
+        '',
+        'ANALYST_NOTE: evt_014203 recorded 14203 records before production-api was online'
+      ],
       hints: [
         'Find the count event and the deployment event before writing a conclusion.',
         'Use search and jump history for evidence. Use a line text object for the note.',
@@ -413,6 +596,7 @@
       id: 'data-evidence',
       title: 'Compare the data',
       purpose: 'Separate the anomalous import from ordinary production counts and carry exact evidence.',
+      panelTarget: 'fill the evidence ID and source from named registers',
       file: 'events.csv',
       worked: [
         'Ordinary production counts are 12 and 18.',
@@ -426,6 +610,22 @@
       ],
       transfer: ['Inspect registers a and b before putting them into the evidence fields.'],
       outcome: ['# evidence_id', 'evt_014203', '# evidence_source', 'demo_importer'],
+      answer: [
+        'event_id,source,observed_at,records,deployed_at',
+        'evt_014201,production_api,2026-08-14T02:13:01Z,12,2026-08-14T02:12:00Z',
+        'evt_014202,production_api,2026-08-14T02:13:14Z,18,2026-08-14T02:12:00Z',
+        'evt_014203,demo_importer,2026-08-14T02:11:09Z,14203,2026-08-14T02:12:00Z',
+        'evt_014204,demo_importer,2026-08-14T02:14:17Z,14,2026-08-14T02:12:00Z',
+        '',
+        '# candidate_id',
+        'evt_014203',
+        '# candidate_source',
+        'demo_importer',
+        '# evidence_id',
+        'evt_014203',
+        '# evidence_source',
+        'demo_importer'
+      ],
       hints: [
         'Store the exact source values before changing either destination.',
         'Use named registers with yiw and p. Inspect them with :registers a b.',
@@ -439,6 +639,7 @@
       id: 'source-repair',
       title: 'Repair the source',
       purpose: 'Correct the configured ingestion source without changing nearby settings.',
+      panelTarget: 'demo-importer → production-api',
       file: 'config.js',
       worked: [
         'Target: the text inside source: "demo-importer".',
@@ -451,6 +652,20 @@
       ],
       transfer: ['Use the changelist and latest-change mark to verify both edit locations.'],
       outcome: ['  source: "production-api",', '// CHANGE_NOTE: source corrected to production-api'],
+      answer: [
+        'export const ingestion = {',
+        '  source: "production-api",',
+        '  deployedAt: "2026-08-14T02:12:00Z",',
+        '  recordLimit: 200',
+        '};',
+        '',
+        'export const labels = {',
+        '  report: "Launch metrics",',
+        '  channel: "production"',
+        '};',
+        '',
+        '// CHANGE_NOTE: source corrected to production-api'
+      ],
       hints: [
         'Change the value, not the assignment or surrounding object.',
         'Use a quote text object, a line text object, and change-history motions.',
@@ -464,6 +679,7 @@
       id: 'normalize-records',
       title: 'Normalize the records',
       purpose: 'Turn three malformed status fragments into one consistent field.',
+      panelTarget: 'three status=duplicate records',
       file: 'incident.log',
       worked: [
         'First result: status : duplicated becomes status=duplicate.',
@@ -480,6 +696,16 @@
         'id=evt_014205 source=demo_importer status=duplicate',
         'id=evt_014206 source=demo_importer status=duplicate'
       ],
+      answer: [
+        '2026-08-14T02:11:04Z INFO deploy source=production-api status=scheduled',
+        '2026-08-14T02:11:09Z EVENT id=evt_014203 source=demo_importer records=14203',
+        '2026-08-14T02:12:00Z INFO deploy source=production-api status=online',
+        '2026-08-14T02:14:17Z WARN id=evt_014204 source=demo_importer status=duplicate',
+        '2026-08-14T02:14:18Z WARN id=evt_014205 source=demo_importer status=duplicate',
+        '2026-08-14T02:14:19Z WARN id=evt_014206 source=demo_importer status=duplicate',
+        '',
+        'ANALYST_NOTE: evt_014203 recorded 14203 records before production-api was online'
+      ],
       hints: [
         'Make one correct normalization before you automate it.',
         'Use search, one change, dot-repeat, then a short macro for the final match.',
@@ -492,6 +718,7 @@
       id: 'launch-copy',
       title: 'Correct the launch story',
       purpose: 'Replace unsupported launch claims with statements supported by the reviewed files.',
+      panelTarget: 'replace unsupported claims with reviewed evidence',
       file: 'launch-copy.md',
       worked: [
         'Unsupported: the 14,203 records were verified production activity.',
@@ -506,6 +733,19 @@
       outcome: [
         'Claim review: The 14,203 demo-importer records are not production activity.',
         'Evidence note: evt_014203 occurred before production-api was online.',
+        'Approved copy: The dashboard reports REVIEWED_PRODUCTION_EVENTS after deployment.'
+      ],
+      answer: [
+        '# Launch Metrics',
+        '',
+        'Claim review: The 14,203 demo-importer records are not production activity.',
+        '',
+        'Evidence note: evt_014203 occurred before production-api was online.',
+        '',
+        'Qualified note: Counts are preliminary until source review is complete.',
+        '',
+        'Metric key: REVIEWED_PRODUCTION_EVENTS',
+        '',
         'Approved copy: The dashboard reports REVIEWED_PRODUCTION_EVENTS after deployment.'
       ],
       hints: [
@@ -523,6 +763,7 @@
       id: 'operations',
       title: 'Fix operations',
       purpose: 'Replace guesses with checks an on-call operator can perform from the available files.',
+      panelTarget: 'three observable checks and one publication safeguard',
       file: 'runbook.md',
       worked: [
         'A restart does not establish source correctness.',
@@ -541,6 +782,13 @@
         '3. Quarantine pre-deployment events and notify on-call.',
         'Operator action: Verify event source, deployment time, and event timestamp before publishing counts.'
       ],
+      answer: [
+        '# Analytics Incident Runbook',
+        '1. Confirm the active event source in config.js.',
+        '2. Compare event time with deployedAt.',
+        '3. Quarantine pre-deployment events and notify on-call.',
+        'Operator action: Verify event source, deployment time, and event timestamp before publishing counts.'
+      ],
       hints: [
         'Replace each guess with an observable check.',
         'Use a whole-line change for each numbered instruction.',
@@ -553,6 +801,7 @@
       id: 'postmortem',
       title: 'Write the postmortem',
       purpose: 'Assemble the verified impact, evidence, repair, and follow-up into one source-backed report.',
+      panelTarget: 'complete seven evidence-backed postmortem fields',
       file: 'postmortem.md',
       worked: [
         'Impact states what the dashboard displayed.',
@@ -575,6 +824,18 @@
         'Runbook: Verify event source, deployment time, and event timestamp before publishing counts.',
         'Follow-up: Add a deployment-time validation gate before ingest.'
       ],
+      answer: [
+        '# Analytics Incident Postmortem',
+        '',
+        'Impact: Dashboard displayed 14,203 unverified pre-deployment records.',
+        'Evidence: evt_014203 occurred before production-api was online.',
+        'Root cause: The active source was demo-importer instead of production-api.',
+        'Repair: Config now uses production-api.',
+        'Launch copy: The dashboard reports REVIEWED_PRODUCTION_EVENTS after deployment.',
+        'Runbook: Verify event source, deployment time, and event timestamp before publishing counts.',
+        'Follow-up: Add a deployment-time validation gate before ingest.',
+        'Verified sources: TODO'
+      ],
       hints: [
         'Write one evidence-backed statement per field.',
         'Use line text objects, named register b, and a character replacement.',
@@ -587,6 +848,7 @@
       id: 'retrace',
       title: 'Retrace the work',
       purpose: 'Verify that every postmortem claim can be traced back to an edited source file.',
+      panelTarget: 'list the five edited evidence sources',
       file: 'postmortem.md',
       worked: [
         ':jumps shows the file route.',
@@ -594,12 +856,24 @@
         'g; and g, revisit edits within the current file.'
       ],
       request: [
-        'Ctrl-O returns to the report. Briefs do not enter jump history.',
+        'Optional Teacher views do not enter jump history.',
         'Use :jumps, then jump and change history, to revisit the report sources.',
         'Replace Verified sources with the five files that support the conclusion.'
       ],
       transfer: ['Do not list postmortem.md as its own evidence source.'],
       outcome: ['Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'],
+      answer: [
+        '# Analytics Incident Postmortem',
+        '',
+        'Impact: Dashboard displayed 14,203 unverified pre-deployment records.',
+        'Evidence: evt_014203 occurred before production-api was online.',
+        'Root cause: The active source was demo-importer instead of production-api.',
+        'Repair: Config now uses production-api.',
+        'Launch copy: The dashboard reports REVIEWED_PRODUCTION_EVENTS after deployment.',
+        'Runbook: Verify event source, deployment time, and event timestamp before publishing counts.',
+        'Follow-up: Add a deployment-time validation gate before ingest.',
+        'Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'
+      ],
       hints: [
         'Inspect the route before writing the source list.',
         'Use jump history across files and change history within the report.',
@@ -616,30 +890,13 @@
       intro: [
         'VIM TEACHER // COURSE',
         '',
-        'Start with one safe edit. Finish with an independent multi-file project.',
+        'Learn Vim by completing one real edit at a time.',
         '',
-        'Each lesson has four parts:',
-        '1. Read one complete worked example.',
-        '2. Make a guided edit in a real file.',
-        '3. Transfer the skill without an exact command prompt.',
-        '4. Check the visible file and revisit the skill later.',
+        'Teacher will explain one action, keep it visible while you work,',
+        'and validate the saved result before you continue.',
         '',
-        'Commands:',
-        '  :teacher next       open the next required lesson',
-        '  :teacher check      show the first unmet file result',
-        '  :teacher hint       advance through three hint levels',
-        '  :teacher map        show course progress',
-        '  :teacher lesson N   open a selected lesson',
-        '  :teacher review     open the oldest due review',
-        '  :teacher project    open the applied project',
-        '  :teacher score      show private session progress',
-        '  :teacher golf       compare a shorter route after success',
-        '  :teacher export     download progress without files or key history',
-        '  :teacher reset      clear teacher-owned progress after confirmation',
-        '  Ctrl-O              return from a guide to the work file',
-        '',
-        'Progress stays in this browser. Incomplete lesson text resets after reload.',
-        'Type :teacher next to begin Lesson 1.'
+        'DO THIS NOW',
+        '  Type :teacher, then follow the Teacher panel at the top of the editor.'
       ],
       done: [
         'VIM TEACHER // CORE COURSE COMPLETE',
@@ -658,35 +915,20 @@
       '',
       'Role: on-call engineer reviewing an analytics incident.',
       '',
-      'Alert: the dashboard reported 14,203 production records before the',
-      'production collector was deployed.',
+      'The dashboard reported 14,203 production records before the',
+      'production collector was online.',
       '',
-      'Answer three questions:',
-      '1. What happened, and which event proves it?',
-      '2. Why did the dashboard believe the count?',
-      '3. What must change before anyone publishes the result?',
+      'Trace the source, repair the configuration, correct the launch claims,',
+      'and deliver a postmortem that names its evidence.',
       '',
-      'Your six work files:',
-      '  incident.log     incident response and repeated records',
-      '  events.csv       source comparison and evidence capture',
-      '  config.js        software source repair',
-      '  launch-copy.md   evidence-backed copywriting',
-      '  runbook.md       executable operations guidance',
-      '  postmortem.md    final synthesis and source verification',
+      'You will work across a log, CSV, JavaScript configuration, launch copy,',
+      'runbook, and postmortem. Teacher shows one work request at a time.',
       '',
-      'Commands:',
-      '  :teacher next    open the first or next ready mission',
-      '  :teacher check   name the first unmet visible result',
-      '  :teacher hint    advance through three hint levels',
-      '  :teacher score   session summary',
-      '  :teacher golf    shorter route after success',
-      '  :teacher export  download progress without work files',
-      '  :teacher reset   confirm and restore these six files only',
-      '  :teacher         recall the current brief',
-      '  Ctrl-O           return from a brief to your work',
+      'DO THIS NOW',
+      '  Type :teacher project, then follow the Teacher panel at the top of the editor.',
       '',
-      'These files live only in this session unless you explicitly write a copy.',
-      'Type :teacher next to start.'
+      'Project files and saves stay in this session. :teacher export downloads',
+      'progress only, never the work files.'
       ],
       done: [
       'APPLIED VIM PROJECT // COMPLETE',

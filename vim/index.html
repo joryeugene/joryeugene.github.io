@@ -34,6 +34,39 @@
       animation: vim-fadein 0.25s ease-in;
     }
 
+    #vim-tabbar {
+      display: flex;
+      flex: 0 0 auto;
+      min-height: 22px;
+      overflow-x: auto;
+      border-bottom: 1px solid rgba(103, 232, 249, 0.22);
+      background: #11131a;
+      scrollbar-width: none;
+    }
+
+    #vim-tabbar:empty {
+      display: none;
+    }
+
+    #vim-tabbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .vim-tab {
+      flex: 0 0 auto;
+      padding: 2px 10px;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(205, 214, 244, 0.62);
+      font-size: 11px;
+      line-height: 18px;
+      white-space: nowrap;
+    }
+
+    .vim-tab[aria-selected="true"] {
+      background: rgba(103, 232, 249, 0.12);
+      color: #d9f9ff;
+    }
+
     @keyframes vim-fadein {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -41,12 +74,21 @@
 
     #vim-body {
       flex: 1;
-      overflow-y: auto;
-      overflow-x: auto;
+      overflow: hidden;
       display: flex;
       min-height: 0;
       position: relative;
       isolation: isolate;
+    }
+
+    #vim-active-window {
+      display: flex;
+      flex: 1 1 100%;
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+      position: relative;
+      order: 1;
     }
 
     #vim-gutter {
@@ -67,6 +109,58 @@
       flex: 1;
       min-width: 0;
       z-index: 1;
+    }
+
+    #vim-split-peer {
+      display: none;
+      flex: 1 1 50%;
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+      background: #0c0c0c;
+      border-left: 1px solid rgba(103, 232, 249, 0.35);
+      order: 2;
+    }
+
+    #vim-editor.vim-split #vim-active-window,
+    #vim-editor.vim-split #vim-split-peer {
+      flex-basis: 50%;
+    }
+
+    #vim-editor.vim-split #vim-split-peer {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #vim-editor.vim-split-active-right #vim-active-window {
+      order: 2;
+      border-left: 1px solid rgba(103, 232, 249, 0.35);
+    }
+
+    #vim-editor.vim-split-active-right #vim-split-peer {
+      order: 1;
+      border-left: 0;
+    }
+
+    #vim-split-peer-file {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      padding: 2px 8px;
+      background: rgba(103, 232, 249, 0.1);
+      color: rgba(217, 249, 255, 0.8);
+      font-size: 11px;
+      line-height: 17px;
+    }
+
+    #vim-split-peer-content {
+      box-sizing: border-box;
+      min-height: 100%;
+      margin: 0;
+      padding: 0 8px;
+      color: inherit;
+      font: inherit;
+      white-space: pre;
     }
 
     #vim-editor.dashboard #vim-body {
@@ -205,6 +299,61 @@
       font-size: 13px;
       color: rgba(255,255,255,0.85);
       flex-shrink: 0;
+    }
+
+    #vim-teacher-next {
+      display: none;
+      margin: 4px 8px 6px;
+      padding: 9px 11px;
+      border: 1px solid rgba(103, 232, 249, 0.58);
+      border-left-width: 4px;
+      border-radius: 4px;
+      background: rgba(8, 70, 82, 0.82);
+      color: #effdff;
+      font-size: 14px;
+      font-weight: 650;
+      line-height: 20px;
+      white-space: pre-line;
+      box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.08), 0 4px 14px rgba(0, 0, 0, 0.2);
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    #vim-teacher-next.visible {
+      display: block;
+    }
+
+    #vim-teacher-next.completed {
+      border-color: rgba(134, 239, 172, 0.78);
+      background: rgba(20, 83, 45, 0.86);
+    }
+
+    #vim-teacher-next.repair {
+      border-color: rgba(251, 191, 36, 0.88);
+      background: rgba(92, 58, 10, 0.9);
+    }
+
+    #vim-teacher-next.changed {
+      animation: vim-teacher-step-change 220ms ease-out;
+    }
+
+    .vim-teacher-target {
+      display: inline-block;
+      box-sizing: border-box;
+      width: 100%;
+      margin-left: -6px;
+      padding-left: 4px;
+      border-left: 3px solid #67e8f9;
+      background: rgba(103, 232, 249, 0.15);
+    }
+
+    @keyframes vim-teacher-step-change {
+      from { transform: translateY(2px); opacity: 0.84; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #vim-teacher-next.changed { animation: none; }
     }
 
     #vim-statusbar {
@@ -705,6 +854,8 @@
       html, body { font-size: 12px; line-height: 18px; }
       #vim-editor.dashboard #vim-body { overflow-x: hidden; }
       #vim-editor.teacher-guide #vim-body { overflow-x: hidden; }
+      #vim-editor.dashboard #vim-active-window { overflow-x: hidden; }
+      #vim-editor.teacher-guide #vim-active-window { overflow-x: hidden; }
       #vim-editor.teacher-guide #vim-gutter { display: none !important; }
       #vim-editor.teacher-guide #vim-content {
         box-sizing: border-box;
@@ -719,6 +870,7 @@
         width: clamp(96px, 26vw, 112px);
       }
       #vim-statusbar { font-size: 10px; }
+      #vim-teacher-next { margin: 3px 5px 5px; font-size: 13px; line-height: 18px; }
       #vim-mobile-keys { display: grid; }
       #vim-editor.dashboard #vim-body { background-size: 61px 47px, 79px 67px, 101px 83px; }
       .vim-moth-stage { width: 100vw; }
@@ -757,14 +909,22 @@
 </head>
 <body class="vim-page">
   <div id="vim-editor" tabindex="-1">
+    <div id="vim-tabbar" role="tablist" aria-label="Vim tab pages"></div>
+    <div id="vim-teacher-next" role="status" aria-live="polite"></div>
     <div id="vim-body">
-      <div id="vim-gutter"></div>
-      <div id="vim-lines-wrap">
-        <button id="vim-dashboard-pet" type="button" aria-label="Play with Georgie">
-          <span class="vim-dashboard-pet__sprite" aria-hidden="true"></span>
-        </button>
-        <pre id="vim-content"></pre>
-        <div id="vim-cursor"></div>
+      <div id="vim-active-window">
+        <div id="vim-gutter"></div>
+        <div id="vim-lines-wrap">
+          <button id="vim-dashboard-pet" type="button" aria-label="Play with Georgie">
+            <span class="vim-dashboard-pet__sprite" aria-hidden="true"></span>
+          </button>
+          <pre id="vim-content"></pre>
+          <div id="vim-cursor"></div>
+        </div>
+      </div>
+      <div id="vim-split-peer" aria-label="Inactive Vim window">
+        <div id="vim-split-peer-file"></div>
+        <pre id="vim-split-peer-content"></pre>
       </div>
     </div>
     <textarea id="vim-mobile-input" tabindex="-1" aria-label="Vim keyboard input" inputmode="text" enterkeyhint="enter" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
@@ -855,10 +1015,10 @@
   </div>
   <script src="/js/vim-themes.js"></script>
   <script src="/js/vim-shell.js"></script>
-  <script src="/js/vim-help.js?v=vim-teacher-3"></script>
+  <script src="/js/vim-help.js?v=vim-teacher-6"></script>
   <script src="/js/vim-tutor.js"></script>
-  <script src="/js/vim-teacher.js?v=vim-teacher-3"></script>
+  <script src="/js/vim-teacher.js?v=vim-teacher-6"></script>
   <script src="/js/blog-common.js?v=foundation-plus-4"></script>
-  <script src="/js/vim.js?v=vim-teacher-3"></script>
+  <script src="/js/vim.js?v=vim-teacher-6"></script>
 </body>
 </html>

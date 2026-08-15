@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { open, press, type, seed, lines } from './helpers.js';
+import { open, press, type, cmd, seed, lines } from './helpers.js';
 
 async function search(page, text) {
   await press(page, '/');
@@ -99,4 +99,65 @@ test('registers preserve and assemble incident evidence', async ({ page }) => {
 
   await press(page, 'u');
   expect(await lines(page)).toEqual(assembled);
+});
+
+test('command and search prompts accept registers and clipboard text', async ({ page }) => {
+  await open(page);
+  await seed(page, 'friction-economy\nneedle');
+
+  await press(page, 'y'); await press(page, 'y');
+  await press(page, ':');
+  await type(page, 'e ');
+  await press(page, 'Control+r');
+  await press(page, '0');
+  await expect(page.locator('#vim-cmdline')).toHaveText(':e friction-economy');
+  await press(page, 'Escape');
+
+  await press(page, '/');
+  await press(page, 'Control+r');
+  await press(page, '0');
+  await expect(page.locator('#vim-cmdline')).toHaveText('/friction-economy');
+  await press(page, 'Escape');
+
+  await press(page, ':');
+  await type(page, 'e ');
+  await page.evaluate(() => {
+    const clipboardData = new DataTransfer();
+    clipboardData.setData('text', 'portable-agent-factory');
+    document.dispatchEvent(new ClipboardEvent('paste', {
+      bubbles: true,
+      cancelable: true,
+      clipboardData
+    }));
+  });
+  await expect(page.locator('#vim-cmdline')).toHaveText(':e portable-agent-factory');
+  await press(page, 'Escape');
+
+  await press(page, '/');
+  await page.evaluate(() => {
+    const clipboardData = new DataTransfer();
+    clipboardData.setData('text', 'needle');
+    document.dispatchEvent(new ClipboardEvent('paste', {
+      bubbles: true,
+      cancelable: true,
+      clipboardData
+    }));
+  });
+  await expect(page.locator('#vim-cmdline')).toHaveText('/needle');
+
+  await press(page, 'Escape');
+  await cmd(page, 'teacher map');
+  await press(page, ':');
+  await type(page, 'e ');
+  await press(page, 'Control+r');
+  await press(page, '0');
+  await expect(page.locator('#vim-cmdline')).toHaveText(':e friction-economy');
+
+  await press(page, 'Escape');
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.evaluate(() => navigator.clipboard.writeText('friction-economy'));
+  await press(page, ':');
+  await type(page, 'e ');
+  await press(page, 'Control+v');
+  await expect(page.locator('#vim-cmdline')).toHaveText(':e friction-economy');
 });

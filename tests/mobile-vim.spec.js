@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { open, press, seed, lines, state } from './helpers.js';
+import { open, press, cmd, seed, lines, state } from './helpers.js';
 
 async function mobileText(page, text) {
   await page.locator('#vim-mobile-input').evaluate((input, value) => {
@@ -77,7 +77,7 @@ test.describe('mobile Vim input', () => {
     expect((await state(page)).mode).toBe('--NORMAL--');
   });
 
-  test('mobile learner opens the teacher course and returns to the work file', async ({ page }) => {
+  test('mobile learner follows the visible first action into the work file', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
     await open(page);
@@ -86,25 +86,34 @@ test.describe('mobile Vim input', () => {
     await tapKey(page, ':');
     await mobileText(page, 'teacher');
     await mobileBeforeInput(page, 'insertLineBreak');
-    await expect(page.locator('#vim-content')).toContainText('VIM TEACHER // COURSE');
+    await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 1 OF 12');
+    await expect(page.locator('#vim-teacher-next')).toContainText(':e 01-handoff.txt');
+    const panelOverflow = await page.locator('#vim-teacher-next').evaluate(panel =>
+      panel.scrollWidth - panel.clientWidth);
+    expect(panelOverflow).toBeLessThanOrEqual(0);
+    const mobileLayout = await page.evaluate(() => {
+      const panel = document.querySelector('#vim-teacher-next').getBoundingClientRect();
+      const body = document.querySelector('#vim-body').getBoundingClientRect();
+      return { panelBottom: panel.bottom, bodyTop: body.top };
+    });
+    expect(mobileLayout.panelBottom).toBeLessThanOrEqual(mobileLayout.bodyTop);
 
     await tapKey(page, ':');
-    await mobileText(page, 'teacher next');
+    await mobileText(page, 'e 01-handoff.txt');
     await mobileBeforeInput(page, 'insertLineBreak');
-    await expect(page.locator('#vim-content')).toContainText('LESSON 1 OF 8');
-    const guideOverflow = await page.locator('#vim-body').evaluate(body =>
-      body.scrollWidth - body.clientWidth);
-    expect(guideOverflow).toBeLessThanOrEqual(0);
-
-    const ctrl = page.locator('#vim-mobile-keys [data-vim-modifier="Control"]');
-    await ctrl.tap();
-    await mobileText(page, 'o');
     expect((await state(page)).file).toBe('01-handoff.txt');
+    await expect(page.locator('#vim-teacher-next')).toContainText('press j');
 
-    await mobileText(page, 'j$a');
+    await mobileText(page, 'jA');
     await mobileText(page, 't');
     await tapKey(page, 'Escape');
     expect(await lines(page)).toContain('status: draft');
+    await expect(page.locator('#vim-teacher-next')).toContainText(':w');
+
+    await tapKey(page, ':');
+    await mobileText(page, 'w');
+    await mobileBeforeInput(page, 'insertLineBreak');
+    await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 1 COMPLETE');
   });
 
   test('mobile deletion and composed text are committed exactly once', async ({ page }) => {
@@ -261,9 +270,9 @@ test.describe('mobile Vim input', () => {
     await expect(page.locator('#vim-dashboard-pet')).toBeVisible();
     expect(await readGap()).toBeGreaterThanOrEqual(18);
 
-    const scrollTop = await page.locator('#vim-body').evaluate(body => {
-      body.scrollTop = Math.min(40, body.scrollHeight - body.clientHeight);
-      return body.scrollTop;
+    const scrollTop = await page.locator('#vim-active-window').evaluate(viewport => {
+      viewport.scrollTop = Math.min(40, viewport.scrollHeight - viewport.clientHeight);
+      return viewport.scrollTop;
     });
     expect(scrollTop).toBeGreaterThan(0);
     expect(await readGap()).toBeGreaterThanOrEqual(18);
@@ -300,6 +309,39 @@ test.describe('mobile Vim input', () => {
 
     expect(fit.scrollOverflow).toBeLessThanOrEqual(0);
     expect(fit.lastRight).toBeLessThanOrEqual(fit.boundsRight);
+  });
+
+  test('teacher tab pages stay inside the mobile editor', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+    await open(page);
+    await cmd(page, 'teacher lesson 9');
+    await cmd(page, 'e 09-review.md');
+    await cmd(page, 'vsplit 09-change.diff');
+    await cmd(page, 'tabedit 09-tests.log');
+
+    const fit = await page.evaluate(() => {
+      const tabBar = document.querySelector('#vim-tabbar');
+      const selected = tabBar.querySelector('[aria-selected="true"]');
+      const bounds = tabBar.getBoundingClientRect();
+      const selectedBounds = selected.getBoundingClientRect();
+      return {
+        documentX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        tabCount: tabBar.children.length,
+        barLeft: bounds.left,
+        barRight: bounds.right,
+        selectedLeft: selectedBounds.left,
+        selectedRight: selectedBounds.right
+      };
+    });
+
+    expect(fit.documentX).toBeLessThanOrEqual(0);
+    expect(fit.tabCount).toBe(2);
+    expect(fit.barLeft).toBeGreaterThanOrEqual(0);
+    expect(fit.barRight).toBeLessThanOrEqual(320);
+    expect(fit.selectedLeft).toBeGreaterThanOrEqual(fit.barLeft);
+    expect(fit.selectedRight).toBeLessThanOrEqual(fit.barRight);
+    await expect(page.locator('#vim-tabbar [aria-selected="true"]')).toContainText('09-tests.log');
   });
 
   for (const viewport of [
