@@ -14,6 +14,20 @@
   // -------------------------------------------------------------------------
   // Welcome dashboard (editable buffer content, :intro restores it)
   // -------------------------------------------------------------------------
+  function dashboardPad(text, width) {
+    if (text.length >= width) return text;
+    return text + new Array(width - text.length + 1).join(' ');
+  }
+
+  function dashboardCell(command, description) {
+    return dashboardPad(command, 17) + description;
+  }
+
+  function dashboardPair(leftCommand, leftDescription, rightCommand, rightDescription) {
+    var left = dashboardPad(dashboardCell(leftCommand, leftDescription), 33);
+    return left + new Array(8).join(' ') + dashboardCell(rightCommand, rightDescription);
+  }
+
   function buildWelcome() {
     var narrow = window.innerWidth < 640;
     var touchLayout = narrow || window.matchMedia('(pointer: coarse)').matches;
@@ -29,49 +43,53 @@
       ''
     ];
     var movement = compact ? [
-      'k (up)',
-      'h  < + >  l',
-      'j (down)',
+      '       k (up)  ',
+      ' h  <  +  >  l ',
+      '       j (down)',
       ''
     ] : [
-      'k  (up)',
-      'h (left)  <  +  >  l (right)',
-      'j  (down)',
+      '              k  (up)',
+      ' h (left)  <  +  >  l (right)',
+      '              j  (down)',
       ''
     ];
     var launcher = compact ? [
-      ':tutor          guided lesson',
-      ':teacher        applied project',
-      ':Ex             browse files',
-      ':help           manual'
+      dashboardCell(':tutor', 'guided lesson'),
+      dashboardCell(':teacher', 'applied project'),
+      dashboardCell(':Ex', 'browse files'),
+      dashboardCell(':help', 'manual'),
+      dashboardCell(':jumps', 'jump history')
     ] : narrow ? [
-      'Ctrl-P          commands',
-      ':tutor          guided lesson',
-      ':teacher        applied project',
-      ':Ex             browse files',
-      ':moth           kinetic field',
-      ':snake          play',
-      ':help           manual'
+      dashboardCell('Ctrl-P', 'commands'),
+      dashboardCell(':tutor', 'guided lesson'),
+      dashboardCell(':teacher', 'applied project'),
+      dashboardCell(':Ex', 'browse files'),
+      dashboardCell(':moth', 'kinetic field'),
+      dashboardCell(':snake', 'play'),
+      dashboardCell(':help', 'manual'),
+      dashboardCell(':jumps', 'jump history')
     ] : [
-      'Ctrl-P          commands            :tutor        guided lesson',
-      ':teacher        applied project        :Ex           browse files',
-      ':snake          play        :moth    kinetic field        :help    manual'
+      dashboardPair('Ctrl-P', 'commands', ':tutor', 'guided lesson'),
+      dashboardPair(':teacher', 'applied project', ':Ex', 'browse files'),
+      dashboardPair(':snake', 'play', ':moth', 'kinetic field'),
+      dashboardPair(':help', 'manual', ':jumps', 'jump history')
     ];
     var actions = compact ? [
-      'i               start typing',
-      'Esc             normal mode',
-      ': commands      / search'
+      dashboardCell('i', 'start typing'),
+      dashboardCell('Esc', 'normal mode'),
+      dashboardCell(':', 'commands'),
+      dashboardCell('/', 'search')
     ] : narrow ? [
-      'i               start typing',
-      'Esc             normal mode',
-      '/aquarium Enter  search',
-      'n / N           next / previous',
-      'u / Ctrl-r      undo / redo',
-      ':intro          reset home'
+      dashboardCell('i', 'start typing'),
+      dashboardCell('Esc', 'normal mode'),
+      dashboardCell('/moth Enter', 'search'),
+      dashboardCell('n / N', 'next / previous'),
+      dashboardCell('u / Ctrl-r', 'undo / redo'),
+      dashboardCell(':intro', 'reset home')
     ] : [
-      'i               start typing        Esc           normal mode',
-      '/aquarium Enter  search              n / N         next / previous',
-      'u / Ctrl-r      undo / redo         :intro        reset home'
+      dashboardPair('i', 'start typing', 'Esc', 'normal mode'),
+      dashboardPair('/moth Enter', 'search', 'n / N', 'next / previous'),
+      dashboardPair('u / Ctrl-r', 'undo / redo', ':intro', 'reset home')
     ];
     var guide = movement.concat(launcher, [''], actions);
     var footer = compact ? [
@@ -106,8 +124,9 @@
     var lines = [];
     for (var t = 0; t < padTop; t++) lines.push('');
     for (var j = 0; j < content.length; j++) {
+      var inMovement = j >= guideStart && j < movementEnd;
       var inGrid = j >= movementEnd && j < guideEnd;
-      var width = inGrid ? guideWidth : content[j].length;
+      var width = inMovement ? movement[1].length : (inGrid ? guideWidth : content[j].length);
       var linePad = Math.max(0, Math.floor((cols - width) / 2));
       lines.push(content[j] ? new Array(linePad + 1).join(' ') + content[j] : '');
     }
@@ -2259,8 +2278,8 @@
 
     if (state.dashboard) {
       if (line.indexOf(VIM_NAME) !== -1) escaped = '<span class="vim-dashboard-title">' + escaped + '</span>';
-      else if (/h \(left\)|k  \(up\)|j  \(down\)/.test(line)) escaped = '<span class="vim-dashboard-move">' + escaped + '</span>';
-      else if (state.mode === 'normal' && !state.searchPattern && /^(Ctrl-P|:teacher|:Ex|:snake|:help|i\s{2,}|\/aquarium Enter|u \/ Ctrl-r)/.test(line.replace(/^\s+/, ''))) {
+      else if (/h \(left\)|h\s{2,}<|k\s+\(up\)|j\s+\(down\)/.test(line)) escaped = '<span class="vim-dashboard-move">' + escaped + '</span>';
+      else if (state.mode === 'normal' && !state.searchPattern && /^(Ctrl-P|:tutor|:teacher|:Ex|:moth|:snake|:help|:jumps|i\s{2,}|Esc\s{2,}|\/moth Enter|n \/ N|u \/ Ctrl-r|:intro|:\s{2,}|\/\s{2,})/.test(line.replace(/^\s+/, ''))) {
         var trimmed = line.replace(/^\s+/, '');
         var leading = line.slice(0, line.length - trimmed.length);
         var cells = trimmed.split(/(\s{2,})/);

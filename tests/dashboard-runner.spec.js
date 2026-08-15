@@ -39,8 +39,10 @@ test.describe('dashboard and runner experience', () => {
     expect(narrowTitle.y - (narrowPet.y + narrowPet.height)).toBeLessThanOrEqual(45);
     await expect(page.locator('#vim-content')).toContainText(':tutor guided lesson');
     await expect(page.locator('#vim-content')).toContainText(':moth kinetic field');
+    await expect(page.locator('#vim-content')).toContainText(':jumps jump history');
     await expect(page.locator('#vim-content')).toContainText('h (left) < + > l (right)');
-    await expect(page.locator('#vim-content')).toContainText('/aquarium Enter');
+    await expect(page.locator('#vim-content')).toContainText('/moth Enter');
+    expect(((await page.locator('#vim-content').innerText()).match(/moth/g) || []).length).toBeGreaterThanOrEqual(2);
     await expect(page.locator('#vim-content')).not.toContainText('/GEORGIE Enter');
     await expect(page.locator('#vim-content')).toContainText('type :tutor then press Enter');
     await expect(page.locator('#vim-content')).toContainText(':e friction-economy then press Enter');
@@ -48,7 +50,7 @@ test.describe('dashboard and runner experience', () => {
     const narrowRows = (await page.locator('#vim-content').innerText()).split('\n');
     const narrowCommands = ['Ctrl-P', ':tutor', ':Ex'].map(text => narrowRows.find(row => row.includes(text)));
     expect(new Set(narrowCommands.map(row => row.search(/\S/))).size).toBe(1);
-    expect(narrowCommands.map(row => row.indexOf(row.trim().split(/\s{2,}/)[1]))).toEqual([16, 16, 16].map(col => col + narrowCommands[0].search(/\S/)));
+    expect(narrowCommands.map(row => row.indexOf(row.trim().split(/\s{2,}/)[1]))).toEqual([17, 17, 17].map(col => col + narrowCommands[0].search(/\S/)));
 
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.waitForTimeout(150);
@@ -70,15 +72,39 @@ test.describe('dashboard and runner experience', () => {
     await expect(page.locator('#vim-content')).toContainText(':tutor       guided lesson');
     await expect(page.locator('#vim-content')).not.toContainText('[[ ]]');
     const wideRows = (await page.locator('#vim-content').innerText()).split('\n');
-    const wideCommands = ['Ctrl-P', ':Ex', ':help'].map(text => wideRows.find(row => row.includes(text)));
+    const wideCommands = ['Ctrl-P', ':teacher', ':snake', ':help'].map(text => wideRows.find(row => row.includes(text)));
     expect(new Set(wideCommands.map(row => row.search(/\S/))).size).toBe(1);
-    expect(wideCommands.map(row => row.indexOf(row.trim().split(/\s{2,}/)[1]))).toEqual([16, 16, 16].map(col => col + wideCommands[0].search(/\S/)));
-    const pairGaps = wideCommands.map(row => {
+    expect(wideCommands.map(row => row.indexOf(row.trim().split(/\s{2,}/)[1])))
+      .toEqual(wideCommands.map(() => 17 + wideCommands[0].search(/\S/)));
+    const pairGaps = wideCommands.slice(0, 3).map(row => {
       const trimmed = row.trimStart();
       const cells = trimmed.split(/\s{2,}/);
       return trimmed.indexOf(cells[2]) - (trimmed.indexOf(cells[1]) + cells[1].length);
     });
     expect(Math.min(...pairGaps)).toBeGreaterThanOrEqual(8);
+
+    const dashboardColumns = await page.locator('#vim-content').evaluate(content => {
+      const positions = {};
+      content.querySelectorAll('.vim-dashboard-command, .vim-dashboard-description').forEach(cell => {
+        const text = cell.textContent;
+        if (!positions[text]) positions[text] = [];
+        positions[text].push(cell.getBoundingClientRect().x);
+      });
+      return positions;
+    });
+    const aligned = cells => cells.map(text => dashboardColumns[text][0]);
+    const expectOneColumn = cells => {
+      const positions = aligned(cells);
+      expect(Math.max(...positions) - Math.min(...positions)).toBeLessThan(1);
+    };
+    expectOneColumn(['Ctrl-P', ':teacher', ':snake', ':help']);
+    expectOneColumn(['commands', 'applied project', 'play', 'manual']);
+    expectOneColumn([':tutor', ':Ex', ':moth', ':jumps']);
+    expectOneColumn(['guided lesson', 'browse files', 'kinetic field', 'jump history']);
+    expectOneColumn(['i', '/moth Enter', 'u / Ctrl-r']);
+    expectOneColumn(['start typing', 'search', 'undo / redo']);
+    expectOneColumn(['Esc', 'n / N', ':intro']);
+    expectOneColumn(['normal mode', 'next / previous', 'reset home']);
   });
 
   test('Ctrl-P filters and runs commands', async ({ page }) => {
@@ -309,9 +335,9 @@ test.describe('dashboard and runner experience', () => {
         .map(url => [url.pathname, url.searchParams.get('v')])
     ));
     expect(versions).toEqual({
-      '/js/vim-help.js': 'teacher-flight',
-      '/js/vim-teacher.js': 'teacher-flight',
-      '/js/vim.js': 'teacher-flight'
+      '/js/vim-help.js': 'vim-flight-1',
+      '/js/vim-teacher.js': 'vim-flight-1',
+      '/js/vim.js': 'vim-flight-1'
     });
   });
 
