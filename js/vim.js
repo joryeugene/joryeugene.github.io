@@ -54,9 +54,8 @@
       ':help           manual'
     ] : [
       'Ctrl-P          commands            :tutor        guided lesson',
-      ':teacher        applied project     :Ex           browse files',
-      ':snake          play                :moth         kinetic field',
-      ':help           manual'
+      ':teacher        applied project        :Ex           browse files',
+      ':snake          play        :moth    kinetic field        :help    manual'
     ];
     var actions = compact ? [
       'i               start typing',
@@ -1942,6 +1941,7 @@
   }
 
   function pushJumpEntry(entry) {
+    if (entry.documentId === 'teacher:guide') return false;
     var last = state.jumpList[state.jumpList.length - 1];
     if (sameJumpLine(last, entry)) {
       state.jumpIdx = state.jumpList.length - 1;
@@ -2337,14 +2337,14 @@
     var pet = document.getElementById('vim-dashboard-pet');
     if (!pet) return;
     pet.style.removeProperty('--vim-dashboard-pet-top');
-    if (!state.dashboard || window.innerWidth > 640) return;
+    if (!state.dashboard) return;
 
     var title = contentEl.querySelector('.vim-dashboard-title');
     if (!title || document.getElementById('vim-editor').classList.contains('vim-compact')) return;
     var wrapTop = document.getElementById('vim-lines-wrap').getBoundingClientRect().top;
     var titleTop = title.getBoundingClientRect().top;
     var petHeight = pet.getBoundingClientRect().height;
-    var top = Math.max(0, titleTop - wrapTop - petHeight - 22);
+    var top = Math.max(0, titleTop - (window.innerWidth <= 640 ? wrapTop : 0) - petHeight - 22);
     pet.style.setProperty('--vim-dashboard-pet-top', top.toFixed(1) + 'px');
   }
 
@@ -2543,11 +2543,13 @@
       var catSlug = (argv[1] || '').replace(/^blog\//, '').replace(/\/$/, '');
       var catPath = resolveBlogPath(catSlug);
       if (catPath) {
+        var catGeneration = state.documentGeneration;
         setStatus('Reading ' + catSlug + '...');
         fetch(catPath).then(function(resp) {
           if (!resp.ok) throw new Error(resp.status);
           return resp.text();
         }).then(function(text) {
+          if (state.documentGeneration !== catGeneration) return;
           pushUndo();
           var output = text.split('\n');
           adjustJumpRows(state.cursor.row + 1, 0, output.length);
@@ -2557,6 +2559,7 @@
           setStatus(catSlug + ': ' + output.length + ' lines');
           render();
         }).catch(function() {
+          if (state.documentGeneration !== catGeneration) return;
           setStatus('cat: ' + catSlug + ': read error');
         });
         return null;
@@ -3737,7 +3740,7 @@
       var skillName = TEACHER_SKILL_TESTS[oi][0];
       if (observed[skillName]) skills.push(skillName);
     }
-    var elapsedSeconds = Math.max(0, Math.round((performance.now() - stats.startedAt) / 1000));
+    var elapsedSeconds = Math.max(0, Math.round(((stats.finishedAt || performance.now()) - stats.startedAt) / 1000));
     return [
       'MOTH FLIGHT RECORDER',
       '',
@@ -3861,6 +3864,7 @@
 
     state.teacherStats = {
       startedAt: performance.now(),
+      finishedAt: 0,
       missionStartedAt: 0,
       missionResults: []
     };
@@ -4022,6 +4026,7 @@
       teacherFinishMissionStats();
       state.teacherMission++;
       if (state.teacherMission >= teacher.missions.length) {
+        state.teacherStats.finishedAt = performance.now();
         teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.',
           teacherCompletionLines());
       } else {
@@ -4370,11 +4375,13 @@
       var rPath = resolveBlogPath(rArg) || rArg;
       // Ensure path starts with / for fetch
       if (rPath[0] !== '/' && rPath.indexOf('http') !== 0) rPath = '/' + rPath;
+      var rGeneration = state.documentGeneration;
       setStatus('Reading "' + rArg + '"...');
       fetch(rPath).then(function(resp) {
         if (!resp.ok) throw new Error(resp.status);
         return resp.text();
       }).then(function(text) {
+        if (state.documentGeneration !== rGeneration) return;
         pushUndo();
         var newLines = text.split('\n');
         var insertAt = state.cursor.row + 1;
@@ -4387,6 +4394,7 @@
         setStatus('"' + rArg + '" ' + newLines.length + ' lines');
         render();
       }).catch(function() {
+        if (state.documentGeneration !== rGeneration) return;
         setStatus('E484: Cannot open file "' + rArg + '"');
       });
       return;
@@ -6934,6 +6942,11 @@
 
     // Cmd+V paste support: insert clipboard text into buffer
     document.addEventListener('paste', function(e) {
+      if (isTeacherGuide()) {
+        e.preventDefault();
+        teacherGuideReadonlyError();
+        return;
+      }
       if (!e.clipboardData) return;
       var text = e.clipboardData.getData('text');
       if (!text) return;

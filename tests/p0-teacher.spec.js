@@ -57,6 +57,32 @@ async function openMission(page, number, filename, expectedBrief = []) {
   return transitionMs;
 }
 
+test('teacher brief rejects system paste', async ({ page }) => {
+  await open(page);
+  await cmd(page, 'teacher');
+  const brief = (await lines(page)).join('\n');
+
+  await page.evaluate(() => {
+    const clipboardData = new DataTransfer();
+    clipboardData.setData('text', 'BROKEN');
+    document.dispatchEvent(new ClipboardEvent('paste', {
+      bubbles: true,
+      cancelable: true,
+      clipboardData
+    }));
+  });
+
+  await expect(page.locator('#vim-cmdline')).toContainText("E21: Cannot make changes, 'modifiable' is off");
+  expect((await lines(page)).join('\n')).toBe(brief);
+});
+
+test('teacher brief never enters jump history', async ({ page }) => {
+  await open(page);
+  await cmd(page, 'teacher');
+  await cmd(page, 'jumps');
+  expect((await lines(page)).join('\n')).not.toContain('[Teacher]');
+});
+
 test('teacher turns a corrupt launch into a verified postmortem', async ({ page }) => {
   test.setTimeout(60_000);
   await open(page);
@@ -243,6 +269,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
 
   expect((await state(page)).file).toBe('[Teacher]');
   const completion = (await lines(page)).join('\n');
+  const completedFlightTime = completion.match(/Flight time: (\d+)s/)[1];
   expect(completion).toContain('PROJECT COMPLETE');
   expect(completion).toContain('MOTH FLIGHT RECORDER');
   expect(completion).toContain('Evidence: 8/8 missions');
@@ -267,8 +294,11 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
     ...reportLines,
     'Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'
   ]);
+  await page.waitForTimeout(1200);
   await cmd(page, 'teacher');
-  expect((await lines(page)).join('\n')).toContain('MOTH FLIGHT RECORDER');
+  const recalledCompletion = (await lines(page)).join('\n');
+  expect(recalledCompletion).toContain('MOTH FLIGHT RECORDER');
+  expect(recalledCompletion.match(/Flight time: (\d+)s/)[1]).toBe(completedFlightTime);
   await press(page, 'Control+o');
   expect((await state(page)).file).toBe('postmortem.md');
 });

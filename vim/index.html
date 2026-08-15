@@ -127,7 +127,7 @@
       display: none;
       position: fixed;
       z-index: 2;
-      top: clamp(88px, 13vh, 112px);
+      top: var(--vim-dashboard-pet-top, clamp(88px, 13vh, 112px));
       left: calc(50vw + 2px);
       width: clamp(140px, 16vw, 180px);
       aspect-ratio: 512 / 469;
@@ -846,10 +846,10 @@
   </div>
   <script src="/js/vim-themes.js"></script>
   <script src="/js/vim-shell.js"></script>
-  <script src="/js/vim-help.js?v=site-commands"></script>
+  <script src="/js/vim-help.js?v=teacher-flight"></script>
   <script src="/js/vim-tutor.js"></script>
-  <script src="/js/vim-teacher.js"></script>
+  <script src="/js/vim-teacher.js?v=teacher-flight"></script>
   <script src="/js/blog-common.js?v=foundation-plus-4"></script>
-  <script src="/js/vim.js?v=site-commands"></script>
+  <script src="/js/vim.js?v=teacher-flight"></script>
 </body>
 </html>

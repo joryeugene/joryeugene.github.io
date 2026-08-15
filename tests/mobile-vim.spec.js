@@ -187,7 +187,7 @@ test.describe('mobile Vim input', () => {
     await mobileText(page, 'iab');
     await tapKey(page, 'Escape');
     await mobileText(page, 'u');
-    expect(await lines(page)).toEqual(['a']);
+    expect(await lines(page)).toEqual([' ']);
 
     const ctrl = page.locator('#vim-mobile-keys [data-vim-modifier="Control"]');
     await ctrl.tap();

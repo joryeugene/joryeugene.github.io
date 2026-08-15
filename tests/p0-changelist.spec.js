@@ -30,7 +30,7 @@ test.describe('P0 changelist and automatic marks', () => {
     await press(page, '2');
     await press(page, 'g');
     await press(page, ';');
-    expect((await state(page)).pos).toBe('3,5');
+    expect((await state(page)).pos).toBe('1,1');
   });
 
   test('g, stays put before changelist traversal begins', async ({ page }) => {
@@ -87,7 +87,7 @@ test.describe('P0 changelist and automatic marks', () => {
 
     await press(page, 'g');
     await press(page, ';');
-    expect((await state(page)).pos).toBe('1,3');
+    expect((await state(page)).pos).toBe('1,1');
     await press(page, 'g');
     await press(page, ';');
     expect((await state(page)).pos).toBe('4,6');

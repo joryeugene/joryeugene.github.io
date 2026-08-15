@@ -426,6 +426,36 @@ test.describe('P0 jumplist', () => {
     await expect(page.locator('#vim-cmdline')).not.toContainText('E92');
   });
 
+  test('a delayed :r response cannot insert into a document opened while it was pending', async ({ page }) => {
+    await open(page);
+    await seed(page, 'source one\nsource two');
+    const request = await delayedBlog(page, '**/blog/calmhive/calmhive.md', 'delayed read');
+
+    await cmd(page, 'r calmhive');
+    await request.requested;
+    await cmd(page, 'enew');
+    await press(page, 'i'); await type(page, 'new document'); await press(page, 'Escape');
+    await settleFetch(page, request);
+
+    expect((await state(page)).file).toContain('untitled.txt');
+    expect(await lines(page)).toEqual(['new document']);
+  });
+
+  test('a delayed :!cat response cannot insert into a document opened while it was pending', async ({ page }) => {
+    await open(page);
+    await seed(page, 'source one\nsource two');
+    const request = await delayedBlog(page, '**/blog/calmhive/calmhive.md', 'delayed cat');
+
+    await cmd(page, '!cat calmhive');
+    await request.requested;
+    await cmd(page, 'enew');
+    await press(page, 'i'); await type(page, 'new document'); await press(page, 'Escape');
+    await settleFetch(page, request);
+
+    expect((await state(page)).file).toContain('untitled.txt');
+    expect(await lines(page)).toEqual(['new document']);
+  });
+
   test(':w name keeps existing jumps attached to the renamed document', async ({ page }) => {
     await open(page);
     await seed(page, 'one\ntwo\nthree');

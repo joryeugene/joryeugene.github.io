@@ -305,12 +305,13 @@ test.describe('dashboard and runner experience', () => {
     const versions = await page.locator('script[src]').evaluateAll(scripts => Object.fromEntries(
       scripts
         .map(script => new URL(script.src))
-        .filter(url => ['/js/vim-help.js', '/js/vim.js'].includes(url.pathname))
+        .filter(url => ['/js/vim-help.js', '/js/vim-teacher.js', '/js/vim.js'].includes(url.pathname))
         .map(url => [url.pathname, url.searchParams.get('v')])
     ));
     expect(versions).toEqual({
-      '/js/vim-help.js': 'site-commands',
-      '/js/vim.js': 'site-commands'
+      '/js/vim-help.js': 'teacher-flight',
+      '/js/vim-teacher.js': 'teacher-flight',
+      '/js/vim.js': 'teacher-flight'
     });
   });
 

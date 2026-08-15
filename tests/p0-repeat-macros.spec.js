@@ -1,9 +1,19 @@
 import { test, expect } from '@playwright/test';
-import { open, press, type, seed, lines } from './helpers.js';
+import { open, press, type, cmd, seed, lines } from './helpers.js';
 
 async function keys(page, values) {
   for (const value of values) await press(page, value);
 }
+
+test('non-modifying output does not replace dot repeat', async ({ page }) => {
+  await open(page);
+  await seed(page, 'abc');
+  await press(page, 'x');
+  await cmd(page, 'jumps');
+  await press(page, 'u');
+  await press(page, '.');
+  expect(await lines(page)).toEqual(['c']);
+});
 
 test('dot and macros normalize a malformed incident log', async ({ page }) => {
   await open(page);
