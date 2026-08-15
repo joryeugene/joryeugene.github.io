@@ -19,7 +19,7 @@
   <title>Jory Pestorious | Developer tools, agents, and interfaces</title>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-6">
+  <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-7">
 </head>
 <body class="portfolio-page page-work">
   <a class="skip-link" href="#main">Skip to work</a>
@@ -161,22 +161,22 @@
           </article>
 
           <article class="archive-card">
-            <div class="archive-meta"><span>Live web product</span><span>React Native, Expo, TypeScript</span></div>
-            <h3><a href="https://prayorthodox.com/">Pray Orthodox</a></h3>
-            <p>An Orthodox prayer book and Scripture reader for daily prayer, Bible, saints, fasting guidance, chant, and pastoral help. One SQLite source organizes 4,017 OCA calendar days with feasts, fasts, saints, stories, and appointed readings. A second indexes 39,891 verses across 85 books for browsing and search. Before deployment, Python converts both into hashed JSON files. Cloudflare&rsquo;s global CDN serves only the selected day, chapter, or search data. Serving a visit requires no API process or live database query.</p>
-            <div class="archive-links">
-              <a href="https://prayorthodox.com/">Open Pray Orthodox</a>
-              <a href="/process/#theosis">See the product trace</a>
-            </div>
-          </article>
-
-          <article class="archive-card">
             <div class="archive-meta"><span>Product platform</span><span>React, TypeScript, ECharts</span></div>
             <h3><a href="https://www.workhelix.com/platform">Workhelix Nucleus</a></h3>
             <p>Nucleus combines HRIS, AI-usage, and prompt data so leaders can see adoption, review estimated opportunities and savings, and find workflows worth improving. I replaced its Bubble prototype with the production React and TypeScript platform, translated Figma designs into reusable components, and built the product experience that presented the data science team's assessment outputs.</p>
             <div class="archive-links">
               <a href="https://www.workhelix.com/platform">Explore Nucleus</a>
               <a href="/process/#workhelix">See the engineering trace</a>
+            </div>
+          </article>
+
+          <article class="archive-card">
+            <div class="archive-meta"><span>Archived agent workflow CLI</span><span>Node.js, Claude Code</span></div>
+            <h3><a href="https://github.com/joryeugene/calmhive-cli">Calmhive</a></h3>
+            <p>Calmhive ran Claude Code jobs in background iterations and kept session progress available for later review. I built the process controls, retry path for a known usage-limit response, scheduler, terminal session view, and voice command flow.</p>
+            <div class="archive-links">
+              <a href="https://github.com/joryeugene/calmhive-cli">View the archived repository</a>
+              <a href="/blog/calmhive/">Read the build story</a>
             </div>
           </article>
 
@@ -188,6 +188,16 @@
               <a href="https://github.com/joryeugene/keephive">View the repository</a>
               <a href="/blog/knowledge-sidecar/">Read the verifier audit</a>
               <a href="https://pypi.org/project/keephive/">Open the Python package</a>
+            </div>
+          </article>
+
+          <article class="archive-card archive-card--wide">
+            <div class="archive-meta"><span>Live web product</span><span>React Native, Expo, TypeScript</span></div>
+            <h3><a href="https://prayorthodox.com/">Pray Orthodox</a></h3>
+            <p>Pray Orthodox is an Orthodox prayer book and Scripture reader for daily prayer. I built its shared Expo interface and a Python pipeline that prepares calendar and Scripture data as static files. Cloudflare&rsquo;s CDN serves the selected content without a runtime API or live database query.</p>
+            <div class="archive-links">
+              <a href="https://prayorthodox.com/">Open Pray Orthodox</a>
+              <a href="/process/#theosis">See the product trace</a>
             </div>
           </article>
         </div>
@@ -211,6 +221,6 @@
   </div>
 
   <script src="/js/blog-common.js?v=foundation-plus-3"></script>
-  <script src="/js/portfolio.js?v=foundation-plus-5"></script>
+  <script src="/js/portfolio.js?v=foundation-plus-6"></script>
 </body>
 </html>

@@ -812,6 +812,14 @@ a {
   transform: translateY(1px);
 }
 
+.archive-card--wide {
+  grid-column: 1 / -1;
+}
+
+.archive-card--wide p {
+  max-width: 72ch;
+}
+
 .archive-meta {
   display: flex;
   justify-content: space-between;

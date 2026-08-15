@@ -353,7 +353,7 @@ test('shared portfolio actions respond to keyboard focus without moving', async 
   });
   const cases = [
     { route: '/', name: 'Try the editor', arrow: '.project-action' },
-    { route: '/process/', name: 'Open the walkthrough', arrow: '.case-destinations a' },
+    { route: '/process/', name: 'Visit the official site', arrow: '.case-destinations a' },
     { route: '/contact/', name: /Write a note/, arrow: '.contact-action' }
   ];
 
@@ -402,10 +402,10 @@ test('homepage project previews respond to hover, focus, and pinning', async ({ 
 
 test('Process summaries show local product evidence in a stable landscape frame', async ({ page }) => {
   const cases = [
-    ['Dadbod Grip', '/jpg/process/dadbod-grip-live.png', 'Dadbod Grip in Neovim with schema navigation, a query editor, staged grid changes, and generated SQL.'],
     ['Totally Reliable', '/jpg/process/totally-reliable-ragdoll-chain.jpg', 'Four Totally Reliable Delivery Service ragdolls hanging in a chain beneath a flying jetpack.'],
-    ['Pray Orthodox', '/jpg/process/pray-orthodox-reader.png', 'Pray Orthodox showing the selected church day beside the Third Hour Reader office with its sources collapsed.'],
-    ['Workhelix', '/jpg/process/nucleus-ai-assessment.png', 'Nucleus AI Assessment dashboard with opportunity metrics, a business-unit chart, and a use-case treemap.']
+    ['Workhelix', '/jpg/process/nucleus-ai-assessment.png', 'Nucleus AI Assessment dashboard with opportunity metrics, a business-unit chart, and a use-case treemap.'],
+    ['Dadbod Grip', '/jpg/process/dadbod-grip-live.png', 'Dadbod Grip in Neovim with schema navigation, a query editor, staged grid changes, and generated SQL.'],
+    ['Pray Orthodox', '/jpg/process/pray-orthodox-reader.png', 'Pray Orthodox showing the selected church day beside the Third Hour Reader office with its sources collapsed.']
   ];
 
   await page.goto('/process/');
@@ -437,7 +437,7 @@ test('Process stacked summaries do not reserve blank space below the selected ev
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/process/');
 
-  for (const name of ['Dadbod Grip', 'Totally Reliable', 'Pray Orthodox', 'Workhelix']) {
+  for (const name of ['Totally Reliable', 'Workhelix', 'Dadbod Grip', 'Pray Orthodox']) {
     await page.getByRole('tab', { name, exact: true }).click();
     const unusedHeight = await page.locator('[data-case-panel]:visible').evaluate((article) => {
       const articleBottom = article.getBoundingClientRect().bottom;
@@ -454,18 +454,18 @@ test('every Process case updates its summary, destination, deep dive, layers, an
   const caseTabs = page.getByRole('tablist', { name: 'Process case studies' }).getByRole('tab');
   const layerTabs = page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab');
 
-  await expect(page.getByRole('tab', { name: 'Dadbod Grip' })).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByRole('tab', { name: /Changes/ })).toHaveAttribute('aria-selected', 'true');
-  await page.getByRole('tab', { name: 'Totally Reliable' }).hover();
   await expect(page.getByRole('tab', { name: 'Totally Reliable' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('tab', { name: /Changes/ })).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('tab', { name: 'Workhelix' }).hover();
+  await expect(page.getByRole('tab', { name: 'Workhelix' })).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('tab', { name: /Changes/ })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('tab', { name: /Tests/ }).hover();
   await expect(page.getByRole('tab', { name: /Tests/ })).toHaveAttribute('aria-selected', 'true');
 
   await page.keyboard.press('j');
-  await expect(page.getByRole('tab', { name: 'Dadbod Grip' })).toBeFocused();
-  await page.keyboard.press('j');
   await expect(page.getByRole('tab', { name: 'Totally Reliable' })).toBeFocused();
+  await page.keyboard.press('j');
+  await expect(page.getByRole('tab', { name: 'Workhelix' })).toBeFocused();
   await page.getByRole('tab', { name: /Changes/ }).focus();
   await page.keyboard.press('j');
   await expect(page.getByRole('tab', { name: /Tests/ })).toBeFocused();
@@ -608,7 +608,7 @@ test('tabbed surfaces reserve their layout height across content changes', async
     const deepDiveTop = await documentTop('.process-deep-dive');
     const processStageTop = await documentTop('.process-stage');
 
-    for (const name of ['Dadbod Grip', 'Totally Reliable', 'Pray Orthodox', 'Workhelix']) {
+    for (const name of ['Totally Reliable', 'Workhelix', 'Dadbod Grip', 'Pray Orthodox']) {
       await page.getByRole('tab', { name, exact: true }).click();
       if (width > 1120) {
         expect(

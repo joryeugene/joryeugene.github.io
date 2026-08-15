@@ -15,7 +15,7 @@
   <title>Process | Jory Pestorious</title>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-6">
+  <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-7">
 </head>
 <body class="portfolio-page page-process">
   <a class="skip-link" href="#main">Skip to process</a>
@@ -44,26 +44,15 @@
         <div class="case-navigation">
           <p class="eyebrow">Choose a case study</p>
           <div class="case-tabs" role="tablist" aria-label="Process case studies">
-            <a class="case-tab" href="#dadbod-grip" role="tab" data-case-tab data-case-hash="dadbod-grip" aria-controls="case-dadbod" aria-selected="true">Dadbod Grip</a>
-            <a class="case-tab" href="#totally-reliable" role="tab" data-case-tab data-case-hash="totally-reliable" aria-controls="case-totally-reliable" aria-selected="false">Totally Reliable</a>
-            <a class="case-tab" href="#theosis" role="tab" data-case-tab data-case-hash="theosis" aria-controls="case-theosis" aria-selected="false">Pray Orthodox</a>
+            <a class="case-tab" href="#totally-reliable" role="tab" data-case-tab data-case-hash="totally-reliable" aria-controls="case-totally-reliable" aria-selected="true">Totally Reliable</a>
             <a class="case-tab" href="#workhelix" role="tab" data-case-tab data-case-hash="workhelix" aria-controls="case-workhelix" aria-selected="false">Workhelix</a>
+            <a class="case-tab" href="#dadbod-grip" role="tab" data-case-tab data-case-hash="dadbod-grip" aria-controls="case-dadbod" aria-selected="false">Dadbod Grip</a>
+            <a class="case-tab" href="#theosis" role="tab" data-case-tab data-case-hash="theosis" aria-controls="case-theosis" aria-selected="false">Pray Orthodox</a>
           </div>
         </div>
 
         <section class="process-case-detail" aria-live="polite">
-          <article id="case-dadbod" data-case-panel>
-            <div class="process-case-copy">
-              <p class="eyebrow">Open source tool</p>
-              <h2>Edit database tables and join data across sources without leaving Neovim.</h2>
-              <p>Dadbod Grip stages table edits, exposes generated SQL for review, and sends the batch as one transaction script. A CLI error can leave an earlier statement committed, so the database must be inspected before retry. DuckDB can join PostgreSQL, MySQL, SQLite, MotherDuck, and local or HTTPS files in one query.</p>
-              <div class="case-destinations"><a href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>Open the walkthrough</a><a href="https://github.com/joryeugene/dadbod-grip.nvim" data-jelly>View source</a></div>
-            </div>
-            <figure class="process-case-shot">
-              <img src="/jpg/process/dadbod-grip-live.png" alt="Dadbod Grip in Neovim with schema navigation, a query editor, staged grid changes, and generated SQL." width="3436" height="2078" loading="lazy" decoding="async">
-            </figure>
-          </article>
-          <article id="case-totally-reliable" data-case-panel hidden>
+          <article id="case-totally-reliable" data-case-panel>
             <div class="process-case-copy">
               <p class="eyebrow">Shipped at scale</p>
               <h2>Four networked ragdolls can form one flying chain.</h2>
@@ -72,18 +61,6 @@
             </div>
             <figure class="process-case-shot">
               <img src="/jpg/process/totally-reliable-ragdoll-chain.jpg" alt="Four Totally Reliable Delivery Service ragdolls hanging in a chain beneath a flying jetpack." width="2560" height="1440" loading="lazy" decoding="async">
-            </figure>
-          </article>
-          <article id="case-theosis" data-case-panel hidden>
-            <div class="process-case-copy">
-              <p class="eyebrow">Live prayer book</p>
-              <h2>Open the Orthodox daily cycle in one trustworthy prayer book.</h2>
-              <p>Pray Orthodox brings Church offices, appointed propers, Scripture, saints, fasting guidance, and Bible reading into one quiet surface. A source-pinned appointment engine composes each date from fixed services and variable liturgical corpora. Every rendered prayer retains its source and locator. If a required form or proper is incomplete, it stays out of the public schedule instead of being replaced by a generic prayer.</p>
-              <p>Python bakes the calendar and Bible data into files for each day, month, chapter, and search route. Expo builds the shared interface for web and native. The web reader loads those files without waiting for a runtime API or database startup.</p>
-              <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Pray Orthodox</a></div>
-            </div>
-            <figure class="process-case-shot">
-              <img src="/jpg/process/pray-orthodox-reader.png" alt="Pray Orthodox showing the selected church day beside the Third Hour Reader office with its sources collapsed." width="1439" height="810" loading="lazy" decoding="async">
             </figure>
           </article>
           <article id="case-workhelix" data-case-panel hidden>
@@ -97,11 +74,34 @@
               <img src="/jpg/process/nucleus-ai-assessment.png" alt="Nucleus AI Assessment dashboard with opportunity metrics, a business-unit chart, and a use-case treemap." width="1448" height="1325" loading="lazy" decoding="async">
             </figure>
           </article>
+          <article id="case-dadbod" data-case-panel hidden>
+            <div class="process-case-copy">
+              <p class="eyebrow">Open source tool</p>
+              <h2>Edit database tables and join data across sources without leaving Neovim.</h2>
+              <p>Dadbod Grip stages table edits, exposes generated SQL for review, and sends the batch as one transaction script. A CLI error can leave an earlier statement committed, so the database must be inspected before retry. DuckDB can join PostgreSQL, MySQL, SQLite, MotherDuck, and local or HTTPS files in one query.</p>
+              <div class="case-destinations"><a href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>Open the walkthrough</a><a href="https://github.com/joryeugene/dadbod-grip.nvim" data-jelly>View source</a></div>
+            </div>
+            <figure class="process-case-shot">
+              <img src="/jpg/process/dadbod-grip-live.png" alt="Dadbod Grip in Neovim with schema navigation, a query editor, staged grid changes, and generated SQL." width="3436" height="2078" loading="lazy" decoding="async">
+            </figure>
+          </article>
+          <article id="case-theosis" data-case-panel hidden>
+            <div class="process-case-copy">
+              <p class="eyebrow">Live prayer book</p>
+              <h2>An Orthodox prayer book and Scripture reader for daily prayer.</h2>
+              <p>I built a source-pinned appointment engine that prepares each day's services while retaining source locators. Incomplete required material stays out of the public schedule.</p>
+              <p>Python prepares the calendar and Scripture data as static files. Expo builds the shared interface for web and native. The web reader loads the selected content without a runtime API or live database query.</p>
+              <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Pray Orthodox</a></div>
+            </div>
+            <figure class="process-case-shot">
+              <img src="/jpg/process/pray-orthodox-reader.png" alt="Pray Orthodox showing the selected church day beside the Third Hour Reader office with its sources collapsed." width="1439" height="810" loading="lazy" decoding="async">
+            </figure>
+          </article>
         </section>
 
         <div class="process-deep-dive">
           <p class="eyebrow">Deep dive</p>
-          <h2 data-process-deep-title>How Dadbod Grip turns Neovim into a data workbench</h2>
+          <h2 data-process-deep-title>How four live ragdolls stay connected in flight</h2>
         </div>
 
         <div class="process-stage" data-georgie-surface>
@@ -117,48 +117,46 @@
           </div>
 
           <section class="process-panel" aria-live="polite">
-            <p class="process-kicker" data-process-kicker>Case: dadbod-grip.nvim</p>
+            <p class="process-kicker" data-process-kicker>Case: Totally Reliable Delivery Service</p>
 
             <div id="layer-brief" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Edit, query, and analyze data without leaving Neovim.</h2>
-              <p>Dadbod Grip adds editable grids, generated SQL previews, cross-database queries, schema navigation, profiling, notebooks, and schema-aware AI to the editor.</p>
+              <h2>Keep every grip, body, joint, and vehicle live online.</h2>
+              <p>Four players can grab one another into a physical chain while one flies a jetpack. The mechanic only works when the shared simulation stays responsive.</p>
             </div>
 
             <div id="layer-constraints" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Keep the database and existing connection tools authoritative.</h2>
-              <p>Dadbod manages connections. DuckDB joins databases and files. Dadbod Grip adds workflows without hiding the SQL or replacing either system.</p>
+              <h2>Network real ragdolls instead of canned reactions.</h2>
+              <p>Rigid bodies, joints, collisions, players, and vehicles affect one another continuously. Synchronization cost grows with every connected body and moving object.</p>
             </div>
 
             <div id="layer-changes" class="layer-content" role="tabpanel" data-layer-content>
-              <h2>Make edits and federation inspectable.</h2>
-              <pre class="code-window" aria-label="Example staged SQL change"><code><span class="remove">- ALTER TABLE users ADD last_seen_at TIMESTAMP;</span>
-<span class="add">+ ALTER TABLE users ADD last_seen_at TIMESTAMPTZ;</span>
-<span class="add">+ CREATE INDEX idx_users_last_seen_at</span>
-<span class="add">+   ON users (last_seen_at DESC);</span></code></pre>
-              <div class="decision-note"><strong>Decision</strong>Show the generated mutation SQL before apply, then inspect database state after any CLI error.</div>
+              <h2>Profile the interactions players can feel.</h2>
+              <p>I led the Unity and C# multiplayer architecture with Photon and PlayFab.</p>
+              <div class="decision-note"><strong>Decision</strong>Spend network work on the bodies and interactions visible to players.</div>
+              <p class="proof-line"><a href="https://www.totallyreliable.com/post/pc-mac-2-03-03-update">Read a shipped update</a></p>
             </div>
 
             <div id="layer-tests" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Run the workbench on both supported Neovim targets.</h2>
-              <p>The test matrix covers editing state, generated SQL, adapters, the interface, and regression paths on Neovim stable and 0.10 with DuckDB installed.</p>
-              <p class="proof-line"><a href="/blog/dadbod-grip/">Read the build story</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>
+              <h2>Test the combinations players create.</h2>
+              <p>I tested four-player grip chains, moving vehicles, joints, collisions, and physics objects in live multiplayer sessions under real network conditions.</p>
+              <div class="proof-strip"><span>Four live players</span><span>Grip chains</span><span>Moving physics</span></div>
             </div>
 
             <div id="layer-visual" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Keep the investigation visible in one frame.</h2>
-              <p>The Softrear demo database puts a 17-table schema tree, query editor, staged grid markers, and the generated Live SQL in one Neovim view. Review checks that the selected table, pending edits, and exact statement remain legible together before apply.</p>
+              <h2>Judge the chain as a player sees it.</h2>
+              <p>The captured scene keeps the jetpack wearer, three hanging ragdolls, their grips, and the delivery objective legible in one frame.</p>
             </div>
           </section>
 
-          <aside class="wrong-turns" aria-labelledby="wrong-turns-title" data-active-case="dadbod-grip">
+          <aside class="wrong-turns" aria-labelledby="wrong-turns-title" data-active-case="totally-reliable">
             <h2 id="wrong-turns-title">Rejected approaches</h2>
             <article class="wrong-turn">
-              <h3>Separate desktop app</h3>
-              <p>It breaks editor flow and adds another interface to install, learn, and maintain.</p>
+              <h3>Fake the ragdolls with canned animation</h3>
+              <p>It would remove the live grip, chain, collision, and vehicle interactions that define the game.</p>
             </article>
             <article class="wrong-turn">
-              <h3>Hide generated SQL</h3>
-              <p>Users need to inspect generated query or mutation SQL before it reaches a database.</p>
+              <h3>Synchronize every object equally</h3>
+              <p>It spends the same bandwidth on sleeping scenery and the bodies players are actively controlling.</p>
             </article>
           </aside>
         </div>
@@ -180,6 +178,6 @@
   </div>
 
   <script src="/js/blog-common.js?v=foundation-plus-3"></script>
-  <script src="/js/portfolio.js?v=foundation-plus-5"></script>
+  <script src="/js/portfolio.js?v=foundation-plus-6"></script>
 </body>
 </html>

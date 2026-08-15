@@ -86,11 +86,16 @@ test.describe('portfolio shell', () => {
     await expect(homeGeorgie).toHaveCSS('background-image', /georgie-home-pair\.webp/);
 
     await expect(page.getByRole('heading', { name: 'Selected history' })).toBeVisible();
-    await expect(page.getByText('Totally Reliable Delivery Service', { exact: true })).toBeVisible();
-    await expect(page.getByText('Pray Orthodox', { exact: true })).toBeVisible();
+    await expect(page.locator('.archive-card h3')).toHaveText([
+      'Totally Reliable Delivery Service',
+      'Workhelix Nucleus',
+      'Calmhive',
+      'keephive',
+      'Pray Orthodox'
+    ]);
     await expect(page.getByText(/four online ragdolls can form a flying chain beneath a jetpack/i)).toBeVisible();
-    await expect(page.getByText(/4,017 OCA calendar days with feasts, fasts, saints, stories, and appointed readings/i)).toBeVisible();
-    await expect(page.getByText(/39,891 verses across 85 books for browsing and search/i)).toBeVisible();
+    await expect(page.getByText(/Orthodox prayer book and Scripture reader for daily prayer/i)).toBeVisible();
+    await expect(page.locator('.archive-section')).not.toContainText(/4,017|39,891|saints|fasting guidance|85 books/i);
     await expect(page.getByText('Live web product', { exact: true })).toBeVisible();
     await expect(page.getByText(/HRIS, AI-usage, and prompt data/i)).toBeVisible();
     await expect(page.getByText(/15\+?.*ECharts|more than 15.*ECharts/i)).toHaveCount(0);
@@ -99,7 +104,13 @@ test.describe('portfolio shell', () => {
     await expect(page.getByText(/Nine Claude Code hooks capture facts and decisions/i)).toBeVisible();
     await expect(page.getByText(/hive verify/)).toBeVisible();
     await expect(page.locator('a[href="/blog/knowledge-sidecar/"]')).toBeVisible();
-    await expect(page.locator('.archive-card h3 a')).toHaveCount(4);
+    await expect(page.getByText(/retry path for a known usage-limit response/i)).toBeVisible();
+    await expect(page.locator('.archive-card h3 a')).toHaveCount(5);
+    const { gridWidth, prayWidth } = await page.evaluate(() => ({
+      gridWidth: document.querySelector('.archive-grid').getBoundingClientRect().width,
+      prayWidth: document.querySelector('.archive-card--wide').getBoundingClientRect().width
+    }));
+    expect(Math.abs(gridWidth - prayWidth)).toBeLessThanOrEqual(2);
   });
 
   test('lays out the Dadbod system as four ordered stages', async ({ page }) => {
@@ -300,16 +311,24 @@ test.describe('portfolio pages', () => {
     await expect(page.getByText(/built (its )?interactive analytics and assessment workflows/i)).toHaveCount(0);
     await expect(page.locator('body')).not.toContainText(/immutable deployment|content-addressed|source-audited|Jest tests across|passing journeys|intentional skips|cache-bypassing|linked CI run|\d[\d,]* assertions|does not prove every database|Softrear fixture/i);
     await expect(page.getByRole('link', { name: 'Process', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('tablist', { name: 'Process case studies' }).getByRole('tab')).toHaveText([
+      'Totally Reliable',
+      'Workhelix',
+      'Dadbod Grip',
+      'Pray Orthodox'
+    ]);
+    await expect(page.getByRole('tab', { name: 'Totally Reliable' })).toHaveAttribute('aria-selected', 'true');
+    await page.getByRole('tab', { name: 'Dadbod Grip' }).click();
     await page.getByRole('tab', { name: 'Tests' }).click();
     await expect(page.getByText(/test matrix covers editing state.*generated SQL.*adapters/i)).toBeVisible();
     await expect(page.getByText('Separate desktop app')).toBeVisible();
     await expect(page.locator('.wrong-turn').first()).toHaveCSS('border-left-style', 'solid');
 
     const cases = [
-      ['Dadbod Grip', /Neovim into a data workbench/i, 'https://jorypestorious.com/dadbod-grip-web/'],
       ['Totally Reliable', /four live ragdolls stay connected in flight/i, 'https://www.totallyreliable.com/'],
-      ['Pray Orthodox', /turns Church sources into a trustworthy daily office/i, 'https://prayorthodox.com/'],
-      ['Workhelix', /presents AI-opportunity estimates to enterprise leaders/i, 'https://www.workhelix.com/platform']
+      ['Workhelix', /presents AI-opportunity estimates to enterprise leaders/i, 'https://www.workhelix.com/platform'],
+      ['Dadbod Grip', /Neovim into a data workbench/i, 'https://jorypestorious.com/dadbod-grip-web/'],
+      ['Pray Orthodox', /builds a daily prayer book from sourced Church texts/i, 'https://prayorthodox.com/']
     ];
 
     for (const [tabName, deepDiveTitle, destination] of cases) {
@@ -327,15 +346,15 @@ test.describe('portfolio pages', () => {
 
     await page.getByRole('tab', { name: 'Pray Orthodox' }).click();
     const theosisPanel = page.locator('#case-theosis');
-    await expect(page.getByText(/Open the Orthodox daily cycle in one trustworthy prayer book/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'An Orthodox prayer book and Scripture reader for daily prayer.' })).toBeVisible();
     await expect(theosisPanel).toContainText('source-pinned appointment engine');
-    await expect(theosisPanel).toContainText('Every rendered prayer retains its source and locator');
+    await expect(theosisPanel).toContainText('Incomplete required material stays out of the public schedule');
     await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Tests/ }).click();
-    await expect(page.getByText(/every exposed office and role is resolved across the supported calendar range/i)).toBeVisible();
-    await expect(page.getByText(/reject unresolved propers, unknown sources, missing locators/i)).toBeVisible();
-    await expect(page.getByText(/Browser checks open those prayer journeys on phone and desktop/i)).toBeVisible();
+    await expect(page.getByText(/resolve each public service and role across the supported calendar range/i)).toBeVisible();
+    await expect(page.getByText(/reject unresolved material, unknown sources, missing locators/i)).toBeVisible();
+    await expect(page.getByText(/Browser checks open the prayer reader on phone and desktop/i)).toBeVisible();
     await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Visual QA/ }).click();
-    await expect(page.getByText(/Vespers must show tomorrow's service day without moving today's calendar page/i)).toBeVisible();
+    await expect(page.getByText(/Prayer, directions, roles, and explanatory text remain visually distinct/i)).toBeVisible();
     await expect(page.getByRole('link', { name: 'Open the live product', exact: true })).toHaveAttribute('href', 'https://prayorthodox.com/');
     await expect(page.locator('a[href="https://github.com/joryeugene/theosis"]')).toHaveCount(0);
     await expect(page).toHaveURL(/#theosis$/);
