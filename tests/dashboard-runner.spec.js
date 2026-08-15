@@ -326,7 +326,7 @@ test.describe('dashboard and runner experience', () => {
     await expect(page.locator('#vim-content')).toContainText('Escape returns');
   });
 
-  test('Night Flight runtime assets are cache-versioned as one release', async ({ page }) => {
+  test('Vim runtime assets are cache-versioned as one release', async ({ page }) => {
     await open(page);
     const versions = await page.locator('script[src]').evaluateAll(scripts => Object.fromEntries(
       scripts
@@ -335,9 +335,9 @@ test.describe('dashboard and runner experience', () => {
         .map(url => [url.pathname, url.searchParams.get('v')])
     ));
     expect(versions).toEqual({
-      '/js/vim-help.js': 'vim-flight-1',
-      '/js/vim-teacher.js': 'vim-flight-1',
-      '/js/vim.js': 'vim-flight-1'
+      '/js/vim-help.js': 'vim-teacher-2',
+      '/js/vim-teacher.js': 'vim-teacher-2',
+      '/js/vim.js': 'vim-teacher-2'
     });
   });
 

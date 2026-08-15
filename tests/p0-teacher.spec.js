@@ -83,7 +83,7 @@ test('teacher brief never enters jump history', async ({ page }) => {
   expect((await lines(page)).join('\n')).not.toContain('[Teacher]');
 });
 
-test('teacher turns a corrupt launch into a verified postmortem', async ({ page }) => {
+test('teacher turns a false analytics report into a verified postmortem', async ({ page }) => {
   test.setTimeout(60_000);
   await open(page);
   const missionTransitionMs = [];
@@ -121,11 +121,11 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   console.log(JSON.stringify({ teacherActivationMs: activationMs }));
   expect(activationMs).toBeLessThanOrEqual(100);
   expect((await state(page)).file).toBe('[Teacher]');
-  expect((await lines(page)).join('\n')).toContain('PHALENE ANALYTICS // FIELD LAB');
+  expect((await lines(page)).join('\n')).toContain('APPLIED VIM PROJECT');
 
   page.once('dialog', dialog => dialog.accept());
   await cmd(page, 'teacher reset');
-  expect((await lines(page)).join('\n')).toContain('PHALENE ANALYTICS // FIELD LAB');
+  expect((await lines(page)).join('\n')).toContain('APPLIED VIM PROJECT');
 
   missionTransitionMs.push(await timedCmd(page, 'teacher next'));
   expect(missionTransitionMs[0]).toBeLessThanOrEqual(100);
@@ -152,9 +152,9 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   expect(lockedGolfMs).toBeLessThanOrEqual(100);
   await expect(page.locator('#vim-cmdline')).toContainText('Finish the visible result');
   expect((await state(page)).file).toBe('incident.log');
-  await search(page, 'landings=14203');
+  await search(page, 'records=14203');
   await keys(page, ['Control+o', 'Control+i', 'G']);
-  await replaceLine(page, 'ANALYST_NOTE: evt_014203 recorded 14203 landings before roof-array was online');
+  await replaceLine(page, 'ANALYST_NOTE: evt_014203 recorded 14203 records before production-api was online');
   await cmd(page, 'teacher check');
   await keys(page, [':', 'ArrowUp', 'Enter']);
   const golfMs = await timedCmd(page, 'teacher golf');
@@ -165,7 +165,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await press(page, 'Control+o');
   const scoreMs = await timedCmd(page, 'teacher score');
   expect(scoreMs).toBeLessThanOrEqual(100);
-  expect((await lines(page)).join('\n')).toContain('MOTH FLIGHT RECORDER');
+  expect((await lines(page)).join('\n')).toContain('TEACHER SESSION SUMMARY');
   await press(page, 'Control+o');
 
   missionTransitionMs.push(await openMission(page, 2, 'events.csv'));
@@ -173,24 +173,24 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await keys(page, ['/', 'ArrowUp', 'Enter', 'j', '0', '"', 'a', 'y', 'i', 'w']);
   await search(page, 'evidence_id');
   await keys(page, ['j', '0', 'd', 'i', 'w', '"', 'a', 'p']);
-  await search(page, 'candidate_sensor');
+  await search(page, 'candidate_source');
   await keys(page, ['j', '0', '"', 'b', 'y', 'i', 'w']);
   await cmd(page, 'registers a b');
   expect((await state(page)).file).toBe('[Registers]');
   expect((await lines(page)).join('\n')).toContain('"a  char  evt_014203');
-  expect((await lines(page)).join('\n')).toContain('"b  char  desk_lamp');
+  expect((await lines(page)).join('\n')).toContain('"b  char  demo_importer');
   await press(page, 'u');
   expect((await state(page)).file).toBe('events.csv');
-  await search(page, 'evidence_sensor');
+  await search(page, 'evidence_source');
   await keys(page, ['j', '0', 'd', 'i', 'w', '"', 'b', 'p']);
 
   missionTransitionMs.push(await openMission(page, 3, 'config.js'));
-  await search(page, 'desk-lamp');
+  await search(page, 'demo-importer');
   await keys(page, ['c', 'i', '"']);
-  await type(page, 'roof-array');
+  await type(page, 'production-api');
   await press(page, 'Escape');
   await search(page, 'CHANGE_NOTE');
-  await replaceLine(page, '// CHANGE_NOTE: source corrected to roof-array');
+  await replaceLine(page, '// CHANGE_NOTE: source corrected to production-api');
   await keys(page, ['g', 'g', 'g', ';', 'g', ',', '`', '.']);
 
   missionTransitionMs.push(await openMission(page, 4, 'incident.log'));
@@ -202,10 +202,10 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await keys(page, ['q', 'z', '.', 'n', 'q', '@', 'z']);
 
   missionTransitionMs.push(await openMission(page, 5, 'launch-copy.md'));
-  await search(page, 'We counted');
-  await replaceLine(page, 'Claim review: Desk-lamp counts before deployment were excluded.');
+  await search(page, 'Every imported');
+  await replaceLine(page, 'Claim review: The 14,203 demo-importer records are not production activity.');
   await search(page, 'The dashboard recorded');
-  await replaceLine(page, 'Evidence note: 14,203 was a pre-deployment desk-lamp event, not verified launch activity.');
+  await replaceLine(page, 'Evidence note: evt_014203 occurred before production-api was online.');
   await search(page, 'Approved copy');
   await keys(page, ['0', 'c', 'i', 'l']);
   await type(page, 'Approved copy: The dashboard reports REVIEWED_');
@@ -215,7 +215,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
 
   missionTransitionMs.push(await openMission(page, 6, 'runbook.md', ['cc']));
   await press(page, 'j');
-  await changeLine(page, '1. Confirm the active sensor source in config.js.');
+  await changeLine(page, '1. Confirm the active event source in config.js.');
   await press(page, 'j');
   await changeLine(page, '2. Compare event time with deployedAt.');
   await press(page, 'j');
@@ -223,16 +223,16 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await cmd(page, 'teacher check');
   await expect(page.locator('#vim-cmdline')).toContainText('Missing: Operator action:');
   await press(page, 'j');
-  await changeLine(page, 'Operator action: Verify sensor source, deployment time, and event timestamp before publishing counts.');
+  await changeLine(page, 'Operator action: Verify event source, deployment time, and event timestamp before publishing counts.');
 
-  missionTransitionMs.push(await openMission(page, 7, 'postmortem.md', ['desk_lamp', 'f_', 'r-']));
+  missionTransitionMs.push(await openMission(page, 7, 'postmortem.md', ['demo_importer', 'f_', 'r-']));
   const reportLines = [
-    'Impact: Dashboard displayed 14,203 impossible pre-deployment landings.',
-    'Evidence: evt_014203 occurred before the roof-array was online.',
-    'Root cause: The active source was desk-lamp instead of roof-array.',
-    'Repair: Config now uses roof-array and excludes pre-deployment events.',
-    'Launch copy: The dashboard reports REVIEWED_ROOF_ARRAY_EVENTS after deployment.',
-    'Runbook: Verify sensor source, deployment time, and event timestamp before publishing counts.',
+    'Impact: Dashboard displayed 14,203 unverified pre-deployment records.',
+    'Evidence: evt_014203 occurred before production-api was online.',
+    'Root cause: The active source was demo-importer instead of production-api.',
+    'Repair: Config now uses production-api.',
+    'Launch copy: The dashboard reports REVIEWED_PRODUCTION_EVENTS after deployment.',
+    'Runbook: Verify event source, deployment time, and event timestamp before publishing counts.',
     'Follow-up: Add a deployment-time validation gate before ingest.'
   ];
   await search(page, 'Impact: TODO');
@@ -243,9 +243,9 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
       await keys(page, ['0', 'c', 'i', 'l']);
       await type(page, 'Root cause: The active source was ');
       await keys(page, ['Escape', '"', 'b', 'p', 'a']);
-      await type(page, ' instead of roof-array.');
+      await type(page, ' instead of production-api.');
       await press(page, 'Escape');
-      await search(page, 'desk_lamp');
+      await search(page, 'demo_importer');
       await keys(page, ['f', '_', 'r', '-']);
     } else {
       await replaceLine(page, reportLine);
@@ -269,14 +269,14 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
 
   expect((await state(page)).file).toBe('[Teacher]');
   const completion = (await lines(page)).join('\n');
-  const completedFlightTime = completion.match(/Flight time: (\d+)s/)[1];
-  expect(completion).toContain('PROJECT COMPLETE');
-  expect(completion).toContain('MOTH FLIGHT RECORDER');
-  expect(completion).toContain('Evidence: 8/8 missions');
+  const completedActiveTime = completion.match(/Active time: (\d+)s/)[1];
+  expect(completion).toContain('APPLIED VIM PROJECT // COMPLETE');
+  expect(completion).toContain('TEACHER SESSION SUMMARY');
+  expect(completion).toContain('Progress: 8/8 missions');
   expect(completion).toContain('First-pass checks: 7/8');
-  expect(completion).toContain('Lanterns used: 1');
-  expect(completion).toContain('Course corrections: 1');
-  expect(completion).toMatch(/Command strokes: [1-9]\d*/);
+  expect(completion).toContain('Hints used: 1');
+  expect(completion).toContain('Checks retried: 1');
+  expect(completion).toMatch(/Command keystrokes: [1-9]\d*/);
   expect(completion).toContain('Skills observed: jump history, named registers');
   expect(completion).toContain('line change, character normalization');
   console.log(JSON.stringify({
@@ -289,7 +289,7 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await press(page, 'Control+o');
   expect((await state(page)).file).toBe('postmortem.md');
   expect(await lines(page)).toEqual([
-    '# Phalene Analytics Incident Postmortem',
+    '# Analytics Incident Postmortem',
     ' ',
     ...reportLines,
     'Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'
@@ -297,8 +297,8 @@ test('teacher turns a corrupt launch into a verified postmortem', async ({ page 
   await page.waitForTimeout(1200);
   await cmd(page, 'teacher');
   const recalledCompletion = (await lines(page)).join('\n');
-  expect(recalledCompletion).toContain('MOTH FLIGHT RECORDER');
-  expect(recalledCompletion.match(/Flight time: (\d+)s/)[1]).toBe(completedFlightTime);
+  expect(recalledCompletion).toContain('TEACHER SESSION SUMMARY');
+  expect(recalledCompletion.match(/Active time: (\d+)s/)[1]).toBe(completedActiveTime);
   await press(page, 'Control+o');
   expect((await state(page)).file).toBe('postmortem.md');
 });

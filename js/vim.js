@@ -3731,7 +3731,7 @@
   function teacherScoreLines() {
     var teacher = teacherPackage();
     var stats = state.teacherStats;
-    if (!teacher || !stats) return ['MOTH FLIGHT RECORDER', '', 'No flight has started.'];
+    if (!teacher || !stats) return ['TEACHER SESSION SUMMARY', '', 'No project has started.'];
     var completed = stats.missionResults.length;
     var firstPass = 0;
     var hints = 0;
@@ -3761,20 +3761,20 @@
     }
     var elapsedSeconds = Math.max(0, Math.round(((stats.finishedAt || performance.now()) - stats.startedAt) / 1000));
     return [
-      'MOTH FLIGHT RECORDER',
+      'TEACHER SESSION SUMMARY',
       '',
-      'Evidence: ' + completed + '/' + teacher.missions.length + ' missions',
+      'Progress: ' + completed + '/' + teacher.missions.length + ' missions',
       'First-pass checks: ' + firstPass + '/' + completed,
-      'Lanterns used: ' + hints,
-      'Course corrections: ' + corrections,
-      'Command strokes: ' + strokes,
+      'Hints used: ' + hints,
+      'Checks retried: ' + corrections,
+      'Command keystrokes: ' + strokes,
       'Skills observed: ' + (skills.length ? skills.join(', ') : 'none yet'),
-      'Flight time: ' + elapsedSeconds + 's'
+      'Active time: ' + elapsedSeconds + 's'
     ];
   }
 
   function teacherCompletionLines() {
-    return teacherScoreLines().concat(['', 'The moon was not rebooted.']);
+    return teacherScoreLines();
   }
 
   function teacherGuideLines(showHint) {
@@ -3785,7 +3785,7 @@
 
     var mission = teacher.missions[state.teacherMission];
     var guide = [
-      'PHALENE ANALYTICS // MISSION ' + (state.teacherMission + 1) + ' OF ' + teacher.missions.length,
+      'APPLIED VIM PROJECT // MISSION ' + (state.teacherMission + 1) + ' OF ' + teacher.missions.length,
       '',
       mission.title,
       'File: ' + mission.file,
@@ -3991,7 +3991,7 @@
       return;
     }
     if (arg === 'score') {
-      teacherShowGuide(false, 'Flight log open. Ctrl-O returns.',
+      teacherShowGuide(false, 'Session summary open. Ctrl-O returns.',
         teacherScoreLines());
       return;
     }
