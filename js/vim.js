@@ -54,23 +54,23 @@
       ''
     ];
     var launcher = compact ? [
-      dashboardCell(':tutor', 'guided lesson'),
-      dashboardCell(':teacher', 'applied project'),
+      dashboardCell(':tutor', 'classic tutorial'),
+      dashboardCell(':teacher', 'core course'),
       dashboardCell(':Ex', 'browse files'),
       dashboardCell(':help', 'manual'),
       dashboardCell(':jumps', 'jump history')
     ] : narrow ? [
       dashboardCell('Ctrl-P', 'commands'),
-      dashboardCell(':tutor', 'guided lesson'),
-      dashboardCell(':teacher', 'applied project'),
+      dashboardCell(':tutor', 'classic tutorial'),
+      dashboardCell(':teacher', 'core course'),
       dashboardCell(':Ex', 'browse files'),
       dashboardCell(':moth', 'kinetic field'),
       dashboardCell(':snake', 'play'),
       dashboardCell(':help', 'manual'),
       dashboardCell(':jumps', 'jump history')
     ] : [
-      dashboardPair('Ctrl-P', 'commands', ':tutor', 'guided lesson'),
-      dashboardPair(':teacher', 'applied project', ':Ex', 'browse files'),
+      dashboardPair('Ctrl-P', 'commands', ':tutor', 'classic tutorial'),
+      dashboardPair(':teacher', 'core course', ':Ex', 'browse files'),
       dashboardPair(':snake', 'play', ':moth', 'kinetic field'),
       dashboardPair(':help', 'manual', ':jumps', 'jump history')
     ];
@@ -99,13 +99,13 @@
       '',
       'tap anywhere to type',
       'read my pick:  :e friction-economy then press Enter',
-      'new to Vim?  type :tutor then press Enter',
-      'ready to apply it?  type :teacher then press Enter'
+      'learn Vim by editing?  type :teacher then press Enter',
+      'want the incident project?  type :teacher project then press Enter'
     ] : [
       '',
       'read my pick:  :e friction-economy then press Enter',
-      'new to Vim?  type :tutor then press Enter',
-      'ready to apply it?  type :teacher then press Enter'
+      'learn Vim by editing?  type :teacher then press Enter',
+      'want the incident project?  type :teacher project then press Enter'
     ];
     var guideStart = header.length;
     var guideEnd = guideStart + guide.length;
@@ -134,7 +134,7 @@
     var fcr = padTop;
     var fcc = 0;
     for (var fc = 0; fc < content.length; fc++) {
-      if (content[fc].indexOf('new to Vim?') !== -1 || content[fc].indexOf('tap anywhere') !== -1) {
+      if (content[fc].indexOf('learn Vim by editing?') !== -1 || content[fc].indexOf('tap anywhere') !== -1) {
         fcr = padTop + fc;
         fcc = Math.max(0, Math.floor((cols - content[fc].length) / 2));
         break;
@@ -156,7 +156,12 @@
   // File explorer (:Ex, :Explore) - netrw-style blog file browser
   // -------------------------------------------------------------------------
   function buildExplorer() {
-    var names = Object.keys(blogFiles).sort();
+    var nameSet = {};
+    var blogNames = Object.keys(blogFiles);
+    var teacherNames = teacherExplorerNames();
+    for (var bi = 0; bi < blogNames.length; bi++) nameSet[blogNames[bi]] = true;
+    for (var ti = 0; ti < teacherNames.length; ti++) nameSet[teacherNames[ti]] = true;
+    var names = Object.keys(nameSet).sort();
     var maxLen = 0;
     for (var mi = 0; mi < names.length; mi++) {
       if (names[mi].length > maxLen) maxLen = names[mi].length;
@@ -204,7 +209,7 @@
     var expLines = buildExplorer();
     pushJump();
     switchDocument('explorer', 'netrw', expLines, expLines.firstFileRow || 0, expLines.padLeft || 0);
-    setStatus('"netrw" ' + Object.keys(blogFiles).length + ' files');
+    setStatus('"netrw" ' + (Object.keys(blogFiles).length + teacherExplorerNames().length) + ' files');
     render();
   }
 
@@ -295,6 +300,10 @@
     macroLastRecorded: null,
     replayContext: null,
     teacherMission: null,
+    teacherTrack: null,
+    teacherHintLevel: 0,
+    teacherProgress: null,
+    teacherReviewId: null,
     teacherReturn: null,
     teacherStats: null,
     expandtab: true,
@@ -2289,11 +2298,19 @@
           else if (dc % 4 === 0) escaped += '<span class="vim-dashboard-command">' + escHtml(cells[dc]) + '</span>';
           else escaped += '<span class="vim-dashboard-description">' + escHtml(cells[dc]) + '</span>';
         }
-      } else if (state.mode === 'normal' && !state.searchPattern && /read my pick:|new to Vim\?|ready to apply it\?/.test(line)) {
-        escaped = escHtml(line)
-          .replace(':e friction-economy', '<span class="vim-dashboard-command">:e friction-economy</span>')
-          .replace(':tutor', '<span class="vim-dashboard-command">:tutor</span>')
-          .replace(':teacher', '<span class="vim-dashboard-command">:teacher</span>');
+      } else if (state.mode === 'normal' && !state.searchPattern &&
+          /read my pick:|learn Vim by editing\?|want the incident project\?/.test(line)) {
+        escaped = escHtml(line);
+        if (line.indexOf(':e friction-economy') !== -1) {
+          escaped = escaped.replace(':e friction-economy',
+            '<span class="vim-dashboard-command">:e friction-economy</span>');
+        } else if (line.indexOf(':teacher project') !== -1) {
+          escaped = escaped.replace(':teacher project',
+            '<span class="vim-dashboard-command">:teacher project</span>');
+        } else {
+          escaped = escaped.replace(':teacher',
+            '<span class="vim-dashboard-command">:teacher</span>');
+        }
       }
     }
 
@@ -2407,7 +2424,9 @@
   function render() {
     if (state.immersiveMode) return;
     state.dashboard = isWelcomeBuffer();
-    document.getElementById('vim-editor').classList.toggle('dashboard', state.dashboard);
+    var editor = document.getElementById('vim-editor');
+    editor.classList.toggle('dashboard', state.dashboard);
+    editor.classList.toggle('teacher-guide', isTeacherGuide());
     // Track line text for U (undo all changes on line)
     if (state.cursor.row !== state.lineUndoRow) {
       state.lineUndoRow = state.cursor.row;
@@ -3512,7 +3531,8 @@
     { label: 'New empty buffer', command: 'enew' },
     { label: 'Browse files', command: 'Ex' },
     { label: 'Open Vim tutor', command: 'tutor' },
-    { label: 'Start the applied Vim teacher project', command: 'teacher' },
+    { label: 'Start the Vim teacher course', command: 'teacher' },
+    { label: 'Start the applied Vim incident project', command: 'teacher project' },
     { label: 'Open command reference', command: 'help' },
     { label: 'Enter kinetic moth field', command: 'moth' },
     { label: 'Play Snake', command: 'snake' },
@@ -3646,17 +3666,198 @@
   }
 
   // -------------------------------------------------------------------------
-  // Applied teacher project
+  // Vim teacher course and applied project
   // -------------------------------------------------------------------------
+  var TEACHER_PROGRESS_KEY = 'vim_teacher_progress_v2';
+
   function teacherPackage() {
     return window.VIM_TEACHER || null;
   }
 
-  function teacherDocumentId(filename) {
-    return 'teacher:' + filename;
+  function teacherTrackData(trackId) {
+    var teacher = teacherPackage();
+    if (!teacher) return null;
+    return trackId === 'project' ? teacher.project : teacher.course;
+  }
+
+  function teacherActiveTrack() {
+    return teacherTrackData(state.teacherTrack || 'course');
+  }
+
+  function teacherItems(track) {
+    if (!track) return [];
+    return track.lessons || track.missions || [];
+  }
+
+  function teacherItemLabel() {
+    return state.teacherTrack === 'project' ? 'Mission' : 'Lesson';
+  }
+
+  function teacherDocumentId(filename, trackId) {
+    return 'teacher:' + (trackId || state.teacherTrack || 'course') + ':' + filename;
+  }
+
+  function teacherDocumentByFilename(filename) {
+    if (!filename || !state.teacherTrack) return null;
+    var documentId = teacherDocumentId(filename);
+    var document = state.documents[documentId];
+    return document ? { documentId: documentId, document: document } : null;
+  }
+
+  function teacherExplorerNames() {
+    var track = teacherActiveTrack();
+    return track ? Object.keys(track.files || {}) : [];
+  }
+
+  function teacherEmptyProgress() {
+    return {
+      version: 2,
+      completedLessons: [],
+      completedProjectMissions: [],
+      reviews: {},
+      summaries: { hints: 0, retriedChecks: 0, observedSkills: [] }
+    };
+  }
+
+  function teacherLoadProgress() {
+    if (state.teacherProgress) return state.teacherProgress;
+    var progress = teacherEmptyProgress();
+    try {
+      var stored = JSON.parse(localStorage.getItem(TEACHER_PROGRESS_KEY) || 'null');
+      if (stored && stored.version === 2) {
+        progress.completedLessons = Array.isArray(stored.completedLessons) ? stored.completedLessons.slice() : [];
+        progress.completedProjectMissions = Array.isArray(stored.completedProjectMissions) ? stored.completedProjectMissions.slice() : [];
+        progress.reviews = stored.reviews && typeof stored.reviews === 'object' ? stored.reviews : {};
+        if (stored.summaries && typeof stored.summaries === 'object') {
+          progress.summaries.hints = Number(stored.summaries.hints) || 0;
+          progress.summaries.retriedChecks = Number(stored.summaries.retriedChecks) || 0;
+          progress.summaries.observedSkills = Array.isArray(stored.summaries.observedSkills)
+            ? stored.summaries.observedSkills.slice() : [];
+        }
+      }
+    } catch (e) {}
+    state.teacherProgress = progress;
+    return progress;
+  }
+
+  function teacherSaveProgress() {
+    if (!state.teacherProgress) return;
+    try {
+      localStorage.setItem(TEACHER_PROGRESS_KEY, JSON.stringify(state.teacherProgress));
+    } catch (e) {
+      setStatus('Teacher progress is available for this session only.');
+    }
+  }
+
+  function teacherCompletedIds() {
+    var progress = teacherLoadProgress();
+    return state.teacherTrack === 'project'
+      ? progress.completedProjectMissions : progress.completedLessons;
+  }
+
+  function teacherFirstIncomplete() {
+    var items = teacherItems(teacherActiveTrack());
+    var completed = teacherCompletedIds();
+    for (var i = 0; i < items.length; i++) {
+      if (completed.indexOf(items[i].id) === -1) return i;
+    }
+    return items.length;
+  }
+
+  function teacherDueReview(now) {
+    var teacher = teacherPackage();
+    var lessons = teacher ? teacherItems(teacher.course) : [];
+    var progress = teacherLoadProgress();
+    var due = null;
+    now = now || Date.now();
+    for (var i = 0; i < lessons.length; i++) {
+      if (progress.completedLessons.indexOf(lessons[i].id) === -1) continue;
+      var dates = Array.isArray(progress.reviews[lessons[i].id])
+        ? progress.reviews[lessons[i].id] : [];
+      for (var di = 0; di < dates.length; di++) {
+        var time = Number(dates[di]);
+        if (time <= now && (!due || time < due.time)) {
+          due = { id: lessons[i].id, lessonIndex: i, time: time };
+        }
+      }
+    }
+    return due;
+  }
+
+  function teacherDueReviewCount(now) {
+    var teacher = teacherPackage();
+    var lessons = teacher ? teacherItems(teacher.course) : [];
+    var progress = teacherLoadProgress();
+    var count = 0;
+    now = now || Date.now();
+    for (var i = 0; i < lessons.length; i++) {
+      if (progress.completedLessons.indexOf(lessons[i].id) === -1) continue;
+      var dates = Array.isArray(progress.reviews[lessons[i].id])
+        ? progress.reviews[lessons[i].id] : [];
+      for (var di = 0; di < dates.length; di++) {
+        if (Number(dates[di]) <= now) {
+          count++;
+          break;
+        }
+      }
+    }
+    return count;
+  }
+
+  function teacherExportProgress() {
+    var progress = teacherLoadProgress();
+    var reviews = {};
+    Object.keys(progress.reviews).forEach(function(id) {
+      if (Array.isArray(progress.reviews[id])) reviews[id] = progress.reviews[id].slice();
+    });
+    var exported = {
+      version: 2,
+      completedLessons: progress.completedLessons.slice(),
+      completedProjectMissions: progress.completedProjectMissions.slice(),
+      reviews: reviews,
+      summaries: {
+        hints: progress.summaries.hints,
+        retriedChecks: progress.summaries.retriedChecks,
+        observedSkills: progress.summaries.observedSkills.slice()
+      }
+    };
+    downloadText(JSON.stringify(exported, null, 2) + '\n', 'vim-teacher-progress.json');
+    setStatus('Teacher progress exported without file contents or key history.');
+  }
+
+  function teacherMarkComplete(item, result) {
+    if (!item || !item.id) return;
+    var progress = teacherLoadProgress();
+    var completed = teacherCompletedIds();
+    var firstCompletion = completed.indexOf(item.id) === -1;
+    if (firstCompletion) completed.push(item.id);
+    progress.summaries.hints += result ? result.hints : 0;
+    progress.summaries.retriedChecks += result ? result.failedChecks : 0;
+    var skills = result ? result.skills : [];
+    for (var i = 0; i < skills.length; i++) {
+      if (progress.summaries.observedSkills.indexOf(skills[i]) === -1) {
+        progress.summaries.observedSkills.push(skills[i]);
+      }
+    }
+    if (state.teacherTrack === 'course' && firstCompletion) {
+      var now = Date.now();
+      progress.reviews[item.id] = [1, 3, 7].map(function(days) {
+        return now + days * 86400000;
+      });
+    } else if (state.teacherTrack === 'course' && state.teacherReviewId === item.id) {
+      var reviewedAt = Date.now();
+      progress.reviews[item.id] = (progress.reviews[item.id] || []).filter(function(time) {
+        return Number(time) > reviewedAt;
+      });
+      state.teacherReviewId = null;
+    }
+    teacherSaveProgress();
   }
 
   var TEACHER_SKILL_TESTS = [
+    ['safe mode changes', /Escape/],
+    ['undo and redo', /u <C-r>/],
+    ['operator grammar', /[dcy] [wWeE$]|d d|c c|y y/],
     ['jump history', /<C-[oi]>/],
     ['named registers', /" [a-z]/],
     ['changelist', /g [;,]/],
@@ -3693,24 +3894,26 @@
 
   function teacherFinishMissionStats() {
     var stats = state.teacherStats;
-    if (!stats || !stats.missionStartedAt) return;
-    stats.missionResults.push({
+    if (!stats || !stats.missionStartedAt) return null;
+    var result = {
       completedMs: Math.max(0, performance.now() - stats.missionStartedAt),
       hints: stats.currentHints,
       failedChecks: stats.currentFailedChecks,
       commandStrokes: stats.currentCommandStrokes,
       skills: teacherObservedSkills(stats.currentTokens)
-    });
+    };
+    stats.missionResults.push(result);
     stats.missionStartedAt = 0;
     stats.currentTokens = [];
+    return result;
   }
 
   function teacherRecordInput(e) {
     var stats = state.teacherStats;
-    var teacher = teacherPackage();
-    var mission = teacher && state.teacherMission >= 0 &&
-      state.teacherMission < teacher.missions.length
-      ? teacher.missions[state.teacherMission] : null;
+    var track = teacherActiveTrack();
+    var items = teacherItems(track);
+    var mission = state.teacherMission >= 0 && state.teacherMission < items.length
+      ? items[state.teacherMission] : null;
     if (!stats || !mission || state.replayContext ||
         state.documentId !== teacherDocumentId(mission.file)) return;
     if (e.key === 'Shift' || e.key === 'Control' ||
@@ -3729,9 +3932,10 @@
   }
 
   function teacherScoreLines() {
-    var teacher = teacherPackage();
+    var track = teacherActiveTrack();
     var stats = state.teacherStats;
-    if (!teacher || !stats) return ['TEACHER SESSION SUMMARY', '', 'No project has started.'];
+    if (!track || !stats) return ['TEACHER SESSION SUMMARY', '', 'No teacher session has started.'];
+    var items = teacherItems(track);
     var completed = stats.missionResults.length;
     var firstPass = 0;
     var hints = 0;
@@ -3746,7 +3950,7 @@
       strokes += result.commandStrokes;
       for (var si = 0; si < result.skills.length; si++) observed[result.skills[si]] = true;
     }
-    if (state.teacherMission >= 0 && state.teacherMission < teacher.missions.length &&
+    if (state.teacherMission >= 0 && state.teacherMission < items.length &&
         stats.missionStartedAt) {
       hints += stats.currentHints;
       corrections += stats.currentFailedChecks;
@@ -3760,10 +3964,12 @@
       if (observed[skillName]) skills.push(skillName);
     }
     var elapsedSeconds = Math.max(0, Math.round(((stats.finishedAt || performance.now()) - stats.startedAt) / 1000));
+    var unit = state.teacherTrack === 'project' ? 'missions' : 'lessons';
     return [
       'TEACHER SESSION SUMMARY',
       '',
-      'Progress: ' + completed + '/' + teacher.missions.length + ' missions',
+      'Track: ' + (state.teacherTrack === 'project' ? 'applied project' : 'core course'),
+      'Progress: ' + completed + '/' + items.length + ' ' + unit,
       'First-pass checks: ' + firstPass + '/' + completed,
       'Hints used: ' + hints,
       'Checks retried: ' + corrections,
@@ -3778,21 +3984,35 @@
   }
 
   function teacherGuideLines(showHint) {
-    var teacher = teacherPackage();
-    if (!teacher) return ['Teacher content unavailable.'];
-    if (state.teacherMission === null || state.teacherMission < 0) return teacher.intro.slice();
-    if (state.teacherMission >= teacher.missions.length) return teacher.done.slice();
+    var track = teacherActiveTrack();
+    if (!track) return ['Teacher content unavailable.'];
+    var items = teacherItems(track);
+    if (state.teacherMission === null || state.teacherMission < 0) return track.intro.slice();
+    if (state.teacherMission >= items.length) return track.done.slice();
 
-    var mission = teacher.missions[state.teacherMission];
+    var mission = items[state.teacherMission];
+    var course = state.teacherTrack !== 'project';
+    var review = course && state.teacherReviewId === mission.id;
     var guide = [
-      'APPLIED VIM PROJECT // MISSION ' + (state.teacherMission + 1) + ' OF ' + teacher.missions.length,
+      (course ? (review
+        ? 'VIM TEACHER // REVIEW // LESSON '
+        : 'VIM TEACHER // LESSON ') : 'APPLIED VIM PROJECT // MISSION ') +
+        (state.teacherMission + 1) + ' OF ' + items.length,
       '',
       mission.title,
-      'File: ' + mission.file,
-      '',
-      'WORK REQUEST:'
+      'File: ' + mission.file
     ];
+    if (mission.purpose) guide.push('', 'PURPOSE:', '  ' + mission.purpose);
+    if (!review && mission.worked && mission.worked.length) {
+      guide.push('', 'WORKED EXAMPLE:');
+      for (var wi = 0; wi < mission.worked.length; wi++) guide.push('  ' + mission.worked[wi]);
+    }
+    guide.push('', review ? 'RETRIEVAL TASK:' : (course ? 'GUIDED PRACTICE:' : 'WORK REQUEST:'));
     for (var i = 0; i < mission.request.length; i++) guide.push('  ' + mission.request[i]);
+    if (mission.transfer && mission.transfer.length) {
+      guide.push('', 'INDEPENDENT TRANSFER:');
+      for (var ti = 0; ti < mission.transfer.length; ti++) guide.push('  ' + mission.transfer[ti]);
+    }
     guide.push('', 'OBSERVABLE RESULT:');
     for (var j = 0; j < mission.outcome.length; j++) guide.push('  ' + mission.outcome[j]);
     guide.push(
@@ -3801,12 +4021,39 @@
       'Use :teacher next when the work is ready.',
       'Press Ctrl-O to return to ' + mission.file + '.'
     );
-    if (showHint) guide.push('', 'HINT:', '  ' + mission.hint);
+    if (showHint) {
+      var hints = mission.hints || [mission.hint];
+      var hintLevel = Math.max(1, Math.min(state.teacherHintLevel, hints.length));
+      guide.push('', 'HINT ' + hintLevel + ' OF ' + hints.length + ':',
+        '  ' + hints[hintLevel - 1]);
+    }
     return guide;
+  }
+
+  function teacherMapLines() {
+    var teacher = teacherPackage();
+    var progress = teacherLoadProgress();
+    var lessons = teacherItems(teacher.course);
+    var project = teacherItems(teacher.project);
+    var lines = ['VIM TEACHER // COURSE MAP', ''];
+    for (var i = 0; i < lessons.length; i++) {
+      lines.push((progress.completedLessons.indexOf(lessons[i].id) !== -1 ? '[x] ' : '[ ] ') +
+        (i + 1) + '. ' + lessons[i].title);
+    }
+    lines.push('', 'Reviews due: ' + teacherDueReviewCount(),
+      'Applied project: ' + progress.completedProjectMissions.length +
+      '/' + project.length + ' missions complete', '',
+      'Use :teacher lesson N to open a lesson.',
+      'Use :teacher project to open the applied project.');
+    return lines;
   }
 
   function isTeacherGuide() {
     return state.documentId === 'teacher:guide';
+  }
+
+  function isTeacherDocument() {
+    return state.documentId.indexOf('teacher:') === 0;
   }
 
   function teacherCaptureReturn() {
@@ -3874,13 +4121,19 @@
     render();
   }
 
-  function teacherStart() {
+  function teacherStart(trackId, resetFiles) {
     var teacher = teacherPackage();
     if (!teacher) {
       setStatus('Teacher content unavailable.');
       return;
     }
 
+    trackId = trackId === 'project' ? 'project' : 'course';
+    var track = teacherTrackData(trackId);
+    state.teacherTrack = trackId;
+    state.teacherHintLevel = 0;
+    state.teacherReviewId = null;
+    teacherLoadProgress();
     state.teacherStats = {
       startedAt: performance.now(),
       finishedAt: 0,
@@ -3888,17 +4141,29 @@
       missionResults: []
     };
     teacherCaptureReturn();
-    switchDocument('teacher:guide', '[Teacher]', teacher.intro, 0, 0);
-    var filenames = Object.keys(teacher.files);
+    switchDocument('teacher:guide', '[Teacher]', track.intro, 0, 0);
+    var filenames = Object.keys(track.files);
     for (var i = 0; i < filenames.length; i++) {
       var filename = filenames[i];
-      state.documents[teacherDocumentId(filename)] = {
-        filename: filename,
-        lines: teacher.files[filename].slice()
-      };
+      var documentId = teacherDocumentId(filename, trackId);
+      if (resetFiles || !state.documents[documentId]) {
+        state.documents[documentId] = {
+          filename: filename,
+          lines: track.files[filename].slice()
+        };
+      }
     }
     state.teacherMission = -1;
-    setStatus(':teacher opened. Type :teacher next to start.');
+    setStatus(trackId === 'project'
+      ? 'Applied project opened. Type :teacher next to start.'
+      : 'Vim course opened. Type :teacher next to start Lesson 1.');
+    render();
+  }
+
+  function teacherShowLines(lines, status) {
+    teacherCaptureReturn();
+    switchDocument('teacher:guide', '[Teacher]', lines, 0, 0);
+    setStatus(status);
     render();
   }
 
@@ -3909,13 +4174,14 @@
     switchDocument('teacher:guide', '[Teacher]', guide, 0, 0);
     setStatus(status || (showHint
       ? 'Hint opened. Ctrl-O returns to the work.'
-      : 'Mission brief opened. Ctrl-O returns to the work.'));
+      : teacherItemLabel() + ' brief opened. Ctrl-O returns to the work.'));
     render();
   }
 
   function teacherOpenMission() {
-    var teacher = teacherPackage();
-    var mission = teacher.missions[state.teacherMission];
+    var track = teacherActiveTrack();
+    var items = teacherItems(track);
+    var mission = items[state.teacherMission];
     var document = state.documents[teacherDocumentId(mission.file)];
     if (!document) {
       setStatus('Teacher file unavailable: ' + mission.file);
@@ -3925,22 +4191,24 @@
       teacherDocumentId(mission.file),
       document.filename,
       document.lines,
-      'Mission ' + (state.teacherMission + 1) + ' of ' + teacher.missions.length + ': ' + mission.title
+      teacherItemLabel() + ' ' + (state.teacherMission + 1) + ' of ' + items.length + ': ' + mission.title
     );
   }
 
   function teacherOpenMissionBrief() {
+    state.teacherHintLevel = 0;
     teacherStartMissionStats();
     teacherOpenMission();
     teacherShowGuide(false);
   }
 
   function teacherCheckMission() {
-    var teacher = teacherPackage();
+    var track = teacherActiveTrack();
+    var items = teacherItems(track);
     if (state.teacherMission < 0) return 'Type :teacher next to start.';
-    if (state.teacherMission >= teacher.missions.length) return null;
+    if (state.teacherMission >= items.length) return null;
 
-    var mission = teacher.missions[state.teacherMission];
+    var mission = items[state.teacherMission];
     if (state.documentId !== teacherDocumentId(mission.file)) {
       return 'Return to ' + mission.file + ' before checking this mission.';
     }
@@ -3948,14 +4216,22 @@
     var document = state.documents[teacherDocumentId(mission.file)];
     var text = document ? document.lines.join('\n') : '';
     var i;
+    var textLines = text.split('\n');
+    var rejectLines = mission.rejectLines || [];
+    for (i = 0; i < rejectLines.length; i++) {
+      if (textLines.indexOf(rejectLines[i]) !== -1) {
+        return 'Remove or replace: ' + rejectLines[i];
+      }
+    }
     for (i = 0; i < mission.reject.length; i++) {
       if (text.indexOf(mission.reject[i]) !== -1) {
         return 'Remove or replace: ' + mission.reject[i].replace(/\n/g, ' | ');
       }
     }
-    for (i = 0; i < mission.expect.length; i++) {
-      if (text.indexOf(mission.expect[i]) === -1) {
-        return 'Missing: ' + mission.expect[i].replace(/\n/g, ' | ');
+    var expected = mission.expect || mission.outcome;
+    for (i = 0; i < expected.length; i++) {
+      if (text.indexOf(expected[i]) === -1) {
+        return 'Missing: ' + expected[i].replace(/\n/g, ' | ');
       }
     }
     return null;
@@ -3967,26 +4243,99 @@
       setStatus('Teacher content unavailable.');
       return;
     }
+    if (arg === 'export') {
+      teacherExportProgress();
+      return;
+    }
+    if (arg === 'reset') {
+      if (window.confirm('Reset Teacher progress and restore its bundled files?')) {
+        try { localStorage.removeItem(TEACHER_PROGRESS_KEY); } catch (e) {}
+        state.teacherProgress = teacherEmptyProgress();
+        state.teacherReviewId = null;
+        Object.keys(state.documents).forEach(function(documentId) {
+          if (/^teacher:(?:course|project):/.test(documentId)) {
+            delete state.documents[documentId];
+          }
+        });
+        if (state.teacherMission === null) {
+          setStatus('Teacher progress reset. Start with :teacher.');
+        } else {
+          teacherStart(state.teacherTrack, true);
+        }
+      }
+      else setStatus('Teacher reset canceled.');
+      return;
+    }
+    if (arg === 'review') {
+      var dueReview = teacherDueReview();
+      if (!dueReview) {
+        setStatus('No teacher review is due.');
+        return;
+      }
+      if (state.teacherTrack !== 'course') teacherStart('course');
+      state.teacherReviewId = dueReview.id;
+      state.teacherMission = dueReview.lessonIndex;
+      var reviewLesson = teacherItems(teacher.course)[dueReview.lessonIndex];
+      state.documents[teacherDocumentId(reviewLesson.file, 'course')] = {
+        filename: reviewLesson.file,
+        lines: teacher.course.files[reviewLesson.file].slice()
+      };
+      teacherOpenMissionBrief();
+      setStatus('Review opened. Complete the file without relying on the worked route.');
+      return;
+    }
+    var lessonMatch = arg.match(/^lesson\s+(\d+)$/);
+    if (lessonMatch) {
+      var lessonIndex = parseInt(lessonMatch[1], 10) - 1;
+      var courseItems = teacherItems(teacher.course);
+      if (lessonIndex < 0 || lessonIndex >= courseItems.length) {
+        setStatus('Lesson number must be between 1 and ' + courseItems.length + '.');
+        return;
+      }
+      if (state.teacherTrack !== 'course') teacherStart('course');
+      state.teacherMission = lessonIndex;
+      teacherOpenMissionBrief();
+      return;
+    }
     if (state.teacherMission === null) {
-      if (!arg) {
-        teacherStart();
+      if (!arg || arg === 'map') {
+        teacherStart('course');
+        if (arg === 'map') teacherShowLines(teacherMapLines(), 'Course map open.');
+      } else if (arg === 'project') {
+        teacherStart('project');
       } else {
-        setStatus('Start the project with :teacher.');
+        setStatus('Start the course with :teacher or the project with :teacher project.');
       }
       return;
     }
+    if (arg === 'project') {
+      if (state.teacherTrack !== 'project') teacherStart('project');
+      else teacherShowGuide(false);
+      return;
+    }
+    if (arg === 'map') {
+      teacherShowLines(teacherMapLines(), 'Course map open.');
+      return;
+    }
+    var track = teacherActiveTrack();
+    var items = teacherItems(track);
     if (!arg) {
       teacherShowGuide(false, null,
-        state.teacherMission >= teacher.missions.length ? teacherCompletionLines() : null);
+        state.teacherMission >= items.length ? teacherCompletionLines() : null);
       return;
     }
     if (arg === 'hint') {
-      if (state.teacherMission >= teacher.missions.length) {
-        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.',
+      if (state.teacherMission >= items.length) {
+        teacherShowGuide(false, teacherItemLabel() + ' work is complete. Ctrl-O returns.',
           teacherCompletionLines());
         return;
       }
-      if (state.teacherMission >= 0 && state.teacherStats) state.teacherStats.currentHints++;
+      if (state.teacherMission >= 0 && state.teacherStats) {
+        var current = items[state.teacherMission];
+        var hintCount = (current.hints || [current.hint]).length;
+        state.teacherHintLevel = Math.min(hintCount, state.teacherHintLevel + 1);
+        state.teacherStats.currentHints++;
+      }
       teacherShowGuide(true);
       return;
     }
@@ -3996,12 +4345,12 @@
       return;
     }
     if (arg === 'golf') {
-      if (state.teacherMission < 0 || state.teacherMission >= teacher.missions.length ||
+      if (state.teacherMission < 0 || state.teacherMission >= items.length ||
           teacherCheckMission()) {
         setStatus('Finish the visible result before opening the golf route.');
         return;
       }
-      var golf = teacher.missions[state.teacherMission].golf;
+      var golf = items[state.teacherMission].golf;
       teacherShowGuide(false, 'Golf route open. Ctrl-O returns.', [
         'VIM GOLF AFTER THE RESULT',
         'Route: ' + golf[0],
@@ -4010,29 +4359,34 @@
       return;
     }
     if (arg === 'check') {
-      if (state.teacherMission >= teacher.missions.length) {
-        setStatus('Project complete.');
+      if (state.teacherMission >= items.length) {
+        setStatus((state.teacherTrack === 'project' ? 'Project' : 'Course') + ' complete.');
         return;
       }
       var unmet = teacherCheckMission();
       if (unmet) state.teacherStats.currentFailedChecks++;
-      setStatus(unmet || ('Mission ' + (state.teacherMission + 1) +
+      setStatus(unmet || (teacherItemLabel() + ' ' + (state.teacherMission + 1) +
         ' ready. Use :teacher golf or :teacher next.'));
-      return;
-    }
-    if (arg === 'reset') {
-      if (window.confirm('Reset the six teacher files and restart the project?')) teacherStart();
-      else setStatus('Teacher reset canceled.');
       return;
     }
     if (arg === 'next') {
       if (state.teacherMission < 0) {
-        state.teacherMission = 0;
+        state.teacherMission = teacherFirstIncomplete();
+        if (state.teacherMission >= items.length) {
+          state.teacherStats.finishedAt = performance.now();
+          teacherShowGuide(false, (state.teacherTrack === 'project'
+            ? 'Project complete. Ctrl-O returns to the postmortem.'
+            : 'Core course complete. Use :teacher project for the applied project.'),
+            teacherCompletionLines());
+          return;
+        }
         teacherOpenMissionBrief();
         return;
       }
-      if (state.teacherMission >= teacher.missions.length) {
-        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.',
+      if (state.teacherMission >= items.length) {
+        teacherShowGuide(false, (state.teacherTrack === 'project'
+          ? 'Project complete. Ctrl-O returns to the postmortem.'
+          : 'Core course complete. Use :teacher project for the applied project.'),
           teacherCompletionLines());
         return;
       }
@@ -4042,18 +4396,24 @@
         setStatus(missing);
         return;
       }
-      teacherFinishMissionStats();
-      state.teacherMission++;
-      if (state.teacherMission >= teacher.missions.length) {
+      var completedItem = items[state.teacherMission];
+      var result = teacherFinishMissionStats();
+      teacherMarkComplete(completedItem, result);
+      state.teacherMission = state.teacherTrack === 'course'
+        ? teacherFirstIncomplete()
+        : state.teacherMission + 1;
+      if (state.teacherMission >= items.length) {
         state.teacherStats.finishedAt = performance.now();
-        teacherShowGuide(false, 'Project complete. Ctrl-O returns to the postmortem.',
+        teacherShowGuide(false, (state.teacherTrack === 'project'
+          ? 'Project complete. Ctrl-O returns to the postmortem.'
+          : 'Core course complete. Use :teacher project for the applied project.'),
           teacherCompletionLines());
       } else {
         teacherOpenMissionBrief();
       }
       return;
     }
-    setStatus('Usage: :teacher [next|check|hint|score|golf|reset]');
+    setStatus('Usage: :teacher [map|next|check|hint|lesson N|review|project|score|golf|export|reset]');
   }
 
   // -------------------------------------------------------------------------
@@ -4114,7 +4474,7 @@
     }
     if (cmd === 'w') {
       downloadText(state.lines.join('\n'), state.filename);
-      saveToLocalFS(state.filename, state.lines.join('\n'));
+      if (!isTeacherDocument()) saveToLocalFS(state.filename, state.lines.join('\n'));
       return;
     }
     if (cmd.slice(0, 2) === 'w ') {
@@ -4242,9 +4602,17 @@
     }
     if (cmd === 'e' || cmd.slice(0, 2) === 'e ') {
       var eFname = cmd.slice(2).trim();
+      var eTeacher = teacherDocumentByFilename(eFname);
       var eStored = readFromLocalFS(eFname);
       var ePath = resolveBlogPath(eFname);
-      if (eStored !== null) {
+      if (eTeacher) {
+        pushUndo(false);
+        pushJump();
+        switchDocument(eTeacher.documentId, eTeacher.document.filename,
+          eTeacher.document.lines, 0, 0);
+        setStatus('"' + eFname + '" ' + state.lines.length + ' lines');
+        render();
+      } else if (eStored !== null) {
         pushUndo(false);
         pushJump();
         switchDocument(documentIdForEdit(eFname, false), eFname, eStored.split('\n'), 0, 0);
@@ -4671,7 +5039,8 @@
     }
 
     // Count prefix: digits 1-9 start, 0-9 continue
-    if (e.key >= '1' && e.key <= '9' || (e.key === '0' && countBuf > 0)) {
+    if (!state.pendingOp &&
+        (e.key >= '1' && e.key <= '9' || (e.key === '0' && countBuf > 0))) {
       countBuf = countBuf * 10 + parseInt(e.key, 10);
       if (countBuf > 9999) countBuf = 9999;
       return;
@@ -5198,7 +5567,14 @@
     if (e.key === 'Enter' || e.key === '+') {
       if (isExplorerBuffer()) {
         var eLine = state.lines[row].trim();
-        if (eLine && resolveBlogPath(eLine)) {
+        var explorerTeacher = teacherDocumentByFilename(eLine);
+        if (eLine && explorerTeacher) {
+          pushUndo(false);
+          switchDocument(explorerTeacher.documentId, explorerTeacher.document.filename,
+            explorerTeacher.document.lines, 0, 0);
+          setStatus('"' + eLine + '" ' + state.lines.length + ' lines');
+          render();
+        } else if (eLine && resolveBlogPath(eLine)) {
           execCommand('e ' + eLine);
         }
       } else {
@@ -6301,6 +6677,8 @@
     'sort', 'sort u',
     'r', 'zen', 'enew', 'new', 'e', 'intro', 'help', 'h', 'tutor', 'Tutor',
     'teacher', 'teacher next', 'teacher check', 'teacher hint',
+    'teacher map', 'teacher lesson 1', 'teacher review', 'teacher project',
+    'teacher export',
     'teacher score', 'teacher golf', 'teacher reset',
     'agents', 'moth', 'snake',
     'marks', 'jumps', 'clearjumps', 'registers', 'display', 'pray',

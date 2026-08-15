@@ -704,6 +704,15 @@
     @media (max-width: 640px) {
       html, body { font-size: 12px; line-height: 18px; }
       #vim-editor.dashboard #vim-body { overflow-x: hidden; }
+      #vim-editor.teacher-guide #vim-body { overflow-x: hidden; }
+      #vim-editor.teacher-guide #vim-gutter { display: none !important; }
+      #vim-editor.teacher-guide #vim-content {
+        box-sizing: border-box;
+        width: 100%;
+        padding-right: 8px;
+        white-space: pre-wrap !important;
+        overflow-wrap: anywhere;
+      }
       #vim-dashboard-pet {
         position: absolute;
         top: var(--vim-dashboard-pet-top, 0);
@@ -846,10 +855,10 @@
   </div>
   <script src="/js/vim-themes.js"></script>
   <script src="/js/vim-shell.js"></script>
-  <script src="/js/vim-help.js?v=vim-teacher-2"></script>
+  <script src="/js/vim-help.js?v=vim-teacher-3"></script>
   <script src="/js/vim-tutor.js"></script>
-  <script src="/js/vim-teacher.js?v=vim-teacher-2"></script>
+  <script src="/js/vim-teacher.js?v=vim-teacher-3"></script>
   <script src="/js/blog-common.js?v=foundation-plus-4"></script>
-  <script src="/js/vim.js?v=vim-teacher-2"></script>
+  <script src="/js/vim.js?v=vim-teacher-3"></script>
 </body>
 </html>

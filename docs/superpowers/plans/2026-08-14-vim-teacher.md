@@ -1,338 +1,321 @@
-# Phalene-Vim Real-Work Teacher Implementation Plan
+# Vim Teacher Mode Design and Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans and superpowers:test-driven-development. Do not delegate or run verification in parallel on this machine.
+## Outcome
 
-**Goal:** Ship a funny, fast, real-work `:teacher` project in which a learner investigates a corrupt Phalene Analytics launch across six files, repairs the evidence, software configuration, copy, and operations guidance, and finishes a correct postmortem using the commands implemented in Waves 1 through 7.
+Build one `:teacher` course that takes a new Vim user from the first safe edit to an independent multi-file project.
 
-**Architecture:** Add one static `js/vim-teacher.js` package containing six document arrays, eight mission records, intro copy, and completion copy. Add a small controller inside the existing `vim.js` IIFE because document state and command execution are private there. Teacher documents live only in `state.documents` under `teacher:` IDs. They never overwrite `localStorage` browser files. The current dispatcher, document switcher, jump history, operators, registers, macros, and completion paths remain the execution surface.
+The learner must finish useful files. The course does not grade command trivia. It does not use mascots, slogans, fictional comedy branding, streaks, badges, or public claims about speed and fluency.
 
-**Design authority:** The DadbodGrip Softrear notebook succeeds because it gives the learner a professional role, starts with three answerable questions, follows evidence across domains, keeps one running joke attached to real data, and ends with an explicit finding. Phalene Analytics uses the same structure for editing work instead of SQL work. Source: <https://github.com/joryeugene/dadbod-grip.nvim/blob/main/demo/softrear-internal.md>.
+The final required journey has three parts:
 
-## Inspectable end-to-end outcome
+1. Learn the editing model through worked examples and guided changes.
+2. Apply each skill to a new file without an exact command prompt.
+3. Complete the existing analytics incident project across six files.
 
-After eight missions, `postmortem.md` visibly contains:
+The classic `:tutor` remains available. `:teacher` becomes the recommended applied course.
 
-```text
-# Phalene Analytics Incident Postmortem
+## Research used
 
-Impact: Dashboard displayed 14,203 impossible pre-deployment landings.
-Evidence: evt_014203 occurred before the roof-array was online.
-Root cause: The active source was desk-lamp instead of roof-array.
-Repair: Config now uses roof-array and excludes pre-deployment events.
-Launch copy: The dashboard reports REVIEWED_ROOF_ARRAY_EVENTS after deployment.
-Runbook: Verify sensor source, deployment time, and event timestamp before publishing counts.
-Follow-up: Add a deployment-time validation gate before ingest.
-Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md
-```
+The curriculum combines these established practices:
 
-The full browser journey reaches this result with real key events and Ex commands. It does not mutate editor state from the test.
+- Vim and Neovim teach operators, motions, text objects, registers, marks, search, and files as a composable editing language.
+- Neovim tutor files use editable lessons, local checks, and links to help topics.
+- MIT Missing Semester teaches Vim through a real broken-code workflow.
+- Learn Vim Progressively moves from survival to comfortable daily use before advanced commands.
+- Vimcasts and Vimways teach repeatable editing workflows instead of command lists.
+- VimGolf shows that a correct result can support later route comparison.
+- Retrieval practice and distributed practice support later recall better than repeated reading alone.
+- Worked examples followed by completion problems reduce early cognitive load.
+- Immediate feedback helps the learner correct the current error before it becomes a habit.
 
-## Global constraints
+The course applies those findings without making a public learning claim. Human playthrough evidence controls revisions and release decisions.
 
-- Keep `:tutor` unchanged as the full basics course. `:teacher` is the modern applied path.
-- Use exactly six work files: `incident.log`, `events.csv`, `config.js`, `launch-copy.md`, `runbook.md`, and `postmortem.md`.
-- A generated `[Teacher]` brief may appear as a navigation surface but is not a seventh work file.
-- Seed documents in `state.documents` only. Do not write teacher content to `localStorage`.
-- `:teacher reset` must ask for browser confirmation and restore only the six bundled teacher documents.
-- Mission checks inspect saved document text. They do not inspect hidden register, macro, score, account, or telemetry state.
-- Each failed check reports the first exact missing or forbidden visible phrase.
-- `:teacher hint` displays one command-level hint and performs no edit.
-- No score, streak, badge, account, analytics, AI request, network request, database, generalized course engine, or runtime dependency.
-- `:teacher` activation must render a usable brief within 100 ms in the focused Chromium environment.
-- All changed production assets together must add at most 16,384 bytes gzip over commit `331c890`.
-- Use one full focused Chromium journey with `--workers=1` for RED and GREEN.
-- Run every test and verification command serially within this repository. Before Playwright, require zero other Playwright processes for this repository and zero listeners on port 8767. Other repositories may verify concurrently on distinct ports.
-- Do not push or merge.
+## Learning contract
 
-## File map
+Each required lesson contains these parts:
 
-- Create `js/vim-teacher.js`: content package only.
-- Create `tests/p0-teacher.spec.js`: one activation and full-capstone browser journey.
-- Modify `js/vim.js`: one state field, teacher controller, Ex routing, command completion, and dashboard visibility.
-- Modify `js/vim-help.js`: exact teacher commands and the relationship to `:tutor`.
-- Modify `vim/index.html`: load `vim-teacher.js` before `vim.js`.
-- Modify `docs/superpowers/plans/2026-08-14-vim-teacher.md`: keep as-built details aligned.
+1. **Purpose:** Name the real task that the commands make easier.
+2. **Worked example:** Show the initial text, command, cursor effect, and final text.
+3. **Guided edit:** Name the command family and the visible result.
+4. **Independent transfer:** Give a new file result without naming the exact command.
+5. **Artifact check:** Inspect the saved document text.
+6. **Progressive hints:** Show the concept, then the grammar, then the exact route.
+7. **Route review:** Reveal a shorter route only after the artifact is correct.
+8. **Later retrieval:** Reuse the skill in another lesson or project.
 
-## Six-file content contract
+Delete a lesson if its transfer task does not produce a useful file result.
 
-### `incident.log`
+## Required curriculum
 
-- Deployment is scheduled at `02:11:04Z` and online at `02:12:00Z`.
-- `evt_014203` reports `landings=14203` at `02:11:09Z`, before the roof array is online.
-- Three later warnings contain the malformed suffix `status : duplicated`.
-- Final editable line starts as `ANALYST_NOTE: replace me`.
+| Unit | Real outcome | Commands | Later retrieval |
+|---|---|---|---|
+| 1. Safe editing | Repair a handoff note and preserve an untouched line | Normal mode, Insert mode, Escape, `h j k l`, `0`, `$`, `x`, `u`, Ctrl-R, `:w` | Every later unit requires safe mode changes and recovery |
+| 2. Vim grammar | Change code by meaning instead of selecting characters manually | `d`, `c`, `y`, motions, counts, `f`, `%`, `dd`, `cc`, `yy`, `p`, `iw`, `aw`, quotes, pairs, lines, paragraphs | Units 4, 5, 7, and the project |
+| 3. Search and navigation | Find evidence and return to the prior location | `/`, `n`, `N`, `*`, marks, `gg`, `G`, Ctrl-O, Ctrl-I, `g;`, `g,` | Units 6 and 7, then the project |
+| 4. Repeat and recover | Normalize repeated records and repair a deliberate mistake | `.`, counts, command history, search history, `u`, Ctrl-R | Unit 7 and project log cleanup |
+| 5. Reuse text | Carry exact values without retyping | unnamed register, register `0`, named registers, delete registers, black-hole register, `:registers`, `p`, `P`, Insert Ctrl-N/P | Units 6 and 8, then the project |
+| 6. Work across files | Inspect code, configuration, and documentation without losing the route | `:Ex`, Enter, `:e`, Ctrl-O, Ctrl-I, `:jumps`, `g;`, `g,`, marks | Required capstone |
+| 7. Change many records | Make one correct bulk change and recover it safely | `:%s`, `:g`, `:v`, `:sort u`, block Visual, undo | Data and code project tasks |
+| 8. Automate a stable edit | Replay a verified change across repeated text | macro record and replay, `@@`, counts, dot repeat | Project log normalization |
+| 9. Applied incident | Produce a source-backed postmortem across six files | Interleaved use of all core units | Final independent transfer |
 
-Mission 1 requires:
+## Course files
 
-```text
-ANALYST_NOTE: evt_014203 recorded 14203 landings before roof-array was online
-```
+The core course uses one small file per unit plus two related files for cross-file work:
 
-Mission 4 requires all three malformed warnings to end with `status=duplicate` and forbids `status : duplicated`.
+- `01-handoff.txt`
+- `02-service.js`
+- `03-requests.log`
+- `04-status.txt`
+- `05-evidence.md`
+- `06-api.js`
+- `06-ui.js`
+- `06-project.md`
+- `07-records.csv`
+- `08-routes.txt`
 
-### `events.csv`
+The existing project keeps these files:
 
-- Realistic rows show ordinary landing counts of 12, 18, and 14 beside the impossible 14,203 row.
-- A commented evidence workbench contains separate candidate and destination lines so characterwise named-register puts remain visible and composable.
+- `incident.log`
+- `events.csv`
+- `config.js`
+- `launch-copy.md`
+- `runbook.md`
+- `postmortem.md`
 
-Mission 2 requires these adjacent pairs:
+Teacher files stay in the editor document registry. They do not overwrite unrelated browser files.
 
-```text
-# evidence_id
-evt_014203
-# evidence_sensor
-desk_lamp
-```
+## Package interface
 
-### `config.js`
-
-- Initial source is `"desk-lamp"`.
-- Desired source is `"roof-array"`.
-- Editable final line starts as `// CHANGE_NOTE: replace me`.
-
-Mission 3 requires:
-
-```text
-source: "roof-array"
-// CHANGE_NOTE: source corrected to roof-array
-```
-
-and forbids `source: "desk-lamp"`.
-
-### `launch-copy.md`
-
-Initial unsupported claims:
-
-```text
-We counted every moth in the moon before breakfast.
-The dashboard recorded 14,203 verified roof-array landings during launch.
-```
-
-The file also contains `Metric key: REVIEWED_ROOF_ARRAY_EVENTS` for current-buffer completion.
-
-Mission 5 requires:
-
-```text
-Claim review: Desk-lamp counts before deployment were excluded.
-Evidence note: 14,203 was a pre-deployment desk-lamp event, not verified launch activity.
-Approved copy: The dashboard reports REVIEWED_ROOF_ARRAY_EVENTS after deployment.
-```
-
-and forbids both unsupported claims.
-
-### `runbook.md`
-
-Initial bad instructions tell the operator to reboot the moon, ask a moth whether the dashboard feels correct, and add adjectives to launch copy.
-
-Mission 6 requires:
-
-```text
-1. Confirm the active sensor source in config.js.
-2. Compare event time with deployedAt.
-3. Quarantine pre-deployment events and notify on-call.
-Operator action: Verify sensor source, deployment time, and event timestamp before publishing counts.
-```
-
-and forbids the three original instructions.
-
-### `postmortem.md`
-
-Starts with seven `TODO` fields plus `Verified sources: TODO`. Mission 7 requires the first seven final lines from the inspectable outcome. Mission 8 requires the exact verified-sources line.
-
-## Mission matrix
-
-| # | File | Work domain | Visible result | Commands taught |
-|---|---|---|---|---|
-| 1 | `incident.log` | Incident response | Record the impossible event and timing | `/`, `n`, `Ctrl-O`, `Ctrl-I`, `cil` |
-| 2 | `events.csv` | Data analysis | Preserve and paste ID and sensor evidence | search history, named registers, `diw`, `p` |
-| 3 | `config.js` | Software maintenance | Correct source and change note | `ci"`, `cil`, `g;`, `g,`, automatic marks |
-| 4 | `incident.log` | Log cleanup | Normalize three repeated warnings | `.`, `qz`, `@z`, `n` |
-| 5 | `launch-copy.md` | Copywriting | Replace unsupported claims and approved copy | `cil`, Insert `Ctrl-N`, registers |
-| 6 | `runbook.md` | Operations | Replace guesses with executable steps | search, `cil`, repeatable edits |
-| 7 | `postmortem.md` | Synthesis | Assemble impact, cause, repair, copy, and follow-up | registers, `cil`, `yal`, completion |
-| 8 | `postmortem.md` | Verification | Name every source after retracing work | `Ctrl-O`, `Ctrl-I`, `g;`, `g,` |
-
----
-
-### Task 1: Preserve the static teacher package and controller contract
-
-**Files:**
-- Create: `js/vim-teacher.js`
-- Modify: `js/vim.js`
-
-**Package interface:**
+Extend the current static package. Do not add a framework or another teaching engine.
 
 ```js
 window.VIM_TEACHER = {
-  intro: string[],
-  done: string[],
-  files: { [filename: string]: string[] },
-  missions: Array<{
-    title: string,
-    file: string,
-    request: string[],
-    outcome: string[],
-    hint: string,
-    expect: string[],
-    reject: string[]
-  }>
+  version: 2,
+  course: {
+    intro: string[],
+    done: string[],
+    files: { [filename: string]: string[] },
+    lessons: TeacherLesson[]
+  },
+  project: {
+    intro: string[],
+    done: string[],
+    files: { [filename: string]: string[] },
+    missions: TeacherLesson[]
+  }
 };
 ```
 
-**Controller state:**
+Each `TeacherLesson` contains:
 
 ```js
-teacherMission: null
+{
+  id: string,
+  title: string,
+  purpose: string,
+  file: string,
+  worked: string[],
+  request: string[],
+  transfer: string[],
+  outcome: string[],
+  expect: string[],
+  reject: string[],
+  hints: string[],
+  golf: [string, string]
+}
 ```
 
-- `null`: teacher inactive.
-- `-1`: orientation brief.
-- `0` through `7`: active mission.
-- `8`: project complete.
+Use arrays of plain strings because the current guide renderer already accepts line arrays.
 
-**Controller functions:**
+## Commands
 
-- `teacherPackage()`: returns `window.VIM_TEACHER` or reports unavailable content.
-- `teacherDocumentId(name)`: returns `teacher:` plus the filename.
-- `teacherGuideLines(showHint)`: returns intro, current mission card, or completion copy.
-- `teacherOpen(name)`: switches to an already seeded teacher document through `pushJump()` and `switchDocument()`.
-- `teacherShowGuide(showHint)`: switches to a regenerated `[Teacher]` buffer.
-- `teacherStart()`: switches away from the current file, then seeds all six work files and shows orientation. This order prevents `switchDocument()` from saving a stale teacher file over a freshly reset one.
-- `teacherCheckMission()`: saves the current document, checks `reject` first and `expect` second, and returns the first plain failure string or `null`.
-- `teacherCommand(arg)`: owns start, brief, `next`, `check`, `hint`, and confirmed `reset` behavior.
-
-Stop condition: no generic lesson engine or storage layer appears.
-
-### Task 2: Write the one full failing browser journey
-
-**File:**
-- Create `tests/p0-teacher.spec.js`
-
-The test must:
-
-1. Open `/vim/`.
-2. Type `:teacher` through the real command line, measure only the final Enter dispatch, and assert the `[Teacher]` brief appears within 100 ms.
-3. Use `:teacher next` to open `incident.log`.
-4. Complete all eight missions with keyboard and Ex commands only.
-5. Use at least one real command from each completed feature wave.
-6. Complete the project, return from the completion guide with `Ctrl-O`, and assert the exact final `postmortem.md` lines.
-
-Add small test helpers only for repeated key sequences and replacing the trimmed current line. Do not expose editor state beyond the existing DOM helpers.
-
-Run the global serial guard, then:
-
-```powershell
-npx playwright test tests/p0-teacher.spec.js --browser=chromium --workers=1 --reporter=line
-```
-
-Expected RED: the command line reports `E492: Not an editor command: teacher` because no route exists.
-
-### Task 3: Build the six documents and eight mission records
-
-**File:**
-- Create `js/vim-teacher.js`
-
-Write the exact content contract above. The intro must state:
-
-- Role: on-call analyst and reluctant launch-copy editor.
-- Alert: 14,203 landings appeared before deployment.
-- Questions: what happened, why the dashboard believed it, and what must change before publication.
-- Files and their work domains.
-- `:teacher next`, `:teacher check`, `:teacher hint`, `:teacher reset`, and `Ctrl-O` usage.
-- Expected time: 20 to 30 minutes for a first applied pass, under 10 minutes with Vim muscle memory.
-- The six work files exist only in this browser session unless the learner explicitly writes a copy.
-
-The humor stays attached to evidence. One moon reboot and one moth interview are enough. Do not add a second metaphor family or turn every line into a joke.
-
-### Task 4: Implement controller and Ex command behavior
-
-**File:**
-- Modify `js/vim.js`
-
-Route these commands:
+Keep the current commands and add only the controls required by the course:
 
 ```text
-:teacher
-:teacher next
-:teacher check
-:teacher hint
-:teacher reset
+:teacher             Start at lesson 1 or resume the next incomplete lesson.
+:teacher map         Show required units, completion, reviews, and the project.
+:teacher next        Check the current artifact and open the next lesson.
+:teacher check       Show the first unmet visible result.
+:teacher hint        Advance from concept to grammar to the exact route.
+:teacher lesson N    Open a selected lesson. Fresh progress still starts at lesson 1.
+:teacher review      Open the oldest completed lesson that is due for retrieval.
+:teacher project     Start or resume the applied incident project.
+:teacher score       Show private session progress and observed command families.
+:teacher golf        Show a shorter route after the artifact is correct.
+:teacher export      Download a privacy-safe progress summary.
+:teacher reset       Confirm before clearing teacher-owned progress and files.
 ```
 
-Behavior:
+Do not add accounts, network requests, telemetry, leaderboards, badges, or notifications.
 
-- First `:teacher` starts a fresh session and shows orientation.
-- Later `:teacher` shows the current mission brief without resetting files.
-- From orientation, `:teacher next` opens mission 1 without a check.
-- On missions 1 through 8, `next` refuses to advance until the visible file check passes.
-- Passing mission 8 sets the completed state and opens the completion guide.
-- `check` reports the first unmet phrase or states that the mission is ready.
-- `hint` opens the mission card with exactly one command-level hint.
-- `reset` calls `window.confirm()` and restores only the six teacher documents after approval.
+## Progress and privacy
 
-Add command-line completions for `teacher`, `teacher next`, `teacher check`, `teacher hint`, and `teacher reset`.
+Use one versioned `localStorage` record:
 
-### Task 5: Load and expose the feature
+```js
+{
+  version: 2,
+  completedLessons: string[],
+  completedProjectMissions: string[],
+  reviews: { [lessonId: string]: number[] },
+  summaries: {
+    hints: number,
+    retriedChecks: number,
+    observedSkills: string[]
+  }
+}
+```
 
-**Files:**
-- Modify `vim/index.html`
-- Modify `js/vim.js`
-- Modify `js/vim-help.js`
+Store only completion IDs, review dates, and summary counts. Do not store these values:
 
-Load `/js/vim-teacher.js` after `vim-tutor.js` and before `vim.js`.
+- learner file contents;
+- raw key streams;
+- clipboard text;
+- register contents;
+- search terms;
+- names, email addresses, or account identifiers.
 
-Add `:teacher` to the dashboard as `real-work lab` while retaining `:tutor` as the basics course.
+An incomplete lesson starts from its bundled file after reload. A completed lesson stays complete. Export uses the same summary schema and contains no document text.
 
-Add help text:
+Plain `:w` downloads a Teacher file but does not copy its contents into the browser filesystem. `:w NAME` creates a named browser file because the learner explicitly requested that copy.
+
+## Feedback rules
+
+`:teacher check` reports one visible problem at a time.
+
+Good feedback:
 
 ```text
-:teacher         Start or recall the Phalene Analytics field lab.
-:teacher next    Check the current result and open the next mission.
-:teacher check   Explain the first unmet visible result.
-:teacher hint    Show one command-level hint without editing.
-:teacher reset   Confirm, then restore only the six teaching files.
+The owner line still contains TODO.
+Change that line, then run :teacher check again.
 ```
 
-State that `:tutor` teaches fundamentals in one scratch buffer while `:teacher` applies modern commands across six realistic files.
+Bad feedback:
 
-### Task 6: Run the full journey GREEN and diagnose only real failures
-
-Run the same guarded one-worker Chromium command from Task 2.
-
-Expected:
-
-- Activation Enter dispatch is at most 100 ms.
-- Every `teacher next` opens the expected filename.
-- The completion guide contains `PROJECT COMPLETE`.
-- `Ctrl-O` returns to `postmortem.md`.
-- The exact eight-line final artifact matches the inspectable outcome.
-
-If a mission fails, inspect its real visible file and first unmet status. Do not add test-only bypasses or weaken the file contract.
-
-### Task 7: Run size, syntax, prose, and diff gates serially
-
-Run one command at a time:
-
-```powershell
-node --check js/vim-teacher.js
-node --check js/vim.js
-node --check js/vim-help.js
-node --check tests/p0-teacher.spec.js
-git diff --check
+```text
+Incorrect. Try harder.
+You failed the ownership objective.
 ```
 
-Measure combined production growth over `331c890` for `js/vim.js`, `js/vim-help.js`, `vim/index.html`, and the new `js/vim-teacher.js`. Report each gzip size and the summed delta. Fail above 16,384 bytes.
+`:teacher hint` uses three levels:
 
-Scan teacher and help copy for em dashes, placeholders outside the six intentional work-file TODOs, unsupported claims, and repeated filler. The generated copy must name the actor, work request, file, observable result, and command hint.
+1. Name the editing idea.
+2. Name the Vim grammar.
+3. Give the exact key route.
 
-### Task 8: Review and commit only Wave 9
+The first hint must not expose the answer. The third hint may show the exact route.
 
-Inspect exact diffs and status. Commit:
+## Existing project upgrade
 
-```powershell
-git add -f docs/superpowers/plans/2026-08-14-vim-teacher.md
-git add js/vim-teacher.js js/vim.js js/vim-help.js vim/index.html tests/p0-teacher.spec.js
-git commit -m "feat(vim): add real-work teacher"
-```
+Preserve the current analytics incident and its final postmortem. Improve it in these ways:
 
-Report activation latency, focused Chromium elapsed time, exact final postmortem, combined gzip delta, changed files, and the largest remaining gap. Do not push or merge.
+- Add a purpose and worked example to each mission.
+- Split the current single hint into three levels.
+- Add an independent transfer instruction when the existing request names every command.
+- Keep every final claim supported by the bundled files.
+- Remove remaining themed language from old plan and matrix files.
+- Treat the project as the required capstone after the core units.
+- Keep generated guides read-only and outside jump history.
+- Keep `:teacher project` available to experienced users who want the capstone directly.
+
+## Optional projects
+
+Add an optional project only when it exercises a distinct command combination and produces a useful final file.
+
+Candidate projects:
+
+1. Repair a full-stack configuration mismatch across client, server, and documentation files.
+2. Clean a CSV file, remove duplicates, and write a short evidence summary.
+3. Correct product copy against source evidence and preserve necessary qualifications.
+4. Resolve a merge conflict and retain both required changes.
+5. Normalize repeated code with dot repeat, macros, and block Visual.
+
+Do not build optional projects before the required course and capstone pass the real browser journey.
+
+## Automated checks
+
+Run every verifier serially with one worker.
+
+Required focused journeys:
+
+1. Fresh `:teacher` starts at lesson 1.
+2. A worked example, guided edit, and transfer task complete without hidden state changes.
+3. Each hint level advances once and does not edit the file.
+4. `:teacher lesson N` opens the selected lesson without marking earlier lessons complete.
+5. `:teacher map` reports exact completion state.
+6. `:Ex` lists active teacher files and opens the selected file.
+7. Reload restores completion summaries but not learner text.
+8. Export contains no file text, raw keys, registers, or search terms.
+9. Reset clears only teacher-owned state after confirmation.
+10. Classic `:tutor` and the current applied project still work.
+11. Mobile controls can start, edit, check, and advance one lesson.
+12. The complete core course reaches the project.
+13. The complete project still produces the exact postmortem.
+
+Performance gates:
+
+- Render the first teacher guide within 100 ms in the current local environment.
+- Complete each lesson transition within 100 ms.
+- Keep progress writes outside the keypress render path.
+- Keep added required-course content below 8 KiB gzip unless a larger addition passes human review and has no smaller equivalent.
+
+## Human playthrough protocol
+
+Automated tests cannot prove that a lesson teaches.
+
+Round one requires five fresh human journeys. For each problem, record:
+
+- lesson and file;
+- visible starting text;
+- learner action;
+- observed confusion;
+- hint level used;
+- recovery action;
+- final file result;
+- learner statement about the largest unclear point.
+
+At least three round-one learners must have no Vim experience or less than one hour of prior use. Include one developer who normally uses another editor and one person who works with prose, data, or operations files. One person can satisfy more than one category.
+
+Use one standard recovery task in Lesson 1. Ask the learner to append `x` to `keep: audit enabled`, return to Normal mode, and restore the exact line with change history without retyping it.
+
+The core course and project can run in two sittings. Reload between them to verify the course map and local progress. Complete the project in one sitting because learner file contents are not stored.
+
+After each lesson, ask where the workflow would save effort in the learner's own work. Remove or rewrite a lesson when three of five learners cannot name a credible use. Ask which instruction felt fake, childish, repetitive, or like filler. Record the answer exactly.
+
+Revise a lesson when either condition occurs:
+
+- More than two of five learners need the exact-route hint.
+- Two learners make the same incorrect inference from the instructions.
+
+Round two starts after those revisions. Release requires:
+
+- five consecutive complete journeys without a blocker;
+- at least four of five learners complete the final independent transfer without the exact-route hint;
+- every learner can recover a seeded mistake with Escape, undo, or redo;
+- the course map preserves completed lesson IDs after the planned reload;
+- no lesson is kept only because its automated test passes.
+
+Delayed reviews at roughly one, three, and seven days produce private research notes. They do not support a public retention claim without enough real observations.
+
+## Task order
+
+1. Lock this course contract and the command-to-outcome matrix.
+2. Add the versioned course and project package shape.
+3. Build Unit 1 and its full browser journey.
+4. Build Units 2 through 4 one at a time.
+5. Add local progress, the course map, and progressive hints.
+6. Build Units 5 and 6, including `:Ex` integration.
+7. Build Units 7 and 8.
+8. Upgrade the current project and preserve its final artifact.
+9. Add review and privacy-safe export.
+10. Run the full automated gate.
+11. Run human playthrough round one and revise weak lessons.
+12. Run human playthrough round two.
+13. Show the final course, evidence, limits, and largest gap before release approval.
+
+## Stop conditions
+
+Stop a build round when it does not create a new learner-visible outcome.
+
+Do not add another lesson, command, metric, or project when the current course lacks a complete independent journey. Do not publish speed, fluency, or retention claims without direct human evidence.

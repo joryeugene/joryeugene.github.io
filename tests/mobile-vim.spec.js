@@ -77,6 +77,36 @@ test.describe('mobile Vim input', () => {
     expect((await state(page)).mode).toBe('--NORMAL--');
   });
 
+  test('mobile learner opens the teacher course and returns to the work file', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+    await open(page);
+    await page.locator('#vim-body').tap({ position: { x: 20, y: 20 } });
+
+    await tapKey(page, ':');
+    await mobileText(page, 'teacher');
+    await mobileBeforeInput(page, 'insertLineBreak');
+    await expect(page.locator('#vim-content')).toContainText('VIM TEACHER // COURSE');
+
+    await tapKey(page, ':');
+    await mobileText(page, 'teacher next');
+    await mobileBeforeInput(page, 'insertLineBreak');
+    await expect(page.locator('#vim-content')).toContainText('LESSON 1 OF 8');
+    const guideOverflow = await page.locator('#vim-body').evaluate(body =>
+      body.scrollWidth - body.clientWidth);
+    expect(guideOverflow).toBeLessThanOrEqual(0);
+
+    const ctrl = page.locator('#vim-mobile-keys [data-vim-modifier="Control"]');
+    await ctrl.tap();
+    await mobileText(page, 'o');
+    expect((await state(page)).file).toBe('01-handoff.txt');
+
+    await mobileText(page, 'j$a');
+    await mobileText(page, 't');
+    await tapKey(page, 'Escape');
+    expect(await lines(page)).toContain('status: draft');
+  });
+
   test('mobile deletion and composed text are committed exactly once', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await open(page);

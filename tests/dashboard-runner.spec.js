@@ -37,14 +37,15 @@ test.describe('dashboard and runner experience', () => {
     expect(Math.abs(narrowPet.x + narrowPet.width / 2 - narrowTitleCenter)).toBeLessThan(6);
     expect(narrowTitle.y - (narrowPet.y + narrowPet.height)).toBeGreaterThanOrEqual(20);
     expect(narrowTitle.y - (narrowPet.y + narrowPet.height)).toBeLessThanOrEqual(45);
-    await expect(page.locator('#vim-content')).toContainText(':tutor guided lesson');
+    await expect(page.locator('#vim-content')).toContainText(':tutor classic tutorial');
     await expect(page.locator('#vim-content')).toContainText(':moth kinetic field');
     await expect(page.locator('#vim-content')).toContainText(':jumps jump history');
     await expect(page.locator('#vim-content')).toContainText('h (left) < + > l (right)');
     await expect(page.locator('#vim-content')).toContainText('/moth Enter');
     expect(((await page.locator('#vim-content').innerText()).match(/moth/g) || []).length).toBeGreaterThanOrEqual(2);
     await expect(page.locator('#vim-content')).not.toContainText('/GEORGIE Enter');
-    await expect(page.locator('#vim-content')).toContainText('type :tutor then press Enter');
+    await expect(page.locator('#vim-content')).toContainText('type :teacher then press Enter');
+    await expect(page.locator('#vim-content')).toContainText('type :teacher project then press Enter');
     await expect(page.locator('#vim-content')).toContainText(':e friction-economy then press Enter');
     await expect(page.locator('#vim-content')).not.toContainText('[[ ]]');
     const narrowRows = (await page.locator('#vim-content').innerText()).split('\n');
@@ -69,7 +70,7 @@ test.describe('dashboard and runner experience', () => {
     expect(Math.abs(widePet.x + widePet.width / 2 - wideTitleCenter)).toBeLessThan(6);
     expect(wideTitle.y - (widePet.y + widePet.height)).toBeGreaterThanOrEqual(20);
     expect(wideTitle.y - (widePet.y + widePet.height)).toBeLessThanOrEqual(45);
-    await expect(page.locator('#vim-content')).toContainText(':tutor       guided lesson');
+    await expect(page.locator('#vim-content')).toContainText(':tutor       classic tutorial');
     await expect(page.locator('#vim-content')).not.toContainText('[[ ]]');
     const wideRows = (await page.locator('#vim-content').innerText()).split('\n');
     const wideCommands = ['Ctrl-P', ':teacher', ':snake', ':help'].map(text => wideRows.find(row => row.includes(text)));
@@ -98,9 +99,9 @@ test.describe('dashboard and runner experience', () => {
       expect(Math.max(...positions) - Math.min(...positions)).toBeLessThan(1);
     };
     expectOneColumn(['Ctrl-P', ':teacher', ':snake', ':help']);
-    expectOneColumn(['commands', 'applied project', 'play', 'manual']);
+    expectOneColumn(['commands', 'core course', 'play', 'manual']);
     expectOneColumn([':tutor', ':Ex', ':moth', ':jumps']);
-    expectOneColumn(['guided lesson', 'browse files', 'kinetic field', 'jump history']);
+    expectOneColumn(['classic tutorial', 'browse files', 'kinetic field', 'jump history']);
     expectOneColumn(['i', '/moth Enter', 'u / Ctrl-r']);
     expectOneColumn(['start typing', 'search', 'undo / redo']);
     expectOneColumn(['Esc', 'n / N', ':intro']);
@@ -335,9 +336,9 @@ test.describe('dashboard and runner experience', () => {
         .map(url => [url.pathname, url.searchParams.get('v')])
     ));
     expect(versions).toEqual({
-      '/js/vim-help.js': 'vim-teacher-2',
-      '/js/vim-teacher.js': 'vim-teacher-2',
-      '/js/vim.js': 'vim-teacher-2'
+      '/js/vim-help.js': 'vim-teacher-3',
+      '/js/vim-teacher.js': 'vim-teacher-3',
+      '/js/vim.js': 'vim-teacher-3'
     });
   });
 

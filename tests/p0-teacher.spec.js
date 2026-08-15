@@ -110,7 +110,7 @@ test('teacher turns a false analytics report into a verified postmortem', async 
   expect((await lines(page))[0]).toBe('header');
 
   await press(page, ':');
-  await type(page, 'teacher');
+  await type(page, 'teacher project');
   const activationMs = await page.evaluate(() => {
     const start = performance.now();
     document.dispatchEvent(new KeyboardEvent('keydown', {
@@ -145,7 +145,7 @@ test('teacher turns a false analytics report into a verified postmortem', async 
   expect((await state(page)).file).toBe('incident.log');
   await cmd(page, 'teacher hint');
   expect((await state(page)).file).toBe('[Teacher]');
-  expect((await lines(page)).join('\n')).toContain('HINT:');
+  expect((await lines(page)).join('\n')).toContain('HINT 1 OF 3:');
   await press(page, 'Control+o');
   expect((await state(page)).file).toBe('incident.log');
   const lockedGolfMs = await timedCmd(page, 'teacher golf');
@@ -277,7 +277,8 @@ test('teacher turns a false analytics report into a verified postmortem', async 
   expect(completion).toContain('Hints used: 1');
   expect(completion).toContain('Checks retried: 1');
   expect(completion).toMatch(/Command keystrokes: [1-9]\d*/);
-  expect(completion).toContain('Skills observed: jump history, named registers');
+  expect(completion).toContain('jump history');
+  expect(completion).toContain('named registers');
   expect(completion).toContain('line change, character normalization');
   console.log(JSON.stringify({
     missionTransitionMaxMs: Math.max(...missionTransitionMs),
