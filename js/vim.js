@@ -211,18 +211,10 @@
   function buildExplorer() {
     var nameSet = {};
     var blogNames = Object.keys(blogFiles);
-    var teacherNames = teacherExplorerNames();
     for (var bi = 0; bi < blogNames.length; bi++) nameSet[blogNames[bi]] = true;
-    for (var ti = 0; ti < teacherNames.length; ti++) nameSet[teacherNames[ti]] = true;
-    var savedNames = listLocalFS();
-    for (var si = 0; si < savedNames.length; si++) nameSet[savedNames[si]] = true;
-    if (state && state.documents) {
-      var loadedIds = Object.keys(state.documents);
-      for (var li = 0; li < loadedIds.length; li++) {
-        var loaded = state.documents[loadedIds[li]];
-        if (loaded && loaded.filename && loaded.filename.charAt(0) !== '[' &&
-            loaded.filename !== 'netrw') nameSet[loaded.filename] = true;
-      }
+    var catalog = workspaceCatalog();
+    for (var ci = 0; ci < catalog.length; ci++) {
+      nameSet[catalog[ci].filename] = true;
     }
     var names = Object.keys(nameSet).sort();
     var maxLen = 0;
@@ -343,6 +335,8 @@
     hlsearch: true,
     incsearch: true,
     documents: {},
+    nextBufferNumber: 1,
+    alternateDocumentId: null,
     untitledSeq: 0,
     outputSeq: 0,
     documentGeneration: 0,
@@ -350,6 +344,7 @@
     lastOpenedUrl: null,
     jumpList: [],
     jumpIdx: -1,
+    tagStack: [],
     lastJumpTraversal: null,
     changeLists: {},
     changeListIndexes: {},
@@ -384,6 +379,17 @@
     pendingWindowGCommand: false,
     tabPages: [],
     activeTabPage: 0,
+    quickfix: { items: [], index: -1, title: '', truncated: false, generation: 0 },
+    recoveryEntries: [],
+    recoveryDraftTimer: null,
+    recoveryFlushing: false,
+    recoveryStorageError: null,
+    beforeUnloadBound: false,
+    folds: [],
+    foldMemory: {},
+    lastRenderedTextKey: null,
+    suppressRender: false,
+    normalTransaction: null,
     expandtab: true,
     tabstop: 4,
     shiftwidth: 2,
@@ -460,17 +466,102 @@
     return true;
   }
 
-  state.documents.welcome = {
-    filename: state.filename,
-    lines: state.lines.slice()
-  };
+  function documentKind(documentId, filename) {
+    if (documentId === 'welcome') return 'welcome';
+    if (documentId === 'teacher:guide') return 'teacher-guide';
+    if (documentId.indexOf('teacher:') === 0) return 'teacher';
+    if (documentId.indexOf('help:') === 0 || filename === '[Help]') return 'help';
+    if (documentId === 'explorer' || documentId.indexOf('output:explorer') === 0 || filename === '[Explorer]') return 'explorer';
+    if (documentId.indexOf('output:quickfix') === 0 || filename === '[Quickfix]') return 'quickfix';
+    if (documentId.indexOf('output:recovery') === 0 || filename === '[Recovery]') return 'recovery';
+    if (documentId.indexOf('output:history') === 0 || filename === '[History]') return 'history';
+    if (documentId.indexOf('output:changes') === 0 || filename === '[Changes]') return 'changes';
+    if (documentId.indexOf('output:') === 0) return 'output';
+    if (documentId === 'tutor') return 'tutor';
+    if (documentId.indexOf('blog:') === 0) return 'blog';
+    return 'local';
+  }
 
-  function saveCurrentDocument() {
-    state.documents[state.documentId] = {
-      filename: state.filename,
-      lines: state.lines.slice()
+  function virtualDocumentKind(kind) {
+    return kind === 'welcome' || kind === 'teacher-guide' || kind === 'help' ||
+      kind === 'explorer' || kind === 'quickfix' || kind === 'recovery' ||
+      kind === 'history' || kind === 'changes' || kind === 'output' || kind === 'tutor';
+  }
+
+  function createDocumentRecord(documentId, filename, lines, options) {
+    options = options || {};
+    var kind = options.kind || documentKind(documentId, filename);
+    var textLines = Array.isArray(lines) ? lines : [''];
+    var text = textLines.join('\n');
+    var listed = options.listed !== undefined ? options.listed : !virtualDocumentKind(kind);
+    var readonly = options.readonly !== undefined ? options.readonly : virtualDocumentKind(kind);
+    return {
+      documentId: documentId,
+      bufferNumber: listed ? state.nextBufferNumber++ : null,
+      filename: filename,
+      lines: textLines,
+      cleanText: options.cleanText !== undefined ? options.cleanText : text,
+      modified: options.modified !== undefined ? options.modified : false,
+      listed: listed,
+      readonly: readonly,
+      kind: kind,
+      changedTick: options.changedTick || 0,
+      lastSyncedText: text,
+      durableText: options.durableText !== undefined ? options.durableText : null,
+      recoveryPolicy: options.recoveryPolicy || (listed && !readonly ? 'session' : 'none'),
+      undoStack: options.undoStack || [],
+      undoIdx: options.undoIdx === undefined ? -1 : options.undoIdx
     };
   }
+
+  function ensureDocumentRecord(documentId, filename, lines, options) {
+    var existing = state.documents[documentId];
+    if (!existing) {
+      existing = createDocumentRecord(documentId, filename, lines, options);
+      state.documents[documentId] = existing;
+      return existing;
+    }
+    if (existing.documentId === undefined) existing.documentId = documentId;
+    if (existing.kind === undefined) existing.kind = documentKind(documentId, existing.filename || filename);
+    if (existing.listed === undefined) existing.listed = !virtualDocumentKind(existing.kind);
+    if (existing.readonly === undefined) existing.readonly = virtualDocumentKind(existing.kind);
+    if (existing.bufferNumber === undefined) {
+      existing.bufferNumber = existing.listed ? state.nextBufferNumber++ : null;
+    }
+    if (existing.cleanText === undefined) existing.cleanText = (existing.lines || lines || ['']).join('\n');
+    if (existing.modified === undefined) existing.modified = false;
+    if (existing.changedTick === undefined) existing.changedTick = 0;
+    if (existing.lastSyncedText === undefined) existing.lastSyncedText = (existing.lines || lines || ['']).join('\n');
+    if (existing.durableText === undefined) existing.durableText = null;
+    if (existing.recoveryPolicy === undefined) existing.recoveryPolicy = existing.listed && !existing.readonly ? 'session' : 'none';
+    if (!existing.undoStack) existing.undoStack = [];
+    if (existing.undoIdx === undefined) existing.undoIdx = -1;
+    return existing;
+  }
+
+  function currentDocument() {
+    return ensureDocumentRecord(state.documentId, state.filename, state.lines);
+  }
+
+  function saveCurrentDocument() {
+    var document = currentDocument();
+    var text = state.lines.join('\n');
+    if (text !== document.lastSyncedText) {
+      document.changedTick++;
+      document.lastSyncedText = text;
+    }
+    document.filename = state.filename;
+    document.lines = state.lines;
+    document.modified = document.listed && !document.readonly && text !== document.cleanText;
+    state.undoStack = document.undoStack;
+    state.undoIdx = document.undoIdx;
+    if (!state.recoveryFlushing) scheduleRecoveryDraft(document);
+    syncBeforeUnload();
+    return document;
+  }
+
+  state.documents.welcome = createDocumentRecord('welcome', state.filename,
+    state.lines, { listed: false, readonly: true, recoveryPolicy: 'none' });
 
   function documentIdByFilename(filename) {
     var ids = Object.keys(state.documents);
@@ -482,12 +573,30 @@
 
   function currentWindowSnapshot() {
     saveCurrentDocument();
+    state.foldMemory[state.documentId] = state.folds.map(function(fold) {
+      return { start: fold.start, end: fold.end, closed: fold.closed };
+    });
     return {
       documentId: state.documentId,
       filename: state.filename,
       row: state.cursor.row,
-      col: state.cursor.col
+      col: state.cursor.col,
+      alternateDocumentId: state.alternateDocumentId,
+      folds: state.folds.map(function(fold) {
+        return { start: fold.start, end: fold.end, closed: fold.closed };
+      }),
+      foldMemory: cloneFoldMemory(state.foldMemory)
     };
+  }
+
+  function cloneFoldMemory(memory) {
+    var copy = {};
+    Object.keys(memory || {}).forEach(function(documentId) {
+      copy[documentId] = (memory[documentId] || []).map(function(fold) {
+        return { start: fold.start, end: fold.end, closed: fold.closed };
+      });
+    });
+    return copy;
   }
 
   function copyWindowSnapshot(snapshot) {
@@ -496,7 +605,12 @@
       documentId: snapshot.documentId,
       filename: snapshot.filename,
       row: snapshot.row,
-      col: snapshot.col
+      col: snapshot.col,
+      alternateDocumentId: snapshot.alternateDocumentId || null,
+      folds: (snapshot.folds || []).map(function(fold) {
+        return { start: fold.start, end: fold.end, closed: fold.closed };
+      }),
+      foldMemory: cloneFoldMemory(snapshot.foldMemory || {})
     };
   }
 
@@ -536,6 +650,11 @@
     state.splitSide = page.splitSide || 'left';
     switchDocument(page.activeWindow.documentId, activeDocument.filename,
       activeDocument.lines, page.activeWindow.row, page.activeWindow.col);
+    state.alternateDocumentId = page.activeWindow.alternateDocumentId || null;
+    state.folds = (page.activeWindow.folds || []).map(function(fold) {
+      return { start: fold.start, end: fold.end, closed: fold.closed };
+    });
+    state.foldMemory = cloneFoldMemory(page.activeWindow.foldMemory || {});
     setStatus('Tab page ' + (index + 1) + ': ' + activeDocument.filename);
     render();
   }
@@ -577,7 +696,10 @@
         documentId: targetId,
         filename: target.filename,
         row: 0,
-        col: 0
+        col: 0,
+        alternateDocumentId: null,
+        folds: [],
+        foldMemory: {}
       },
       splitPeer: null,
       splitSide: 'left',
@@ -621,6 +743,7 @@
     var active = currentTabPageSnapshot(1);
     state.tabPages = [active];
     state.activeTabPage = 0;
+    state.lastRenderedTextKey = null;
     setStatus('Only tab page kept. Buffers remain loaded.');
     render();
   }
@@ -668,6 +791,10 @@
     state.splitSide = state.splitSide === 'left' ? 'right' : 'left';
     switchDocument(peer.documentId, peerDocument.filename, peerDocument.lines,
       peer.row, peer.col);
+    state.folds = (peer.folds || []).map(function(fold) {
+      return { start: fold.start, end: fold.end, closed: fold.closed };
+    });
+    state.foldMemory = cloneFoldMemory(peer.foldMemory || {});
     setStatus('Active window: ' + peerDocument.filename);
     render();
   }
@@ -687,6 +814,10 @@
     }
     switchDocument(peer.documentId, peerDocument.filename, peerDocument.lines,
       peer.row, peer.col);
+    state.folds = (peer.folds || []).map(function(fold) {
+      return { start: fold.start, end: fold.end, closed: fold.closed };
+    });
+    state.foldMemory = cloneFoldMemory(peer.foldMemory || {});
     setStatus('Closed window. Buffer remains loaded.');
     render();
   }
@@ -698,12 +829,19 @@
     }
     state.splitPeer = null;
     state.splitSide = 'left';
+    state.lastRenderedTextKey = null;
     setStatus('Only window kept. Other buffer remains loaded.');
     render();
   }
 
   function switchDocument(documentId, filename, lines, row, col) {
+    var previousId = state.documentId;
+    var previousDocument = state.documents[previousId];
+    state.foldMemory[previousId] = state.folds.map(function(fold) {
+      return { start: fold.start, end: fold.end, closed: fold.closed };
+    });
     saveCurrentDocument();
+    var targetDocument = ensureDocumentRecord(documentId, filename, lines);
     state.documentGeneration++;
     state.pendingEditRequest = null;
     state.selectedRegister = null;
@@ -712,8 +850,17 @@
     state.insertUndoOpen = false;
     state.replaceUndoOpen = false;
     state.documentId = documentId;
-    state.filename = filename;
-    state.lines = lines.slice();
+    state.filename = targetDocument.filename;
+    state.lines = targetDocument.lines;
+    state.folds = (state.foldMemory[documentId] || []).map(function(fold) {
+      return { start: fold.start, end: fold.end, closed: fold.closed };
+    });
+    if (previousId !== documentId && previousDocument && previousDocument.listed &&
+        targetDocument.listed && !previousDocument.readonly && !targetDocument.readonly) {
+      state.alternateDocumentId = previousId;
+    }
+    state.undoStack = targetDocument.undoStack;
+    state.undoIdx = targetDocument.undoIdx;
     state.cursor = { row: row || 0, col: col || 0 };
     state.cursor.row = clampRow(state.cursor.row);
     state.cursor.col = clampCol(state.cursor.row, state.cursor.col);
@@ -723,70 +870,48 @@
 
   function renameCurrentDocument(documentId, filename) {
     var oldDocumentId = state.documentId;
-    saveCurrentDocument();
-    state.documents[documentId] = state.documents[oldDocumentId];
+    var document = saveCurrentDocument();
     for (var i = 0; i < state.jumpList.length; i++) {
       if (state.jumpList[i].documentId === oldDocumentId) {
-        state.jumpList[i].documentId = documentId;
         state.jumpList[i].filename = filename;
       }
     }
-    if (documentId !== oldDocumentId && state.changeLists[oldDocumentId]) {
-      state.changeLists[documentId] = state.changeLists[oldDocumentId];
-      delete state.changeLists[oldDocumentId];
-    }
-    if (documentId !== oldDocumentId && state.changeListIndexes[oldDocumentId] !== undefined) {
-      state.changeListIndexes[documentId] = state.changeListIndexes[oldDocumentId];
-      delete state.changeListIndexes[oldDocumentId];
-    }
-    if (documentId !== oldDocumentId && state.marks[oldDocumentId]) {
-      state.marks[documentId] = state.marks[oldDocumentId];
-      delete state.marks[oldDocumentId];
-    }
-    if (documentId !== oldDocumentId && state.lastVisualRanges[oldDocumentId]) {
-      state.lastVisualRanges[documentId] = state.lastVisualRanges[oldDocumentId];
-      delete state.lastVisualRanges[oldDocumentId];
-    }
-    for (var ui = 0; ui < state.undoStack.length; ui++) {
-      var undoEntry = state.undoStack[ui];
-      if (undoEntry.documentId === oldDocumentId) {
-        undoEntry.documentId = documentId;
-        undoEntry.filename = filename;
-      }
-      for (var ti = 0; ti < undoEntry.rowTransforms.length; ti++) {
-        if (undoEntry.rowTransforms[ti].documentId === oldDocumentId) {
-          undoEntry.rowTransforms[ti].documentId = documentId;
-        }
-      }
-    }
     if (state.pendingEditRequest && state.pendingEditRequest.source.documentId === oldDocumentId) {
-      state.pendingEditRequest.source.documentId = documentId;
       state.pendingEditRequest.source.filename = filename;
     }
     if (state.splitPeer && state.splitPeer.documentId === oldDocumentId) {
-      state.splitPeer.documentId = documentId;
       state.splitPeer.filename = filename;
     }
     for (var tpi = 0; tpi < state.tabPages.length; tpi++) {
       var tabPage = state.tabPages[tpi];
       if (tabPage.activeWindow && tabPage.activeWindow.documentId === oldDocumentId) {
-        tabPage.activeWindow.documentId = documentId;
         tabPage.activeWindow.filename = filename;
       }
       if (tabPage.splitPeer && tabPage.splitPeer.documentId === oldDocumentId) {
-        tabPage.splitPeer.documentId = documentId;
         tabPage.splitPeer.filename = filename;
       }
     }
-    if (documentId !== oldDocumentId) delete state.documents[oldDocumentId];
-    state.documentId = documentId;
     state.filename = filename;
-    state.documents[documentId].filename = filename;
+    document.filename = filename;
   }
 
   function nextUntitledId() {
     state.untitledSeq++;
     return 'untitled:' + state.untitledSeq;
+  }
+
+  function leaveWelcomeForEdit() {
+    if (currentDocument().kind !== 'welcome') return false;
+    switchDocument(nextUntitledId(), 'untitled.txt', [''], 0, 0);
+    return true;
+  }
+
+  function leaveTutorForEdit() {
+    if (currentDocument().kind !== 'tutor') return false;
+    var lines = state.lines.slice();
+    switchDocument(nextUntitledId(), 'tutor-practice.txt', lines,
+      state.cursor.row, state.cursor.col);
+    return true;
   }
 
   function nextOutputId(kind) {
@@ -860,24 +985,13 @@
       return { error: 'gf edits files. Use gx for URLs.' };
     }
 
-    var ids = Object.keys(state.documents);
-    var matches = [];
-    for (var i = 0; i < ids.length; i++) {
-      if (state.documents[ids[i]].filename === token) matches.push(ids[i]);
-    }
+    var catalog = workspaceCatalog();
+    var matches = catalog.filter(function(entry) { return entry.filename === token; });
     if (matches.length > 1) return { error: 'E93: More than one match for ' + token };
     if (matches.length === 1) {
-      return { kind: 'document', documentId: matches[0], filename: token, token: token };
-    }
-
-    var stored = readFromLocalFS(token);
-    if (stored !== null) {
       return {
-        kind: 'local',
-        documentId: documentIdForEdit(token, false),
-        filename: token,
-        lines: stored.split('\n'),
-        token: token
+        kind: 'catalog', documentId: matches[0].documentId,
+        filename: matches[0].filename, catalogEntry: matches[0], token: token
       };
     }
 
@@ -915,6 +1029,10 @@
   function ensureTargetDocument(target, ready) {
     if (state.documents[target.documentId]) {
       ready(target.documentId);
+      return;
+    }
+    if (target.kind === 'catalog') {
+      ready(ensureCatalogDocument(target.catalogEntry).documentId);
       return;
     }
     if (target.kind === 'local') {
@@ -964,7 +1082,7 @@
     });
   }
 
-  function openFileTarget(mode, tokenOverride) {
+  function openFileTarget(mode, tokenOverride, targetLine) {
     var token = tokenOverride || targetTokenUnderCursor(getLine(state.cursor.row), state.cursor.col);
     var target = resolveFileTarget(token);
     if (target.error) {
@@ -986,10 +1104,20 @@
       if (!document) return;
       if (mode === 'split') {
         openVerticalSplitDocument(documentId);
+        if (targetLine) {
+          state.cursor.row = clampRow(targetLine - 1);
+          state.cursor.col = firstNonBlank(state.cursor.row);
+          render();
+        }
         return;
       }
       if (mode === 'tab') {
         openTabDocument(documentId);
+        if (targetLine) {
+          state.cursor.row = clampRow(targetLine - 1);
+          state.cursor.col = firstNonBlank(state.cursor.row);
+          render();
+        }
         return;
       }
       if (documentId === state.documentId) {
@@ -999,10 +1127,55 @@
       }
       pushUndo(false);
       pushJumpEntry(source);
-      switchDocument(documentId, document.filename, document.lines, 0, 0);
+      var openRow = targetLine ? Math.max(0, targetLine - 1) : 0;
+      switchDocument(documentId, document.filename, document.lines, openRow, 0);
       setStatus('"' + document.filename + '" ' + state.lines.length + ' lines');
       render();
     });
+  }
+
+  function openFileTargetWithLine() {
+    var token = targetTokenUnderCursor(getLine(state.cursor.row), state.cursor.col);
+    var match = token.match(/^(.*?)(?::|#L)(\d+)(?::\d+)?$/);
+    if (match) openFileTarget('current', match[1], parseInt(match[2], 10));
+    else openFileTarget('current', token, 1);
+  }
+
+  function jumpHelpTag() {
+    if (currentDocument().kind !== 'help') {
+      setStatus('E433: No tags file');
+      return;
+    }
+    var rawToken = targetTokenUnderCursor(getLine(state.cursor.row), state.cursor.col)
+      .replace(/^help\s+/, '');
+    var plainToken = rawToken.replace(/^:+/, '');
+    var token = helpTopics && helpTopics[rawToken] ? rawToken
+      : (helpTopics && helpTopics[plainToken] ? plainToken
+        : (helpTopics && helpTopics[':' + plainToken] ? ':' + plainToken : plainToken));
+    if (!helpTopics || !helpTopics[token]) {
+      setStatus('E149: Sorry, no help for ' + (plainToken || 'that tag'));
+      return;
+    }
+    var source = jumpPosition(state.cursor.row, state.cursor.col);
+    state.tagStack.push(source);
+    if (state.tagStack.length > 100) state.tagStack.shift();
+    pushJumpEntry(source);
+    var id = 'help:' + token;
+    var document = ensureDocumentRecord(id, '[Help]', getHelpText(token), {
+      listed: false, readonly: true, recoveryPolicy: 'none'
+    });
+    switchDocument(id, document.filename, document.lines, 0, 0);
+    setStatus('Help tag: ' + token + '  Ctrl-T returns');
+    render();
+  }
+
+  function returnHelpTag() {
+    var entry = state.tagStack.pop();
+    if (!entry) {
+      setStatus('E555: At bottom of tag stack');
+      return;
+    }
+    activateJump(entry);
   }
 
   // Custom konami: up up left right left right down down enter
@@ -1425,6 +1598,7 @@
       if (marks[name] === transform.changeMark) return;
       applyReversibleRowTransform(transform, marks[name], startRow, endRow, delta, maxRow, reverse);
     });
+    adjustFoldReferences(transform.documentId, startRow, endRow, delta, maxRow);
     var deduped = [];
     var nextJumpIdx = state.jumpIdx;
     for (var j = 0; j < state.jumpList.length; j++) {
@@ -1436,6 +1610,49 @@
     }
     state.jumpList = deduped;
     state.jumpIdx = Math.max(-1, Math.min(nextJumpIdx, deduped.length - 1));
+  }
+
+  function adjustFoldList(folds, startRow, endRow, delta, maxRow) {
+    if (!folds) return;
+    for (var i = folds.length - 1; i >= 0; i--) {
+      var fold = folds[i];
+      if (fold.end < startRow) continue;
+      if (fold.start >= endRow) {
+        fold.start += delta;
+        fold.end += delta;
+      } else {
+        if (fold.start >= startRow) fold.start = startRow;
+        fold.end += delta;
+      }
+      fold.start = Math.max(0, Math.min(maxRow, fold.start));
+      fold.end = Math.max(0, Math.min(maxRow, fold.end));
+      if (fold.end <= fold.start) folds.splice(i, 1);
+    }
+  }
+
+  function adjustFoldReferences(documentId, startRow, endRow, delta, maxRow) {
+    if (state.documentId === documentId) {
+      adjustFoldList(state.folds, startRow, endRow, delta, maxRow);
+    }
+    adjustFoldList(state.foldMemory[documentId], startRow, endRow, delta, maxRow);
+    if (state.splitPeer && state.splitPeer.documentId === documentId) {
+      adjustFoldList(state.splitPeer.folds, startRow, endRow, delta, maxRow);
+    }
+    for (var i = 0; i < state.tabPages.length; i++) {
+      var page = state.tabPages[i];
+      if (page.activeWindow && page.activeWindow.documentId === documentId) {
+        adjustFoldList(page.activeWindow.folds, startRow, endRow, delta, maxRow);
+      }
+      if (page.activeWindow && page.activeWindow.foldMemory) {
+        adjustFoldList(page.activeWindow.foldMemory[documentId], startRow, endRow, delta, maxRow);
+      }
+      if (page.splitPeer && page.splitPeer.documentId === documentId) {
+        adjustFoldList(page.splitPeer.folds, startRow, endRow, delta, maxRow);
+      }
+      if (page.splitPeer && page.splitPeer.foldMemory) {
+        adjustFoldList(page.splitPeer.foldMemory[documentId], startRow, endRow, delta, maxRow);
+      }
+    }
   }
 
   function adjustJumpRows(startRow, removedCount, addedCount) {
@@ -1535,11 +1752,13 @@
   }
 
   function pushUndo(trackChange) {
+    if (state.normalTransaction && state.normalTransaction.undoOpen) return;
     state.editSerial++;
+    var document = currentDocument();
     var changePosition = trackChange !== false ? recordChangePosition() : null;
     var changeMark = trackChange !== false ? currentMarks()['.'] : null;
-    state.undoStack = state.undoStack.slice(0, state.undoIdx + 1);
-    state.undoStack.push({
+    document.undoStack = document.undoStack.slice(0, document.undoIdx + 1);
+    document.undoStack.push({
       lines: state.lines.slice(),
       filename: state.filename,
       documentId: state.documentId,
@@ -1547,8 +1766,11 @@
       changeMark: changeMark,
       rowTransforms: []
     });
-    if (state.undoStack.length > 200) { state.undoStack.shift(); }
-    else { state.undoIdx++; }
+    if (document.undoStack.length > 200) { document.undoStack.shift(); }
+    else { document.undoIdx++; }
+    state.undoStack = document.undoStack;
+    state.undoIdx = document.undoIdx;
+    if (state.normalTransaction) state.normalTransaction.undoOpen = true;
   }
 
   function ensureInsertUndo() {
@@ -1564,29 +1786,28 @@
   }
 
   function restoreUndoEntry(entry) {
-    if (entry.documentId && entry.documentId !== state.documentId) {
-      switchDocument(entry.documentId, entry.filename, entry.lines,
-        state.cursor.row, state.cursor.col);
-    } else {
-      state.lines = entry.lines.slice();
-      if (entry.filename) state.filename = entry.filename;
-      clampCursor();
-      saveCurrentDocument();
-    }
+    var document = currentDocument();
+    state.lines = entry.lines.slice();
+    document.lines = state.lines;
+    clampCursor();
+    saveCurrentDocument();
   }
 
   function undo() {
-    if (state.undoIdx < 0) { setStatus('Already at oldest change'); return; }
+    var document = currentDocument();
+    if (document.undoIdx < 0) { setStatus('Already at oldest change'); return; }
     // At the tip: save current state so redo can restore it
-    if (state.undoIdx === state.undoStack.length - 1) {
-      state.undoStack.push({
+    if (document.undoIdx === document.undoStack.length - 1) {
+      document.undoStack.push({
         lines: state.lines.slice(),
         filename: state.filename,
         documentId: state.documentId,
         rowTransforms: []
       });
     }
-    var entry = state.undoStack[state.undoIdx--];
+    var entry = document.undoStack[document.undoIdx--];
+    state.undoIdx = document.undoIdx;
+    state.undoStack = document.undoStack;
     for (var i = entry.rowTransforms.length - 1; i >= 0; i--) {
       applyJumpRowTransform(entry.rowTransforms[i], true);
     }
@@ -1595,16 +1816,19 @@
   }
 
   function redo() {
-    if (state.undoIdx + 2 >= state.undoStack.length) {
+    var document = currentDocument();
+    if (document.undoIdx + 2 >= document.undoStack.length) {
       setStatus('Already at newest change'); return;
     }
-    var change = state.undoStack[state.undoIdx + 1];
-    var entry = state.undoStack[state.undoIdx + 2];
+    var change = document.undoStack[document.undoIdx + 1];
+    var entry = document.undoStack[document.undoIdx + 2];
     for (var i = 0; i < change.rowTransforms.length; i++) {
       applyJumpRowTransform(change.rowTransforms[i], false);
     }
     restoreUndoEntry(entry);
-    state.undoIdx++;
+    document.undoIdx++;
+    state.undoIdx = document.undoIdx;
+    state.undoStack = document.undoStack;
     render();
   }
 
@@ -2871,29 +3095,114 @@
     return escaped;
   }
 
-  function renderGutter() {
+  function closedFoldStartingAt(row) {
+    for (var i = 0; i < state.folds.length; i++) {
+      if (state.folds[i].closed && state.folds[i].start === row) return state.folds[i];
+    }
+    return null;
+  }
+
+  function revealFoldAt(row) {
+    var changed = false;
+    for (var i = 0; i < state.folds.length; i++) {
+      var fold = state.folds[i];
+      if (fold.closed && row > fold.start && row <= fold.end) {
+        fold.closed = false;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  function visibleBufferRows() {
+    var rows = [];
+    for (var row = 0; row < state.lines.length; row++) {
+      rows.push(row);
+      var fold = closedFoldStartingAt(row);
+      if (fold) row = Math.min(state.lines.length - 1, fold.end);
+    }
+    return rows;
+  }
+
+  function foldAtCursor() {
+    var matches = state.folds.filter(function(fold) {
+      return state.cursor.row >= fold.start && state.cursor.row <= fold.end;
+    });
+    matches.sort(function(a, b) { return (a.end - a.start) - (b.end - b.start); });
+    return matches[0] || null;
+  }
+
+  function addManualFold(start, end) {
+    var low = Math.min(start, end);
+    var high = Math.max(start, end);
+    start = clampRow(low);
+    end = clampRow(high);
+    if (end <= start) { setStatus('E490: No fold found'); return false; }
+    state.folds.push({ start: start, end: end, closed: true });
+    state.folds.sort(function(a, b) { return a.start - b.start || b.end - a.end; });
+    state.cursor.row = start;
+    state.cursor.col = clampCol(start, state.cursor.col);
+    setStatus((end - start + 1) + ' lines folded');
+    render();
+    return true;
+  }
+
+  function runFoldCommand(command) {
+    var fold = foldAtCursor();
+    if (command === 'M' || command === 'R') {
+      for (var i = 0; i < state.folds.length; i++) state.folds[i].closed = command === 'M';
+      setStatus(command === 'M' ? 'All folds closed' : 'All folds opened');
+      render();
+      return;
+    }
+    if (!fold) { setStatus('E490: No fold found'); return; }
+    if (command === 'o') fold.closed = false;
+    else if (command === 'c') fold.closed = true;
+    else if (command === 'a') fold.closed = !fold.closed;
+    else if (command === 'd') state.folds.splice(state.folds.indexOf(fold), 1);
+    setStatus(command === 'd' ? 'Fold deleted' : (fold.closed ? 'Fold closed' : 'Fold opened'));
+    render();
+  }
+
+  function completeFoldMotion(key, count) {
+    var start = state.cursor.row;
+    var end = start;
+    if (key === 'j') end = clampRow(start + count);
+    else if (key === 'k') end = clampRow(start - count);
+    else if (key === 'G') end = state.lines.length - 1;
+    else if (key === 'g') end = 0;
+    else {
+      setStatus('E474: zf supports j, k, gg, or G in this web editor');
+      return;
+    }
+    addManualFold(start, end);
+  }
+
+  function renderGutter(bufferRows) {
     if (state.zenMode || state.dashboard) { gutterEl.style.display = 'none'; return; }
     gutterEl.style.display = 'block';
     var visibleRows = Math.floor(viewportEl.clientHeight / lineH);
-    var extraRows = Math.max(0, visibleRows - state.lines.length);
+    var rows = bufferRows || visibleBufferRows();
+    var extraRows = Math.max(0, visibleRows - rows.length);
     var parts = [];
 
     if (state.lineNumbers || state.relativeNumbers) {
       gutterEl.style.minWidth = '4ch';
       gutterEl.style.textAlign = 'right';
-      for (var i = 0; i < state.lines.length; i++) {
+      for (var i = 0; i < rows.length; i++) {
+        var bufferRow = rows[i];
         if (state.relativeNumbers) {
-          var rel = Math.abs(i - state.cursor.row);
+          var rel = Math.abs(bufferRow - state.cursor.row);
           // Show absolute number on cursor line, relative elsewhere
-          parts.push(escHtml(String(rel === 0 ? i + 1 : rel)));
+          parts.push(escHtml(String(rel === 0 ? bufferRow + 1 : rel)));
         } else {
-          parts.push(escHtml(String(i + 1)));
+          parts.push(escHtml(String(bufferRow + 1)));
         }
       }
     } else {
       gutterEl.style.minWidth = '2ch';
       gutterEl.style.textAlign = 'left';
-      for (var j = 0; j < state.lines.length; j++) {
+      for (var j = 0; j < rows.length; j++) {
         parts.push(' ');
       }
     }
@@ -2919,8 +3228,257 @@
       modeLabel = 'recording @' + state.macroRecording;
     }
     statusModeEl.textContent = modeLabel;
-    statusFileEl.textContent = state.filename;
+    var statusDocument = currentDocument();
+    if (state.lines.join('\n') !== statusDocument.lastSyncedText) {
+      statusDocument = saveCurrentDocument();
+    }
+    statusFileEl.textContent = state.filename +
+      (statusDocument.listed && statusDocument.modified ? ' [+]' : '');
     statusPosEl.textContent = (state.cursor.row + 1) + ',' + (state.cursor.col + 1);
+  }
+
+  function parseSubstituteCommand(command) {
+    if (command === 's' || command === '&&') {
+      if (!state.lastSub) return { error: 'E33: No previous substitute regular expression' };
+      return {
+        range: '', pattern: state.lastSub.pattern, replacement: state.lastSub.replacement,
+        flags: state.lastSub.flags || (state.lastSub.global ? 'g' : '')
+      };
+    }
+    var prefix = command.match(/^(\d+,\d+|%|'<,'>)?s/);
+    if (!prefix) return null;
+    var range = prefix[1] || '';
+    var body = command.slice(prefix[0].length);
+    if (!body) return { error: 'E471: Argument required' };
+    var delimiter = body.charAt(0);
+    if (/\w|\s|\\/.test(delimiter)) return null;
+    var parts = [];
+    var current = '';
+    var escaped = false;
+    for (var i = 1; i < body.length; i++) {
+      var ch = body.charAt(i);
+      if (!escaped && ch === delimiter) {
+        parts.push(current);
+        current = '';
+        if (parts.length === 2) {
+          current = body.slice(i + 1);
+          break;
+        }
+        continue;
+      }
+      if (!escaped && ch === '\\') {
+        escaped = true;
+        current += ch;
+      } else {
+        escaped = false;
+        current += ch;
+      }
+    }
+    if (parts.length < 1) return { error: 'E488: Trailing characters' };
+    var parsedFlags = '';
+    if (parts.length === 1) {
+      parts.push(current);
+    } else {
+      parsedFlags = current;
+      if (!/^[gciIn]*$/.test(parsedFlags)) {
+        return { error: 'E488: Trailing characters: ' + parsedFlags };
+      }
+    }
+    var pattern = parts[0].replace(new RegExp('\\\\' + delimiter, 'g'), delimiter);
+    var replacement = parts[1].replace(new RegExp('\\\\' + delimiter, 'g'), delimiter);
+    if (!pattern) {
+      pattern = state.searchHistory[state.searchHistory.length - 1] ||
+        (state.lastSub && state.lastSub.pattern) || '';
+      if (!pattern) return { error: 'E35: No previous regular expression' };
+    }
+    return { range: range, pattern: pattern, replacement: replacement, flags: parsedFlags };
+  }
+
+  function substituteRegExp(spec, forceGlobal) {
+    var flags = (forceGlobal || spec.flags.indexOf('g') !== -1) ? 'g' : '';
+    if (spec.flags.indexOf('i') !== -1 ||
+        (spec.flags.indexOf('I') === -1 && state.ignoreCase &&
+          (!state.smartCase || !/[A-Z]/.test(spec.pattern)))) flags += 'i';
+    return new RegExp(spec.pattern, flags);
+  }
+
+  function executeSubstitute(spec, rangeOverride) {
+    if (!spec) return false;
+    if (spec.error) { setStatus(spec.error); return false; }
+    var regex;
+    try { regex = substituteRegExp(spec, false); }
+    catch (e) { setStatus('E54: Invalid pattern: ' + spec.pattern); return false; }
+    var range = resolveRange(rangeOverride !== undefined ? rangeOverride : spec.range);
+    var countOnly = spec.flags.indexOf('n') !== -1;
+    var confirm = spec.flags.indexOf('c') !== -1;
+    addHistory(state.searchHistory, spec.pattern);
+    state.lastSub = {
+      pattern: spec.pattern, replacement: spec.replacement,
+      global: spec.flags.indexOf('g') !== -1, flags: spec.flags
+    };
+    var matches = [];
+    var total = 0;
+    for (var row = range.start; row <= range.end; row++) {
+      var line = state.lines[row];
+      var counter = substituteRegExp(spec, spec.flags.indexOf('g') !== -1 || confirm);
+      var match;
+      while ((match = counter.exec(line)) !== null) {
+        total++;
+        if (confirm) matches.push({ row: row, col: match.index, len: match[0].length });
+        if (spec.flags.indexOf('g') === -1 && !confirm) break;
+        if (match[0].length === 0) counter.lastIndex++;
+      }
+    }
+    if (countOnly) {
+      setStatus(total + ' match' + (total === 1 ? '' : 'es') + ' on ' +
+        (range.end - range.start + 1) + ' line' + (range.end === range.start ? '' : 's'));
+      return true;
+    }
+    if (confirm) {
+      if (!matches.length) { setStatus('Pattern not found: ' + spec.pattern); return true; }
+      pushUndo();
+      state.confirmSub = {
+        matches: matches, idx: 0, count: 0,
+        pattern: spec.pattern, replacement: spec.replacement,
+        global: spec.flags.indexOf('g') !== -1
+      };
+      state.mode = 'confirm-sub';
+      state.cursor.row = matches[0].row;
+      state.cursor.col = matches[0].col;
+      setStatus('replace with "' + spec.replacement + '"? (y/n/a/q)');
+      render();
+      return true;
+    }
+    if (!total) { setStatus('Pattern not found: ' + spec.pattern); return true; }
+    pushUndo();
+    var changed = 0;
+    for (var changeRow = range.start; changeRow <= range.end; changeRow++) {
+      var original = state.lines[changeRow];
+      var replaceRegex = substituteRegExp(spec, false);
+      state.lines[changeRow] = original.replace(replaceRegex, spec.replacement);
+      if (state.lines[changeRow] !== original) changed++;
+    }
+    setStatus(total + ' substitution' + (total === 1 ? '' : 's') +
+      ' on ' + changed + ' line' + (changed === 1 ? '' : 's'));
+    render();
+    return true;
+  }
+
+  function normalCommandTokens(source) {
+    var tokens = [];
+    for (var i = 0; i < source.length;) {
+      if (source.charAt(i) === '<') {
+        var end = source.indexOf('>', i + 1);
+        if (end < 0) return { error: 'E474: Invalid key token in :normal!' };
+        var name = source.slice(i + 1, end);
+        var token;
+        if (/^esc$/i.test(name)) token = { key: 'Escape' };
+        else if (/^(?:cr|enter)$/i.test(name)) token = { key: 'Enter' };
+        else if (/^space$/i.test(name)) token = { key: ' ' };
+        else if (/^tab$/i.test(name)) token = { key: 'Tab' };
+        else {
+          var control = name.match(/^c-(.)$/i);
+          if (!control) return { error: 'E474: Unsupported key token <' + name + '>' };
+          token = { key: control[1].toLowerCase(), ctrlKey: true };
+        }
+        tokens.push(token);
+        i = end + 1;
+        continue;
+      }
+      var character = textCharacters(source.slice(i))[0];
+      tokens.push({ key: character });
+      i += character.length;
+    }
+    return { tokens: tokens };
+  }
+
+  function normalTokenAllowed(token) {
+    if (token.ctrlKey && token.key === 'w') return false;
+    if (!token.ctrlKey && ':/?q@QZ'.indexOf(token.key) !== -1) return false;
+    return true;
+  }
+
+  function executeNormalCommand(rangeText, source) {
+    if (currentDocument().readonly) { teacherGuideReadonlyError(); return false; }
+    var parsed = normalCommandTokens(source);
+    if (parsed.error) { setStatus(parsed.error); return false; }
+    for (var p = 0; p < parsed.tokens.length; p++) {
+      if (!normalTokenAllowed(parsed.tokens[p])) {
+        setStatus('E523: :normal! excludes prompts, macros, windows, and exits');
+        return false;
+      }
+    }
+    var range = resolveRange(rangeText || '');
+    var targetCount = range.end - range.start + 1;
+    if (targetCount > 1000 || targetCount * parsed.tokens.length > 10000) {
+      setStatus('E1240: :normal! safety limit exceeded');
+      return false;
+    }
+    var document = saveCurrentDocument();
+    var before = {
+      lines: state.lines.slice(), cursor: { row: state.cursor.row, col: state.cursor.col },
+      undoStack: document.undoStack.slice(), undoIdx: document.undoIdx,
+      editSerial: state.editSerial,
+      jumpList: state.jumpList.map(function(entry) { return Object.assign({}, entry); }),
+      jumpIdx: state.jumpIdx,
+      changes: (state.changeLists[state.documentId] || []).map(function(entry) { return Object.assign({}, entry); }),
+      marks: Object.assign({}, state.marks[state.documentId] || {})
+    };
+    state.normalTransaction = { undoOpen: false };
+    state.suppressRender = true;
+    pushUndo();
+    var failed = null;
+    for (var offset = 0; offset < targetCount && !failed; offset++) {
+      state.mode = 'normal';
+      state.cursor.row = clampRow(range.start + offset);
+      state.cursor.col = firstNonBlank(state.cursor.row);
+      countBuf = 0;
+      gTimer = null;
+      pendingOperator = null;
+      state.pendingOp = null;
+      for (var t = 0; t < parsed.tokens.length; t++) {
+        var key = parsed.tokens[t];
+        dispatchKey({
+          key: key.key,
+          ctrlKey: !!key.ctrlKey,
+          shiftKey: false,
+          altKey: false,
+          metaKey: false,
+          preventDefault: function() {}
+        });
+      }
+      if (state.mode !== 'normal' || pendingOperator || state.pendingOp || gTimer || countBuf) {
+        failed = 'E523: incomplete or unsupported command in :normal!';
+      }
+    }
+    state.suppressRender = false;
+    state.normalTransaction = null;
+    if (failed) {
+      state.lines = before.lines;
+      document.lines = state.lines;
+      document.undoStack = before.undoStack;
+      document.undoIdx = before.undoIdx;
+      state.undoStack = document.undoStack;
+      state.undoIdx = document.undoIdx;
+      state.editSerial = before.editSerial;
+      state.jumpList = before.jumpList;
+      state.jumpIdx = before.jumpIdx;
+      state.changeLists[state.documentId] = before.changes;
+      state.marks[state.documentId] = before.marks;
+      state.mode = 'normal';
+      state.cursor = before.cursor;
+      countBuf = 0;
+      gTimer = null;
+      pendingOperator = null;
+      state.pendingOp = null;
+      setStatus(failed);
+      render();
+      return false;
+    }
+    saveCurrentDocument();
+    setStatus(':normal! applied to ' + targetCount + ' line' + (targetCount === 1 ? '' : 's'));
+    render();
+    return true;
   }
 
   function renderTabBar() {
@@ -3023,6 +3581,7 @@
   }
 
   function render() {
+    if (state.suppressRender) return;
     if (state.immersiveMode) return;
     state.dashboard = isWelcomeBuffer();
     var editor = document.getElementById('vim-editor');
@@ -3033,21 +3592,44 @@
       state.lineUndoRow = state.cursor.row;
       state.lineUndoText = getLine(state.cursor.row);
     }
-    var html = state.lines.map(renderLine).join('\n');
-
-    contentEl.innerHTML = html;
-    positionDashboardPet();
+    var searchKey = state.searchPattern
+      ? state.searchPattern.source + '/' + state.searchPattern.flags : '';
+    var visualKey = state.mode === 'visual'
+      ? [state.visualMode, state.visualAnchor && state.visualAnchor.row,
+        state.visualAnchor && state.visualAnchor.col, state.cursor.row, state.cursor.col].join(':')
+      : '';
+    revealFoldAt(state.cursor.row);
+    var foldKey = state.folds.map(function(fold) {
+      return fold.start + ':' + fold.end + ':' + (fold.closed ? 1 : 0);
+    }).join(',');
+    var textKey = state.documentId + '\u0000' + state.lines.join('\n') + '\u0000' +
+      searchKey + '\u0000' + visualKey + '\u0000' + foldKey + '\u0000' +
+      state.hlsearch + '\u0000' + state.listMode;
+    var fullRender = textKey !== state.lastRenderedTextKey ||
+      state.cursorLine || state.relativeNumbers;
+    var bufferRows = visibleBufferRows();
+    if (fullRender) {
+      contentEl.innerHTML = bufferRows.map(function(row) {
+        var rendered = renderLine(state.lines[row], row);
+        var fold = closedFoldStartingAt(row);
+        return fold ? rendered + '<span class="vim-fold-summary">  ··· ' +
+          (fold.end - fold.start) + ' lines folded</span>' : rendered;
+      }).join('\n');
+      state.lastRenderedTextKey = textKey;
+      positionDashboardPet();
+    }
 
     // word wrap CSS toggle
     contentEl.style.whiteSpace = state.wordWrap ? 'pre-wrap' : 'pre';
     contentEl.style.wordBreak = state.wordWrap ? 'break-all' : '';
 
+    var cursorScreenRow = Math.max(0, bufferRows.indexOf(state.cursor.row));
     cursorEl.style.left = (state.cursor.col * charW + 8) + 'px';
-    cursorEl.style.top  = (state.cursor.row * lineH) + 'px';
+    cursorEl.style.top  = (cursorScreenRow * lineH) + 'px';
     if (state.mode === 'replace') {
       cursorEl.style.width = charW + 'px';
       cursorEl.style.height = '2px';
-      cursorEl.style.top = (state.cursor.row * lineH + lineH - 2) + 'px';
+      cursorEl.style.top = (cursorScreenRow * lineH + lineH - 2) + 'px';
     } else {
       cursorEl.style.width  = (state.mode === 'insert' ? 2 : charW) + 'px';
       cursorEl.style.height = lineH + 'px';
@@ -3055,10 +3637,12 @@
 
     cursorEl.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 
-    renderGutter();
+    if (fullRender) renderGutter(bufferRows);
     renderStatus();
-    renderTabBar();
-    renderSplitPeer();
+    if (fullRender) {
+      renderTabBar();
+      renderSplitPeer();
+    }
     renderTeacherNext();
 
     // command line display
@@ -3087,14 +3671,15 @@
     URL.revokeObjectURL(url);
   }
 
-  // Tiny localStorage-backed filesystem so lesson 5 can actually roundtrip
-  // (`:w FOO` followed later by `:r FOO` should receive the saved lines).
-  // Keys are namespaced with vim_file_ so they do not collide with vim-prefs.
-  // Any localStorage failure (private mode, quota) is swallowed silently.
   var LOCAL_FS_PREFIX = 'vim_file_';
   function saveToLocalFS(filename, content) {
-    if (!filename) return;
-    try { localStorage.setItem(LOCAL_FS_PREFIX + filename, content); } catch (e) {}
+    if (!filename) return false;
+    try {
+      localStorage.setItem(LOCAL_FS_PREFIX + filename, content);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
   function readFromLocalFS(filename) {
     if (!filename) return null;
@@ -3117,6 +3702,992 @@
       }
     } catch (e) {}
     return out;
+  }
+
+  function normalizedFilename(filename) {
+    return String(filename || '').replace(/\\/g, '/').replace(/^\.\//, '').toLowerCase();
+  }
+
+  function localFSFilename(filename) {
+    var normalized = normalizedFilename(filename);
+    var names = listLocalFS();
+    for (var i = 0; i < names.length; i++) {
+      if (normalizedFilename(names[i]) === normalized) return names[i];
+    }
+    return null;
+  }
+
+  function workspaceCatalog() {
+    saveCurrentDocument();
+    var entries = [];
+    var seenIds = {};
+    var seenDurableNames = {};
+    var documents = listedDocuments();
+    for (var i = 0; i < documents.length; i++) {
+      var document = documents[i];
+      if (document.readonly || virtualDocumentKind(document.kind)) continue;
+      entries.push({
+        documentId: document.documentId,
+        filename: document.filename,
+        lines: document.lines,
+        changedTick: document.changedTick,
+        source: 'loaded',
+        bufferNumber: document.bufferNumber,
+        kind: document.kind,
+        cleanText: document.cleanText,
+        durableText: document.durableText
+      });
+      seenIds[document.documentId] = true;
+      seenDurableNames[normalizedFilename(document.filename)] = true;
+    }
+
+    var savedNames = listLocalFS().sort(function(a, b) { return a.localeCompare(b); });
+    for (var s = 0; s < savedNames.length; s++) {
+      var savedName = savedNames[s];
+      var savedId = documentIdForEdit(savedName, false);
+      if (seenIds[savedId] || seenDurableNames[normalizedFilename(savedName)]) continue;
+      var savedText = readFromLocalFS(savedName);
+      if (savedText === null) continue;
+      entries.push({
+        documentId: savedId,
+        filename: savedName,
+        lines: savedText.split('\n'),
+        changedTick: 0,
+        source: 'browser',
+        bufferNumber: null,
+        kind: 'local',
+        cleanText: savedText,
+        durableText: savedText
+      });
+      seenIds[savedId] = true;
+      seenDurableNames[normalizedFilename(savedName)] = true;
+    }
+
+    if (state.teacherTrack) {
+      var track = teacherActiveTrack();
+      var teacherNames = Object.keys((track && track.files) || {});
+      for (var t = 0; t < teacherNames.length; t++) {
+        var teacherName = teacherNames[t];
+        var teacherId = teacherDocumentId(teacherName);
+        if (seenIds[teacherId] || seenDurableNames[normalizedFilename(teacherName)]) continue;
+        entries.push({
+          documentId: teacherId,
+          filename: teacherName,
+          lines: track.files[teacherName].slice(),
+          changedTick: 0,
+          source: 'teacher',
+          bufferNumber: null,
+          kind: 'teacher',
+          cleanText: track.files[teacherName].join('\n'),
+          durableText: null
+        });
+        seenIds[teacherId] = true;
+        seenDurableNames[normalizedFilename(teacherName)] = true;
+      }
+    }
+    return entries;
+  }
+
+  function ensureCatalogDocument(entry) {
+    var existing = state.documents[entry.documentId];
+    if (existing) return ensureDocumentRecord(entry.documentId, existing.filename, existing.lines);
+    var document = createDocumentRecord(entry.documentId, entry.filename, entry.lines.slice(), {
+      kind: entry.kind,
+      cleanText: entry.cleanText,
+      durableText: entry.durableText
+    });
+    state.documents[entry.documentId] = document;
+    return document;
+  }
+
+  var QUICKFIX_TEXT_LIMIT = 2 * 1024 * 1024;
+  var QUICKFIX_RESULT_LIMIT = 500;
+
+  function quickfixPattern(pattern) {
+    var flags = 'g';
+    var forceInsensitive = /\\c/.test(pattern);
+    var forceSensitive = /\\C/.test(pattern);
+    pattern = pattern.replace(/\\[cC]/g, '')
+      .replace(/\\</g, '\\b(?=\\w)').replace(/\\>/g, '(?<=\\w)\\b');
+    if (forceInsensitive || (!forceSensitive && state.ignoreCase &&
+        (!state.smartCase || !/[A-Z]/.test(pattern)))) flags += 'i';
+    return new RegExp(pattern, flags);
+  }
+
+  function parseVimgrep(command) {
+    var body = command.replace(/^(?:vimgrep|vim)\s*/, '');
+    if (!body) return { error: 'E682: Invalid search pattern or delimiter' };
+    var delimiter = body.charAt(0);
+    if (/\w|\s/.test(delimiter)) return { error: 'E682: Invalid search pattern or delimiter' };
+    var closing = -1;
+    var escaped = false;
+    for (var i = 1; i < body.length; i++) {
+      var ch = body.charAt(i);
+      if (!escaped && ch === delimiter) { closing = i; break; }
+      if (!escaped && ch === '\\') escaped = true;
+      else escaped = false;
+    }
+    if (closing < 0) return { error: 'E682: Invalid search pattern or delimiter' };
+    var pattern = body.slice(1, closing).replace(new RegExp('\\\\' + delimiter, 'g'), delimiter);
+    var tail = body.slice(closing + 1);
+    var flagMatch = tail.match(/^([gj]*)(?:\s+|$)/);
+    if (!flagMatch) return { error: 'E474: Invalid Vimgrep flags' };
+    var flags = flagMatch[1];
+    var operands = tail.slice(flagMatch[0].length).trim().split(/\s+/).filter(Boolean);
+    if (!operands.length) return { error: 'E480: No match: missing file operand' };
+    if (!pattern) {
+      pattern = state.searchHistory[state.searchHistory.length - 1] || '';
+      if (!pattern) return { error: 'E35: No previous regular expression' };
+    }
+    try {
+      quickfixPattern(pattern);
+    } catch (e) {
+      return { error: 'E54: Unmatched or invalid pattern' };
+    }
+    return {
+      pattern: pattern,
+      global: flags.indexOf('g') !== -1,
+      stay: flags.indexOf('j') !== -1,
+      operands: operands
+    };
+  }
+
+  function globRegExp(glob) {
+    var escaped = glob.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.');
+    return new RegExp('^' + escaped + '$', 'i');
+  }
+
+  function resolveVimgrepTargets(operands) {
+    var catalog = workspaceCatalog();
+    var targets = [];
+    var seen = {};
+    function add(entry) {
+      if (!seen[entry.documentId]) {
+        seen[entry.documentId] = true;
+        targets.push(entry);
+      }
+    }
+    for (var i = 0; i < operands.length; i++) {
+      var operand = operands[i];
+      if (operand === '*') {
+        for (var all = 0; all < catalog.length; all++) add(catalog[all]);
+        continue;
+      }
+      if (operand === '%') {
+        var current = currentDocument();
+        if (!current.listed || current.readonly) return { error: 'E499: Empty file name for current buffer' };
+        var currentMatches = catalog.filter(function(entry) { return entry.documentId === current.documentId; });
+        if (!currentMatches.length) return { error: 'E480: No match: %' };
+        add(currentMatches[0]);
+        continue;
+      }
+      if (operand.indexOf('*') !== -1 || operand.indexOf('?') !== -1) {
+        var matcher = globRegExp(operand);
+        var globMatches = catalog.filter(function(entry) { return matcher.test(entry.filename); });
+        if (!globMatches.length) return { error: 'E480: No match: ' + operand };
+        for (var g = 0; g < globMatches.length; g++) add(globMatches[g]);
+        continue;
+      }
+      var exact = catalog.filter(function(entry) { return entry.filename === operand; });
+      if (exact.length > 1) return { error: 'E93: More than one match for ' + operand };
+      if (exact.length === 1) {
+        add(exact[0]);
+        continue;
+      }
+      var slug = blogSlugForTarget(operand);
+      if (slug && (operand === slug || operand === resolveBlogPath(slug))) {
+        add({
+          documentId: documentIdForEdit(slug, true), filename: slug + '.md',
+          source: 'article', kind: 'blog', slug: slug, path: resolveBlogPath(slug),
+          changedTick: 0, lines: null, cleanText: null, durableText: null
+        });
+        continue;
+      }
+      return { error: 'E480: No match: ' + operand };
+    }
+    return { targets: targets };
+  }
+
+  function loadVimgrepTargets(targets, generation) {
+    return Promise.all(targets.map(function(entry) {
+      if (entry.lines) return Promise.resolve(entry);
+      return fetch(entry.path).then(function(response) {
+        if (!response.ok) throw new Error(String(response.status));
+        return response.text();
+      }).then(function(text) {
+        entry.lines = text.split('\n');
+        entry.cleanText = text;
+        return entry;
+      }).catch(function() {
+        throw new Error('E484: Cannot open article ' + entry.slug);
+      });
+    })).then(function(entries) {
+      if (generation !== state.quickfix.generation) throw new Error('stale');
+      return entries;
+    });
+  }
+
+  function scanVimgrep(entries, parsed) {
+    var results = [];
+    var bytes = 0;
+    var truncated = false;
+    var encoder = new TextEncoder();
+    for (var e = 0; e < entries.length; e++) {
+      var entry = entries[e];
+      for (var row = 0; row < entry.lines.length; row++) {
+        var line = entry.lines[row];
+        bytes += encoder.encode(line + '\n').length;
+        if (bytes > QUICKFIX_TEXT_LIMIT) { truncated = true; break; }
+        var regex = quickfixPattern(parsed.pattern);
+        var match;
+        var matchOrdinal = 0;
+        while ((match = regex.exec(line)) !== null) {
+          results.push({
+            documentId: entry.documentId,
+            filename: entry.filename,
+            row: row,
+            col: match.index,
+            text: line,
+            changedTick: entry.changedTick || 0,
+            pattern: parsed.pattern,
+            matchOrdinal: matchOrdinal,
+            entry: entry,
+            valid: true
+          });
+          matchOrdinal++;
+          if (results.length >= QUICKFIX_RESULT_LIMIT) { truncated = true; break; }
+          if (!parsed.global) break;
+          if (match[0].length === 0) regex.lastIndex++;
+        }
+        if (truncated) break;
+      }
+      if (truncated) break;
+    }
+    return { items: results, truncated: truncated };
+  }
+
+  function startVimgrep(command) {
+    var parsed = parseVimgrep(command);
+    if (parsed.error) { setStatus(parsed.error); return; }
+    var resolved = resolveVimgrepTargets(parsed.operands);
+    if (resolved.error) { setStatus(resolved.error); return; }
+    var generation = ++state.quickfix.generation;
+    setStatus('Searching ' + resolved.targets.length + ' workspace file' +
+      (resolved.targets.length === 1 ? '' : 's') + '...');
+    loadVimgrepTargets(resolved.targets, generation).then(function(entries) {
+      var scanned = scanVimgrep(entries, parsed);
+      if (generation !== state.quickfix.generation) return;
+      state.quickfix.items = scanned.items;
+      state.quickfix.index = scanned.items.length ? 0 : -1;
+      state.quickfix.title = command;
+      state.quickfix.truncated = scanned.truncated;
+      var message = scanned.items.length + ' Quickfix match' +
+        (scanned.items.length === 1 ? '' : 'es');
+      if (scanned.truncated) message += ' (truncated at safety limit)';
+      setStatus(message);
+      if (scanned.items.length && !parsed.stay) openQuickfixItem(0);
+      else render();
+    }).catch(function(error) {
+      if (generation !== state.quickfix.generation || error.message === 'stale') return;
+      setStatus(error.message || 'E480: Vimgrep failed');
+    });
+  }
+
+  function quickfixLines() {
+    var lines = [
+      'QUICKFIX  ' + state.quickfix.items.length + ' result' +
+        (state.quickfix.items.length === 1 ? '' : 's') +
+        (state.quickfix.truncated ? '  [truncated]' : ''),
+      'Enter opens. :cnext and :cprevious move. Ctrl-O returns.',
+      ''
+    ];
+    for (var i = 0; i < state.quickfix.items.length; i++) {
+      var item = state.quickfix.items[i];
+      lines.push((i === state.quickfix.index ? '> ' : '  ') + item.filename +
+        ' | ' + (item.row + 1) + ' ' + (item.col + 1) + ' | ' + item.text);
+    }
+    if (!state.quickfix.items.length) lines.push('No matches.');
+    return lines;
+  }
+
+  function openQuickfixList() {
+    var source = currentDocument().kind === 'quickfix' ? null : jumpPosition(state.cursor.row, state.cursor.col);
+    if (source) pushJumpEntry(source);
+    var id = nextOutputId('quickfix');
+    var document = createDocumentRecord(id, '[Quickfix]', quickfixLines(), {
+      listed: false, readonly: true, recoveryPolicy: 'none'
+    });
+    state.documents[id] = document;
+    switchDocument(id, document.filename, document.lines,
+      state.quickfix.index >= 0 ? state.quickfix.index + 3 : 0, 0);
+    render();
+  }
+
+  function refreshQuickfixList() {
+    if (currentDocument().kind !== 'quickfix') return;
+    var lines = quickfixLines();
+    currentDocument().lines = lines;
+    currentDocument().cleanText = lines.join('\n');
+    currentDocument().lastSyncedText = currentDocument().cleanText;
+    state.lines = lines;
+    state.cursor.row = state.quickfix.index >= 0 ? state.quickfix.index + 3 : 0;
+  }
+
+  function quickfixEntryAtCursor() {
+    var index = state.cursor.row - 3;
+    return index >= 0 && index < state.quickfix.items.length ? index : -1;
+  }
+
+  function validateQuickfixItem(item, document) {
+    if (document.changedTick === item.changedTick) return true;
+    var line = document.lines[item.row];
+    if (line === undefined) return false;
+    var regex;
+    try { regex = quickfixPattern(item.pattern); } catch (e) { return false; }
+    var match = null;
+    var ordinal = 0;
+    while (ordinal <= (item.matchOrdinal || 0)) {
+      match = regex.exec(line);
+      if (!match) return false;
+      if (ordinal === (item.matchOrdinal || 0)) break;
+      ordinal++;
+      if (match[0].length === 0) regex.lastIndex++;
+    }
+    if (!match) return false;
+    item.col = match.index;
+    item.text = line;
+    item.changedTick = document.changedTick;
+    return true;
+  }
+
+  function openQuickfixItem(index) {
+    if (index < 0 || index >= state.quickfix.items.length) {
+      setStatus(index < 0 ? 'E553: No more items before this one' : 'E553: No more items after this one');
+      return false;
+    }
+    var item = state.quickfix.items[index];
+    var document = ensureCatalogDocument(item.entry);
+    if (!validateQuickfixItem(item, document)) {
+      item.valid = false;
+      setStatus('E925: Quickfix entry is stale and no longer matches');
+      refreshQuickfixList();
+      render();
+      return false;
+    }
+    var source = jumpPosition(state.cursor.row, state.cursor.col);
+    pushJumpEntry(source);
+    state.quickfix.index = index;
+    switchDocument(document.documentId, document.filename, document.lines, item.row, item.col);
+    setStatus('(' + (index + 1) + ' of ' + state.quickfix.items.length + ') ' + document.filename);
+    render();
+    return true;
+  }
+
+  function moveQuickfix(direction) {
+    if (!state.quickfix.items.length) { setStatus('E42: No Errors'); return; }
+    var next = state.quickfix.index + direction;
+    openQuickfixItem(next);
+  }
+
+  function loadedDocumentWithFilename(filename, exceptId) {
+    var normalized = normalizedFilename(filename);
+    var ids = Object.keys(state.documents);
+    for (var i = 0; i < ids.length; i++) {
+      var document = ensureDocumentRecord(ids[i], state.documents[ids[i]].filename,
+        state.documents[ids[i]].lines);
+      if (ids[i] !== exceptId && document.listed && document.kind === 'local' &&
+          normalizedFilename(document.filename) === normalized) {
+        return document;
+      }
+    }
+    return null;
+  }
+
+  function markDocumentClean(document, text) {
+    document.cleanText = text;
+    document.durableText = text;
+    document.lastSyncedText = text;
+    document.modified = false;
+    clearRecoveryDraft(document);
+    syncBeforeUnload();
+  }
+
+  function writeCurrentDocument(force, targetName) {
+    var document = saveCurrentDocument();
+    if (document.readonly) {
+      setStatus("E45: 'readonly' option is set");
+      return false;
+    }
+    var text = state.lines.join('\n');
+    if (document.kind === 'teacher') {
+      state.teacherSavedText[state.documentId] = text;
+      var teacherHandled = teacherHandleSavedDocument();
+      if (teacherHandled && state.teacherRepair &&
+          state.teacherRepair.documentId === state.documentId) {
+        document.modified = true;
+        scheduleRecoveryDraft(document);
+        render();
+        return false;
+      }
+      document.cleanText = text;
+      document.lastSyncedText = text;
+      document.modified = false;
+      clearRecoveryDraft(document);
+      syncBeforeUnload();
+      if (!state.statusMsg) setStatus('Saved ' + state.filename + ' inside Teacher.');
+      render();
+      return true;
+    }
+
+    var filename = targetName || state.filename;
+    if (!filename || /^\[.*\]$/.test(filename)) {
+      setStatus('E32: No file name');
+      return false;
+    }
+    var loadedConflict = loadedDocumentWithFilename(filename, state.documentId);
+    if (loadedConflict) {
+      setStatus('E95: Buffer ' + loadedConflict.bufferNumber + ' already has this name');
+      return false;
+    }
+    var durableFilename = localFSFilename(filename);
+    if (durableFilename && durableFilename !== filename) {
+      if (!force) {
+        setStatus('E13: File exists as "' + durableFilename + '" (add ! to override)');
+        return false;
+      }
+      filename = durableFilename;
+    }
+    var stored = readFromLocalFS(filename);
+    var renaming = filename !== document.filename;
+    if (renaming && stored !== null && !force) {
+      setStatus('E13: File exists (add ! to override)');
+      return false;
+    }
+    if (!renaming && stored !== document.durableText && !force) {
+      setStatus('E813: File changed in browser storage (add ! to override)');
+      return false;
+    }
+    if (!saveToLocalFS(filename, text)) {
+      setStatus('E212: browser write failed; work remains modified');
+      render();
+      return false;
+    }
+    if (renaming) renameCurrentDocument(state.documentId, filename);
+    document = currentDocument();
+    markDocumentClean(document, text);
+    setStatus('"' + filename + '" ' + state.lines.length + 'L saved in browser');
+    render();
+    return true;
+  }
+
+  var RECOVERY_PREFIX = 'vim_recovery_v1:';
+  var RECOVERY_SESSION_KEY = 'vim_recovery_session_id';
+
+  function recoverySessionId() {
+    try {
+      var id = sessionStorage.getItem(RECOVERY_SESSION_KEY);
+      if (!id) {
+        id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+        sessionStorage.setItem(RECOVERY_SESSION_KEY, id);
+      }
+      return id;
+    } catch (e) {
+      state.recoveryStorageError = 'Recovery storage is unavailable.';
+      return 'unavailable';
+    }
+  }
+
+  function recoveryKey(document) {
+    return RECOVERY_PREFIX + recoverySessionId() + ':' + encodeURIComponent(document.documentId);
+  }
+
+  function recoveryEligible(document) {
+    return document && document.listed && !document.readonly &&
+      document.recoveryPolicy === 'session';
+  }
+
+  function writeRecoveryDraft(document) {
+    if (!recoveryEligible(document) || !document.modified) return;
+    var draft = {
+      version: 1,
+      sessionId: recoverySessionId(),
+      documentId: document.documentId,
+      filename: document.filename,
+      lines: document.lines.slice(),
+      cleanText: document.cleanText,
+      kind: document.kind,
+      changedTick: document.changedTick,
+      row: document.documentId === state.documentId ? state.cursor.row : (document.lastRow || 0),
+      col: document.documentId === state.documentId ? state.cursor.col : (document.lastCol || 0),
+      savedAt: Date.now()
+    };
+    try {
+      sessionStorage.setItem(recoveryKey(document), JSON.stringify(draft));
+      state.recoveryStorageError = null;
+    } catch (e) {
+      state.recoveryStorageError = 'Recovery storage failed; keep this tab open and save in browser.';
+      setStatus(state.recoveryStorageError);
+    }
+  }
+
+  function clearRecoveryDraft(document) {
+    if (!document) return;
+    try { sessionStorage.removeItem(recoveryKey(document)); } catch (e) {}
+  }
+
+  function scheduleRecoveryDraft(document) {
+    if (state.recoveryFlushing) return;
+    if (!recoveryEligible(document)) return;
+    if (!document.modified) {
+      clearRecoveryDraft(document);
+      return;
+    }
+    clearTimeout(state.recoveryDraftTimer);
+    state.recoveryDraftTimer = setTimeout(function() {
+      flushRecoveryDrafts();
+    }, 250);
+  }
+
+  function flushRecoveryDrafts() {
+    clearTimeout(state.recoveryDraftTimer);
+    state.recoveryDraftTimer = null;
+    state.recoveryFlushing = true;
+    saveCurrentDocument();
+    var ids = Object.keys(state.documents);
+    for (var i = 0; i < ids.length; i++) {
+      var candidate = state.documents[ids[i]];
+      if (recoveryEligible(candidate) && candidate.modified) writeRecoveryDraft(candidate);
+    }
+    state.recoveryFlushing = false;
+  }
+
+  function recoveryDrafts() {
+    var entries = [];
+    var prefix = RECOVERY_PREFIX + recoverySessionId() + ':';
+    try {
+      for (var i = 0; i < sessionStorage.length; i++) {
+        var key = sessionStorage.key(i);
+        if (!key || key.indexOf(prefix) !== 0) continue;
+        try {
+          var entry = JSON.parse(sessionStorage.getItem(key));
+          if (!entry || entry.version !== 1 || !entry.documentId ||
+              !entry.filename || !Array.isArray(entry.lines)) {
+            entries.push({ invalid: true, key: key, filename: '[invalid recovery entry]' });
+          } else {
+            entry.key = key;
+            entries.push(entry);
+          }
+        } catch (e) {
+          entries.push({ invalid: true, key: key, filename: '[invalid recovery entry]' });
+        }
+      }
+    } catch (e) {
+      state.recoveryStorageError = 'Recovery storage is unavailable.';
+    }
+    entries.sort(function(a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
+    return entries;
+  }
+
+  function recoveryLines(entries) {
+    var lines = [
+      'RECOVERY',
+      'Enter restores.  s keeps in browser.  d discards.  Ctrl-O returns.',
+      ''
+    ];
+    for (var i = 0; i < entries.length; i++) {
+      var entry = entries[i];
+      lines.push((i + 1) + '  [+] ' + entry.filename +
+        (entry.invalid ? '  invalid draft' : '  ' + entry.lines.length + ' lines'));
+    }
+    if (!entries.length) lines.push('No recovery drafts.');
+    return lines;
+  }
+
+  function openRecoveryList(pushReturn) {
+    state.recoveryEntries = recoveryDrafts();
+    if (pushReturn) pushJump();
+    var id = nextOutputId('recovery');
+    var document = createDocumentRecord(id, '[Recovery]', recoveryLines(state.recoveryEntries),
+      { listed: false, readonly: true, recoveryPolicy: 'none' });
+    state.documents[id] = document;
+    switchDocument(id, document.filename, document.lines,
+      state.recoveryEntries.length ? 3 : 0, 0);
+    setStatus(state.recoveryEntries.length + ' recovery draft' +
+      (state.recoveryEntries.length === 1 ? '' : 's'));
+    render();
+  }
+
+  function searchMatchForObject(direction, count) {
+    if (!state.searchMatches.length) {
+      setStatus('E35: No previous regular expression');
+      return null;
+    }
+    var index = -1;
+    if (direction > 0) {
+      for (var i = 0; i < state.searchMatches.length; i++) {
+        var forward = state.searchMatches[i];
+        if (forward.row > state.cursor.row ||
+            (forward.row === state.cursor.row && forward.col + forward.len > state.cursor.col)) {
+          index = i;
+          break;
+        }
+      }
+      if (index < 0) index = 0;
+    } else {
+      for (var j = state.searchMatches.length - 1; j >= 0; j--) {
+        var backward = state.searchMatches[j];
+        if (backward.row < state.cursor.row ||
+            (backward.row === state.cursor.row && backward.col <= state.cursor.col)) {
+          index = j;
+          break;
+        }
+      }
+      if (index < 0) index = state.searchMatches.length - 1;
+    }
+    index = (index + direction * (Math.max(1, count || 1) - 1) +
+      state.searchMatches.length * Math.max(1, count || 1)) % state.searchMatches.length;
+    state.searchIdx = index;
+    return state.searchMatches[index];
+  }
+
+  function selectSearchMatch(direction, count) {
+    var match = searchMatchForObject(direction, count);
+    if (!match) return;
+    pushJump();
+    state.mode = 'visual';
+    state.visualMode = 'char';
+    state.visualAnchor = { row: match.row, col: match.col };
+    state.cursor.row = match.row;
+    state.cursor.col = Math.max(match.col, match.col + match.len - 1);
+    state.curswant = state.cursor.col;
+    render();
+  }
+
+  function recoveryEntryAtCursor() {
+    var index = state.cursor.row - 3;
+    return index >= 0 && index < state.recoveryEntries.length
+      ? { entry: state.recoveryEntries[index], index: index } : null;
+  }
+
+  function restoreRecoveryEntry(force) {
+    var selected = recoveryEntryAtCursor();
+    if (!selected || selected.entry.invalid) {
+      setStatus('E305: No valid recovery entry on this line');
+      return;
+    }
+    var entry = selected.entry;
+    var existing = state.documents[entry.documentId];
+    if (existing && existing.modified && !force) {
+      setStatus('E37: Target buffer has changes (use :recover!)');
+      return;
+    }
+    var document = createDocumentRecord(entry.documentId, entry.filename,
+      entry.lines.slice(), {
+        kind: entry.kind || 'local',
+        cleanText: entry.cleanText === undefined ? '' : entry.cleanText,
+        modified: true,
+        changedTick: (entry.changedTick || 0) + 1,
+        recoveryPolicy: 'session'
+      });
+    if (existing && existing.bufferNumber !== null) document.bufferNumber = existing.bufferNumber;
+    state.documents[entry.documentId] = document;
+    switchDocument(entry.documentId, entry.filename, document.lines, entry.row || 0, entry.col || 0);
+    document.modified = true;
+    setStatus('Recovered "' + entry.filename + '"; use :w to keep it in browser.');
+    render();
+  }
+
+  function discardRecoveryEntry() {
+    var selected = recoveryEntryAtCursor();
+    if (!selected) return;
+    try { sessionStorage.removeItem(selected.entry.key); } catch (e) {}
+    openRecoveryList(false);
+  }
+
+  function keepRecoveryEntry() {
+    var selected = recoveryEntryAtCursor();
+    if (!selected || selected.entry.invalid) return;
+    var entry = selected.entry;
+    var text = entry.lines.join('\n');
+    var filename = localFSFilename(entry.filename) || entry.filename;
+    var stored = readFromLocalFS(filename);
+    var loaded = state.documents[entry.documentId];
+    if ((stored !== null && stored !== entry.cleanText) ||
+        (loaded && loaded.modified && loaded.lines.join('\n') !== text)) {
+      setStatus('E813: Recovery conflicts with newer work; draft kept');
+      return;
+    }
+    if (!saveToLocalFS(filename, text)) {
+      setStatus('E212: browser write failed; recovery draft kept');
+      return;
+    }
+    if (loaded) markDocumentClean(loaded, text);
+    try { sessionStorage.removeItem(entry.key); } catch (e) {}
+    openRecoveryList(false);
+    setStatus('"' + filename + '" kept in browser storage');
+  }
+
+  function dirtyDocuments() {
+    state.recoveryFlushing = true;
+    saveCurrentDocument();
+    state.recoveryFlushing = false;
+    return Object.keys(state.documents).map(function(id) { return state.documents[id]; })
+      .filter(function(document) { return document.listed && document.modified; });
+  }
+
+  function warnBeforeUnload(e) {
+    if (!dirtyDocuments().length) return;
+    e.preventDefault();
+    e.returnValue = '';
+  }
+
+  function syncBeforeUnload() {
+    var dirty = Object.keys(state.documents).some(function(id) {
+      var document = state.documents[id];
+      return document.listed && document.modified;
+    });
+    if (dirty && !state.beforeUnloadBound) {
+      window.addEventListener('beforeunload', warnBeforeUnload);
+      state.beforeUnloadBound = true;
+    } else if (!dirty && state.beforeUnloadBound) {
+      window.removeEventListener('beforeunload', warnBeforeUnload);
+      state.beforeUnloadBound = false;
+    }
+  }
+
+  function listedDocuments() {
+    return Object.keys(state.documents).map(function(id) {
+      return ensureDocumentRecord(id, state.documents[id].filename, state.documents[id].lines);
+    }).filter(function(document) {
+      return document.listed;
+    }).sort(function(a, b) {
+      return a.bufferNumber - b.bufferNumber;
+    });
+  }
+
+  function visibleDocumentIds() {
+    var ids = [state.documentId];
+    if (state.splitPeer) ids.push(state.splitPeer.documentId);
+    for (var i = 0; i < state.tabPages.length; i++) {
+      if (i === state.activeTabPage) continue;
+      var page = state.tabPages[i];
+      if (page.activeWindow) ids.push(page.activeWindow.documentId);
+      if (page.splitPeer) ids.push(page.splitPeer.documentId);
+    }
+    return ids;
+  }
+
+  function documentVisibleCount(documentId) {
+    return visibleDocumentIds().filter(function(id) { return id === documentId; }).length;
+  }
+
+  function discardDocumentChanges(document) {
+    if (!document || !document.modified) return;
+    document.lines = (document.cleanText || '').split('\n');
+    if (!document.lines.length) document.lines = [''];
+    document.lastSyncedText = document.cleanText || '';
+    document.modified = false;
+    document.changedTick++;
+    document.undoStack = [];
+    document.undoIdx = -1;
+    if (document.documentId === state.documentId) {
+      state.lines = document.lines;
+      state.undoStack = document.undoStack;
+      state.undoIdx = -1;
+      state.cursor.row = clampRow(state.cursor.row);
+      state.cursor.col = clampCol(state.cursor.row, state.cursor.col);
+    }
+    clearRecoveryDraft(document);
+  }
+
+  function leaveWorkspace() {
+    if (state.beforeUnloadBound) {
+      window.removeEventListener('beforeunload', warnBeforeUnload);
+      state.beforeUnloadBound = false;
+    }
+    window.location.href = state.exitTarget;
+  }
+
+  function focusDirtyDocument(document) {
+    if (!document || document.documentId === state.documentId) return;
+    pushJump();
+    switchDocument(document.documentId, document.filename, document.lines, 0, 0);
+    render();
+  }
+
+  function requestWorkspaceExit(forceAll) {
+    var dirty = dirtyDocuments();
+    if (forceAll) {
+      for (var i = 0; i < dirty.length; i++) discardDocumentChanges(dirty[i]);
+      leaveWorkspace();
+      return true;
+    }
+    if (dirty.length) {
+      focusDirtyDocument(dirty[0]);
+      setStatus('E37: No write since last change for "' + dirty[0].filename + '" (use :qa!)');
+      render();
+      return false;
+    }
+    leaveWorkspace();
+    return true;
+  }
+
+  function closeCurrentView(forceCurrent) {
+    var document = saveCurrentDocument();
+    var finalView = documentVisibleCount(document.documentId) === 1;
+    if (forceCurrent && finalView) discardDocumentChanges(document);
+    if (state.splitPeer) {
+      closeActiveSplit();
+      return true;
+    }
+    ensureTabPages();
+    if (state.tabPages.length > 1) {
+      closeActiveTabPage();
+      return true;
+    }
+    if (forceCurrent) {
+      var otherDirty = dirtyDocuments().filter(function(candidate) {
+        return candidate.documentId !== document.documentId;
+      });
+      if (otherDirty.length) {
+        focusDirtyDocument(otherDirty[0]);
+        setStatus('E37: Hidden buffer "' + otherDirty[0].filename + '" has changes (use :qa!)');
+        render();
+        return false;
+      }
+      leaveWorkspace();
+      return true;
+    }
+    return requestWorkspaceExit(false);
+  }
+
+  function switchAlternateDocument() {
+    var alternateId = state.alternateDocumentId;
+    var target = alternateId && state.documents[alternateId];
+    if (!target || !target.listed) {
+      setStatus('E23: No alternate file');
+      return;
+    }
+    var currentId = state.documentId;
+    pushJump();
+    switchDocument(alternateId, target.filename, target.lines, 0, 0);
+    state.alternateDocumentId = currentId;
+    setStatus('Alternate buffer: ' + target.filename);
+    render();
+  }
+
+  function bufferTarget(token) {
+    var documents = listedDocuments();
+    if (!token) return null;
+    if (/^\d+$/.test(token)) {
+      var number = parseInt(token, 10);
+      return documents.filter(function(document) { return document.bufferNumber === number; })[0] || null;
+    }
+    var exact = documents.filter(function(document) { return document.filename === token; });
+    if (exact.length === 1) return exact[0];
+    var partial = documents.filter(function(document) { return document.filename.indexOf(token) !== -1; });
+    return partial.length === 1 ? partial[0] : null;
+  }
+
+  function switchBuffer(target) {
+    if (!target) {
+      setStatus('E94: No matching buffer');
+      return false;
+    }
+    pushJump();
+    switchDocument(target.documentId, target.filename, target.lines, 0, 0);
+    setStatus('Buffer ' + target.bufferNumber + ': ' + target.filename);
+    render();
+    return true;
+  }
+
+  function switchRelativeBuffer(direction) {
+    var documents = listedDocuments();
+    if (!documents.length) {
+      setStatus('E85: There is no listed buffer');
+      return;
+    }
+    var index = documents.findIndex(function(document) { return document.documentId === state.documentId; });
+    if (index < 0) index = direction > 0 ? -1 : 0;
+    switchBuffer(documents[(index + direction + documents.length) % documents.length]);
+  }
+
+  function fallbackDocument(exceptId) {
+    var documents = listedDocuments().filter(function(document) {
+      return document.documentId !== exceptId;
+    });
+    if (documents.length) return documents[0];
+    var welcome = ensureDocumentRecord('welcome', 'untitled.txt', buildWelcome(), {
+      listed: false, readonly: true, recoveryPolicy: 'none'
+    });
+    return welcome;
+  }
+
+  function deleteBuffer(document, force) {
+    if (!document) {
+      setStatus('E94: No matching buffer');
+      return false;
+    }
+    if (document.modified && !force) {
+      setStatus('E89: No write since last change for "' + document.filename + '" (use :bdelete!)');
+      return false;
+    }
+    if (force) discardDocumentChanges(document);
+    var deletedId = document.documentId;
+    var fallback = fallbackDocument(deletedId);
+    if (state.documentId === deletedId) {
+      switchDocument(fallback.documentId, fallback.filename, fallback.lines, 0, 0);
+    }
+    if (state.splitPeer && state.splitPeer.documentId === deletedId) state.splitPeer = null;
+    for (var i = 0; i < state.tabPages.length; i++) {
+      var page = state.tabPages[i];
+      if (page.activeWindow && page.activeWindow.documentId === deletedId) {
+        page.activeWindow = {
+          documentId: fallback.documentId, filename: fallback.filename,
+          row: 0, col: 0, alternateDocumentId: null, folds: [], foldMemory: {}
+        };
+      }
+      if (page.splitPeer && page.splitPeer.documentId === deletedId) page.splitPeer = null;
+      if (page.activeWindow && page.activeWindow.alternateDocumentId === deletedId) {
+        page.activeWindow.alternateDocumentId = null;
+      }
+      if (page.activeWindow && page.activeWindow.foldMemory) delete page.activeWindow.foldMemory[deletedId];
+      if (page.splitPeer && page.splitPeer.foldMemory) delete page.splitPeer.foldMemory[deletedId];
+    }
+    if (state.alternateDocumentId === deletedId) state.alternateDocumentId = null;
+    state.jumpList = state.jumpList.filter(function(entry) { return entry.documentId !== deletedId; });
+    state.jumpIdx = Math.min(state.jumpIdx, state.jumpList.length - 1);
+    delete state.changeLists[deletedId];
+    delete state.changeListIndexes[deletedId];
+    delete state.marks[deletedId];
+    delete state.lastVisualRanges[deletedId];
+    delete state.foldMemory[deletedId];
+    state.quickfix.items = state.quickfix.items.filter(function(entry) { return entry.documentId !== deletedId; });
+    state.quickfix.index = Math.min(state.quickfix.index, state.quickfix.items.length - 1);
+    clearRecoveryDraft(document);
+    delete state.documents[deletedId];
+    setStatus('Deleted buffer ' + document.bufferNumber + ': ' + document.filename);
+    syncBeforeUnload();
+    render();
+    return true;
+  }
+
+  function bufferListLines() {
+    var visible = visibleDocumentIds();
+    var documents = listedDocuments();
+    var lines = ['buffers', '', '   # flags file'];
+    for (var i = 0; i < documents.length; i++) {
+      var document = documents[i];
+      var current = document.documentId === state.documentId ? '%' : ' ';
+      var alternate = document.documentId === state.alternateDocumentId ? '#' : ' ';
+      var active = visible.indexOf(document.documentId) !== -1 ? 'a' : 'h';
+      var modified = document.modified ? '+' : ' ';
+      lines.push(current + alternate + ' ' + String(document.bufferNumber).padStart(3, ' ') +
+        ' ' + active + modified + ' ' + document.filename);
+    }
+    lines.push('', '% current  # alternate  a active  h hidden  + modified',
+      'Enter opens the buffer. Ctrl-O returns.');
+    return lines;
   }
 
   // -------------------------------------------------------------------------
@@ -3157,7 +4728,7 @@
   // -------------------------------------------------------------------------
   // Fake shell (:! easter egg)
   // -------------------------------------------------------------------------
-  function getShellOutput(input) {
+  function getShellOutput(input, onAsyncOutput) {
     var argv = input.split(/\s+/);
     var bin = argv[0] || '';
     if (bin === 'ls') {
@@ -3192,8 +4763,12 @@
           return resp.text();
         }).then(function(text) {
           if (state.documentGeneration !== catGeneration) return;
-          pushUndo();
           var output = text.split('\n');
+          if (onAsyncOutput) {
+            onAsyncOutput(output);
+            return;
+          }
+          pushUndo();
           adjustJumpRows(state.cursor.row + 1, 0, output.length);
           for (var ci = 0; ci < output.length; ci++) {
             state.lines.splice(state.cursor.row + 1 + ci, 0, output[ci]);
@@ -3222,12 +4797,20 @@
   }
 
   function fakeShell(input) {
-    var output = getShellOutput(input);
+    var output = getShellOutput(input, function(asyncOutput) {
+      showShellOutput(input, asyncOutput);
+    });
     if (output === null) return;
-    pushUndo();
-    state.lines = output;
-    state.cursor = { row: 0, col: 0 };
-    state.curswant = 0;
+    showShellOutput(input, output);
+  }
+
+  function showShellOutput(input, output) {
+    pushJump();
+    var outputId = nextOutputId('shell');
+    var outputDocument = createDocumentRecord(outputId, '[Output]', output,
+      { listed: false, readonly: true, recoveryPolicy: 'none' });
+    state.documents[outputId] = outputDocument;
+    switchDocument(outputId, outputDocument.filename, outputDocument.lines, 0, 0);
     setStatus(':!' + input + '  (press u to return)');
     render();
   }
@@ -4141,6 +5724,8 @@
     { label: 'Copy, paste, and inspect registers', command: 'help registers' },
     { label: 'Insert a yank into : or /', command: 'help Ctrl-r' },
     { label: 'Manage buffers, splits, and tabs', command: 'help :buffers' },
+    { label: 'Search workspace files with Quickfix', command: 'help :vimgrep' },
+    { label: 'Recover an unsaved session draft', command: 'recover' },
     { label: 'Open files and links under the cursor', command: 'help gf' },
     { label: 'Stop Teacher and keep progress', command: 'teacher off' },
     { label: 'Enter kinetic moth field', command: 'moth' },
@@ -4317,6 +5902,31 @@
       filename: match[2],
       lines: lines.slice()
     };
+  }
+
+  function restoreTeacherDocument(documentId, filename, lines) {
+    var document = state.documents[documentId]
+      ? ensureDocumentRecord(documentId, filename, state.documents[documentId].lines)
+      : createDocumentRecord(documentId, filename, lines.slice(), { kind: 'teacher' });
+    clearRecoveryDraft(document);
+    document.filename = filename;
+    document.lines = lines.slice();
+    document.cleanText = document.lines.join('\n');
+    document.lastSyncedText = document.cleanText;
+    document.modified = false;
+    document.changedTick++;
+    document.undoStack = [];
+    document.undoIdx = -1;
+    state.documents[documentId] = document;
+    if (state.documentId === documentId) {
+      state.filename = filename;
+      state.lines = document.lines;
+      state.undoStack = document.undoStack;
+      state.undoIdx = -1;
+      state.cursor.row = clampRow(state.cursor.row);
+      state.cursor.col = clampCol(state.cursor.row, state.cursor.col);
+    }
+    return document;
   }
 
   function teacherDocumentByFilename(filename) {
@@ -5725,8 +7335,41 @@
     setStatus("E21: Cannot make changes, 'modifiable' is off");
   }
 
-  function blockTeacherGuideEdit(e) {
-    if (!isTeacherGuide()) return false;
+  function handleVirtualCommandKey(e) {
+    if (state.mode !== 'normal' || !currentDocument().readonly) return false;
+    var kind = currentDocument().kind;
+    if (kind === 'recovery') {
+      if (e.key === 'Enter') { restoreRecoveryEntry(false); return true; }
+      if (e.key === 's') { keepRecoveryEntry(); return true; }
+      if (e.key === 'd') { discardRecoveryEntry(); return true; }
+    }
+    if (state.filename === '[Buffers]' && e.key === 'Enter') {
+      var match = getLine(state.cursor.row).match(/^[% ]?[# ]?\s*(\d+)\s/);
+      if (match) switchBuffer(bufferTarget(match[1]));
+      return true;
+    }
+    if (kind === 'quickfix' && e.key === 'Enter') {
+      var quickfixIndex = quickfixEntryAtCursor();
+      if (quickfixIndex >= 0) openQuickfixItem(quickfixIndex);
+      return true;
+    }
+    if (e.key === 'u') {
+      for (var jumpIndex = state.jumpList.length - 1; jumpIndex >= 0; jumpIndex--) {
+        var returnEntry = state.jumpList[jumpIndex];
+        var returnDocument = state.documents[returnEntry.documentId];
+        if (returnDocument && !returnDocument.readonly) {
+          activateJump(returnEntry);
+          return true;
+        }
+      }
+      setStatus('No work buffer to return to.');
+      return true;
+    }
+    return false;
+  }
+
+  function blockReadonlyEdit(e) {
+    if (!currentDocument().readonly) return false;
     var normalEdits = 'iIaAoORsScCdDxXpPJr~><.@QuU&';
     var visualEdits = 'cCdxsSpP~><uU';
     var blocked = state.mode === 'insert' || state.mode === 'replace' ||
@@ -5735,6 +7378,10 @@
       ((state.mode === 'normal' || state.mode === 'visual') && e.ctrlKey &&
         (e.key === 'a' || e.key === 'x' || e.key === 'r' || e.key === 'R'));
     if (!blocked) return false;
+    if (currentDocument().kind === 'tutor') {
+      leaveTutorForEdit();
+      return false;
+    }
     countBuf = 0;
     pendingOperator = null;
     operatorCount = 0;
@@ -5745,9 +7392,11 @@
   }
 
   function teacherGuideModifyingCommand(cmd) {
-    return /^(?:\d+,\d+|%|'<,'>)?s\//.test(cmd) ||
+    return /^(?:\d+,\d+|%|'<,'>)?s[^A-Za-z0-9\s]/.test(cmd) ||
       /^(?:g|v)\//.test(cmd) ||
       /^(?:\d+,\d+|%|'<,'>)?sort(?:\s|$)/.test(cmd) ||
+      /^(?:\d+,\d+|%|'<,'>)?normal!\s/.test(cmd) ||
+      cmd === '&&' || cmd === 'g&' ||
       cmd === 'r' || cmd.slice(0, 2) === 'r ';
   }
 
@@ -5779,10 +7428,7 @@
       var filename = filenames[i];
       var documentId = teacherDocumentId(filename, trackId);
       if (resetFiles || !state.documents[documentId]) {
-        state.documents[documentId] = {
-          filename: filename,
-          lines: track.files[filename].slice()
-        };
+        restoreTeacherDocument(documentId, filename, track.files[filename]);
       }
     }
     state.teacherMission = teacherFirstIncomplete();
@@ -5798,6 +7444,12 @@
   function teacherShowLines(lines, status) {
     teacherCaptureReturn();
     switchDocument('teacher:guide', '[Teacher]', lines, 0, 0);
+    var guideDocument = currentDocument();
+    guideDocument.lines = lines.slice();
+    guideDocument.cleanText = guideDocument.lines.join('\n');
+    guideDocument.lastSyncedText = guideDocument.cleanText;
+    guideDocument.changedTick++;
+    state.lines = guideDocument.lines;
     setStatus(status);
     render();
   }
@@ -5807,6 +7459,12 @@
     var guide = teacherGuideLines(showHint);
     if (extraLines && extraLines.length) guide = guide.concat(['']).concat(extraLines);
     switchDocument('teacher:guide', '[Teacher]', guide, 0, 0);
+    var guideDocument = currentDocument();
+    guideDocument.lines = guide.slice();
+    guideDocument.cleanText = guideDocument.lines.join('\n');
+    guideDocument.lastSyncedText = guideDocument.cleanText;
+    guideDocument.changedTick++;
+    state.lines = guideDocument.lines;
     var track = teacherActiveTrack();
     var items = teacherItems(track);
     var current = state.teacherMission >= 0 && state.teacherMission < items.length
@@ -5974,27 +7632,30 @@
         state.teacherLastCompleted = null;
         state.teacherSavedText = {};
         Object.keys(state.documents).forEach(function(documentId) {
-          if (/^teacher:(?:course|project):/.test(documentId)) {
-            delete state.documents[documentId];
-          }
+          var bundled = teacherBundledDocument(documentId);
+          if (bundled) restoreTeacherDocument(documentId, bundled.filename, bundled.lines);
         });
         if (resetWasRunning) {
           teacherStart(resetTrackId, true);
         }
         if (resetActiveDocument) {
-          state.documents[resetActiveDocument.documentId] = {
-            filename: resetActiveDocument.filename,
-            lines: resetActiveDocument.lines.slice()
-          };
-          state.lines = resetActiveDocument.lines.slice();
-          switchDocument(resetActiveDocument.documentId, resetActiveDocument.filename,
-            resetActiveDocument.lines, 0, 0);
+          restoreTeacherDocument(resetActiveDocument.documentId,
+            resetActiveDocument.filename, resetActiveDocument.lines);
+          state.cursor = { row: 0, col: 0 };
           setStatus('Teacher progress reset. Current lesson file restored.' +
             (resetWasRunning ? '' : ' Type :teacher to start.'));
           render();
         } else if (resetWasGuide) {
-          teacherShowLines(teacherMapLines(),
-            'Teacher progress reset. Course map restored.');
+          var resetGuideLines = teacherMapLines();
+          var resetGuide = ensureDocumentRecord('teacher:guide', '[Teacher]', resetGuideLines,
+            { listed: false, readonly: true, recoveryPolicy: 'none' });
+          resetGuide.lines = resetGuideLines;
+          resetGuide.cleanText = resetGuideLines.join('\n');
+          resetGuide.lastSyncedText = resetGuide.cleanText;
+          state.lines = resetGuide.lines;
+          state.cursor = { row: 0, col: 0 };
+          setStatus('Teacher progress reset. Course map restored.');
+          render();
         } else if (!resetWasRunning) {
           setStatus('Teacher progress reset. Start with :teacher.');
         }
@@ -6021,7 +7682,9 @@
       if (state.teacherStats) state.teacherStats.currentRetries++;
       if (state.mode === 'visual') exitVisual();
       state.mode = 'normal';
-      switchDocument(retryDocumentId, retryItem.file, retryLines, 0, 0);
+      var restoredRetry = restoreTeacherDocument(
+        retryDocumentId, retryItem.file, retryLines);
+      switchDocument(retryDocumentId, retryItem.file, restoredRetry.lines, 0, 0);
       setStatus('Lesson ' + (state.teacherMission + 1) +
         ' restored. Follow the Teacher panel.');
       render();
@@ -6146,10 +7809,40 @@
   // Command execution
   // -------------------------------------------------------------------------
   function execCommand(cmd) {
+    var untrimmedCommand = cmd.replace(/^\s+/, '');
     cmd = cmd.trim();
     if (cmd) triggerTouch();
-    if (isTeacherGuide() && teacherGuideModifyingCommand(cmd)) {
+    if (currentDocument().kind === 'welcome' && teacherGuideModifyingCommand(cmd)) {
+      leaveWelcomeForEdit();
+    }
+    if (currentDocument().kind === 'tutor' && teacherGuideModifyingCommand(cmd)) {
+      leaveTutorForEdit();
+    }
+    if (currentDocument().readonly && teacherGuideModifyingCommand(cmd)) {
       teacherGuideReadonlyError();
+      return;
+    }
+    var normalCommandMatch = untrimmedCommand.match(/^(\d+,\d+|%|'<,'>)?normal!\s+(.+)$/);
+    if (normalCommandMatch) {
+      executeNormalCommand(normalCommandMatch[1] || '', normalCommandMatch[2]);
+      return;
+    }
+    if (/^(?:vimgrep|vim)(?:\s|$)/.test(cmd)) {
+      startVimgrep(cmd);
+      return;
+    }
+    if (cmd === 'copen' || cmd === 'cope') { openQuickfixList(); return; }
+    if (cmd === 'cclose' || cmd === 'ccl') {
+      if (currentDocument().kind === 'quickfix') jumpOlder(1);
+      else setStatus('Quickfix window is not open. The list is still available.');
+      return;
+    }
+    if (cmd === 'cnext' || cmd === 'cn') { moveQuickfix(1); return; }
+    if (cmd === 'cprevious' || cmd === 'cprev' || cmd === 'cp') { moveQuickfix(-1); return; }
+    var ccMatch = cmd.match(/^cc(?:\s+(\d+))?$/);
+    if (ccMatch) {
+      var ccIndex = ccMatch[1] ? parseInt(ccMatch[1], 10) - 1 : state.quickfix.index;
+      openQuickfixItem(ccIndex < 0 ? 0 : ccIndex);
       return;
     }
     var registerMatch = cmd.match(/^(?:registers|display)(?:\s+(.*))?$/);
@@ -6187,60 +7880,95 @@
       switchDocument(nextOutputId('jumps'), '[Jumps]', jumpLines, 0, 0);
       render(); return;
     }
+    if (cmd === 'changes') {
+      saveCurrentDocument();
+      var changes = currentChangeList();
+      var changeLines = ['change line col text', '------+----+---+------------------------------'];
+      for (var changeIndex = 0; changeIndex < changes.length; changeIndex++) {
+        var change = changes[changeIndex];
+        changeLines.push(String(changes.length - changeIndex).padStart(4, ' ') + '  ' +
+          String(change.row + 1).padStart(4, ' ') + ' ' +
+          String(change.col + 1).padStart(3, ' ') + ' ' +
+          (state.lines[change.row] || '').slice(0, 48));
+      }
+      changeLines.push('', 'Use g; for older changes and g, for newer changes. Ctrl-O returns.');
+      pushJump();
+      var changesId = nextOutputId('changes');
+      var changesDocument = createDocumentRecord(changesId, '[Changes]', changeLines,
+        { listed: false, readonly: true, recoveryPolicy: 'none' });
+      state.documents[changesId] = changesDocument;
+      switchDocument(changesId, changesDocument.filename, changesDocument.lines, 0, 0);
+      render(); return;
+    }
+    if (cmd === 'history' || cmd === 'history :' || cmd === 'history /') {
+      var showCommands = cmd !== 'history /';
+      var showSearches = cmd !== 'history :';
+      var historyLines = ['history'];
+      if (showCommands) {
+        historyLines.push('', ': command history');
+        for (var commandIndex = 0; commandIndex < state.cmdHistory.length; commandIndex++) {
+          historyLines.push(String(commandIndex + 1).padStart(4, ' ') + '  :' + state.cmdHistory[commandIndex]);
+        }
+      }
+      if (showSearches) {
+        historyLines.push('', '/ search history');
+        for (var searchIndex = 0; searchIndex < state.searchHistory.length; searchIndex++) {
+          historyLines.push(String(searchIndex + 1).padStart(4, ' ') + '  /' + state.searchHistory[searchIndex]);
+        }
+      }
+      historyLines.push('', 'Up and Down recall entries at the matching prompt. Ctrl-O returns.');
+      pushJump();
+      var historyId = nextOutputId('history');
+      var historyDocument = createDocumentRecord(historyId, '[History]', historyLines,
+        { listed: false, readonly: true, recoveryPolicy: 'none' });
+      state.documents[historyId] = historyDocument;
+      switchDocument(historyId, historyDocument.filename, historyDocument.lines, 0, 0);
+      render(); return;
+    }
     if (cmd === 'buffers' || cmd === 'ls') {
       saveCurrentDocument();
-      var bufferIds = Object.keys(state.documents).filter(function(id) {
-        return id.indexOf('output:') !== 0;
-      });
-      bufferIds.sort(function(a, b) {
-        return state.documents[a].filename.localeCompare(state.documents[b].filename);
-      });
-      var bufferLines = ['buffers', '', '  file'];
-      for (var bufferIndex = 0; bufferIndex < bufferIds.length; bufferIndex++) {
-        var listedId = bufferIds[bufferIndex];
-        var listed = state.documents[listedId];
-        bufferLines.push((listedId === state.documentId ? '% ' : '  ') + listed.filename);
-      }
-      bufferLines.push('', 'Put the cursor on a filename and press gf to show it here.');
+      var bufferLines = bufferListLines();
       pushUndo(false);
       pushJump();
       switchDocument(nextOutputId('buffers'), '[Buffers]', bufferLines, 0, 0);
-      setStatus(bufferIds.length + ' loaded buffers');
+      setStatus(listedDocuments().length + ' listed buffers');
       render(); return;
     }
-    if (cmd === 'q' || cmd === 'q!') {
-      if (cmd === 'q!') { hackerExit(); return; }
-      window.location.href = state.exitTarget;
+    var bufferMatch = cmd.match(/^(?:buffer|b)\s+(.+)$/);
+    if (bufferMatch) { switchBuffer(bufferTarget(bufferMatch[1].trim())); return; }
+    if (cmd === 'bnext' || cmd === 'bn') { switchRelativeBuffer(1); return; }
+    if (cmd === 'bprevious' || cmd === 'bprev' || cmd === 'bp') { switchRelativeBuffer(-1); return; }
+    var deleteBufferMatch = cmd.match(/^(?:bdelete|bd)(!)?(?:\s+(.+))?$/);
+    if (deleteBufferMatch) {
+      var deleteTarget = deleteBufferMatch[2]
+        ? bufferTarget(deleteBufferMatch[2].trim()) : currentDocument();
+      deleteBuffer(deleteTarget, !!deleteBufferMatch[1]);
       return;
     }
-    if (cmd === 'qa' || cmd === 'qa!') { hackerExit(); return; }
-    if (cmd === 'wq') {
+    if (cmd === 'q') { closeCurrentView(false); return; }
+    if (cmd === 'q!') { closeCurrentView(true); return; }
+    if (cmd === 'qa') { requestWorkspaceExit(false); return; }
+    if (cmd === 'qa!') { requestWorkspaceExit(true); return; }
+    if (cmd === 'wq' || cmd === 'x' || cmd === 'xit') {
+      if (writeCurrentDocument(false, null)) closeCurrentView(false);
+      return;
+    }
+    var writeMatch = cmd.match(/^w(!)?(?:\s+(.+))?$/);
+    if (writeMatch) {
+      writeCurrentDocument(!!writeMatch[1], writeMatch[2] ? writeMatch[2].trim() : null);
+      return;
+    }
+    if (cmd === 'download') {
+      saveCurrentDocument();
       downloadText(state.lines.join('\n'), state.filename);
-      setTimeout(function() { window.location.href = state.exitTarget; }, 300);
+      setStatus('Downloaded a copy; browser buffer remains ' +
+        (currentDocument().modified ? 'modified.' : 'clean.'));
+      render();
       return;
     }
-    if (cmd === 'w') {
-      if (isTeacherDocument() && !isTeacherGuide() && state.teacherMission !== null) {
-        saveCurrentDocument();
-        state.teacherSavedText[state.documentId] = state.lines.join('\n');
-        if (!teacherHandleSavedDocument()) {
-          setStatus('Saved ' + state.filename + ' inside Teacher. No download created.');
-        }
-        return;
-      }
-      downloadText(state.lines.join('\n'), state.filename);
-      if (!isTeacherDocument() || state.teacherMission === null) {
-        saveToLocalFS(state.filename, state.lines.join('\n'));
-      }
-      return;
-    }
-    if (cmd.slice(0, 2) === 'w ') {
-      var fname = cmd.slice(2).trim();
-      if (fname) {
-        renameCurrentDocument('file:' + fname, fname);
-        downloadText(state.lines.join('\n'), fname);
-        saveToLocalFS(fname, state.lines.join('\n'));
-      }
+    if (cmd === 'recover' || cmd === 'recover!') {
+      if (currentDocument().kind === 'recovery') restoreRecoveryEntry(cmd === 'recover!');
+      else openRecoveryList(true);
       return;
     }
     // :'<,'>w FILENAME - write visual selection to file
@@ -6400,27 +8128,15 @@
       keepOnlyWindow();
       return;
     }
-    var bufferMatch = cmd.match(/^(?:b|buffer)\s+(.+)$/);
-    if (bufferMatch) {
-      var bufferName = bufferMatch[1].trim();
-      saveCurrentDocument();
-      var bufferId = documentIdByFilename(bufferName);
-      if (!bufferId) {
-        setStatus('E94: No matching buffer for ' + bufferName);
-        return;
-      }
-      var bufferDocument = state.documents[bufferId];
-      pushUndo(false);
-      pushJump();
-      switchDocument(bufferId, bufferDocument.filename, bufferDocument.lines, 0, 0);
-      setStatus('"' + bufferDocument.filename + '" ' + state.lines.length + ' lines');
-      render();
-      return;
-    }
     if (cmd === 'e' || cmd.slice(0, 2) === 'e ') {
       var eFname = cmd.slice(2).trim();
+      if (eFname === '#') {
+        switchAlternateDocument();
+        return;
+      }
       var eTeacher = teacherDocumentByFilename(eFname);
-      var eStored = readFromLocalFS(eFname);
+      var eStoredName = localFSFilename(eFname);
+      var eStored = eStoredName ? readFromLocalFS(eStoredName) : null;
       var ePath = resolveBlogPath(eFname);
       if (eTeacher) {
         pushUndo(false);
@@ -6432,8 +8148,12 @@
       } else if (eStored !== null) {
         pushUndo(false);
         pushJump();
-        switchDocument(documentIdForEdit(eFname, false), eFname, eStored.split('\n'), 0, 0);
-        setStatus('"' + eFname + '" ' + state.lines.length + ' lines');
+        switchDocument(documentIdForEdit(eStoredName, false), eStoredName,
+          eStored.split('\n'), 0, 0);
+        currentDocument().durableText = eStored;
+        currentDocument().cleanText = eStored;
+        currentDocument().modified = false;
+        setStatus('"' + eStoredName + '" ' + state.lines.length + ' lines');
         render();
       } else if (ePath) {
         var eRequest = {
@@ -6493,7 +8213,7 @@
       pushUndo(false);
       pushJump();
       switchDocument('tutor', '[Tutor]', window.VIM_TUTOR_LESSONS || [], 0, 0);
-      setStatus(':tutor opened. Edit this buffer to practice.');
+      setStatus(':tutor opened. Editing starts a safe practice copy.');
       render(); return;
     }
     if (cmd === 'teacher' || cmd.slice(0, 8) === 'teacher ') {
@@ -6558,7 +8278,8 @@
       }
       // Check localStorage-backed filesystem first (for lesson 5 roundtrip
       // and any file the user previously wrote via :w FOO).
-      var rLocal = readFromLocalFS(rArg);
+      var rLocalName = localFSFilename(rArg);
+      var rLocal = rLocalName ? readFromLocalFS(rLocalName) : null;
       if (rLocal !== null) {
         pushUndo();
         var localLines = rLocal.split('\n');
@@ -6572,7 +8293,7 @@
         }
         state.cursor.row = localInsertAt;
         state.cursor.col = 0;
-        setStatus('"' + rArg + '" ' + localLines.length + ' lines');
+        setStatus('"' + rLocalName + '" ' + localLines.length + ' lines');
         render();
         return;
       }
@@ -6603,57 +8324,11 @@
       });
       return;
     }
-    // :s/old/new/g substitute  :%s/old/new/g  :#,#s/old/new/g  gc confirm
-    var subMatch = cmd.match(/^(\d+,\d+|%|'<,'>)?s\/(.+?)\/(.*)\/([gc]*)$/);
-    if (subMatch) {
-      var subRange = subMatch[1] || '';
-      var subPat = subMatch[2];
-      var subRep = subMatch[3];
-      var subFlags = subMatch[4] || '';
-      var subGlobal = subFlags.indexOf('g') !== -1;
-      var subConfirm = subFlags.indexOf('c') !== -1;
-      var subRe;
-      try { subRe = new RegExp(subPat, subGlobal ? 'g' : ''); } catch(ex) {
-        setStatus('Invalid pattern: ' + subPat); return;
-      }
-      addHistory(state.searchHistory, subPat);
-      state.lastSub = { pattern: subPat, replacement: subRep, global: subGlobal };
-      pushUndo();
-      var subCount = 0;
-      var range = resolveRange(subRange);
-      var startLine = range.start, endLine = range.end;
-      if (subConfirm) {
-        // Interactive confirm: process matches one at a time
-        var confirmMatches = [];
-        for (var ci = startLine; ci <= endLine; ci++) {
-          var cLine = state.lines[ci];
-          var cRe = new RegExp(subPat, 'g');
-          var cm;
-          while ((cm = cRe.exec(cLine)) !== null) {
-            confirmMatches.push({ row: ci, col: cm.index, len: cm[0].length });
-            if (cm[0].length === 0) cRe.lastIndex++;
-          }
-        }
-        if (confirmMatches.length) {
-          state.confirmSub = {
-            matches: confirmMatches, idx: 0, count: 0,
-            pattern: subPat, replacement: subRep, global: subGlobal
-          };
-          state.mode = 'confirm-sub';
-          var csm = confirmMatches[0];
-          state.cursor.row = csm.row; state.cursor.col = csm.col;
-          setStatus('replace with "' + subRep + '"? (y/n/a/q)');
-          render();
-        }
-        return;
-      }
-      for (var si = startLine; si <= endLine; si++) {
-        var orig = state.lines[si];
-        state.lines[si] = orig.replace(subRe, subRep);
-        if (state.lines[si] !== orig) subCount++;
-      }
-      setStatus(subCount + ' substitution' + (subCount !== 1 ? 's' : ''));
-      render(); return;
+    // Substitute supports alternate delimiters, g/c/i/I/n, and empty-pattern reuse.
+    var substituteSpec = parseSubstituteCommand(cmd);
+    if (substituteSpec) {
+      executeSubstitute(substituteSpec);
+      return;
     }
     // :g/pat/cmd and :v/pat/cmd - run cmd on matching (or non-matching) lines.
     // Supported sub-commands: d (delete) and s/from/to/[flags] (substitute).
@@ -6873,8 +8548,15 @@
       var pRow = state.cursor.row;
       var pCol = state.cursor.col;
       if (op === 'Z') {
-        if (e.key === 'Z') { downloadText(state.lines.join('\n'), state.filename); setTimeout(function() { window.location.href = state.exitTarget; }, 300); }
-        else if (e.key === 'Q') { window.location.href = state.exitTarget; }
+        if (e.key === 'Z') {
+          if (writeCurrentDocument(false, null)) closeCurrentView(false);
+        } else if (e.key === 'Q') {
+          closeCurrentView(true);
+        }
+        return;
+      }
+      if (op === 'fold') {
+        completeFoldMotion(e.key, getCount());
         return;
       }
       if (op === 'z') {
@@ -6882,6 +8564,14 @@
         if (e.key === 'z') scrollTarget = pRow * lineH - viewportEl.clientHeight / 2 + lineH / 2;
         else if (e.key === 't') scrollTarget = pRow * lineH;
         else if (e.key === 'b') scrollTarget = pRow * lineH - viewportEl.clientHeight + lineH;
+        else if (e.key === 'f') {
+          state.pendingOp = 'fold';
+          setStatus('zf: press j, k, G, or g to define the fold');
+          return;
+        } else if ('ocadMR'.indexOf(e.key) !== -1) {
+          runFoldCommand(e.key);
+          return;
+        }
         if (scrollTarget !== undefined) viewportEl.scrollTop = Math.max(0, scrollTarget);
         render(); return;
       }
@@ -7072,6 +8762,19 @@
       openFileTarget('current');
       return;
     }
+    // gF: edit the file under the cursor and honor a trailing :line or #Lline.
+    if (e.key === 'F' && gTimer) {
+      gTimer = null;
+      getCount();
+      openFileTargetWithLine();
+      return;
+    }
+    // gn/gN: select the next or previous search match as a text object.
+    if ((e.key === 'n' || e.key === 'N') && gTimer) {
+      gTimer = null;
+      selectSearchMatch(e.key === 'n' ? 1 : -1, getCount());
+      return;
+    }
     // gx: open the external or site-local URL under the cursor.
     if (e.key === 'x' && gTimer) {
       gTimer = null;
@@ -7182,6 +8885,17 @@
           var geR2 = opRow, geC2 = opCol;
           for (var gei2 = 0; gei2 < totalCount; gei2++) { var gep2 = geFn2(geR2, geC2); geR2 = gep2.row; geC2 = gep2.col; }
           applyOperator(opKey, opRow, opCol, { endRow: geR2, endCol: geC2, linewise: false });
+          render(); return;
+        }
+        if (e.key === 'n' || e.key === 'N') {
+          var searchObject = searchMatchForObject(e.key === 'n' ? 1 : -1, totalCount);
+          if (searchObject) {
+            applyOperator(opKey, searchObject.row, searchObject.col, {
+              endRow: searchObject.row,
+              endCol: searchObject.col + searchObject.len,
+              linewise: false
+            });
+          }
           render(); return;
         }
         // Unknown g-motion, drop
@@ -7646,19 +9360,29 @@
       return;
     }
 
-    // & repeat last substitution
+    // & repeats the last substitution on the current line.
     if (e.key === '&') {
       if (state.lastSub) {
-        var ls = state.lastSub;
-        var lsRe;
-        try { lsRe = new RegExp(ls.pattern, ls.global ? 'g' : ''); } catch(ex) { return; }
-        pushUndo();
-        var lsOrig = getLine(row);
-        state.lines[row] = lsOrig.replace(lsRe, ls.replacement);
-        if (state.lines[row] !== lsOrig) setStatus('1 substitution');
-        else setStatus('No match');
-        render();
+        executeSubstitute({
+          range: '', pattern: state.lastSub.pattern,
+          replacement: state.lastSub.replacement,
+          flags: state.lastSub.flags || (state.lastSub.global ? 'g' : '')
+        });
+      } else {
+        setStatus('E33: No previous substitute regular expression');
       }
+      return;
+    }
+    // g& repeats the last substitution across the whole buffer.
+    if (e.key === '&' && gTimer) {
+      gTimer = null;
+      getCount();
+      if (!state.lastSub) { setStatus('E33: No previous substitute regular expression'); return; }
+      executeSubstitute({
+        range: '%', pattern: state.lastSub.pattern,
+        replacement: state.lastSub.replacement,
+        flags: state.lastSub.flags || (state.lastSub.global ? 'g' : '')
+      }, '%');
       return;
     }
 
@@ -8151,6 +9875,15 @@
         selectRegister(e.key);
         return;
       }
+      if (vop === 'v_z') {
+        if (e.key === 'f') {
+          var visualFoldRange = getVisualRange();
+          state.mode = 'normal';
+          exitVisual();
+          if (visualFoldRange) addManualFold(visualFoldRange.startRow, visualFoldRange.endRow);
+        }
+        return;
+      }
       // vf/vF/vt/vT
       if (vop === 'v_f' || vop === 'v_F' || vop === 'v_t' || vop === 'v_T') {
         var vfOp = vop.slice(2);
@@ -8187,6 +9920,10 @@
 
     if (e.key === '"') {
       state.pendingOp = 'v_register';
+      return;
+    }
+    if (e.key === 'z') {
+      state.pendingOp = 'v_z';
       return;
     }
 
@@ -8483,7 +10220,7 @@
   }
 
   var cmdCompletions = [
-    'q', 'q!', 'qa', 'qa!', 'w', 'wq',
+    'q', 'q!', 'qa', 'qa!', 'w', 'w!', 'wq', 'download',
     'set number', 'set nu', 'set nonumber', 'set nonu',
     'set relativenumber', 'set rnu', 'set norelativenumber', 'set nornu',
     'set ignorecase', 'set ic', 'set noignorecase', 'set noic',
@@ -8507,6 +10244,9 @@
     'nohlsearch', 'noh', 'nohl',
     'sort', 'sort u',
     'r', 'zen', 'enew', 'new', 'e', 'buffer', 'b', 'buffers', 'ls',
+    'bnext', 'bprevious', 'bdelete', 'bdelete!',
+    'recover', 'recover!', 'changes', 'history', 'history :', 'history /',
+    'vimgrep', 'copen', 'cclose', 'cnext', 'cprevious', 'cc', 'normal!',
     'vsplit', 'vs', 'wincmd', 'close', 'only',
     'tabedit', 'tabe', 'tabnew', 'tabnext', 'tabn', 'tabprevious', 'tabprev',
     'tabclose', 'tabonly',
@@ -8850,7 +10590,12 @@
       return;
     }
 
-    if (blockTeacherGuideEdit(e)) return;
+    if (state.mode === 'normal' && currentDocument().kind === 'welcome' &&
+        !e.ctrlKey && 'iIaAoORsScCdDxXpPJr~><.@Q&'.indexOf(e.key) !== -1) {
+      leaveWelcomeForEdit();
+    }
+    if (handleVirtualCommandKey(e)) return;
+    if (blockReadonlyEdit(e)) return;
 
     // Macro recording: capture every key except the q that stops recording
     if (state.macroRecording && !state.replayContext) {
@@ -8911,8 +10656,29 @@
     }
 
     if (e.ctrlKey) {
-      if ('rRfbudeygaxoihwvnp'.indexOf(e.key) === -1) return;
+      if ('rRfbudeygaxoihwvnp^6]tT'.indexOf(e.key) === -1) return;
       e.preventDefault();
+
+      if ((state.mode === 'normal' || state.mode === 'visual') && e.key === ']') {
+        jumpHelpTag();
+        return;
+      }
+      if ((state.mode === 'normal' || state.mode === 'visual') &&
+          (e.key === 't' || e.key === 'T')) {
+        returnHelpTag();
+        return;
+      }
+
+      if ((state.mode === 'normal' || state.mode === 'visual') &&
+          (e.key === '^' || e.key === '6')) {
+        getCount();
+        if (state.mode === 'visual') {
+          state.mode = 'normal';
+          exitVisual();
+        }
+        switchAlternateDocument();
+        return;
+      }
 
       if (state.mode === 'normal' && e.key === 'w') {
         getCount();
@@ -9191,6 +10957,10 @@
       }
     }
 
+    if (recoveryDrafts().length) {
+      openRecoveryList(false);
+    }
+
     document.fonts.ready.then(function() {
       measureFont();
       if (state.lines.join('\n') === welcomeSnapshot) resetWelcomeLayout();
@@ -9201,6 +10971,11 @@
     render();
 
     document.addEventListener('keydown', handleKey);
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden' && dirtyDocuments().length) {
+        flushRecoveryDrafts();
+      }
+    });
 
     document.getElementById('vim-editor').addEventListener('click', focusMobileInput);
     mobileInputEl.addEventListener('keydown', function(e) {

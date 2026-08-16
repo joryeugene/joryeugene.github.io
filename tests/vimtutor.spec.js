@@ -309,7 +309,7 @@ test.describe('Lesson 6: open lines, yank, paste, set', () => {
 // Lesson 7 --------------------------------------------------------------------
 
 test.describe('Lesson 7: help and completion', () => {
-  test(':tutor contains browser-doable instructions', async ({ page }) => {
+  test('DOC-8 QF-5: :tutor is isolated while its practice copy stays editable', async ({ page }) => {
     await open(page);
     await cmd(page, 'tutor');
     const text = (await lines(page)).join('\n');
@@ -319,6 +319,13 @@ test.describe('Lesson 7: help and completion', () => {
     expect(text).not.toContain('CTRL-W CTRL-W');
     expect(text).not.toContain('execute any external');
     expect(text).not.toContain(':set nocp');
+
+    await cmd(page, 'buffers');
+    expect((await lines(page)).join('\n')).not.toContain('[Tutor]');
+    await press(page, 'Control+o');
+    await press(page, 'i');
+    expect((await state(page)).file).toBe('tutor-practice.txt');
+    expect((await state(page)).mode).toBe('--INSERT--');
   });
 
   test(':help opens the help buffer', async ({ page }) => {

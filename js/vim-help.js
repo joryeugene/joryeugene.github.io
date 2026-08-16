@@ -66,6 +66,9 @@
     'G':      ['G                  Go to last line. {count}G goes to line {count}.'],
     'n':      ['n                  Repeat last search in same direction.'],
     'N':      ['N                  Repeat last search in opposite direction.'],
+    'gn':     ['gn                 Select the next search match.',
+               'gN                 Select the previous search match.',
+               '                   The match works as a text object: dgn, cgn, and ygn.'],
     '/':      ['/pattern           Search forward for pattern.',
                '                   Use \\c for case-insensitive: /foo\\c'],
     '?':      ['?pattern           Search backward for pattern.'],
@@ -103,6 +106,9 @@
                'saved browser files, blog slugs, and Markdown article links.',
                'Use gx for external URLs or when you want a site route in the browser.',
                'Ctrl-O returns after gf; Ctrl-I moves forward again.'],
+    'gF':     ['gF                 Open file:line or file#Lline under the cursor.',
+               '                   With no line suffix, open the file at line one.',
+               '                   Ctrl-O returns to the departure position.'],
     'zz':     ['zz                 Scroll to center cursor line on screen.'],
     'zt':     ['zt                 Scroll cursor line to top of screen.'],
     'zb':     ['zb                 Scroll cursor line to bottom of screen.'],
@@ -110,18 +116,29 @@
                ':s/old/new/g       Substitute all on current line.',
                ':%s/old/new/g      Substitute all in entire file.',
                ':#,#s/old/new/g    Substitute in line range (e.g. :3,7s/...).',
-               ':%s/old/new/gc     Substitute with confirmation (y/n/a/q).'],
-    ':w':     [':w                 Save (download as file).',
-               ':w name            Save as name.',
-               ':wq                Save and quit.'],
-    ':q':     [':q                 Quit (back to previous page).',
-               ':q!                Quit (hacker exit with style).',
-               ':qa                Quit all.'],
+               ':%s/old/new/gc     Substitute with confirmation (y/n/a/q).',
+               ':%s#old#new#gi     Alternate delimiter; all matches, ignore case.',
+               ':%s/old/new/gn     Count matches without changing text.',
+               ':%s//new/g         Reuse the last search pattern.',
+               ':&& / & / g&       Repeat with flags on line / line / whole file.'],
+    ':w':     [':w                 Persist the current file in browser storage.',
+               ':w name            Save under a new unused name.',
+               ':w! name           Explicitly overwrite a conflicting browser file.',
+               ':download          Export a device copy; does not clear [+].',
+               ':wq / ZZ           Write successfully, then close locally or exit.'],
+    ':q':     [':q                 Close split, then tab, then the clean workspace.',
+               ':q! / ZQ           Discard only the active buffer at its final view.',
+               ':qa                Exit only when every listed buffer is clean.',
+               ':qa!               Explicitly discard every dirty buffer and exit.',
+               '                   Hidden dirty buffers block a normal final exit.'],
     ':e':     [':e file            Open new buffer with filename.',
                ':enew              New empty buffer.',
                ':Ex                Browse available files (see :help :Ex).'],
     ':buffer': [':buffer file       Show an already loaded buffer in this window.',
+                 ':buffer number     Buffer numbers also work.',
                  ':b file            Short form of :buffer.',
+                 ':bnext / :bprevious  Cycle listed buffers.',
+                 'Ctrl-^ / :e #       Toggle the per-window alternate file.',
                  '',
                  'Use this when the file is already open and you want to return',
                  'without creating another split or tab page.'],
@@ -129,7 +146,39 @@
                  ':ls                Short form of :buffers.',
                  '',
                  'Search for a filename, put the cursor on it, and press gf to',
-                 'show that file in the current window. Unsaved edits stay loaded.'],
+                 'Enter opens the selected buffer. Flags show current %, alternate #,',
+                 'active a, hidden h, and modified + state.',
+                 ':bdelete refuses modified work; :bdelete! explicitly discards it.'],
+    ':recover': [':recover           Open the session Recovery list.',
+                 'Enter              Restore a draft and keep it modified.',
+                 's                  Keep the selected draft in browser storage.',
+                 'd                  Explicitly discard the selected draft.',
+                 ':recover!          Replace an already modified recovery target.',
+                 'Drafts update after edits and when the page becomes hidden.'],
+    ':vimgrep': [':vimgrep /pat/gj * Search loaded, browser-saved, and active Teacher text.',
+                  ':vimgrep /pat/g %  Search only the current file.',
+                  ':vimgrep //g file  Reuse the last / or ? pattern.',
+                  ':copen             Show the readonly result list.',
+                  ':cc [N]            Open selected result; :cnext / :cprevious move.',
+                  ':cclose            Hide the list but keep its results.',
+                  'g stores every match per line. j builds without jumping.',
+                  'The scan is capped at 2 MiB and 500 results. It never crawls.'],
+    ':normal': [':{range}normal! keys Run supported Normal commands on each target line.',
+                 ':%normal! I# <Esc> Prefix every line with "# ".',
+                 'One run is one undo unit. Failure restores text and cursor.',
+                 'Prompts, mappings, macros, windows, and exit commands are excluded.',
+                 'Safety limits: 1,000 lines or 10,000 normalized key tokens.'],
+    'folds':  ['zf{motion}          Create and close a manual fold.',
+               'zo / zc / za       Open / close / toggle the fold under cursor.',
+               'zd                 Delete the fold under cursor.',
+               'zM / zR            Close / open all manual folds.',
+               'Searches, jumps, marks, gF, and Quickfix reveal their target fold.',
+               'Folds belong to a view and are not saved with the file.'],
+    ':changes': [':changes          Show edit locations for the current buffer.',
+                  'g; / g,           Move to older / newer change locations.'],
+    ':history': [':history          Show command and search history.',
+                  ':history :        Show command history only.',
+                  ':history /        Show search history only.'],
     ':vsplit': [':vsplit file       Open a loaded file beside the current file.',
                  ':vs file           Short form of :vsplit.',
                  ':wincmd f          Split the file under the cursor.',
@@ -214,6 +263,9 @@
                'Ordinary h, j, k, l, w, and b motions are not jump history.'],
     'Ctrl-i': ['[count] CTRL-I     Jump to a newer position.',
                'See |Ctrl-o| for the supported jump-list commands.'],
+    'Ctrl-]': ['CTRL-]             Follow the help tag under the cursor.',
+               'CTRL-T             Return through the Help tag stack.',
+               '                   Ctrl-O also returns through chronological jumps.'],
     ':jumps': [':jumps             Show the jump list.',
                ':clearjumps        Clear the jump list.'],
     ':clearjumps': [':clearjumps   Clear the jump list.'],
@@ -251,7 +303,7 @@
     'Ctrl-p': ['CTRL-P             Open the command palette (site mapping).',
                '                   Type to filter, arrows to select, Enter to run.'],
     ':tutor': [':tutor             Open the interactive Vim tutorial.',
-               '                   Full vimtutor with practice exercises.'],
+               '                   Editing starts an isolated practice copy.'],
     ':teacher': [':teacher           Start or resume the core course.',
                  ':teacher map       Show lesson, review, and project progress.',
                  ':teacher lesson N  Select a lesson.',
@@ -277,12 +329,13 @@
     ':help':  [':help              Show general help.',
                ':help {topic}      Show help for a specific topic.',
                '',
-               'Topics: w b e d c y p u U gg G [[ ]] [] ][ g_ | _ n N / ? * # % v V',
-               '        f t r R o O i a . ~ J m q Q @ gt gT g; g, :s :w :q :e :r',
+               'Topics: w b e d c y p u U gg G [[ ]] [] ][ g_ | _ n N gn gN / ? * # % v V',
+               '        f t r R o O i a . ~ J m q Q @ gt gT g; g, gf gF gx folds :s :w :q :e :r',
                '        :set :marks :jumps :clearjumps :! Ctrl-r Ctrl-g Ctrl-o Ctrl-i',
-               '        Ctrl-f Ctrl-b Ctrl-d Ctrl-u Ctrl-a Ctrl-x Ctrl-w',
+               '        Ctrl-] Ctrl-f Ctrl-b Ctrl-d Ctrl-u Ctrl-a Ctrl-x Ctrl-w',
                '        Ctrl-p :color :zen :moth :snake :tutor :teacher :Ex :nohlsearch registers',
-               '        :buffer :buffers :vsplit :tabedit text-objects macros marks',
+               '        :buffer :buffers :recover :vimgrep :normal :changes :history',
+               '        :vsplit :tabedit text-objects macros marks',
                '        insert-index i_CTRL-N i_CTRL-P user-manual'],
     'insert-index': ['Insert mode commands:',
                      '',
@@ -295,7 +348,8 @@
                     '',
                     'This is a browser-based vim editor. It supports the core',
                     'vim command set: motions, operators, visual mode, search,',
-                    'substitution, undo/redo, registers, and more.',
+                    'substitution, undo/redo, registers, buffers, recovery,',
+                    'Quickfix workspace search, histories, and manual folds.',
                     '',
                     'Type :help for the full command reference.',
                     'Type :tutor for an interactive tutorial.',
@@ -314,6 +368,9 @@
   T['CTRL-G'] = T['Ctrl-g'];
   T['CTRL-O'] = T['Ctrl-o'];
   T['CTRL-I'] = T['Ctrl-i'];
+  T['CTRL-]'] = T['Ctrl-]'];
+  T['Ctrl-t'] = T['Ctrl-]'];
+  T['CTRL-T'] = T['Ctrl-]'];
   T['CTRL-F'] = T['Ctrl-f'];
   T['CTRL-B'] = T['Ctrl-b'];
   T['CTRL-D'] = T['Ctrl-d'];
@@ -321,6 +378,54 @@
   T['CTRL-A'] = T['Ctrl-a'];
   T['CTRL-X'] = T['Ctrl-x'];
   T['CTRL-P'] = T['Ctrl-p'];
+  T['gN'] = T['gn'];
+  T['&'] = T[':s'];
+  T['g&'] = T[':s'];
+  T[':&&'] = T[':s'];
+  T[':w!'] = T[':w'];
+  T[':wq'] = T[':w'];
+  T['ZZ'] = T[':w'];
+  T[':qa'] = T[':q'];
+  T[':qa!'] = T[':q'];
+  T['ZQ'] = T[':q'];
+  T[':download'] = T[':w'];
+  T[':bnext'] = T[':buffer'];
+  T[':bprevious'] = T[':buffer'];
+  T[':bdelete'] = T[':buffer'];
+  T[':bn'] = T[':buffer'];
+  T[':bp'] = T[':buffer'];
+  T[':bd'] = T[':buffer'];
+  T[':bd!'] = T[':buffer'];
+  T['Ctrl-^'] = T[':buffer'];
+  T['CTRL-^'] = T[':buffer'];
+  T[':e #'] = T[':buffer'];
+  T[':copen'] = T[':vimgrep'];
+  T[':cclose'] = T[':vimgrep'];
+  T[':cnext'] = T[':vimgrep'];
+  T[':cprevious'] = T[':vimgrep'];
+  T[':cc'] = T[':vimgrep'];
+  T[':cope'] = T[':vimgrep'];
+  T[':cn'] = T[':vimgrep'];
+  T[':cprev'] = T[':vimgrep'];
+  T[':vim'] = T[':vimgrep'];
+  T['quickfix'] = T[':vimgrep'];
+  T['vimgrep'] = T[':vimgrep'];
+  T['buffers'] = T[':buffers'];
+  T['buffer'] = T[':buffer'];
+  T['recovery'] = T[':recover'];
+  T['recover'] = T[':recover'];
+  T[':recover!'] = T[':recover'];
+  T['normal'] = T[':normal'];
+  T[':normal!'] = T[':normal'];
+  T['changes'] = T[':changes'];
+  T['history'] = T[':history'];
+  T['zf'] = T['folds'];
+  T['zo'] = T['folds'];
+  T['zc'] = T['folds'];
+  T['za'] = T['folds'];
+  T['zd'] = T['folds'];
+  T['zM'] = T['folds'];
+  T['zR'] = T['folds'];
   T['Ctrl-w'] = ['CTRL-W w           Move to the other split window.',
                  'CTRL-W h/j/k/l     Move to the split in that direction.',
                  'CTRL-W f           Open the target under the cursor in a split.',
@@ -579,7 +684,9 @@
       '  t{c} T{c}   till char forward / backward',
       '  ; ,         repeat / reverse last find',
       '  gf          edit file or article source under cursor in this window',
+      '  gF          edit file:line or file#Lline under cursor',
       '  gx          open external or site-local URL under cursor in browser',
+      '  Ctrl-] / Ctrl-T  follow / return through Help tags',
       '  [count] Ctrl-O   jump to older position',
       '  [count] Ctrl-I   jump to newer position',
       '  [count] Tab      jump to newer position in Normal/Visual mode',
@@ -694,6 +801,7 @@
       '  /pattern    search forward     ?pattern  search backward',
       '  Up / Down   recall matching search history',
       '  n N         next / previous match',
+      '  gn gN       select next / previous match; dgn and cgn operate on it',
       '  * #         word under cursor forward / backward',
       '  \\<word\\>    whole-word match (word boundary anchors)',
       '  \\c \\C       force case-insensitive / case-sensitive',
@@ -705,6 +813,9 @@
       '  :%s/old/new/g      all in file',
       '  :#,#s/old/new/g    in line range',
       '  :%s/old/new/gc     with confirmation (y/n/a/q)',
+      '  :%s#old#new#gi     alternate delimiter and ignore case',
+      '  :%s/old/new/gn     count only; empty pattern reuses last search',
+      '  & / :&& / g&       repeat on line / with flags / across file',
       '  :g/pat/d           delete every line matching pat',
       '  :v/pat/d           delete every line NOT matching pat',
       '  :g/pat/s/a/b/g     substitute only within matching lines',
@@ -716,19 +827,28 @@
       '  Up / Down   recall matching command history',
       '  Ctrl-r 0    insert the latest yank in the : or / prompt',
       '  Ctrl/Cmd+V  paste clipboard text in the : or / prompt',
-      '  :w          save (download)    :w name   save as',
+      '  :w          persist in browser :w name   save under a new name',
+      '  :download   export a device copy without clearing modified state',
       '  :e slug     open blog post (Tab completes slugs)',
       '  :enew       empty buffer',
-      '  :buffers    list loaded files; gf on a name shows that buffer',
-      '  :buffer file show a loaded file in this window',
+      '  :buffers    list numbered active, hidden, alternate, and modified buffers',
+      '  :buffer file show a loaded file   :bnext / :bprevious cycle',
+      '  Ctrl-^      toggle alternate file :bdelete[!] delete a buffer',
       '  :vsplit file compare two loaded files side by side',
       '  :wincmd w   move between split windows   :only  keep one window',
       '  :wincmd f   target under cursor in split; safe from browser Ctrl-w',
       '  :tabedit file open a loaded file in a new tab page',
       '  gt / gT     next / previous tab page     :tabclose  close one',
       '  :r slug     read blog post below cursor',
-      '  :q          quit               :q!       quit with style',
-      '  :wq         save and quit',
+      '  :q          close split, tab, or clean workspace in that order',
+      '  :q!         discard only active buffer  :qa! discard all',
+      '  :wq / ZZ    write successfully, then close or exit',
+      '  :recover    inspect session drafts and restore without hiding [+]',
+      '  :vimgrep /pat/gj *  build bounded workspace results; :copen shows them',
+      '  :cnext / :cprevious move results; Enter opens; Ctrl-O returns',
+      '  :%normal! keys  run bounded Normal commands as one undo unit',
+      '  :changes / :history  inspect edit, command, and search history',
+      '  zf zo zc za zd zM zR  create and control view-local manual folds',
       '  :!ls        directory listing   :!ls blog/  blog posts',
       '  :!cat slug  print blog post     :!pwd  :!whoami  :!date',
       '  :set nu     line numbers       :set nonu   (or :unset nu)',

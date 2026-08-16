@@ -857,16 +857,21 @@
       panelTarget: 'list the five edited evidence sources',
       file: 'postmortem.md',
       worked: [
-        ':jumps shows the file route.',
-        'Ctrl-O and Ctrl-I traverse older and newer source locations.',
-        'g; and g, revisit edits within the current file.'
+        ':vimgrep /evt_014203/gj * builds one evidence list without leaving the report.',
+        ':copen shows every source location. Enter opens one; :cnext advances.',
+        'Ctrl-O returns to Quickfix. :changes and :history explain how you got there.',
+        ':buffers shows hidden modified work before the final safe save and exit.'
       ],
       request: [
-        'Optional Teacher views do not enter jump history.',
-        'Use :jumps, then jump and change history, to revisit the report sources.',
+        'Build a Quickfix list for evt_014203 across the active incident workspace.',
+        'Open results from the list, follow the evidence, and return with Ctrl-O.',
+        'Inspect :changes, :history, and :buffers before finishing the report.',
         'Replace Verified sources with the five files that support the conclusion.'
       ],
-      transfer: ['Do not list postmortem.md as its own evidence source.'],
+      transfer: [
+        'Do not list postmortem.md as its own evidence source.',
+        'Save with :w. A later :q will refuse any hidden dirty buffer instead of losing it.'
+      ],
       outcome: ['Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'],
       answer: [
         '# Analytics Incident Postmortem',
@@ -881,12 +886,12 @@
         'Verified sources: incident.log, events.csv, config.js, launch-copy.md, runbook.md'
       ],
       hints: [
-        'Inspect the route before writing the source list.',
-        'Use jump history across files and change history within the report.',
-        'Use :jumps, Ctrl-O, Ctrl-I, g;, and g,. Finish with cil.'
+        'Start with :vimgrep /evt_014203/gj * and then :copen.',
+        'Press Enter on a result. Use :cnext and Ctrl-O to move through evidence and return.',
+        'Inspect :changes, :history, and :buffers. Return to postmortem.md and finish with cil.'
       ],
       reject: ['Verified sources: TODO'],
-      golf: [':jumps', 'Inspect the source route.']
+      golf: [':vimgrep /evt_014203/gj *', 'Build the reusable evidence route once.']
     }
   ];
 

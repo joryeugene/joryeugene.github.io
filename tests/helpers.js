@@ -51,9 +51,13 @@ export async function lines(page) {
 }
 
 export async function state(page) {
-  return await page.evaluate(() => ({
-    mode: document.querySelector('#vim-status-mode')?.textContent?.trim(),
-    pos:  document.querySelector('#vim-status-pos')?.textContent?.trim(),
-    file: document.querySelector('#vim-status-file')?.textContent?.trim()
-  }));
+  return await page.evaluate(() => {
+    const fileLabel = document.querySelector('#vim-status-file')?.textContent?.trim() || '';
+    return {
+      mode: document.querySelector('#vim-status-mode')?.textContent?.trim(),
+      pos:  document.querySelector('#vim-status-pos')?.textContent?.trim(),
+      file: fileLabel.replace(/ \[\+\]$/, ''),
+      modified: / \[\+\]$/.test(fileLabel)
+    };
+  });
 }

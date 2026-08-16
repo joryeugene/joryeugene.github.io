@@ -45,9 +45,12 @@ test('teacher off hides the rail, returns from a Teacher view, and keeps progres
     JSON.parse(localStorage.getItem('vim_teacher_progress_v2')));
   expect(stored.completedLessons).toEqual(['safe-editing']);
 
-  const normalSave = page.waitForEvent('download');
   await cmd(page, 'w');
-  expect((await normalSave).suggestedFilename()).toBe('01-handoff.txt');
+  expect((await state(page)).modified).toBe(false);
+
+  const exported = page.waitForEvent('download');
+  await cmd(page, 'download');
+  expect((await exported).suggestedFilename()).toBe('01-handoff.txt');
 
   await cmd(page, 'teacher');
   await expect(page.locator('#vim-teacher-next')).toContainText('LESSON 2 OF 12');
