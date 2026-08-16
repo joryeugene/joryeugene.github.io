@@ -388,9 +388,9 @@ test.describe('dashboard and runner experience', () => {
         .map(url => [url.pathname, url.searchParams.get('v')])
     ));
     expect(versions).toEqual({
-      '/js/vim-help.js': 'vim-teacher-6',
-      '/js/vim-teacher.js': 'vim-teacher-6',
-      '/js/vim.js': 'vim-teacher-6'
+      '/js/vim-help.js': 'vim-teacher-7',
+      '/js/vim-teacher.js': 'vim-teacher-7',
+      '/js/vim.js': 'vim-teacher-7'
     });
   });
 

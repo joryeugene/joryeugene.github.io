@@ -116,6 +116,39 @@ test('teacher-taught g chords survive a novice reading pause', async ({ page }) 
   expect((await state(page)).pos).toBe('1,1');
 });
 
+test('lesson 3 sends an overshooting learner back toward the REMOVE line', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+  await cmd(page, 'teacher lesson 3');
+  await cmd(page, 'e 03-release-note.txt');
+
+  await press(page, 'c');
+  await press(page, 'w');
+  await type(page, 'ready');
+  await press(page, 'Escape');
+  await press(page, 'j');
+  await press(page, 'j');
+
+  await expect(page.locator('#vim-teacher-next')).toContainText('press k');
+  await expect(page.locator('#vim-teacher-next')).toContainText('REMOVE line');
+  await press(page, 'k');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press d');
+});
+
+test('lesson 12 returns to the first route before recording a macro', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+  await cmd(page, 'teacher lesson 12');
+  await cmd(page, 'e 12-routes.txt');
+  await press(page, 'G');
+
+  await expect(page.locator('#vim-teacher-next')).toContainText('press g');
+  await expect(page.locator('#vim-teacher-next')).toContainText('first route');
+  await press(page, 'g');
+  await press(page, 'g');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press q');
+});
+
 test('project validation rejects a correct note after evidence lines are deleted', async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
   await open(page);

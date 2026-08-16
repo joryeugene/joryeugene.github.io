@@ -314,7 +314,7 @@ test('teacher yanks one exact word and puts it into an evidence field', async ({
   await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 6 COMPLETE');
 });
 
-test('teacher opens a source with Ex and returns to the report buffer', async ({ page }) => {
+test('teacher discovers a source, follows it with gf, retraces it, and opens a URL with gx', async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
   await open(page);
 
@@ -332,8 +332,10 @@ test('teacher opens a source with Ex and returns to the report buffer', async ({
   await expect(page.locator('#vim-teacher-next')).toContainText('type 07-api.js');
   await type(page, '07-api.js');
   await press(page, 'Enter');
-  await expect(page.locator('#vim-teacher-next')).toContainText('press Enter to open');
-  await press(page, 'Enter');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press g');
+  await press(page, 'g');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press f');
+  await press(page, 'f');
   expect((await state(page)).file).toBe('07-api.js');
   await expect(page.locator('#vim-teacher-next')).toContainText('press j');
   await press(page, 'j');
@@ -341,9 +343,21 @@ test('teacher opens a source with Ex and returns to the report buffer', async ({
   await press(page, 'y');
   await expect(page.locator('#vim-teacher-next')).toContainText('press y again');
   await press(page, 'y');
-  await expect(page.locator('#vim-teacher-next')).toContainText(':buffer 07-project.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText('Ctrl-O');
 
-  await cmd(page, 'buffer 07-project.md');
+  await press(page, 'Control+o');
+  expect((await state(page)).file).toBe('netrw');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':buffers');
+  await cmd(page, 'buffers');
+  expect((await state(page)).file).toBe('[Buffers]');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press /');
+  await press(page, '/');
+  await type(page, '07-project.md');
+  await press(page, 'Enter');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press g');
+  await press(page, 'g');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press f');
+  await press(page, 'f');
   expect((await state(page)).file).toBe('07-project.md');
   await expect(page.locator('#vim-teacher-next')).toContainText('press p');
   await press(page, 'p');
@@ -351,7 +365,34 @@ test('teacher opens a source with Ex and returns to the report buffer', async ({
   expect(await lines(page)).toEqual([
     '# Project index',
     '/v2/reports',
+    'reference: /blog/friction-economy/',
     'keep: reviewed'
+  ]);
+  await page.evaluate(() => {
+    window.__teacherOpenedLinks = [];
+    window.open = (url, target) => { window.__teacherOpenedLinks.push({ url, target }); };
+  });
+  await press(page, 'g');
+  await press(page, 'x');
+  expect(await page.evaluate(() => window.__teacherOpenedLinks)).toEqual([
+    { url: '/v2/reports', target: '_blank' }
+  ]);
+  await cmd(page, 'w');
+  await expect(page.locator('#vim-cmdline')).toContainText('Lesson not complete');
+  await expect(page.locator('#vim-teacher-next')).not.toContainText('LESSON 7 COMPLETE');
+  await page.evaluate(() => { window.__teacherOpenedLinks = []; });
+  await expect(page.locator('#vim-teacher-next')).toContainText('press j');
+  await press(page, 'j');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press f');
+  await press(page, 'f');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press /');
+  await press(page, '/');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press g');
+  await press(page, 'g');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press x');
+  await press(page, 'x');
+  expect(await page.evaluate(() => window.__teacherOpenedLinks)).toEqual([
+    { url: '/blog/friction-economy/', target: '_blank' }
   ]);
   await cmd(page, 'w');
   await expect(page.locator('#vim-teacher-next')).toContainText('SAVED · LESSON 7 COMPLETE');
@@ -366,8 +407,12 @@ test('teacher keeps source evidence visible while updating a report', async ({ p
   await expect(page.locator('#vim-teacher-next')).toContainText(':e 08-report.md');
 
   await cmd(page, 'e 08-report.md');
-  await expect(page.locator('#vim-teacher-next')).toContainText(':vsplit 08-source.log');
-  await cmd(page, 'vsplit 08-source.log');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press /');
+  await press(page, '/');
+  await type(page, '08-source.log');
+  await press(page, 'Enter');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':wincmd f');
+  await cmd(page, 'wincmd f');
   expect((await state(page)).file).toBe('08-source.log');
   await expect(page.locator('#vim-split-peer')).toBeVisible();
   await expect(page.locator('#vim-split-peer-file')).toContainText('08-report.md');
@@ -376,17 +421,18 @@ test('teacher keeps source evidence visible while updating a report', async ({ p
   await press(page, 'y');
   await expect(page.locator('#vim-teacher-next')).toContainText('press y again');
   await press(page, 'y');
-  await expect(page.locator('#vim-teacher-next')).toContainText('hold Ctrl and press w');
-  await press(page, 'Control+w');
-  await expect(page.locator('#vim-teacher-next')).toContainText('press w again');
-  await press(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':wincmd w');
+  await cmd(page, 'wincmd w');
   expect((await state(page)).file).toBe('08-report.md');
+  await expect(page.locator('#vim-teacher-next')).toContainText('press k');
+  await press(page, 'k');
   await expect(page.locator('#vim-teacher-next')).toContainText('press p');
 
   await press(page, 'p');
   expect(await lines(page)).toEqual([
     '# Comparison',
     'warning before timeout',
+    'source: 08-source.log',
     'keep: source visible'
   ]);
   await expect(page.locator('#vim-teacher-next')).toContainText(':only');
@@ -408,7 +454,6 @@ test('teacher preserves a review layout while visiting a separate tab page', asy
   await expect(page.locator('#vim-teacher-next')).toContainText(':vsplit 09-change.diff');
   await cmd(page, 'vsplit 09-change.diff');
   await expect(page.locator('#vim-teacher-next')).toContainText(':tabedit 09-tests.log');
-
   await cmd(page, 'tabedit 09-tests.log');
   expect((await state(page)).file).toBe('09-tests.log');
   await expect(page.locator('#vim-tabbar')).toBeVisible();
@@ -433,11 +478,8 @@ test('teacher preserves a review layout while visiting a separate tab page', asy
   expect((await state(page)).file).toBe('09-change.diff');
   await expect(page.locator('#vim-tabbar')).toBeHidden();
   await expect(page.locator('#vim-split-peer-file')).toContainText('09-review.md');
-  await expect(page.locator('#vim-teacher-next')).toContainText('hold Ctrl and press w');
-
-  await press(page, 'Control+w');
-  await expect(page.locator('#vim-teacher-next')).toContainText('press w again');
-  await press(page, 'w');
+  await expect(page.locator('#vim-teacher-next')).toContainText(':wincmd w');
+  await cmd(page, 'wincmd w');
   expect((await state(page)).file).toBe('09-review.md');
   await expect(page.locator('#vim-teacher-next')).toContainText('press p');
   await press(page, 'p');
@@ -676,15 +718,23 @@ test('one fresh learner can finish the core course and applied project continuou
   await cmd(page, 'e 07-project.md');
   await cmd(page, 'Ex');
   await search('07-api.js');
-  await press(page, 'Enter');
+  for (const key of ['g', 'f']) await press(page, key);
   for (const key of ['j', 'y', 'y']) await press(page, key);
-  await cmd(page, 'buffer 07-project.md');
+  await press(page, 'Control+o');
+  await cmd(page, 'buffers');
+  await search('07-project.md');
+  for (const key of ['g', 'f']) await press(page, key);
   await press(page, 'p');
+  await page.evaluate(() => { window.open = () => null; });
+  for (const key of ['j', 'f', '/', 'g', 'x']) await press(page, key);
   await cmd(page, 'w');
 
   await cmd(page, 'e 08-report.md');
-  await cmd(page, 'vsplit 08-source.log');
-  for (const key of ['y', 'y', 'Control+w', 'w', 'p']) await press(page, key);
+  await search('08-source.log');
+  await cmd(page, 'wincmd f');
+  for (const key of ['y', 'y']) await press(page, key);
+  await cmd(page, 'wincmd w');
+  for (const key of ['k', 'p']) await press(page, key);
   await cmd(page, 'only');
   await cmd(page, 'w');
 
@@ -693,7 +743,8 @@ test('one fresh learner can finish the core course and applied project continuou
   await cmd(page, 'tabedit 09-tests.log');
   for (const key of ['g', 't', 'g', 't', 'y', 'y']) await press(page, key);
   await cmd(page, 'tabclose');
-  for (const key of ['Control+w', 'w', 'p']) await press(page, key);
+  await cmd(page, 'wincmd w');
+  await press(page, 'p');
   await cmd(page, 'only');
   await cmd(page, 'w');
 

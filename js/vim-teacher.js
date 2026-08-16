@@ -41,10 +41,12 @@
     ],
     '07-project.md': [
       '# Project index',
+      'reference: /blog/friction-economy/',
       'keep: reviewed'
     ],
     '08-report.md': [
       '# Comparison',
+      'source: 08-source.log',
       'keep: source visible'
     ],
     '08-source.log': [
@@ -55,7 +57,8 @@
       'keep: compare change and test'
     ],
     '09-change.diff': [
-      'change: retry limit 3'
+      'change: retry limit 3',
+      'tests: 09-tests.log'
     ],
     '09-tests.log': [
       'test: retries stay bounded'
@@ -295,29 +298,32 @@
       panelTarget: 'copy /v2/reports into the project index',
       file: '07-project.md',
       fileJourney: true,
+      requireSkills: ['URL opening'],
+      requiredOpenedUrl: '/blog/friction-economy/',
       requireSave: true,
       worked: [
         'Open the explorer with :Ex.',
-        'Open 07-api.js and yank the endpoint line with yy.',
-        'Return with :buffer 07-project.md.'
+        'Put the cursor on 07-api.js and press gf to edit it.',
+        'Yank the endpoint, use Ctrl-O to retrace the jump, then choose the report from :buffers.'
       ],
       request: [
         'Find and open 07-api.js from :Ex.',
         'Copy /v2/reports without retyping it.',
-        'Return to 07-project.md and put the copied line after the heading.'
+        'Return to 07-project.md and put the copied line after the heading.',
+        'Open the reference route with gx, then return to Vim.'
       ],
       transfer: [
         'Leave keep: reviewed unchanged. Save the report.'
       ],
-      outcome: ['# Project index', '/v2/reports', 'keep: reviewed'],
-      answer: ['# Project index', '/v2/reports', 'keep: reviewed'],
+      outcome: ['# Project index', '/v2/reports', 'reference: /blog/friction-economy/', 'keep: reviewed'],
+      answer: ['# Project index', '/v2/reports', 'reference: /blog/friction-economy/', 'keep: reviewed'],
       reject: [],
       hints: [
-        'The explorer is a buffer that lists available files. Search inside it for the source name.',
-        ':buffer NAME opens a file that is already loaded. yy copies one whole line.',
-        'Use :Ex, /07-api.js, Enter, Enter, j, y, y, :buffer 07-project.md, p, then :w.'
+        'The explorer lists files. Search for the source name, then use gf on that filename.',
+        'Ctrl-O retraces a jump. :buffers lists loaded files. gx opens a URL or site route in the browser.',
+        'Use :Ex, search 07-api.js, gf, j, yy, Ctrl-O, :buffers, search 07-project.md, gf, p, j, gx, then :w.'
       ],
-      golf: [':Ex then :buffer', 'Use the explorer to discover a file and the buffer command to return.']
+      golf: ['gf, Ctrl-O, :buffers', 'Discover a file, retrace the jump, then select an already loaded buffer.']
     },
     {
       id: 'split-windows',
@@ -328,9 +334,9 @@
       windowJourney: true,
       requireSave: true,
       worked: [
-        'Open 08-source.log with :vsplit so both buffers stay visible.',
+        'Search for 08-source.log in the report, then use :wincmd f so both buffers stay visible.',
         'Copy the source line with yy.',
-        'Use Ctrl-W w to move to the report window.'
+        'Use :wincmd w to move to the report window without triggering the browser shortcut.'
       ],
       request: [
         'Put warning before timeout after the report heading.',
@@ -340,15 +346,15 @@
       transfer: [
         'Leave keep: source visible unchanged.'
       ],
-      outcome: ['# Comparison', 'warning before timeout', 'keep: source visible'],
-      answer: ['# Comparison', 'warning before timeout', 'keep: source visible'],
+      outcome: ['# Comparison', 'warning before timeout', 'source: 08-source.log', 'keep: source visible'],
+      answer: ['# Comparison', 'warning before timeout', 'source: 08-source.log', 'keep: source visible'],
       reject: [],
       hints: [
         'A window is a view onto a buffer. Both files remain loaded when one view closes.',
-        ':vsplit opens a second view. Ctrl-W w changes the active window. :only keeps the active view.',
-        'Use :vsplit 08-source.log, y, y, Ctrl-W, w, p, :only, then :w.'
+        ':wincmd f opens the filename under the cursor in a split. :wincmd w changes the active window. :only keeps the active view.',
+        'Search 08-source.log, use :wincmd f, yy, :wincmd w, k, p, :only, then :w.'
       ],
-      golf: [':vsplit, Ctrl-W w, :only', 'Keep both files visible only while the comparison needs both views.']
+      golf: [':wincmd f, :wincmd w, :only', 'Keep both files visible only while the comparison needs both views.']
     },
     {
       id: 'tab-workspaces',
@@ -360,7 +366,7 @@
       requireSave: true,
       worked: [
         'Build one review layout with :vsplit 09-change.diff.',
-        'Open the test output in a separate tab page with :tabedit 09-tests.log.',
+        'Open 09-tests.log with :tabedit so it gets a separate tab page.',
         'Use gt to move between the two workspaces.'
       ],
       request: [
@@ -376,10 +382,10 @@
       reject: [],
       hints: [
         'A tab page stores a window layout. It is not one file with a decorative tab.',
-        'Use gt to move to the next tab page. :tabclose closes the current tab page.',
-        'Use :vsplit 09-change.diff, :tabedit 09-tests.log, gt, gt, yy, :tabclose, Ctrl-W w, p, :only, then :w.'
+        ':tabedit opens a file in a separate tab page. gt moves to the next tab page.',
+        'Use :vsplit 09-change.diff, :tabedit 09-tests.log, gt, gt, yy, :tabclose, :wincmd w, p, :only, then :w.'
       ],
-      golf: ['gt and :tabclose', 'Keep the temporary test task separate, then close its tab page when the result is captured.']
+      golf: [':tabedit, gt, :tabclose', 'Keep the temporary test task separate, then close its tab page when the result is captured.']
     },
     {
       id: 'navigation-history',

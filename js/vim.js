@@ -214,6 +214,16 @@
     var teacherNames = teacherExplorerNames();
     for (var bi = 0; bi < blogNames.length; bi++) nameSet[blogNames[bi]] = true;
     for (var ti = 0; ti < teacherNames.length; ti++) nameSet[teacherNames[ti]] = true;
+    var savedNames = listLocalFS();
+    for (var si = 0; si < savedNames.length; si++) nameSet[savedNames[si]] = true;
+    if (state && state.documents) {
+      var loadedIds = Object.keys(state.documents);
+      for (var li = 0; li < loadedIds.length; li++) {
+        var loaded = state.documents[loadedIds[li]];
+        if (loaded && loaded.filename && loaded.filename.charAt(0) !== '[' &&
+            loaded.filename !== 'netrw') nameSet[loaded.filename] = true;
+      }
+    }
     var names = Object.keys(nameSet).sort();
     var maxLen = 0;
     for (var mi = 0; mi < names.length; mi++) {
@@ -222,7 +232,7 @@
     var header = [
       'netrw Directory Listing',
       '',
-      'Enter: open    -: return here    u: go back    /: search',
+      'gf or Enter: open    -: return here    u: go back    /: search',
       ''
     ];
     for (var hi = 0; hi < header.length; hi++) {
@@ -246,6 +256,7 @@
     }
     lines.firstFileRow = padTop + header.length;
     lines.padLeft = padLeft;
+    lines.fileCount = names.length;
     return lines;
   }
 
@@ -262,7 +273,7 @@
     var expLines = buildExplorer();
     pushJump();
     switchDocument('explorer', 'netrw', expLines, expLines.firstFileRow || 0, expLines.padLeft || 0);
-    setStatus('"netrw" ' + (Object.keys(blogFiles).length + teacherExplorerNames().length) + ' files');
+    setStatus('"netrw" ' + expLines.fileCount + ' files');
     render();
   }
 
@@ -336,6 +347,7 @@
     outputSeq: 0,
     documentGeneration: 0,
     pendingEditRequest: null,
+    lastOpenedUrl: null,
     jumpList: [],
     jumpIdx: -1,
     lastJumpTraversal: null,
@@ -369,6 +381,7 @@
     splitPeer: null,
     splitSide: 'left',
     pendingWindowCommand: false,
+    pendingWindowGCommand: false,
     tabPages: [],
     activeTabPage: 0,
     expandtab: true,
@@ -546,20 +559,19 @@
     switchTabPage(state.activeTabPage + direction * steps);
   }
 
-  function openTabPage(filename) {
-    saveCurrentDocument();
-    var targetId = documentIdByFilename(filename);
-    if (!targetId) {
-      setStatus('E94: No matching buffer for ' + filename);
+  function openTabDocument(targetId) {
+    var target = state.documents[targetId];
+    if (!target) {
+      setStatus('E94: No matching buffer');
       return;
     }
+    saveCurrentDocument();
     ensureTabPages();
     if (state.tabPages.length >= 3) {
       setStatus('E36: This web editor supports at most three tab pages.');
       return;
     }
     saveActiveTabPage();
-    var target = state.documents[targetId];
     state.tabPages.push({
       activeWindow: {
         documentId: targetId,
@@ -577,6 +589,15 @@
     switchDocument(targetId, target.filename, target.lines, 0, 0);
     setStatus('Tab page ' + state.tabPages.length + ': ' + target.filename);
     render();
+  }
+
+  function openTabPage(filename) {
+    var targetId = documentIdByFilename(filename);
+    if (!targetId) {
+      setStatus('E94: No matching buffer for ' + filename);
+      return;
+    }
+    openTabDocument(targetId);
   }
 
   function closeActiveTabPage() {
@@ -604,23 +625,31 @@
     render();
   }
 
-  function openVerticalSplit(filename) {
+  function openVerticalSplitDocument(targetId) {
     if (state.splitPeer) {
       setStatus('E36: Only one split is supported in this web editor.');
       return;
     }
-    saveCurrentDocument();
-    var targetId = documentIdByFilename(filename);
-    if (!targetId) {
-      setStatus('E94: No matching buffer for ' + filename);
+    var target = state.documents[targetId];
+    if (!target) {
+      setStatus('E94: No matching buffer');
       return;
     }
-    var target = state.documents[targetId];
+    saveCurrentDocument();
     state.splitPeer = currentWindowSnapshot();
     state.splitSide = 'right';
     switchDocument(targetId, target.filename, target.lines, 0, 0);
     setStatus('"' + target.filename + '" opened in a vertical split');
     render();
+  }
+
+  function openVerticalSplit(filename) {
+    var targetId = documentIdByFilename(filename);
+    if (!targetId) {
+      setStatus('E94: No matching buffer for ' + filename);
+      return;
+    }
+    openVerticalSplitDocument(targetId);
   }
 
   function switchSplitWindow() {
@@ -796,6 +825,184 @@
 
   function resolveBlogPath(name) {
     return blogFiles[name] || null;
+  }
+
+  function targetTokenUnderCursor(line, col) {
+    var markdownLink = /\[([^\]]+)\]\(([^)]+)\)/g;
+    var match;
+    while ((match = markdownLink.exec(line)) !== null) {
+      if (col >= match.index && col < match.index + match[0].length) return match[2];
+    }
+    var tokenPattern = /[A-Za-z0-9_./:@+~#?=&%;-]+/g;
+    while ((match = tokenPattern.exec(line)) !== null) {
+      if (col >= match.index && col < match.index + match[0].length) return match[0];
+    }
+    return '';
+  }
+
+  function blogSlugForTarget(token) {
+    var clean = token.replace(/^\.\//, '').replace(/[?#].*$/, '');
+    var route = clean.match(/^\/?blog\/([^/]+)(?:\/[^/]*)?\/?$/);
+    if (route && resolveBlogPath(route[1])) return route[1];
+    clean = clean.replace(/\/$/, '');
+    if (resolveBlogPath(clean)) return clean;
+    var slugs = Object.keys(blogFiles);
+    for (var i = 0; i < slugs.length; i++) {
+      var path = blogFiles[slugs[i]];
+      if (clean === path || clean === path.slice(path.lastIndexOf('/') + 1)) return slugs[i];
+    }
+    return null;
+  }
+
+  function resolveFileTarget(token) {
+    if (!token) return { error: 'E446: No file name under cursor' };
+    if (/^(?:https?:\/\/|mailto:)/.test(token)) {
+      return { error: 'gf edits files. Use gx for URLs.' };
+    }
+
+    var ids = Object.keys(state.documents);
+    var matches = [];
+    for (var i = 0; i < ids.length; i++) {
+      if (state.documents[ids[i]].filename === token) matches.push(ids[i]);
+    }
+    if (matches.length > 1) return { error: 'E93: More than one match for ' + token };
+    if (matches.length === 1) {
+      return { kind: 'document', documentId: matches[0], filename: token, token: token };
+    }
+
+    var stored = readFromLocalFS(token);
+    if (stored !== null) {
+      return {
+        kind: 'local',
+        documentId: documentIdForEdit(token, false),
+        filename: token,
+        lines: stored.split('\n'),
+        token: token
+      };
+    }
+
+    if (helpTopics && helpTopics[token]) {
+      return {
+        kind: 'help',
+        documentId: 'help:' + token,
+        filename: '[Help]',
+        topic: token,
+        token: token
+      };
+    }
+
+    var slug = blogSlugForTarget(token);
+    if (slug) {
+      return {
+        kind: 'blog',
+        documentId: documentIdForEdit(slug, true),
+        filename: slug + '.md',
+        slug: slug,
+        path: resolveBlogPath(slug),
+        token: token
+      };
+    }
+
+    if (token.charAt(0) === '/') {
+      return { error: 'gf edits files. Use gx for site routes.' };
+    }
+    if (/^[a-zA-Z0-9][-a-zA-Z0-9]*\.(?:com|org|net|io|dev|app|co|ai|me|edu|gov)(?:[/?#].*)?$/i.test(token)) {
+      return { error: 'gf edits files. Use gx for browser domains.' };
+    }
+    return { error: 'E447: Can\'t find file "' + token + '" in path' };
+  }
+
+  function ensureTargetDocument(target, ready) {
+    if (state.documents[target.documentId]) {
+      ready(target.documentId);
+      return;
+    }
+    if (target.kind === 'local') {
+      state.documents[target.documentId] = {
+        filename: target.filename,
+        lines: target.lines.slice()
+      };
+      ready(target.documentId);
+      return;
+    }
+    if (target.kind === 'help') {
+      state.documents[target.documentId] = {
+        filename: target.filename,
+        lines: getHelpText(target.topic)
+      };
+      ready(target.documentId);
+      return;
+    }
+    if (target.kind !== 'blog') {
+      setStatus('E447: Can\'t find file "' + target.token + '" in path');
+      return;
+    }
+
+    var request = {
+      generation: state.documentGeneration,
+      source: jumpPosition(state.cursor.row, state.cursor.col)
+    };
+    state.pendingEditRequest = request;
+    setStatus('Reading "' + target.slug + '"...');
+    fetch(target.path).then(function(resp) {
+      if (!resp.ok) throw new Error(resp.status);
+      return resp.text();
+    }).then(function(text) {
+      if (state.pendingEditRequest !== request ||
+          state.documentGeneration !== request.generation ||
+          state.documentId !== request.source.documentId) return;
+      state.documents[target.documentId] = {
+        filename: target.filename,
+        lines: text.split('\n')
+      };
+      ready(target.documentId);
+    }).catch(function() {
+      if (state.pendingEditRequest === request) {
+        state.pendingEditRequest = null;
+        setStatus('"' + target.slug + '" read error');
+      }
+    });
+  }
+
+  function openFileTarget(mode, tokenOverride) {
+    var token = tokenOverride || targetTokenUnderCursor(getLine(state.cursor.row), state.cursor.col);
+    var target = resolveFileTarget(token);
+    if (target.error) {
+      setStatus(target.error);
+      return;
+    }
+    if (mode === 'split' && state.splitPeer) {
+      setStatus('E36: Only one split is supported in this web editor.');
+      return;
+    }
+    if (mode === 'tab' && state.tabPages.length >= 3) {
+      setStatus('E36: This web editor supports at most three tab pages.');
+      return;
+    }
+
+    var source = jumpPosition(state.cursor.row, state.cursor.col);
+    ensureTargetDocument(target, function(documentId) {
+      var document = state.documents[documentId];
+      if (!document) return;
+      if (mode === 'split') {
+        openVerticalSplitDocument(documentId);
+        return;
+      }
+      if (mode === 'tab') {
+        openTabDocument(documentId);
+        return;
+      }
+      if (documentId === state.documentId) {
+        state.pendingEditRequest = null;
+        setStatus('Already editing "' + document.filename + '"');
+        return;
+      }
+      pushUndo(false);
+      pushJumpEntry(source);
+      switchDocument(documentId, document.filename, document.lines, 0, 0);
+      setStatus('"' + document.filename + '" ' + state.lines.length + ' lines');
+      render();
+    });
   }
 
   // Custom konami: up up left right left right down down enter
@@ -2317,6 +2524,8 @@
     state.pendingTextObjOp = null;
     state.pendingTextObjCount = 0;
     state.pendingBracket = null;
+    state.pendingWindowCommand = false;
+    state.pendingWindowGCommand = false;
     pendingOperator = null;
     operatorCount = 0;
     gTimer = null;
@@ -3931,7 +4140,8 @@
     { label: 'Open command reference', command: 'help' },
     { label: 'Copy, paste, and inspect registers', command: 'help registers' },
     { label: 'Insert a yank into : or /', command: 'help Ctrl-r' },
-    { label: 'Manage buffers, splits, and tabs', command: 'help :buffer' },
+    { label: 'Manage buffers, splits, and tabs', command: 'help :buffers' },
+    { label: 'Open files and links under the cursor', command: 'help gf' },
     { label: 'Stop Teacher and keep progress', command: 'teacher off' },
     { label: 'Enter kinetic moth field', command: 'moth' },
     { label: 'Play Snake', command: 'snake' },
@@ -4117,6 +4327,7 @@
   }
 
   function teacherExplorerNames() {
+    if (!state.teacherTrack) return [];
     var track = teacherActiveTrack();
     return track ? Object.keys(track.files || {}) : [];
   }
@@ -4273,6 +4484,7 @@
     ['undo and redo', /u <C-r>/],
     ['operator grammar', /[dcy] [wWeE$]|d d|c c|y y/],
     ['jump history', /<C-[oi]>/],
+    ['URL opening', /g x/],
     ['named registers', /" [a-z]/],
     ['changelist', /g [;,]/],
     ['dot-repeat', /(^| )\.($| )/],
@@ -4304,6 +4516,7 @@
     stats.currentRetries = 0;
     stats.currentCommandStrokes = 0;
     stats.currentTokens = [];
+    state.lastOpenedUrl = null;
   }
 
   function teacherFinishMissionStats() {
@@ -4543,8 +4756,8 @@
         '',
         mission.title.toUpperCase(),
         '',
-        'You will find one source file and copy its endpoint.',
-        'Then you will return to the report buffer without reopening it.',
+        'You will discover one source file, copy its endpoint, and retrace the jump.',
+        'Then you will choose the loaded report and open its reference in the browser.',
         '  COPY  /v2/reports',
         '  FROM  07-api.js  INTO  07-project.md',
         '',
@@ -4848,6 +5061,11 @@
       if (state.documentId !== documentId) {
         return 'Type :e ' + mission.file + ' and press Enter.';
       }
+      if (migratedRoutes === 0 && state.cursor.row !== 0 &&
+          !state.macroRecording && state.pendingOp !== 'q_start') {
+        if (gTimer) return 'press g again. gg returns to the first route.';
+        return 'press g. It starts gg so recording begins on the first route.';
+      }
       if (state.pendingOp === 'q_start') {
         return 'press q again. The second q selects register q.';
       }
@@ -4997,12 +5215,9 @@
       if (state.documentId === tabChangeId) {
         if (state.tabPages.length < 2) {
           if (copiedTestResult && state.splitPeer) {
-            if (state.pendingWindowCommand) {
-              return 'press w again. Ctrl-W w moves to the report window.';
-            }
-            return 'hold Ctrl and press w. Ctrl-W starts a window command.';
+            return 'Type :wincmd w and press Enter to return to the report window.';
           }
-          return 'Type :tabedit 09-tests.log and press Enter.';
+          return 'Type :tabedit 09-tests.log and press Enter to open a separate workspace.';
         }
         if (gTimer) return 'press t. gt returns to the test tab page.';
         return 'press g. The split stayed intact; start gt to return to the tests.';
@@ -5039,19 +5254,27 @@
           }
           return 'press y. It starts a yank.';
         }
-        if (state.pendingWindowCommand) {
-          return 'press w again. Ctrl-W w moves to the other window.';
-        }
-        return 'hold Ctrl and press w. Ctrl-W starts a window command.';
+        return 'Type :wincmd w and press Enter to return to the report window.';
       }
       if (state.documentId !== documentId) {
         return 'Type :e ' + mission.file + ' and press Enter.';
       }
-      if (!state.splitPeer && comparisonText === '# Comparison\nkeep: source visible') {
-        return 'Type :vsplit 08-source.log and press Enter.';
-      }
-      if (comparisonText === '# Comparison\nkeep: source visible' && copiedComparison) {
+      var comparisonStart = '# Comparison\nsource: 08-source.log\nkeep: source visible';
+      if (comparisonText === comparisonStart && copiedComparison) {
+        if (state.cursor.row > 0) return 'press k. It moves back to the report heading.';
         return 'press p. It puts the copied source line after the heading.';
+      }
+      if (!state.splitPeer && comparisonText === comparisonStart) {
+        if (state.mode === 'search') {
+          if (state.searchBuf === '08-source.log') {
+            return 'press Enter to find 08-source.log.';
+          }
+          return 'type 08-source.log.';
+        }
+        if ((state.lines[state.cursor.row] || '').indexOf('08-source.log') !== -1) {
+          return 'Type :wincmd f and press Enter to open this filename in a split.';
+        }
+        return 'press /. It starts a search for 08-source.log.';
       }
       if (!teacherMissionContentIssue(mission, comparisonText)) {
         if (state.splitPeer) {
@@ -5071,6 +5294,9 @@
         getRegister('"').text === '/v2/reports';
       var reportText = teacherMissionText(mission);
       if (state.documentId === 'explorer') {
+        if (copiedEndpoint) {
+          return 'Type :buffers and press Enter to list the files already loaded.';
+        }
         if (state.mode === 'search') {
           if (state.searchBuf === sourceFilename) {
             return 'press Enter to find 07-api.js in the explorer.';
@@ -5078,9 +5304,23 @@
           return 'type 07-api.js.';
         }
         if ((state.lines[state.cursor.row] || '').trim() === sourceFilename) {
-          return 'press Enter to open 07-api.js.';
+          if (gTimer) return 'press f. gf edits the filename under the cursor.';
+          return 'press g. It starts gf, the file-under-cursor command.';
         }
         return 'press /. It starts a search inside the explorer.';
+      }
+      if (state.documentId.indexOf('output:buffers:') === 0) {
+        if (state.mode === 'search') {
+          if (state.searchBuf === mission.file) {
+            return 'press Enter to find ' + mission.file + ' in the buffer list.';
+          }
+          return 'type ' + mission.file + '.';
+        }
+        if ((state.lines[state.cursor.row] || '').indexOf(mission.file) !== -1) {
+          if (gTimer) return 'press f. gf shows that loaded file in this window.';
+          return 'press g. It starts gf on the loaded report.';
+        }
+        return 'press /. It starts a search for ' + mission.file + '.';
       }
       if (state.documentId === sourceDocumentId) {
         if (!copiedEndpoint) {
@@ -5092,18 +5332,30 @@
           }
           return 'press y. It starts a yank.';
         }
-        return 'Type :buffer 07-project.md and press Enter to return.';
+        return 'Hold Ctrl and press o. Ctrl-O retraces the jump to the explorer.';
       }
       if (state.documentId !== documentId) {
         return 'Type :e ' + mission.file + ' and press Enter.';
       }
-      if (reportText === '# Project index\nkeep: reviewed') {
+      if (reportText === '# Project index\nreference: /blog/friction-economy/\nkeep: reviewed') {
         if (copiedEndpoint) {
           return 'press p. It puts the copied line after the heading.';
         }
         return 'Type :Ex and press Enter to open the file explorer.';
       }
       if (!teacherMissionContentIssue(mission, reportText)) {
+        if (state.lastOpenedUrl !== mission.requiredOpenedUrl) {
+          var referenceRow = state.lines.indexOf('reference: /blog/friction-economy/');
+          if (state.cursor.row < referenceRow) return 'press j. It moves to the reference route.';
+          if (state.cursor.row > referenceRow) return 'press k. It moves to the reference route.';
+          var routeCol = state.lines[referenceRow].indexOf('/');
+          if (state.cursor.col < routeCol) {
+            if (state.pendingOp === 'f') return 'press /. f/ moves onto the route.';
+            return 'press f. It starts f/, which finds the route on this line.';
+          }
+          if (gTimer) return 'press x. gx opens a URL or site route in the browser.';
+          return 'press g. It starts gx, the URL-under-cursor command.';
+        }
         if (!teacherSavedCurrent(mission, reportText)) {
           return 'Type :w and press Enter to save this report.';
         }
@@ -5267,8 +5519,11 @@
         return 'press c. It starts a change command.';
       }
       if (firstLine === 'ready: release notes' && removeRow !== -1) {
-        if (state.cursor.row !== removeRow) {
+        if (state.cursor.row < removeRow) {
           return 'press j. It moves to the REMOVE line.';
+        }
+        if (state.cursor.row > removeRow) {
+          return 'press k. It moves back to the REMOVE line.';
         }
         if (pendingOperator === 'd') {
           return 'press d again. dd deletes the whole line.';
@@ -5603,6 +5858,9 @@
         }
       }
     }
+    if (mission.requiredOpenedUrl && state.lastOpenedUrl !== mission.requiredOpenedUrl) {
+      return 'Open ' + mission.requiredOpenedUrl + ' with gx before saving.';
+    }
     if (mission.requireSave && !teacherSavedCurrent(mission, text)) {
       return 'Save this version with :w.';
     }
@@ -5929,6 +6187,27 @@
       switchDocument(nextOutputId('jumps'), '[Jumps]', jumpLines, 0, 0);
       render(); return;
     }
+    if (cmd === 'buffers' || cmd === 'ls') {
+      saveCurrentDocument();
+      var bufferIds = Object.keys(state.documents).filter(function(id) {
+        return id.indexOf('output:') !== 0;
+      });
+      bufferIds.sort(function(a, b) {
+        return state.documents[a].filename.localeCompare(state.documents[b].filename);
+      });
+      var bufferLines = ['buffers', '', '  file'];
+      for (var bufferIndex = 0; bufferIndex < bufferIds.length; bufferIndex++) {
+        var listedId = bufferIds[bufferIndex];
+        var listed = state.documents[listedId];
+        bufferLines.push((listedId === state.documentId ? '% ' : '  ') + listed.filename);
+      }
+      bufferLines.push('', 'Put the cursor on a filename and press gf to show it here.');
+      pushUndo(false);
+      pushJump();
+      switchDocument(nextOutputId('buffers'), '[Buffers]', bufferLines, 0, 0);
+      setStatus(bufferIds.length + ' loaded buffers');
+      render(); return;
+    }
     if (cmd === 'q' || cmd === 'q!') {
       if (cmd === 'q!') { hackerExit(); return; }
       window.location.href = state.exitTarget;
@@ -6097,6 +6376,15 @@
     }
     if (cmd === 'tabonly' || cmd === 'tabo') {
       keepOnlyTabPage();
+      return;
+    }
+    var windowCommandMatch = cmd.match(/^wincmd\s+([whjklf])$/);
+    if (windowCommandMatch) {
+      if (windowCommandMatch[1] === 'f') {
+        openFileTarget('split');
+      } else {
+        switchSplitWindow();
+      }
       return;
     }
     var verticalSplitMatch = cmd.match(/^(?:vsplit|vs)\s+(.+)$/);
@@ -6777,6 +7065,13 @@
       render();
       return;
     }
+    // gf: edit the file, help topic, or article source under the cursor.
+    if (e.key === 'f' && gTimer) {
+      gTimer = null;
+      getCount();
+      openFileTarget('current');
+      return;
+    }
     // gx: open the external or site-local URL under the cursor.
     if (e.key === 'x' && gTimer) {
       gTimer = null;
@@ -6793,6 +7088,7 @@
       if (link) {
         var openUrl = link.charAt(0) === '/' || /^(?:https?:\/\/|mailto:)/.test(link)
           ? link : 'https://' + link;
+        state.lastOpenedUrl = openUrl;
         window.open(openUrl, '_blank');
         setStatus('Opened: ' + openUrl);
       } else {
@@ -7110,16 +7406,8 @@
       }
       if (isExplorerBuffer()) {
         var eLine = state.lines[row].trim();
-        var explorerTeacher = teacherDocumentByFilename(eLine);
-        if (eLine && explorerTeacher) {
-          pushUndo(false);
-          switchDocument(explorerTeacher.documentId, explorerTeacher.document.filename,
-            explorerTeacher.document.lines, 0, 0);
-          setStatus('"' + eLine + '" ' + state.lines.length + ' lines');
-          render();
-        } else if (eLine && resolveBlogPath(eLine)) {
-          execCommand('e ' + eLine);
-        }
+        if (eLine) openFileTarget('current', eLine);
+        return;
       } else {
         var nRow = clampRow(row + 1);
         state.cursor.row = nRow;
@@ -8218,8 +8506,8 @@
     'unset et', 'unset expandtab', 'unset ai', 'unset autoindent',
     'nohlsearch', 'noh', 'nohl',
     'sort', 'sort u',
-    'r', 'zen', 'enew', 'new', 'e', 'buffer', 'b',
-    'vsplit', 'vs', 'close', 'only',
+    'r', 'zen', 'enew', 'new', 'e', 'buffer', 'b', 'buffers', 'ls',
+    'vsplit', 'vs', 'wincmd', 'close', 'only',
     'tabedit', 'tabe', 'tabnew', 'tabnext', 'tabn', 'tabprevious', 'tabprev',
     'tabclose', 'tabonly',
     'intro', 'help', 'h', 'tutor', 'Tutor',
@@ -8570,8 +8858,19 @@
       if (!isStopQ) state.macroCapture.push(normalizeKeyToken(e));
     }
 
-    if (state.pendingWindowCommand &&
+    if ((state.pendingWindowCommand || state.pendingWindowGCommand) &&
         (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta')) {
+      return;
+    }
+    if (state.pendingWindowGCommand) {
+      state.pendingWindowGCommand = false;
+      if (e.key === 'f') {
+        openFileTarget('tab');
+      } else if (e.key === 'Escape') {
+        setStatus('Window command canceled');
+      } else {
+        setStatus('Use Ctrl-W gf to open the target in a tab page.');
+      }
       return;
     }
     if (state.pendingWindowCommand) {
@@ -8580,10 +8879,15 @@
       if (e.key === 'w' || e.key === 'h' || e.key === 'j' ||
           e.key === 'k' || e.key === 'l') {
         switchSplitWindow();
+      } else if (e.key === 'f') {
+        openFileTarget('split');
+      } else if (e.key === 'g') {
+        state.pendingWindowGCommand = true;
+        setStatus('Window command: press f to open the target in a tab page.');
       } else if (e.key === 'Escape') {
         setStatus('Window command canceled');
       } else {
-        setStatus('Use Ctrl-W w to move to the other window.');
+        setStatus('Use Ctrl-W w to move, Ctrl-W f for a split, or Ctrl-W gf for a tab.');
       }
       return;
     }
@@ -8611,6 +8915,7 @@
       e.preventDefault();
 
       if (state.mode === 'normal' && e.key === 'w') {
+        getCount();
         state.pendingWindowCommand = true;
         setStatus('Window command: press w for the other window.');
         renderTeacherNext();

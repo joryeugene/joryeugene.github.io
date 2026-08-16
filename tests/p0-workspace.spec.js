@@ -42,6 +42,21 @@ test('vertical split keeps two visible buffers, two cursors, and loaded text', a
   expect(await lines(page)).toContain('/v2/reports verified');
 });
 
+test(':wincmd w switches split windows without using the browser Ctrl-W shortcut', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+  await open(page);
+  await cmd(page, 'teacher lesson 8');
+  await cmd(page, 'e 08-report.md');
+  await press(page, '/');
+  await type(page, '08-source.log');
+  await press(page, 'Enter');
+  await cmd(page, 'wincmd f');
+
+  expect((await state(page)).file).toBe('08-source.log');
+  await cmd(page, 'wincmd w');
+  expect((await state(page)).file).toBe('08-report.md');
+});
+
 test('tab pages preserve a split workspace while a second task is active', async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
   await open(page);

@@ -250,6 +250,32 @@ test.describe('mobile Vim input', () => {
     expect((await state(page)).pos).toBe('3,1');
   });
 
+  test('mobile one-shot Ctrl opens filenames in splits and tab pages', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(() => localStorage.removeItem('vim_teacher_progress_v2'));
+    await open(page);
+    await cmd(page, 'teacher');
+    await seed(page, '07-api.js');
+
+    const ctrl = page.locator('#vim-mobile-keys [data-vim-modifier="Control"]');
+    await ctrl.tap(); await mobileText(page, 'w');
+    await mobileText(page, 'f');
+    expect((await state(page)).file).toBe('07-api.js');
+    await expect(page.locator('#vim-split-peer')).toBeVisible();
+
+    await ctrl.tap(); await mobileText(page, 'w');
+    await mobileText(page, 'w');
+    expect((await state(page)).file).toBe('untitled.txt');
+    await cmd(page, 'only');
+    await seed(page, '07-project.md');
+
+    await ctrl.tap(); await mobileText(page, 'w');
+    await mobileText(page, 'g');
+    await mobileText(page, 'f');
+    expect((await state(page)).file).toBe('07-project.md');
+    await expect(page.locator('#vim-tabbar [aria-selected="true"]')).toContainText('07-project.md');
+  });
+
   test('mobile dashboard advertises the tap-anywhere interaction', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await open(page);
