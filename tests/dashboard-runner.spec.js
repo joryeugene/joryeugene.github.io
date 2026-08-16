@@ -388,10 +388,10 @@ test.describe('dashboard and runner experience', () => {
         .map(url => [url.pathname, url.searchParams.get('v')])
     ));
     expect(versions).toEqual({
-      '/js/vim-help.js': 'phalene-workspace-1',
-      '/js/vim-tutor.js': 'phalene-workspace-1',
-      '/js/vim-teacher.js': 'phalene-workspace-1',
-      '/js/vim.js': 'phalene-workspace-1'
+      '/js/vim-help.js': 'phalene-workspace-2',
+      '/js/vim-tutor.js': 'phalene-workspace-2',
+      '/js/vim-teacher.js': 'phalene-workspace-2',
+      '/js/vim.js': 'phalene-workspace-2'
     });
   });
 

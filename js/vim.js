@@ -3500,6 +3500,7 @@
       item.setAttribute('aria-selected', active ? 'true' : 'false');
       item.textContent = label;
       tabBarEl.appendChild(item);
+      if (active) item.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }
   }
 
@@ -8324,7 +8325,6 @@
       });
       return;
     }
-    // Substitute supports alternate delimiters, g/c/i/I/n, and empty-pattern reuse.
     var substituteSpec = parseSubstituteCommand(cmd);
     if (substituteSpec) {
       executeSubstitute(substituteSpec);
