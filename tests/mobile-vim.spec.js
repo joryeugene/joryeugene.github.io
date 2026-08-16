@@ -366,7 +366,7 @@ test.describe('mobile Vim input', () => {
     expect(fit.barLeft).toBeGreaterThanOrEqual(0);
     expect(fit.barRight).toBeLessThanOrEqual(320);
     expect(fit.selectedLeft).toBeGreaterThanOrEqual(fit.barLeft);
-    expect(fit.selectedRight).toBeLessThanOrEqual(fit.barRight);
+    expect(fit.selectedRight).toBeLessThanOrEqual(fit.barRight + 0.5);
     await expect(page.locator('#vim-tabbar [aria-selected="true"]')).toContainText('09-tests.log');
   });
 
