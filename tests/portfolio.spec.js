@@ -1,5 +1,71 @@
 import { test, expect } from '@playwright/test';
 
+test.describe('homepage asymmetric gallery', () => {
+  test('leads with Dadbod and keeps every project proof inline', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    await expect(page.getByRole('heading', { name: 'Useful systems with a pulse.' })).toBeVisible();
+    await expect(page.locator('.intro > p')).toBeVisible();
+    expect(await page.locator('.intro').evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(220);
+
+    const projects = page.locator('[data-featured-project]');
+    await expect(projects).toHaveCount(3);
+    expect(await projects.evaluateAll((elements) => elements.map((element) => element.dataset.featuredProject))).toEqual([
+      'dadbod-grip',
+      'flight-deck',
+      'phalene-vim'
+    ]);
+
+    for (const project of await projects.all()) {
+      await expect(project.locator('.project-facts > div')).toHaveCount(3);
+      await expect(project.locator('.project-facts dt')).toHaveCount(3);
+      await expect(project.locator('.project-facts dd')).toHaveCount(3);
+      await expect(project.locator('.project-links a')).toHaveCount(2);
+    }
+
+    await expect(page.locator('.depth-drawer, .depth-tabs, [data-project-inspect], [data-project-card], .is-selected')).toHaveCount(0);
+  });
+
+  test('uses the audited Dadbod, Flight Deck Week, and Phalene dashboard images', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    const dadbod = page.locator('[data-featured-project="dadbod-grip"]');
+    const dadbodImage = dadbod.locator('.project-media img');
+    await expect(dadbodImage).toHaveAttribute('src', '/jpg/process/dadbod-grip-full-workspace.png');
+    await expect(dadbodImage).toHaveAttribute('alt', /expanded schema.*query pad.*editable grid.*staged SQL/i);
+    await expect(dadbodImage).toHaveCSS('object-fit', 'contain');
+    await expect(dadbod.getByRole('link', { name: 'Open walkthrough' })).toHaveAttribute('href', 'https://jorypestorious.com/dadbod-grip-web/');
+    await expect(dadbod.getByRole('link', { name: 'View source' })).toHaveAttribute('href', 'https://github.com/joryeugene/dadbod-grip.nvim');
+
+    const pair = page.locator('.project-gallery__pair');
+    const dadbodBox = await dadbod.boundingBox();
+    const pairCardBox = await pair.locator('[data-featured-project]').first().boundingBox();
+    expect(dadbodBox.width).toBeGreaterThan(pairCardBox.width * 1.75);
+
+    const flightDeck = page.locator('[data-featured-project="flight-deck"]');
+    const flightDeckImage = flightDeck.locator('.project-media img');
+    await expect(flightDeckImage).toHaveAttribute('src', '/jpg/process/flight-deck-calendar-week.png');
+    await expect(flightDeckImage).toHaveAttribute('alt', /Week.*fictional Google and Outlook.*all-day.*overlapping.*current-time/i);
+    await expect(flightDeckImage).toHaveCSS('object-fit', 'contain');
+    await expect(flightDeck.getByRole('link', { name: 'View source' })).toHaveAttribute('href', 'https://github.com/joryeugene/omarchy-calendar');
+    await expect(flightDeck.getByRole('link', { name: 'Read privacy' })).toHaveAttribute('href', 'https://github.com/joryeugene/omarchy-calendar/blob/main/PRIVACY.md');
+
+    const phalene = page.locator('[data-featured-project="phalene-vim"]');
+    await expect(phalene.locator('.project-media img')).toHaveAttribute('src', '/jpg/process/phalene-vim-dashboard.jpg');
+    await expect(phalene.locator('.project-media img')).toHaveAttribute('alt', /Phalene-Vim.*main dashboard.*keyboard guidance/i);
+    await expect(phalene.getByRole('link', { name: 'Try the editor' })).toHaveAttribute('href', '/vim/');
+    await expect(phalene.getByRole('link', { name: 'View source' })).toHaveAttribute('href', 'https://github.com/joryeugene/joryeugene.github.io/tree/master/vim');
+
+    const georgie = page.locator('.georgie-egg--home');
+    await expect(georgie).toHaveCount(1);
+    await expect(phalene.locator('.project-media > .georgie-egg--home')).toHaveCount(1);
+    await expect(georgie.locator('.georgie-egg__sprite')).toHaveCSS('background-image', /georgie-home-v2-pair\.png/);
+    await expect(page.locator('img[src*="vim-preview-current"], img[src*="phalene-vim-teacher"]')).toHaveCount(0);
+  });
+});
+
 test.describe('portfolio shell', () => {
   test('publishes the Georgie social card at its real preview size', async ({ page }) => {
     const fallbackPaths = [
@@ -52,38 +118,8 @@ test.describe('portfolio shell', () => {
     await expect(page.getByRole('navigation', { name: 'Primary' })).toContainText('Contact');
   });
 
-  test('inspects every featured project without accidental navigation', async ({ page }) => {
+  test('keeps the selected history evidence beneath the static project gallery', async ({ page }) => {
     await page.goto('/');
-
-    await expect(page.locator('[data-project-card]')).toHaveCount(3);
-    await expect(page.locator('[data-project-card] h2 a')).toHaveCount(0);
-    await expect(page.locator('.project-preview[href]')).toHaveCount(0);
-
-    const cases = [
-      ['Inspect Phalene-Vim', 'Phalene-Vim', /motions, macros, search, undo/i],
-      ['Inspect dadbod-grip.nvim', 'dadbod-grip.nvim', /test matrix covers edits.*generated SQL.*query files/i],
-      ['Inspect Georgie', 'Georgie', /raised paw/i]
-    ];
-
-    for (const [buttonName, projectName, proof] of cases) {
-      const button = page.getByRole('button', { name: buttonName });
-      await button.click();
-      await expect(page).toHaveURL(/\/$/);
-      await expect(button).toHaveAttribute('aria-expanded', 'true');
-      await expect(page.locator('[data-depth-project-name]')).toHaveText(projectName);
-      await page.getByRole('tab', { name: 'Proof' }).click();
-      await expect(page.locator('[data-depth-panel]:visible')).toContainText(proof);
-    }
-
-    const { gridBottom, drawerTop } = await page.evaluate(() => ({
-      gridBottom: document.querySelector('.project-grid').getBoundingClientRect().bottom,
-      drawerTop: document.querySelector('.depth-drawer').getBoundingClientRect().top
-    }));
-    expect(drawerTop - gridBottom).toBeGreaterThanOrEqual(40);
-
-    const homeGeorgie = page.locator('.georgie-egg--home .georgie-egg__sprite');
-    await expect(homeGeorgie).toBeVisible();
-    await expect(homeGeorgie).toHaveCSS('background-image', /georgie-home-pair\.webp/);
 
     await expect(page.getByRole('heading', { name: 'Selected history' })).toBeVisible();
     await expect(page.locator('.archive-card h3')).toHaveText([
@@ -113,40 +149,6 @@ test.describe('portfolio shell', () => {
     expect(Math.abs(gridWidth - prayWidth)).toBeLessThanOrEqual(2);
   });
 
-  test('lays out the Dadbod system as four ordered stages', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Inspect dadbod-grip.nvim' }).click();
-    await page.getByRole('tab', { name: 'System', exact: true }).click();
-
-    const path = page.locator('.system-path');
-    const nodes = path.locator('.system-node');
-    await expect(nodes).toHaveCount(4);
-
-    const desktop = await nodes.evaluateAll((elements) => elements.map((element) => {
-      const box = element.getBoundingClientRect();
-      return { x: box.x, y: box.y, right: box.right };
-    }));
-    expect(Math.max(...desktop.map(({ y }) => y)) - Math.min(...desktop.map(({ y }) => y))).toBeLessThanOrEqual(1);
-    for (let index = 1; index < desktop.length; index += 1) {
-      expect(desktop[index].x).toBeGreaterThan(desktop[index - 1].right);
-    }
-
-    await page.setViewportSize({ width: 320, height: 844 });
-    await page.reload();
-    const phoneNodes = page.locator('.system-path .system-node');
-    await expect(phoneNodes).toHaveCount(4);
-    const phone = await phoneNodes.evaluateAll((elements) => elements.map((element) => {
-      const box = element.getBoundingClientRect();
-      return { x: box.x, y: box.y, bottom: box.bottom, right: box.right };
-    }));
-    expect(Math.abs(phone[0].y - phone[1].y)).toBeLessThanOrEqual(1);
-    expect(Math.abs(phone[2].y - phone[3].y)).toBeLessThanOrEqual(1);
-    expect(phone[2].y).toBeGreaterThan(Math.max(phone[0].bottom, phone[1].bottom));
-    expect(Math.abs(phone[0].x - phone[2].x)).toBeLessThanOrEqual(1);
-    expect(Math.abs(phone[1].x - phone[3].x)).toBeLessThanOrEqual(1);
-    expect(phone.every(({ x, right }) => x >= 0 && right <= 320)).toBe(true);
-  });
-
   test('opens a searchable command palette with every approved destination', async ({ page }) => {
     await page.goto('/');
     await page.keyboard.press('j');
@@ -172,12 +174,12 @@ test.describe('portfolio shell', () => {
       ['GitHub', 'https://github.com/joryeugene'],
       ['LinkedIn', 'https://www.linkedin.com/in/jory-fullstack-engineer/'],
       ['Email Jory', 'mailto:jory@pestorious.com'],
-      ['Download résumé', '/resume/Jory-Pestorious-Resume.pdf']
+      ['Book a 15-minute Sync', 'https://cal.com/jory-pestorious/celebrity']
     ];
     for (const [name, href] of expected) {
       await expect(palette.getByRole('link', { name: new RegExp(name, 'i') })).toHaveAttribute('href', href);
     }
-    await expect(palette.getByRole('link', { name: /Download résumé/i })).toHaveAttribute('download', 'Jory-Pestorious-Resume.pdf');
+    await expect(palette.locator('a[href*="/resume/"]')).toHaveCount(0);
 
     await search.fill('gh');
     await expect(palette.locator('[data-site-command]:visible')).toHaveCount(1);
@@ -466,12 +468,13 @@ test.describe('portfolio pages', () => {
     await expect(page).toHaveURL(/\/blog\/portable-agent-factory\/$/);
   });
 
-  test('contact page exposes direct destinations and resume', async ({ page }) => {
+  test('contact page exposes direct destinations and the 15-minute Sync', async ({ page }) => {
     await page.goto('/contact/');
 
     await expect(page.getByRole('link', { name: /Write a note/ })).toHaveAttribute('href', 'mailto:jory@pestorious.com');
     await expect(page.getByRole('link', { name: /See the code/ })).toHaveAttribute('href', 'https://github.com/joryeugene');
-    await expect(page.getByRole('link', { name: /Download PDF/ })).toHaveAttribute('download', 'Jory-Pestorious-Resume.pdf');
+    await expect(page.getByRole('link', { name: /Find a time/ })).toHaveAttribute('href', 'https://cal.com/jory-pestorious/celebrity');
+    await expect(page.locator('a[href*="/resume/"]')).toHaveCount(0);
     await expect(page.locator('.contact-path')).toHaveCount(4);
     await expect(page.locator('.contact-path[data-jelly]')).toHaveCount(4);
     await expect(page.locator('.contact-georgie')).toHaveCSS('background-image', /georgie-contact-pair\.webp/);
@@ -503,9 +506,10 @@ test.describe('portfolio responsive behavior', () => {
       clientWidth: document.documentElement.clientWidth
     }));
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
-    await page.getByRole('button', { name: 'Inspect Phalene-Vim' }).click();
-    await expect(page.locator('[data-depth-project-name]')).toHaveText('Phalene-Vim');
-    await expect(page.locator('.depth-drawer')).toBeInViewport();
+    const phalene = page.locator('[data-featured-project="phalene-vim"]');
+    await expect(phalene).toBeVisible();
+    await expect(phalene.locator('.project-media img')).toBeVisible();
+    await expect(phalene.getByRole('link', { name: 'Try the editor' })).toBeVisible();
   });
 
   test('keeps Process controls and copy inside the phone viewport', async ({ page }) => {
@@ -535,22 +539,10 @@ test.describe('portfolio responsive behavior', () => {
 test.describe('portfolio at 320px', () => {
   test.use({ viewport: { width: 320, height: 844 } });
 
-  test('keeps compact tabbed surfaces stable and readable', async ({ page }) => {
-    const documentTop = (selector) => page.locator(selector).evaluate((element) => (
-      element.getBoundingClientRect().top + window.scrollY
-    ));
-
+  test('keeps the static gallery and Process tabs stable and readable', async ({ page }) => {
     await page.goto('/');
-    const historyTop = await documentTop('.archive-section');
-    expect(await page.locator('[data-depth-panel]:visible').evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(361);
-    for (const name of ['Demo', 'System', 'Decisions', 'Proof']) {
-      await page.getByRole('tab', { name, exact: true }).click();
-      expect(Math.abs((await documentTop('.archive-section')) - historyTop)).toBeLessThanOrEqual(1);
-    }
-    for (const name of ['Inspect Phalene-Vim', 'Inspect dadbod-grip.nvim', 'Inspect Georgie']) {
-      await page.getByRole('button', { name }).click();
-      expect(Math.abs((await documentTop('.archive-section')) - historyTop)).toBeLessThanOrEqual(1);
-    }
+    await expect(page.locator('[data-featured-project]')).toHaveCount(3);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
 
     await page.goto('/process/#workhelix');
     const constraints = page.getByRole('tab', { name: /Constraints/ }).locator('span').last();

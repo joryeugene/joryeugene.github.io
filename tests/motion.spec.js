@@ -25,7 +25,12 @@ async function expectResponsiveGeorgie(page, surface, viewport) {
       && dog.x + dog.width > anchor.x
       && dog.y + dog.height >= anchor.y - 2
       && dog.y <= anchor.y + 60
-    : overlaps(dog, anchor);
+    : surface.edge === 'right'
+      ? dog.x >= anchor.x
+        && dog.x <= anchor.x + anchor.width + 80
+        && dog.y < anchor.y + anchor.height
+        && dog.y + dog.height > anchor.y
+      : overlaps(dog, anchor);
   expect(anchored, `${surface.path} Georgie detached from its surface`).toBe(true);
   expect(overlaps(dog, readable), `${surface.path} Georgie covers readable content`).toBe(false);
 }
@@ -84,15 +89,12 @@ test('portfolio motion keeps content stable and records the expressive surfaces'
   expect(Math.abs(parallax.x)).toBeLessThanOrEqual(4.1);
   expect(Math.abs(parallax.y)).toBeLessThanOrEqual(3.1);
 
-  const firstCard = page.locator('[data-project-card="phalene-vim"]');
-  await firstCard.dispatchEvent('pointerenter', { pointerType: 'mouse', isPrimary: true });
-  await expect(page.locator('#project-depth')).toHaveAttribute('data-project', 'phalene-vim');
-  expect(await page.locator('#project-depth').evaluate((element) => getComputedStyle(element).transform)).toBe('none');
-  await expect(page.locator('[data-depth-panel]:not([hidden])')).toHaveClass(/is-refreshing/);
-
   const homeDog = page.locator('.georgie-egg--home');
   await homeDog.hover();
-  await attachPausedFrames(page, page.locator('[data-project-card="georgie"]'), testInfo, 'home-georgie');
+  const media = page.locator('[data-featured-project="phalene-vim"] .project-media');
+  const before = await media.boundingBox();
+  await attachPausedFrames(page, media, testInfo, 'home-georgie');
+  expect(await media.boundingBox()).toEqual(before);
 
   await page.goto('/contact/');
   const email = page.locator('.contact-path').first();
@@ -176,7 +178,7 @@ test('responsive motion surfaces stay inside the viewport and leave visual artif
     { name: 'wide', width: 1440, height: 900 }
   ];
   const surfaces = [
-    { name: 'home-georgie', path: '/', target: '.georgie-egg--home', anchor: '.project-preview--georgie', readable: '[data-project-card="georgie"] .project-heading', trigger: '[data-project-card="georgie"]' },
+    { name: 'home-georgie', path: '/', target: '.georgie-egg--home', anchor: '[data-featured-project="phalene-vim"] .project-media', readable: '[data-featured-project="phalene-vim"] .project-rail', trigger: '.georgie-egg--home' },
     { name: 'process-georgie', path: '/process/', target: '.georgie-egg--process', anchor: '.layer-rail', readable: '.process-panel [data-layer-content]:not([hidden]) h2', trigger: '.georgie-egg--process' },
     { name: 'writing-georgie', path: '/blog/', target: '.georgie-egg--writing', anchor: '.writing-feature', readable: '.writing-feature h2', trigger: '.writing-feature' },
     { name: 'contact-georgie', path: '/contact/', target: '.contact-georgie-wrap', anchor: '.contact-path:first-of-type', readable: '.contact-path:first-of-type .contact-action', trigger: '.contact-georgie-wrap', edge: 'top' },

@@ -19,7 +19,7 @@
   <title>Jory Pestorious | Developer tools, agents, and interfaces</title>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-7">
+  <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-9">
 </head>
 <body class="portfolio-page page-work">
   <a class="skip-link" href="#main">Skip to work</a>
@@ -43,100 +43,79 @@
     <main id="main">
       <section class="intro" aria-labelledby="work-intro">
         <h1 id="work-intro" class="page-title">Useful systems with a pulse.</h1>
-        <p>I build developer tools, agents, multiplayer systems, and high-performance interfaces.</p>
+        <p>I build tools for complex systems, from editable databases and keyboard-first calendars to multiplayer infrastructure.</p>
       </section>
 
-      <section class="project-grid" aria-label="Featured projects">
-        <article class="project-card" data-project-card="phalene-vim" style="--project-accent: var(--lavender)">
-          <div class="project-heading">
-            <span class="project-number">01</span>
-            <div>
-              <h2>Phalene-Vim</h2>
-              <p>A working Vim environment in the browser, with motions, macros, search, undo, and a command palette.</p>
-            </div>
-          </div>
-          <div class="project-preview">
-            <img src="/jpg/vim-preview-current.png" alt="Phalene-Vim dashboard with Georgie and keyboard guidance" width="1280" height="720">
-          </div>
-          <div class="project-actions">
-            <button class="project-inspect" type="button" data-project-inspect="phalene-vim" aria-label="Inspect Phalene-Vim" aria-controls="project-depth" aria-expanded="false" data-jelly>Inspect details</button>
-            <a class="project-action" href="/vim/" data-jelly>Try the editor</a>
-          </div>
-        </article>
-
-        <article class="project-card is-featured is-selected" data-project-card="dadbod-grip" style="--project-accent: var(--amber)">
-          <div class="project-heading">
-            <span class="project-number">02</span>
-            <div>
-              <h2>dadbod-grip.nvim</h2>
-              <p>Editable database grids for Neovim. Stage changes, inspect generated SQL, submit a transaction script, or join databases and files through DuckDB.</p>
-            </div>
-          </div>
-          <div class="project-preview">
-            <img src="/blog/dadbod-grip/live.png" alt="dadbod-grip editing a database table inside Neovim" width="1600" height="900">
-          </div>
-          <div class="project-actions">
-            <button class="project-inspect" type="button" data-project-inspect="dadbod-grip" aria-label="Inspect dadbod-grip.nvim" aria-controls="project-depth" aria-expanded="true" data-jelly>Inspect details</button>
-            <a class="project-action" href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>Open walkthrough</a>
+      <section class="project-gallery" aria-label="Featured projects">
+        <article class="project-feature project-feature--dadbod" data-featured-project="dadbod-grip">
+          <figure class="project-media project-media--hero">
+            <img src="/jpg/process/dadbod-grip-full-workspace.png" alt="Dadbod Grip full workspace with an expanded schema, query pad, editable grid, inline editor, and staged SQL in Neovim" width="2560" height="1440">
+          </figure>
+          <div class="project-rail">
+            <header class="project-rail__heading">
+              <p class="project-index">01 / Flagship</p>
+              <h2>Dadbod Grip</h2>
+              <p>Edit database tables, preview every SQL change, and query across databases and files without leaving Neovim.</p>
+            </header>
+            <dl class="project-facts">
+              <div><dt>Built with</dt><dd>PostgreSQL, MySQL, SQLite, and files to Dadbod plus DuckDB to an editable Neovim grid.</dd></div>
+              <div><dt>Why</dt><dd>Expose generated SQL before apply. Keep the database authoritative.</dd></div>
+              <div><dt>Proof</dt><dd>Real Softrear demo with edit, clone, delete, and live SQL in one frame. Seventy-four spec files pass.</dd></div>
+            </dl>
+            <nav class="project-links" aria-label="Dadbod Grip links">
+              <a href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>Open walkthrough</a>
+              <a href="https://github.com/joryeugene/dadbod-grip.nvim" data-jelly>View source</a>
+            </nav>
           </div>
         </article>
 
-        <article class="project-card" data-project-card="georgie" data-georgie-surface data-georgie-trigger style="--project-accent: var(--cyan)">
-          <div class="project-heading">
-            <span class="project-number">03</span>
-            <div>
-              <h2>Georgie</h2>
-              <p>A quiet animated Phalène for Codex. His tail moves while it works; one raised paw means Codex needs me.</p>
+        <div class="project-gallery__pair">
+          <article class="project-feature project-feature--flight-deck" data-featured-project="flight-deck">
+            <figure class="project-media project-media--calendar">
+              <img src="/jpg/process/flight-deck-calendar-week.png" alt="Flight Deck Calendar Week view with fictional Google and Outlook events, an all-day lane, overlapping meetings, and current-time context" width="1352" height="940" loading="lazy" decoding="async">
+            </figure>
+            <div class="project-rail">
+              <header class="project-rail__heading">
+                <p class="project-index">02 / Local first</p>
+                <h2>Flight Deck Calendar</h2>
+                <p>Google and Outlook in one keyboard-first Omarchy panel. Read-only access, local cache, no hosted backend.</p>
+              </header>
+              <dl class="project-facts">
+                <div><dt>Built with</dt><dd>Google and Outlook to local Python, SQLite, and Secret Service to Omarchy QML.</dd></div>
+                <div><dt>Why</dt><dd>Read-only and local-first. No hosted backend or telemetry.</dd></div>
+                <div><dt>Proof</dt><dd>Both providers verified locally, with keyboard and four-viewport paths covered.</dd></div>
+              </dl>
+              <nav class="project-links" aria-label="Flight Deck Calendar links">
+                <a href="https://github.com/joryeugene/omarchy-calendar" data-jelly>View source</a>
+                <a href="https://github.com/joryeugene/omarchy-calendar/blob/main/PRIVACY.md" data-jelly>Read privacy</a>
+              </nav>
             </div>
-          </div>
-          <div class="project-preview project-preview--georgie">
-            <button class="georgie-egg georgie-egg--home" type="button" aria-label="Play peekaboo with Georgie" data-georgie-egg>
-              <span class="georgie-egg__sprite" aria-hidden="true"></span>
-            </button>
-          </div>
-          <div class="project-actions">
-            <button class="project-inspect" type="button" data-project-inspect="georgie" aria-label="Inspect Georgie" aria-controls="project-depth" aria-expanded="false" data-jelly>Inspect details</button>
-            <a class="project-action" href="https://github.com/joryeugene/georgie-phalene-codex-pet" data-jelly>Meet Georgie</a>
-          </div>
-        </article>
-      </section>
+          </article>
 
-      <section id="project-depth" class="depth-drawer" data-project="dadbod-grip" aria-labelledby="depth-title" aria-live="polite">
-        <div class="depth-drawer__header">
-          <h2 id="depth-title">Under the hood <strong data-depth-project-name>dadbod-grip.nvim</strong></h2>
-          <span class="keyboard-note">Hover · focus · tap</span>
-        </div>
-        <div class="depth-tabs" role="tablist" aria-label="Dadbod Grip project layers">
-          <button id="depth-demo-tab" class="depth-tab" type="button" role="tab" data-depth-tab aria-controls="depth-demo" aria-selected="false">Demo</button>
-          <button id="depth-system-tab" class="depth-tab" type="button" role="tab" data-depth-tab aria-controls="depth-system" aria-selected="true">System</button>
-          <button id="depth-decisions-tab" class="depth-tab" type="button" role="tab" data-depth-tab aria-controls="depth-decisions" aria-selected="false">Decisions</button>
-          <button id="depth-proof-tab" class="depth-tab" type="button" role="tab" data-depth-tab aria-controls="depth-proof" aria-selected="false">Proof</button>
-        </div>
-        <div id="depth-demo" class="depth-panel" role="tabpanel" data-depth-panel aria-labelledby="depth-demo-tab" hidden>
-          <h3>Open the working tool</h3>
-          <p>Edit tables, inspect generated SQL, query files, and join data across databases through DuckDB.</p>
-          <p class="proof-line"><a href="https://jorypestorious.com/dadbod-grip-web/">Open the walkthrough</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>
-        </div>
-        <div id="depth-system" class="depth-panel" role="tabpanel" data-depth-panel aria-labelledby="depth-system-tab">
-          <div class="system-path system-path--four" aria-label="Dadbod Grip system cross-section">
-            <div class="system-node"><strong>Sources</strong><span class="system-detail system-detail--wide">PostgreSQL · MySQL · SQLite · MotherDuck · local files/HTTPS</span><span class="system-detail system-detail--compact">4 databases · files/HTTPS</span></div>
-            <span aria-hidden="true">to</span>
-            <div class="system-node"><strong>DuckDB hub</strong><span class="system-detail system-detail--wide">attach databases · scan files · cross-source joins</span><span class="system-detail system-detail--compact">attach · scan · cross-source JOIN</span></div>
-            <span aria-hidden="true">to</span>
-            <div class="system-node is-core"><strong>Dadbod Grip</strong><span class="system-detail system-detail--wide">edit grids · preview SQL · transaction script · compensating undo</span><span class="system-detail system-detail--compact">edit · preview SQL · apply · best-effort undo</span></div>
-            <span aria-hidden="true">to</span>
-            <div class="system-node"><strong>Neovim analysis</strong><span class="system-detail system-detail--wide">schemas/FKs · notebooks · profiling · Query Doctor · four AI providers</span><span class="system-detail system-detail--compact">schema · profile · notebook · AI SQL</span></div>
-          </div>
-          <p class="proof-line"><span class="system-detail system-detail--wide">One query can join attached PostgreSQL data with a local or HTTPS Parquet file. Direct-table edits use the same statement builders for preview and execution. After a CLI error, inspect database state before retrying because an earlier statement may have committed.</span><span class="system-detail system-detail--compact">JOIN PostgreSQL to Parquet. Preview SQL. Inspect state after an apply error.</span></p>
-        </div>
-        <div id="depth-decisions" class="depth-panel" role="tabpanel" data-depth-panel aria-labelledby="depth-decisions-tab" hidden>
-          <h3>Keep the work inside the editor.</h3>
-          <p>The database remains the source of truth. Vim supplies the interaction model. Existing tools handle connections instead of a new database layer.</p>
-        </div>
-        <div id="depth-proof" class="depth-panel" role="tabpanel" data-depth-panel aria-labelledby="depth-proof-tab" hidden>
-          <h3>Test the database workbench</h3>
-          <p>The test matrix covers edits, generated SQL, query files, and regression paths on Neovim stable and 0.10.</p>
-          <p class="proof-line"><a href="/blog/dadbod-grip/">Read the build story</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>
+          <article class="project-feature project-feature--phalene" data-featured-project="phalene-vim">
+            <figure class="project-media project-media--phalene" data-georgie-surface>
+              <img src="/jpg/process/phalene-vim-dashboard.jpg" alt="Phalene-Vim main dashboard with Georgie and keyboard guidance" width="1280" height="720" loading="lazy" decoding="async">
+              <button class="georgie-egg georgie-egg--home" type="button" aria-label="Play peekaboo with Georgie" data-georgie-egg>
+                <span class="georgie-egg__sprite" aria-hidden="true"></span>
+              </button>
+            </figure>
+            <div class="project-rail">
+              <header class="project-rail__heading">
+                <p class="project-index">03 / Playable</p>
+                <h2>Phalene-Vim</h2>
+                <p>Learn Vim in a real browser editor with modes, motions, macros, search, undo, and guided practice.</p>
+              </header>
+              <dl class="project-facts">
+                <div><dt>Built with</dt><dd>Browser input to one editor state and command model to Vim behavior.</dd></div>
+                <div><dt>Why</dt><dd>Make the browser obey Vim before decorating it.</dd></div>
+                <div><dt>Proof</dt><dd>Teacher, tutor, modes, macros, search, undo, splits, and mobile input are tested.</dd></div>
+              </dl>
+              <nav class="project-links" aria-label="Phalene-Vim links">
+                <a href="/vim/" data-jelly>Try the editor</a>
+                <a href="https://github.com/joryeugene/joryeugene.github.io/tree/master/vim" data-jelly>View source</a>
+              </nav>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -220,7 +199,7 @@
     </div>
   </div>
 
-  <script src="/js/blog-common.js?v=foundation-plus-3"></script>
-  <script src="/js/portfolio.js?v=foundation-plus-6"></script>
+  <script src="/js/blog-common.js?v=foundation-plus-5"></script>
+  <script src="/js/portfolio.js?v=foundation-plus-8"></script>
 </body>
 </html>

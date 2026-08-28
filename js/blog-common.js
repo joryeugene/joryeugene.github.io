@@ -485,7 +485,7 @@ const SiteCommandPalette = {
         { id: 'work', label: 'Work', description: 'Selected projects', href: '/', aliases: 'home projects portfolio' },
         { id: 'process', label: 'Process', description: 'Engineering case studies', href: '/process/', aliases: 'process case study engineering evidence' },
         { id: 'writing', label: 'Writing', description: 'Essay archive', href: '/blog/', aliases: 'writing blog essay articles' },
-        { id: 'contact', label: 'Contact', description: 'Email, profiles, and résumé', href: '/contact/', aliases: 'contact links' }
+        { id: 'contact', label: 'Contact', description: 'Email, profiles, and calendar', href: '/contact/', aliases: 'contact links calendar' }
       ]
     },
     {
@@ -494,7 +494,7 @@ const SiteCommandPalette = {
         { id: 'github', label: 'GitHub', description: 'github.com/joryeugene', href: 'https://github.com/joryeugene', aliases: 'github gh code source repository' },
         { id: 'linkedin', label: 'LinkedIn', description: 'Professional profile', href: 'https://www.linkedin.com/in/jory-fullstack-engineer/', aliases: 'linkedin profile work history' },
         { id: 'email', label: 'Email Jory', description: 'jory@pestorious.com', href: 'mailto:jory@pestorious.com', aliases: 'email mail message note jory' },
-        { id: 'resume', label: 'Download résumé', description: 'PDF', href: '/resume/Jory-Pestorious-Resume.pdf', aliases: 'resume résumé cv pdf download', download: 'Jory-Pestorious-Resume.pdf' }
+        { id: 'sync', label: 'Book a 15-minute Sync', description: 'One open Google Meet slot', href: 'https://cal.com/jory-pestorious/celebrity', aliases: 'sync calendar schedule book meeting connect' }
       ]
     }
   ],

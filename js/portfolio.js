@@ -1,36 +1,6 @@
 (function () {
   'use strict';
 
-  const projectDepthCases = {
-    'phalene-vim': {
-      name: 'Phalene-Vim',
-      panels: {
-        demo: '<h3>Open the working editor</h3><p>Use motions, macros, search, undo, registers, the command palette, and the built-in tutor without installing anything.</p><p class="proof-line"><a href="/vim/">Try Phalene-Vim</a></p>',
-        system: '<div class="system-path" aria-label="Phalene-Vim system cross-section"><div class="system-node"><strong>Browser</strong>keyboard, pointer, responsive viewport</div><span aria-hidden="true">to</span><div class="system-node is-core"><strong>Phalene-Vim</strong>editor state and command model</div><span aria-hidden="true">to</span><div class="system-node"><strong>Vim behavior</strong>motions, registers, macros</div></div><p class="proof-line">The interface is a working editor, not a dashboard mockup.</p>',
-        decisions: '<h3>Make the browser obey Vim before decorating it.</h3><p>Normal, insert, visual, and command modes share one interaction model. Discoverability comes from the tutor and command palette instead of weakening the Vim controls.</p>',
-        proof: '<h3>Exercise the real loop</h3><p>Motions, macros, search, undo, command history, simultaneous navigation keys, mobile input, and the tutor are covered by browser interaction tests.</p><p class="proof-line"><a href="/vim/">Open the tested editor</a></p>'
-      }
-    },
-    'dadbod-grip': {
-      name: 'dadbod-grip.nvim',
-      panels: {
-        demo: '<h3>Open the working tool</h3><p>Edit tables, inspect generated SQL, query files, and join data across databases through DuckDB.</p><p class="proof-line"><a href="https://jorypestorious.com/dadbod-grip-web/">Open the walkthrough</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>',
-        system: '<div class="system-path system-path--four" aria-label="Dadbod Grip system cross-section"><div class="system-node"><strong>Sources</strong><span class="system-detail system-detail--wide">PostgreSQL · MySQL · SQLite · MotherDuck · local files/HTTPS</span><span class="system-detail system-detail--compact">4 databases · files/HTTPS</span></div><span aria-hidden="true">to</span><div class="system-node"><strong>DuckDB hub</strong><span class="system-detail system-detail--wide">attach databases · scan files · cross-source joins</span><span class="system-detail system-detail--compact">attach · scan · cross-source JOIN</span></div><span aria-hidden="true">to</span><div class="system-node is-core"><strong>Dadbod Grip</strong><span class="system-detail system-detail--wide">edit grids · preview SQL · transaction script · compensating undo</span><span class="system-detail system-detail--compact">edit · preview SQL · apply · best-effort undo</span></div><span aria-hidden="true">to</span><div class="system-node"><strong>Neovim analysis</strong><span class="system-detail system-detail--wide">schemas/FKs · notebooks · profiling · Query Doctor · four AI providers</span><span class="system-detail system-detail--compact">schema · profile · notebook · AI SQL</span></div></div><p class="proof-line"><span class="system-detail system-detail--wide">One query can join attached PostgreSQL data with a local or HTTPS Parquet file. Direct-table edits use the same statement builders for preview and execution. After a CLI error, inspect database state before retrying because an earlier statement may have committed.</span><span class="system-detail system-detail--compact">JOIN PostgreSQL to Parquet. Preview SQL. Inspect state after an apply error.</span></p>',
-        decisions: '<h3>Keep the data work inside Neovim.</h3><p>Dadbod handles connections, DuckDB federates sources, and the underlying database stays authoritative. The plugin adds the editing and analysis workflows between them.</p>',
-        proof: '<h3>Test the database workbench</h3><p>The test matrix covers edits, generated SQL, query files, and regression paths on Neovim stable and 0.10.</p><p class="proof-line"><a href="/blog/dadbod-grip/">Read the build story</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>'
-      }
-    },
-    georgie: {
-      name: 'Georgie',
-      panels: {
-        demo: '<h3>Meet the actual Codex pet</h3><p>Georgie stays at the edge of Codex as a quiet focus buddy and offers a small paw when a task needs attention.</p><p class="proof-line"><a href="https://github.com/joryeugene/georgie-phalene-codex-pet">View Georgie and installation</a></p>',
-        system: '<div class="system-path" aria-label="Georgie system cross-section"><div class="system-node"><strong>Codex</strong>task and attention states</div><span aria-hidden="true">to</span><div class="system-node is-core"><strong>Georgie</strong>versioned sprite atlas</div><span aria-hidden="true">to</span><div class="system-node"><strong>Pet motion</strong>idle, working, check-in</div></div><p class="proof-line">One cohesive animation package drives every visible state.</p>',
-        decisions: '<h3>Signal softly instead of demanding attention.</h3><p>Georgie stays calm during focused work. The animation uses a small paw lift instead of a loud alert or constant motion.</p>',
-        proof: '<h3>A raised paw has one meaning</h3><p>His tail moves while Codex works; one raised paw means Codex needs me. The sprite matrix, timing, baseline, and packaging checks are validated in the pet repository.</p><p class="proof-line"><a href="https://github.com/joryeugene/georgie-phalene-codex-pet">Inspect the pet source</a></p>'
-      }
-    }
-  };
-
   const processCases = {
     'dadbod-grip': {
       title: 'How Dadbod Grip turns Neovim into a data workbench',
@@ -95,98 +65,6 @@
     return hoverSelectionEnabled
       && event.pointerType === 'mouse'
       && !window.matchMedia('(max-width: 760px)').matches;
-  }
-
-  function initializeDepthTabs() {
-    const tabs = Array.from(document.querySelectorAll('[data-depth-tab]'));
-    if (!tabs.length) return;
-
-    function selectTab(tab) {
-      const panelId = tab.getAttribute('aria-controls');
-      tabs.forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
-      document.querySelectorAll('[data-depth-panel]').forEach((panel) => {
-        panel.hidden = panel.id !== panelId;
-      });
-    }
-
-    tabs.forEach((tab) => {
-      tab.addEventListener('pointerenter', (event) => {
-        if (shouldSelectOnHover(event)) selectTab(tab);
-      });
-      tab.addEventListener('focus', () => selectTab(tab));
-      tab.addEventListener('click', () => selectTab(tab));
-    });
-  }
-
-  function initializeProjectDepth() {
-    const drawer = document.getElementById('project-depth');
-    const buttons = Array.from(document.querySelectorAll('[data-project-inspect]'));
-    const cards = Array.from(document.querySelectorAll('[data-project-card]'));
-    const name = drawer?.querySelector('[data-depth-project-name]');
-    const tablist = drawer?.querySelector('.depth-tabs');
-    if (!drawer || !buttons.length || !cards.length || !name) return;
-
-    let pinnedKey = buttons.find((button) => button.getAttribute('aria-expanded') === 'true')?.dataset.projectInspect || 'dadbod-grip';
-    let renderedKey = '';
-
-    function selectProject(key, { shouldScroll = false, shouldPin = false } = {}) {
-      const project = projectDepthCases[key];
-      if (!project) return;
-      if (shouldPin) pinnedKey = key;
-
-      const activePanelId = drawer.querySelector('[data-depth-tab][aria-selected="true"]')?.getAttribute('aria-controls') || 'depth-system';
-
-      cards.forEach((card) => {
-        card.classList.toggle('is-selected', card.dataset.projectCard === key);
-      });
-      buttons.forEach((button) => {
-        button.setAttribute('aria-expanded', String(button.dataset.projectInspect === key));
-      });
-      name.textContent = project.name;
-      drawer.dataset.project = key;
-      if (tablist) tablist.setAttribute('aria-label', `${project.name} project layers`);
-
-      Object.entries(project.panels).forEach(([panelName, content]) => {
-        const panel = document.getElementById(`depth-${panelName}`);
-        if (panel) panel.innerHTML = content;
-      });
-
-      document.querySelectorAll('[data-depth-tab]').forEach((tab) => {
-        const selected = tab.getAttribute('aria-controls') === activePanelId;
-        tab.setAttribute('aria-selected', String(selected));
-      });
-      document.querySelectorAll('[data-depth-panel]').forEach((panel) => {
-        panel.hidden = panel.id !== activePanelId;
-      });
-
-      if (renderedKey && renderedKey !== key && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        const activePanel = document.getElementById(activePanelId);
-        activePanel?.classList.remove('is-refreshing');
-        if (activePanel) {
-          void activePanel.offsetWidth;
-          activePanel.classList.add('is-refreshing');
-          activePanel.addEventListener('animationend', () => activePanel.classList.remove('is-refreshing'), { once: true });
-        }
-      }
-      renderedKey = key;
-
-      if (shouldScroll) {
-        drawer.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-      }
-    }
-
-    cards.forEach((card) => {
-      const key = card.dataset.projectCard;
-      card.addEventListener('pointerenter', (event) => {
-        if (shouldSelectOnHover(event)) selectProject(key, { shouldPin: true });
-      });
-      card.addEventListener('focusin', () => selectProject(key, { shouldPin: true }));
-    });
-
-    buttons.forEach((button) => button.addEventListener('click', () => {
-      selectProject(button.dataset.projectInspect, { shouldScroll: true, shouldPin: true });
-    }));
-    selectProject(pinnedKey);
   }
 
   function initializeProcessLayers() {
@@ -409,7 +287,9 @@
     if (document.body.classList.contains('page-writing')) return;
 
     const visibleMainActions = () => Array.from(document.querySelectorAll('main a[href], main button:not([disabled])'))
-      .filter((element) => element.offsetParent !== null && getComputedStyle(element).visibility !== 'hidden');
+      .filter((element) => !element.matches('[data-georgie-egg]')
+        && element.offsetParent !== null
+        && getComputedStyle(element).visibility !== 'hidden');
 
     document.addEventListener('keydown', (event) => {
       if (isBlocked(event) || !['j', 'k'].includes(event.key)) return;
@@ -480,18 +360,25 @@
       let tapTimer = 0;
 
       const activate = () => {
-        window.clearTimeout(tapTimer);
+        if (tapTimer) return;
         egg.classList.add('is-georgie-active');
         surface.classList.add('is-georgie-active');
         if (surface.classList.contains('contact-grid')) surface.classList.add('is-georgie-press');
       };
       const release = () => {
+        window.clearTimeout(tapTimer);
+        tapTimer = 0;
         egg.classList.remove('is-georgie-active');
         surface.classList.remove('is-georgie-active', 'is-georgie-press');
       };
       const play = () => {
+        window.clearTimeout(tapTimer);
+        tapTimer = 0;
         activate();
-        tapTimer = window.setTimeout(release, 720);
+        tapTimer = window.setTimeout(() => {
+          egg.classList.remove('is-georgie-active');
+          surface.classList.remove('is-georgie-active', 'is-georgie-press');
+        }, 720);
       };
 
       triggers.forEach((trigger) => {
@@ -588,8 +475,6 @@
 
   function init() {
     initializeCopyrightYears();
-    initializeDepthTabs();
-    initializeProjectDepth();
     initializeProcessLayers();
     initializeCommandPalette();
     initializeWritingIndex();

@@ -201,11 +201,12 @@ test.describe('shared blog reader', () => {
     await expect(palette.getByRole('link', { name: /GitHub/i })).toHaveAttribute('href', 'https://github.com/joryeugene');
     await expect(palette.getByRole('link', { name: /LinkedIn/i })).toHaveAttribute('href', 'https://www.linkedin.com/in/jory-fullstack-engineer/');
     await expect(palette.getByRole('link', { name: /Email Jory/i })).toHaveAttribute('href', 'mailto:jory@pestorious.com');
-    await expect(palette.getByRole('link', { name: /Download résumé/i })).toHaveAttribute('href', '/resume/Jory-Pestorious-Resume.pdf');
+    await expect(palette.getByRole('link', { name: /Book a 15-minute Sync/i })).toHaveAttribute('href', 'https://cal.com/jory-pestorious/celebrity');
+    await expect(palette.locator('a[href*="/resume/"]')).toHaveCount(0);
 
-    await search.fill('cv');
+    await search.fill('sync');
     await expect(palette.locator('[data-site-command]:visible')).toHaveCount(1);
-    await expect(palette.getByRole('link', { name: /Download résumé/i })).toBeVisible();
+    await expect(palette.getByRole('link', { name: /Book a 15-minute Sync/i })).toBeVisible();
     await search.fill('');
     await page.keyboard.press('ArrowDown');
     await expect(links.nth(0)).toBeFocused();
