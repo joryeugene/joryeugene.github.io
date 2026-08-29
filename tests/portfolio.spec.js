@@ -6,7 +6,9 @@ test.describe('homepage asymmetric gallery', () => {
     await page.goto('/');
 
     await expect(page.getByRole('heading', { name: 'Useful systems with a pulse.' })).toBeVisible();
-    await expect(page.locator('.intro > p')).toBeVisible();
+    await expect(page.locator('.intro > p')).toHaveText(
+      'I build ambitious software where the interface and the engineering carry equal weight.'
+    );
     expect(await page.locator('.intro').evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(220);
 
     const projects = page.locator('[data-featured-project]');
@@ -33,8 +35,14 @@ test.describe('homepage asymmetric gallery', () => {
 
     const dadbod = page.locator('[data-featured-project="dadbod-grip"]');
     const dadbodImage = dadbod.locator('.project-media img');
-    await expect(dadbodImage).toHaveAttribute('src', '/jpg/process/dadbod-grip-full-workspace.png');
-    await expect(dadbodImage).toHaveAttribute('alt', /expanded schema.*query pad.*editable grid.*staged SQL/i);
+    await expect(dadbodImage).toHaveAttribute(
+      'src',
+      '/jpg/process/dadbod-grip-full-workspace.png?v=consumer-triage-1'
+    );
+    await expect(dadbodImage).toHaveAttribute(
+      'alt',
+      /consumer incident.*expanded schema.*editable grid.*staged.*Live SQL/i
+    );
     await expect(dadbodImage).toHaveCSS('object-fit', 'contain');
     await expect(dadbod.getByRole('link', { name: 'Open walkthrough' })).toHaveAttribute('href', 'https://jorypestorious.com/dadbod-grip-web/');
     await expect(dadbod.getByRole('link', { name: 'View source' })).toHaveAttribute('href', 'https://github.com/joryeugene/dadbod-grip.nvim');
