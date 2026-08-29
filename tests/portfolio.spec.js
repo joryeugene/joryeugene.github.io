@@ -64,7 +64,7 @@ test.describe('homepage asymmetric gallery', () => {
     await expect(phalene.locator('.project-media img')).toHaveAttribute('src', '/jpg/process/phalene-vim-dashboard.jpg');
     await expect(phalene.locator('.project-media img')).toHaveAttribute('alt', /Phalene-Vim.*main dashboard.*keyboard guidance/i);
     await expect(phalene.getByRole('link', { name: 'Try the editor' })).toHaveAttribute('href', '/vim/');
-    await expect(phalene.getByRole('link', { name: 'View source' })).toHaveAttribute('href', 'https://github.com/joryeugene/joryeugene.github.io/tree/master/vim');
+    await expect(phalene.getByRole('link', { name: 'View source' })).toHaveAttribute('href', 'https://github.com/joryeugene/joryeugene.github.io/blob/master/js/vim.js');
 
     const georgie = page.locator('.georgie-egg--home');
     await expect(georgie).toHaveCount(1);
