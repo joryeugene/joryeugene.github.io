@@ -358,6 +358,7 @@ test('Georgie stays clipped to Phalene while the other route mascots keep their 
   expect(writingDogBox.y + writingDogBox.height - writingBox.y - writingBox.height).toBeLessThanOrEqual(17);
   expect(writingBox.y + writingBox.height - writingLinkBox.y - writingLinkBox.height).toBeLessThanOrEqual(56);
 
+  await page.mouse.move(2, 2);
   await page.locator('.writing-feature__link').hover();
   await expect(writingDog).toHaveClass(/is-georgie-active/);
   await expect.poll(async () => {
