@@ -110,7 +110,7 @@ function buildFeed(posts) {
   const header = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Jory Pestorious - Engineering Notes</title>
-  <subtitle>What emerges when complexity reaches sufficient scale?</subtitle>
+  <subtitle>I write about AI systems, developer tools, and what it takes to make them useful.</subtitle>
   <link href="https://jorypestorious.com/blog/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://jorypestorious.com/blog/" rel="alternate" type="text/html"/>
   <id>https://jorypestorious.com/blog/</id>
