@@ -55,7 +55,7 @@ test.describe('homepage asymmetric gallery', () => {
     const flightDeck = page.locator('[data-featured-project="flight-deck"]');
     const flightDeckImage = flightDeck.locator('.project-media img');
     await expect(flightDeckImage).toHaveAttribute('src', '/jpg/process/flight-deck-calendar-week.png');
-    await expect(flightDeckImage).toHaveAttribute('alt', /Week.*fictional Google and Outlook.*all-day.*overlapping.*current-time/i);
+    await expect(flightDeckImage).toHaveAttribute('alt', /Week.*Google and Outlook.*all-day.*overlapping.*current-time/i);
     await expect(flightDeckImage).toHaveCSS('object-fit', 'contain');
     await expect(flightDeck.getByRole('link', { name: 'View source' })).toHaveAttribute('href', 'https://github.com/joryeugene/omarchy-calendar');
     await expect(flightDeck.getByRole('link', { name: 'Read privacy' })).toHaveAttribute('href', 'https://github.com/joryeugene/omarchy-calendar/blob/main/PRIVACY.md');
