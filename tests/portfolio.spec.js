@@ -63,7 +63,7 @@ test.describe('homepage asymmetric gallery', () => {
     const phalene = page.locator('[data-featured-project="phalene-vim"]');
     await expect(phalene.locator('.project-media img')).toHaveAttribute('src', '/jpg/process/phalene-vim-dashboard.jpg');
     await expect(phalene.locator('.project-media img')).toHaveAttribute('alt', /Phalene-Vim.*main dashboard.*keyboard guidance/i);
-    await expect(phalene.getByRole('link', { name: 'Try the editor' })).toHaveAttribute('href', '/vim/');
+    await expect(phalene.getByRole('link', { name: 'Open Phalene-Vim' })).toHaveAttribute('href', '/vim/');
     await expect(phalene.getByRole('link', { name: 'View source' })).toHaveAttribute('href', 'https://github.com/joryeugene/joryeugene.github.io/blob/master/js/vim.js');
 
     const georgie = page.locator('.georgie-egg--home');
@@ -457,7 +457,7 @@ test.describe('portfolio responsive behavior', () => {
     const phalene = page.locator('[data-featured-project="phalene-vim"]');
     await expect(phalene).toBeVisible();
     await expect(phalene.locator('.project-media img')).toBeVisible();
-    await expect(phalene.getByRole('link', { name: 'Try the editor' })).toBeVisible();
+    await expect(phalene.getByRole('link', { name: 'Open Phalene-Vim' })).toBeVisible();
   });
 
   test('keeps Process controls and copy inside the phone viewport', async ({ page }) => {

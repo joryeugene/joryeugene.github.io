@@ -77,10 +77,10 @@ test('homepage gallery keeps keyboard order, Georgie state, and four viewport co
     page.getByRole('link', { name: 'Open walkthrough' }),
     page.locator('[data-featured-project="dadbod-grip"]').getByRole('link', { name: 'View source' }),
     page.getByRole('link', { name: 'Open the Flight Deck Calendar interface at full size' }),
-    page.locator('[data-featured-project="flight-deck"]').getByRole('link', { name: 'View source' }),
     page.getByRole('link', { name: 'Open Flight Deck' }),
+    page.locator('[data-featured-project="flight-deck"]').getByRole('link', { name: 'View source' }),
     page.getByRole('link', { name: 'Open the Phalene-Vim dashboard at full size' }),
-    page.getByRole('link', { name: 'Try the editor' }),
+    page.getByRole('link', { name: 'Open Phalene-Vim' }),
     page.locator('[data-featured-project="phalene-vim"]').getByRole('link', { name: 'View source' })
   ];
   for (const action of expectedOrder) {
@@ -88,7 +88,7 @@ test('homepage gallery keeps keyboard order, Georgie state, and four viewport co
     await expect(action).toBeFocused();
   }
   await page.keyboard.press('k');
-  await expect(page.getByRole('link', { name: 'Try the editor' })).toBeFocused();
+  await expect(page.getByRole('link', { name: 'Open Phalene-Vim' })).toBeFocused();
 
   const egg = page.locator('.georgie-egg--home');
   const sprite = egg.locator('.georgie-egg__sprite');
@@ -451,7 +451,7 @@ test('shared portfolio actions respond to keyboard focus without moving', async 
     };
   });
   const cases = [
-    { route: '/', name: 'Try the editor' },
+    { route: '/', name: 'Open Phalene-Vim' },
     { route: '/process/', name: 'Visit the official site', arrow: '.case-destinations a' },
     { route: '/contact/', name: /Write a note/, arrow: '.contact-action' }
   ];
@@ -664,7 +664,7 @@ test('Georgie keeps the press state without motion when reduced motion is reques
   const homeSprite = page.locator('.georgie-egg--home .georgie-egg__sprite');
   await expect(homeSprite).toHaveCSS('background-position-x', '100%');
 
-  const projectAction = page.getByRole('link', { name: 'Try the editor' });
+  const projectAction = page.getByRole('link', { name: 'Open Phalene-Vim' });
   await projectAction.focus();
   expect(await projectAction.evaluate((element) => getComputedStyle(element).transform)).toBe('none');
 });
