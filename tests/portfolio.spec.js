@@ -58,7 +58,7 @@ test.describe('homepage asymmetric gallery', () => {
     await expect(flightDeckImage).toHaveAttribute('alt', /Week.*Google and Outlook.*all-day.*overlapping.*current-time/i);
     await expect(flightDeckImage).toHaveCSS('object-fit', 'contain');
     await expect(flightDeck.getByRole('link', { name: 'View source' })).toHaveAttribute('href', 'https://github.com/joryeugene/omarchy-calendar');
-    await expect(flightDeck.getByRole('link', { name: 'Read privacy' })).toHaveAttribute('href', 'https://github.com/joryeugene/omarchy-calendar/blob/main/PRIVACY.md');
+    await expect(flightDeck.getByRole('link', { name: 'Open Flight Deck' })).toHaveAttribute('href', 'https://calendar.pestorious.com/');
 
     const phalene = page.locator('[data-featured-project="phalene-vim"]');
     await expect(phalene.locator('.project-media img')).toHaveAttribute('src', '/jpg/process/phalene-vim-dashboard.jpg');
