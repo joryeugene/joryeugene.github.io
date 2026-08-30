@@ -67,6 +67,23 @@
       transition: opacity 0.3s ease-in-out;
     }
   </style>
+  <script type="application/ld+json" data-article-schema>
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Terminal Setups for Claude's 10,000-Line Outputs",
+      "description": "A local 10,000-line fixture tests rendering, search, copy, scrollback, and recovery before you change shells, terminal emulators, or multiplexers.",
+      "image": "https://jorypestorious.com/blog/claude-code-setups/claude-code-world-optimized.png",
+      "datePublished": "2025-09-15",
+      "dateModified": "2025-09-15",
+      "mainEntityOfPage": "https://jorypestorious.com/blog/claude-code-setups/",
+      "author": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
 </head>
 
 <body>
@@ -74,60 +91,70 @@
   <a href="/blog/" class="home-link">Blog</a>
   
   <div class="container">
-    <article class="markdown-body" id="content">
-      <!-- Reading time will be displayed here -->
-      <div class="reading-time text-muted mb-2"></div>
-      <!-- Content will be loaded here -->
+    <article class="markdown-body" id="content" data-markdown-source="/blog/claude-code-setups/claude-code-real-world-setups.md">
+      <h1>Terminal Setups for Claude&#39;s 10,000-Line Outputs</h1>
+      <p><strong>Use one local fixture to test rendering, search, copy, scrollback, and recovery before changing your shell, terminal, or multiplexer.</strong></p>
+      <p><em>By Jory Pestorious</em></p>
+      <p>My setup is zsh, WezTerm, Zellij, LazyVim, lazygit, and yazi. It works, with one recurring defect: Claude&#39;s output flickers at the bottom of a Zellij pane inside WezTerm. The text still arrives, but the last lines jump while they render.</p>
+      <p>A long Claude response does not care which shell has the best defaults. I care whether the terminal renders every line, lets me find and copy the part I need, and preserves the session when the window or connection disappears.</p>
+      <h2>Run the 10,000-Line Test</h2>
+      <p>Create a deterministic local file instead of asking Claude to generate the test. The local fixture keeps model and network latency out of the terminal comparison. Claude Code requires Node.js in this September 2025 setup, so the same runtime can generate and replay exactly 10,000 numbered lines:</p>
+      <pre><code class="language-bash">node -e &quot;for(let i=1;i&lt;=10000;i++) console.log(String(i).padStart(5,&#39;0&#39;)+&#39; &#39;+&#39;.&#39;.repeat(94))&quot; &gt; claude-output-10000.txt
+      node -e &quot;process.stdout.write(require(&#39;fs&#39;).readFileSync(&#39;claude-output-10000.txt&#39;))&quot;
+      </code></pre>
+      <p>Run the second command in every terminal setup you are considering, with the same window size and scrollback limit. Keep a short record of the result, then check four things:</p>
+      <ol>
+      <li>Search for line <code>07421</code> and jump back to the final line.</li>
+      <li>Copy several lines around <code>07421</code> without losing line breaks or selecting terminal chrome.</li>
+      <li>Resize the window and confirm that the text remains readable.</li>
+      <li>Close and restore the terminal, or detach and reattach the multiplexer, and record what survives.</li>
+      </ol>
+      <p>If old lines disappear, increase the scrollback limit and repeat the test before changing applications. If the flicker appears only inside a multiplexer, compare the emulator alone with the emulator-plus-multiplexer stack. The failure belongs to the smallest combination that reproduces it.</p>
+      <p>The fixture does not measure Claude, reasoning quality, or developer productivity. It tests what the terminal receives: a fixed stream of text. Record the visible failure and the work needed to recover from it. If two setups pass the same checks, the test gives no reason to switch.</p>
+      <h2>Change the Layer That Failed</h2>
+      <p>A terminal setup has three separate layers. Identifying the layer that owns a failure prevents a new shell from being blamed for an emulator or session problem.</p>
+      <ul>
+      <li><strong>Shell:</strong> <a href="https://www.gnu.org/software/bash/">bash</a>, <a href="https://www.zsh.org/">zsh</a>, and <a href="https://fishshell.com/">fish</a> control command syntax, completion, aliases, and scripts.</li>
+      <li><strong>Terminal emulator:</strong> VS Code, <a href="https://www.warp.dev/">Warp</a>, <a href="https://iterm2.com/">iTerm2</a>, <a href="https://wezfurlong.org/wezterm/">WezTerm</a>, and <a href="https://sw.kovidgoyal.net/kitty/">Kitty</a> control rendering, search, selection, scrollback, tabs, and windows.</li>
+      <li><strong>Multiplexer:</strong> <a href="https://github.com/tmux/tmux">tmux</a>, <a href="https://zellij.dev/">Zellij</a>, and WezTerm&#39;s multiplexer control panes, detach and reattach behavior, and session organization.</li>
+      </ul>
+      <p>Changing bash, zsh, or fish does not repair dropped scrollback or a rendering defect. A shell change is worth considering when its syntax, completion, or configuration is the problem. It also carries the largest compatibility cost because scripts and aliases can depend on shell behavior. Fish intentionally differs from POSIX shell syntax, while bash and zsh still have differences of their own.</p>
+      <p>The terminal emulator owns the 10,000-line display test. Do not assume an integrated terminal fails merely because it lives inside an editor. By September 2025, <a href="https://github.com/microsoft/vscode-docs/blob/059ba913fd38c4c00885071cb717a67a0031569e/docs/terminal/basics.md#terminals-in-new-windows">VS Code can move a terminal into another window</a>. It also documents <a href="https://github.com/microsoft/vscode-docs/blob/059ba913fd38c4c00885071cb717a67a0031569e/docs/terminal/advanced.md#persistent-sessions">process reconnection and process revive</a>, although revive relaunches the process rather than preserving its in-memory state. Run the same fixture in VS Code and a standalone terminal before deciding that separation changes anything you use.</p>
+      <p>I add a multiplexer when I need a session to outlive the terminal window or an SSH connection. Zellij gives me discoverable pane controls, but the Zellij and WezTerm combination produces the flicker I see with Claude output. That is an observation about my stack, not a result for every OS, GPU, or version.</p>
+      <h2>My Stack</h2>
+      <p>I use zsh in WezTerm with Zellij. LazyVim is the editor, <a href="https://github.com/jesseduffield/lazygit">lazygit</a> handles Git, and <a href="https://github.com/sxyazi/yazi">yazi</a> handles file browsing. Those adjacent tools do not make WezTerm render faster. They stay because I know their controls and can keep Claude in a separate pane while I inspect changes.</p>
+      <p>The Zellij flicker is annoying, but it has not lost text or blocked recovery in my use. If that changes, I will reproduce the failure with the local fixture in bare WezTerm, then add Zellij and compare. That test can tell me which layer to replace. A general terminal ranking cannot.</p>
+      <h2>Claude Code 1.0.113</h2>
+      <p>This article uses <a href="https://www.npmjs.com/package/@anthropic-ai/claude-code/v/1.0.113">Claude Code 1.0.113</a>, released two days before publication. Its command help supports continuing the latest session, selecting a saved session, starting in plan mode, and printing a noninteractive result:</p>
+      <pre><code class="language-bash">claude --continue
+      claude --resume
+      claude --permission-mode plan
+      claude --print --output-format json &quot;summarize the current test failures&quot;
+      </code></pre>
+      <p>Plan mode is useful when I want Claude to inspect the repository and propose changes before editing. <code>--continue</code> and <code>--resume</code> recover Claude conversations; a multiplexer recovers a running terminal process. Those are different recovery paths, and one does not replace the other.</p>
+      <p>Version 1.0.113 <a href="https://github.com/anthropics/claude-code/blob/c382eb800e102bb901f6701e14e9a928b947f4df/CHANGELOG.md#10113">deprecates piped input in interactive mode</a>. Use <code>--print</code> for a deliberate pipe, and inspect the input first. Diffs, logs, profiles, and audit output can contain credentials, customer data, proprietary code, internal URLs, or instructions copied from an untrusted source.</p>
+      <pre><code class="language-bash">git diff --no-ext-diff | claude --print --permission-mode plan &quot;Review this diff. Do not edit files.&quot;
+      </code></pre>
+      <p>Run that command only in a trusted repository after checking the diff for material you are allowed to send. Claude Code&#39;s <code>--print</code> help also says that print mode skips the workspace trust dialog, so the directory choice is part of the safety check.</p>
+      <p>I do not use <code>! cd</code> to carry one conversation into another repository. The supported <code>--add-dir</code> option can grant access to another directory explicitly, but a new project can have different instructions, permissions, and data boundaries. Starting the session from the intended repository keeps those boundaries visible.</p>
+      <h2>When a Switch Is Worth It</h2>
+      <p>Keep the current setup when it renders the fixture, preserves the text you need, and gives you a recovery path you understand. Adjust scrollback before replacing the emulator. Add tmux, Zellij, or another multiplexer when detach and reattach behavior solves a real remote or long-running-session problem. Change the shell only for a shell problem.</p>
+      <p>Switch the emulator when the same visible failure survives configuration changes and disappears in another emulator under the same test. That is enough evidence for a personal decision. It is not evidence that one terminal makes code better or developers faster. The flicker has not lost text or blocked recovery in my use, so I am keeping WezTerm and Zellij.</p>
     </article>
     <div class="footer">© 2026 Jory Pestorious</div>
   </div>
   
   <!-- Background switcher SVG -->
-  <svg version="1.1" id="change" role="img" aria-label="Change background image" tabindex="0" xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
-    style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve">
-    <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5
-        s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65
-        v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
-    <path d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1
-        C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
-    <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3
-        c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5
-        s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
-    <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
-    <path d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
-    <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
-    <path d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S154.412,24.025,161.012,24.025z" />
-    <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
-    <path d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
-    <path d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
-    <path d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
-    <path d="M210.312,197.125c-3.2,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
-    <path d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
-    <path d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
-    <path d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
-    <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
-    <path d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,171.925,13.212,171.925z" />
-    <path d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
-    <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,73.325,13.212,73.325z" />
-  </svg>
-
-  <!-- Preload critical resources -->
+<!-- Preload critical resources -->
   <link rel="preload" href="/blog/claude-code-setups/claude-code-world-optimized.png" as="image">
   <link rel="preload" href="/blog/claude-code-setups/claude-code-real-world-setups.md" as="fetch" crossorigin>
   
   <!-- Scripts -->
-  <script src="/js/marked.min.js"></script>
-  <script src="/js/blog-common.js?v=foundation-plus-5"></script>
+<script src="/js/blog-common.js?v=foundation-plus-5"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       BlogCommon.initAll({
-        markdownPath: '/blog/claude-code-setups/claude-code-real-world-setups.md',
-        backgroundSwitcher: true,
+
         scrollProgress: true,
         readingTime: true,
         lazyImages: true,

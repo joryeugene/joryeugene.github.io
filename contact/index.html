@@ -13,9 +13,23 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://jorypestorious.com/jpg/jory-georgie-social.png">
   <title>Contact | Jory Pestorious</title>
+  <link rel="canonical" href="https://jorypestorious.com/contact/">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-6">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ContactPage",
+      "name": "Contact Jory Pestorious",
+      "url": "https://jorypestorious.com/contact/",
+      "mainEntity": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
 </head>
 <body class="portfolio-page page-contact">
   <a class="skip-link" href="#main">Skip to contact links</a>
@@ -39,7 +53,7 @@
     <main id="main">
       <section class="contact-intro" aria-labelledby="contact-title">
         <h1 id="contact-title" class="page-title">Contact</h1>
-        <p class="page-lede">Four direct paths. Pick one.</p>
+        <p class="page-lede">Email me, find me elsewhere, or book a 15-minute Sync.</p>
       </section>
 
       <div class="contact-grid" data-georgie-surface>
@@ -87,12 +101,12 @@
     </footer>
   </div>
 
-  <div id="command-palette" class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+  <dialog id="command-palette" class="command-palette" aria-label="Command palette">
     <div class="palette-panel">
       <div class="palette-head"><span>Commands</span><button class="palette-close" type="button" data-close-palette>Close</button></div>
       <div data-site-command-palette></div>
     </div>
-  </div>
+  </dialog>
 
   <script src="/js/blog-common.js?v=foundation-plus-5"></script>
   <script src="/js/portfolio.js?v=foundation-plus-5"></script>

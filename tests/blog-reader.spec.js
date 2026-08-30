@@ -123,24 +123,13 @@ test.describe('shared blog reader', () => {
     await expect(georgie).not.toHaveClass(/is-awake/, { timeout: 1200 });
   });
 
-  test('reveals Georgie only after the generated contents rail has its final geometry', async ({ page }) => {
-    let releaseMarkdown;
-    const markdownReady = new Promise((resolve) => { releaseMarkdown = resolve; });
-    await page.route('**/ai-engineer-verification.md', async (route) => {
-      await markdownReady;
-      await route.continue();
-    });
-
+  test('reveals Georgie after the static contents rail has its final geometry', async ({ page }) => {
     await page.goto('/blog/ai-engineer-verification/', { waitUntil: 'domcontentloaded' });
     const georgie = page.getByRole('button', { name: 'Wake Georgie' });
-    await expect(georgie).toHaveClass(/is-loading/);
-    await expect(georgie).toHaveCSS('opacity', '0');
-    await expect(page.locator('.reader-toc')).toHaveCount(0);
-
-    releaseMarkdown();
     await expect(page.locator('.reader-toc')).toHaveCount(1);
     await expect(georgie).toHaveClass(/is-ready/);
     await expect(georgie).toHaveCSS('opacity', '1');
+    await expect(page.locator('article#content')).toHaveAttribute('data-markdown-source', '/blog/ai-engineer-verification/ai-engineer-verification.md');
   });
 
   test('keeps Georgie and his bed below the sticky chrome when an article has no contents list', async ({ page }) => {

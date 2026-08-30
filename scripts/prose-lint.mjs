@@ -8,6 +8,28 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BLOG = join(ROOT, 'blog');
 const errors = [];
+const PUBLIC_PAGES = ['index.html', 'process/index.html', 'blog/index.html', 'contact/index.html'];
+const RETIRED_COPY = [
+  'In this frame',
+  'Visual QA',
+  'Flagship',
+  'Local first',
+  'Playable',
+  'Selected history',
+  'Four systems presented different constraints',
+  'could evolve without maintaining a second interface',
+  'one place to examine',
+  'a DuckDB path',
+  'AI adoption assessment',
+  'Prototype replaced in production',
+  'Dadbod remains responsible for connections',
+  'The calendar is compiled before publication',
+  'Calendar prepared before publication',
+  'incomplete appointments stay out of the schedule',
+  'active database CLI still decides',
+  'Install the March Release',
+  'dadbod-grip v3.3.3'
+];
 
 async function collectMarkdown(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -57,6 +79,15 @@ for (const file of await collectMarkdown(BLOG)) {
   const text = await readFile(file, 'utf8');
   checkBalancedFences(file, text);
   checkLinks(file, text);
+}
+
+for (const relativePath of PUBLIC_PAGES) {
+  const file = join(ROOT, relativePath);
+  const text = await readFile(file, 'utf8');
+  if (text.includes('—')) errors.push(`${file}: public copy contains an em dash`);
+  for (const phrase of RETIRED_COPY) {
+    if (text.includes(phrase)) errors.push(`${file}: retired public phrase remains: ${phrase}`);
+  }
 }
 
 if (errors.length) {

@@ -179,7 +179,7 @@ test('responsive motion surfaces stay inside the viewport and leave visual artif
   ];
   const surfaces = [
     { name: 'home-georgie', path: '/', target: '.georgie-egg--home', anchor: '[data-featured-project="phalene-vim"] .project-media', readable: '[data-featured-project="phalene-vim"] .project-rail', trigger: '.georgie-egg--home' },
-    { name: 'process-georgie', path: '/process/', target: '.georgie-egg--process', anchor: '.layer-rail', readable: '.process-panel [data-layer-content]:not([hidden]) h2', trigger: '.georgie-egg--process' },
+    { name: 'process-georgie', path: '/process/', target: '[data-case-panel]:not([hidden]) .georgie-egg--process', anchor: '[data-case-panel]:not([hidden]) .process-case-shot', readable: '[data-case-panel]:not([hidden]) .process-case-copy h2', trigger: '[data-case-panel]:not([hidden]) .georgie-egg--process' },
     { name: 'writing-georgie', path: '/blog/', target: '.georgie-egg--writing', anchor: '.writing-feature', readable: '.writing-feature h2', trigger: '.writing-feature' },
     { name: 'contact-georgie', path: '/contact/', target: '.contact-georgie-wrap', anchor: '.contact-path:first-of-type', readable: '.contact-path:first-of-type .contact-action', trigger: '.contact-georgie-wrap', edge: 'top' },
     { name: 'reader-georgie', path: '/blog/portable-agent-factory/', target: '.reader-georgie', anchor: '.reader-rail-slot', readable: '.markdown-body', trigger: '.reader-georgie', click: true }

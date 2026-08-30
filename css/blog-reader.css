@@ -98,8 +98,6 @@ body.reader-page {
 }
 
 .reader-page > .home-link,
-.reader-page > #change,
-.reader-page > #change + .bg-switcher-tooltip,
 .reader-page > .scroll-progress,
 .reader-page > .vim-hud {
   display: none !important;

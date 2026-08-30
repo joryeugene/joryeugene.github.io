@@ -39,59 +39,98 @@
   <link rel="alternate" type="application/atom+xml" title="Engineering Notes" href="/blog/feed.xml">
   <link rel="stylesheet" href="/css/blog-common.css">
   <link rel="stylesheet" href="/css/blog-reader.css?v=foundation-plus-7">
+  <script type="application/ld+json" data-article-schema>
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Verified Context Is the Moat",
+      "description": "Keephive carries context across agent sessions. Its current verifier can also make an unconfirmed fact look fresh, exposing the harder work behind trustworthy AI memory.",
+      "image": "https://jorypestorious.com/jpg/jory-georgie-social.png",
+      "datePublished": "2026-03-20",
+      "dateModified": "2026-03-20",
+      "mainEntityOfPage": "https://jorypestorious.com/blog/knowledge-sidecar/",
+      "author": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
 </head>
 
 <body>
   <div id="bg"></div>
   <a href="/blog/" class="home-link">Blog</a>
   <div class="container">
-    <article class="markdown-body" id="content">
-      <!-- Reading time will be displayed here -->
-      <div class="reading-time text-muted mb-2"></div>
-      <!-- Content will be loaded here -->
+    <article class="markdown-body" id="content" data-markdown-source="/blog/knowledge-sidecar/knowledge-sidecar.md">
+      <h1>Verified Context Is the Moat</h1>
+      <p><strong>Keephive carries facts across agent sessions. Its current verifier can also put a new verification date on a fact it could not confirm.</strong></p>
+      <p><em>By Jory Pestorious | March 2026</em></p>
+      <p>I built <a href="https://github.com/joryeugene/keephive">keephive</a> to carry facts and decisions across agent sessions. Its memory path is useful: the CLI writes durable Markdown, session hooks inject selected context, and an MCP server exposes the same store to other compatible agents. I can open it, edit it, delete it, and see what an agent will read.</p>
+      <p>At keephive v2.1.0, an <code>UNCERTAIN</code> result receives a new <code>[verified:DATE]</code> tag. A separate session-start path can refresh a stale fact when its words overlap with a recent log entry. Neither path proves the fact.</p>
+      <p>A bad answer in one chat can disappear with the session. A bad fact in working memory can return at every session start.</p>
+      <p>In <a href="../emergent-religion/index.html">Protection Emerged. Verification Did Not.</a>, I looked at verification through agent simulations. <a href="https://arxiv.org/html/2411.00114v1">Project Sid</a> seeded Pastafarianism through designated priest agents and supplied roles for some collective tasks. The paper did not test whether a fact-checking role would emerge. The narrower engineering question still matters: when a system keeps beliefs, what can reject one that is wrong?</p>
+      <h2>What Keephive Actually Stores</h2>
+      <p>The <code>hive r</code> command appends an event to a dated log. The <code>hive mem</code> command writes a fact to <code>working/memory.md</code>, where the current implementation immediately adds today&#39;s verification tag. The verifier later reads facts from that working-memory file, plus unreviewed auto-captured facts.</p>
+      <pre><code class="language-bash"># Append events to today&#39;s log
+      hive r &quot;FACT: auth service uses JWT with 15-minute expiry&quot;
+      hive r &quot;DECISION: chose Postgres over MySQL for JSONB support&quot;
+      hive r &quot;TODO: migrate legacy user table to new schema&quot;
+
+      # Add the fact separately to working memory so verify can inspect it
+      hive mem &quot;auth service uses JWT with 15-minute expiry&quot;
+
+      # Ask the verifier to inspect working-memory facts
+      hive verify
+      </code></pre>
+      <p>The JWT line is an example, not captured telemetry. The command boundary is real and visible in <a href="https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/commands/remember.py"><code>remember.py</code></a> and <a href="https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/commands/memory.py"><code>memory.py</code></a>. <code>hive r</code> accepts <code>FACT</code>, <code>DECISION</code>, and <code>TODO</code> records, but recording a fact in the daily log does not put it on the verifier&#39;s input list. The fact must enter working memory separately.</p>
+      <p>At session start, keephive filters working memory to the current project, adds rules and stale-fact warnings, surfaces due recurring tasks, and selects matching knowledge guides within a fixed budget. That is the part I wanted: the next session receives relevant state without loading every note I have ever written.</p>
+      <h2>The Verifier&#39;s Actual Contract</h2>
+      <p><a href="https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/commands/verify.py"><code>hive verify</code></a> lists the eligible facts and asks <code>Verify with LLM?</code> before the first model call. Every fact in a confirmed batch becomes part of a Claude prompt, and the verifier enables <code>Read</code>, <code>Grep</code>, <code>Glob</code>, and <code>WebSearch</code>. Review the displayed list and remove credentials or confidential facts before confirming.</p>
+      <p>Keephive asks again before each additional batch. <code>VALID</code> means the model found confirming evidence. <code>STALE</code> means it found a contradiction and can supply replacement text. <code>UNCERTAIN</code> means it investigated but found evidence for neither conclusion.</p>
+      <p>A valid fact receives a new date. A stale fact can be replaced with the model&#39;s correction. Under a hash of the old fact, Keephive stores the old claim, verdict, full latest reason, and up to five extracted source locations. Its five-entry history truncates each reason to 200 characters, and neither record stores the replacement text.</p>
+      <p>When the verifier returns <code>UNCERTAIN</code>, Keephive prints <code>Refreshed (not disproven)</code> and also writes a new verification date. The system preserves the verdict in its evidence history, but the working-memory line looks fresh again. Any later code that reads only <code>[verified:DATE]</code> loses the distinction.</p>
+      <p>Session start adds a second shortcut. <a href="https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/hooks/sessionstart.py"><code>_auto_reverify</code></a> compares stale facts with entries from daily logs for the last seven days. More than 50 percent word overlap refreshes the verification date without inspecting the repository or calling a model. Repeating a claim in a recent log can therefore make the same claim look current.</p>
+      <p><a href="https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/commands/stats.py"><code>_knowledge_health</code></a> calls a decay score that weights the tag&#39;s recency at 40 percent, then splits the remaining weight across log references, fact category, and recall frequency. A score above 0.6 counts as fresh. That metric describes use and age, not evidentiary truth. A display that reads <code>94% fresh</code> can therefore look like measured truth without measuring it.</p>
+      <h2>What Verification Would Require</h2>
+      <p>The verifier can keep the previous check date, clear it, or add a separate uncertainty field, but it cannot advance the evidence state merely because no contradiction was found.</p>
+      <p>The record preserves the original claim and full current rationale, then keeps five checks with 200-character reasons. It should also link the replacement, preserve the complete evidence locations, name the model and prompt version, and record whether a human accepted the change. Without that chain, rollback and contradiction review are harder.</p>
+      <p>A path change, dependency update, failing test, or content hash can identify a reason to inspect a fact again. Word overlap can retrieve a candidate. It cannot verify one.</p>
+      <p>Seed working memory with known true, false, obsolete, and unanswerable facts. Run the same repository state through the verifier repeatedly. Measure how often each class becomes <code>VALID</code>, <code>STALE</code>, or <code>UNCERTAIN</code>, then inspect every mutation to memory. A verifier has to prove that it preserves uncertainty before its freshness score means anything.</p>
+      <h2>Tripod Guards a Different Boundary</h2>
+      <p><a href="https://github.com/joryeugene/tripod">Tripod</a> addresses behavior rather than knowledge. Its <a href="https://github.com/joryeugene/tripod/blob/289682b4b672205df871ffc1fbf5c5d64f3d030e/hooks/hooks.json"><code>PreToolUse</code> hooks</a> inspect matching Claude Code tool calls and return a denial for patterns such as Unicode dashes, <code>--no-verify</code>, <code>git stash</code>, and writes under <code>/tmp</code>.</p>
+      <p>While the plugin is active, a matching Bash, Write, or Edit call is rejected before execution. Tripod does not make the behavior impossible in every client or outside Claude Code, and a user can disable the plugin. It does remove one recurring decision from the tool path it controls.</p>
+      <p>The <code>--no-verify</code> case is why I still separate memory from enforcement. When a pre-commit hook fails, bypassing it can look like the shortest path to finishing the task. A written instruction asks the agent to remember the rule while it is trying to remove the obstacle. A PreToolUse hook can deny that exact command. Keephive can record why the rule exists; Tripod can enforce the narrow boundary.</p>
+      <p>Tripod also packages skills for TDD, spec writing, debugging protocol, and security review. The hook set does not enforce those complete workflows.</p>
+      <p>A tone preference can remain guidance because an occasional miss is cheap and a hard block would create its own friction. A command that moves another agent&#39;s uncommitted work out of the worktree deserves a stronger boundary.</p>
+      <h2>Release Limits and Setup</h2>
+      <p>Keephive v2.1.0 imports the POSIX-only <code>fcntl</code> module at the top of <a href="https://github.com/joryeugene/keephive/blob/a900149bde7a75d2aeb7b44b048e50ee884a72c7/src/keephive/storage.py"><code>storage.py</code></a>. On native Windows, that import fails before a command can run. The CLI and MCP design are cross-agent, but this release is not cross-platform. The install below requires Python 3.13 or later on a supported Unix-like environment until that lock implementation has a Windows path.</p>
+      <pre><code class="language-bash"># keephive: persistent memory and the verification loop described above
+      uv tool install &#39;keephive==2.1.0&#39;
+      keephive setup
+
+      # tripod: Claude Code hooks and workflow skills
+      claude plugin marketplace add joryeugene/tripod
+      claude plugin install tripod
+      </code></pre>
+      <p>Tripod&#39;s two install commands are silent on both success and failure. Open a new Claude Code session and run <code>/update</code>; the skill checks marketplace registration, plugin installation, skill count, and hook count. The <code>uv tool install</code> version pin keeps Keephive aligned with the implementation described here. For later releases, use the setup instructions in both repositories because their interfaces can change.</p>
+      <h2>The Claim I Can Defend</h2>
+      <p>Keephive already provides plain-file memory, project-aware context injection, explicit recall, and evidence records I can inspect. Tripod can deny a smaller set of Claude Code tool calls. I can show those mechanisms in source but have no elapsed-time result.</p>
+      <p>What I have not built yet is a knowledge base that checks its own truth. Until <code>UNCERTAIN</code> stays uncertain, corrections link old and new evidence, false-memory tests pass, and the Windows package runs, keephive is a memory sidecar with a verification loop in progress. Verified context becomes a moat only when the loop rejects bad context often enough to improve later decisions, and I have not measured that yet.</p>
+      <h2>Links</h2>
+      <ul>
+      <li>keephive: <a href="https://github.com/joryeugene/keephive">GitHub</a> | <a href="https://pypi.org/project/keephive/">PyPI</a></li>
+      <li>tripod: <a href="https://github.com/joryeugene/tripod">GitHub</a></li>
+      <li><a href="../emergent-religion/index.html">Previous: Protection Emerged. Verification Did Not.</a></li>
+      </ul>
     </article>
     <div class="footer">© 2026 Jory Pestorious</div>
   </div>
-  <svg version="1.1" id="change" role="img" aria-label="Change background image" tabindex="0" xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
-    style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve">
-    <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5
-        s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65
-        v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
-    <path d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1
-        C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
-    <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3
-        c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5
-        s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
-    <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
-    <path d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
-    <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
-    <path d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S154.412,24.025,161.012,24.025z" />
-    <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
-    <path d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
-    <path d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
-    <path d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
-    <path d="M210.312,197.125c-3.2,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
-    <path d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
-    <path d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
-    <path d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
-    <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
-    <path d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,171.925,13.212,171.925z" />
-    <path d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
-    <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,73.325,13.212,73.325z" />
-  </svg>
-
-  <script src="/js/marked.min.js"></script>
-  <script src="/js/blog-common.js?v=foundation-plus-5"></script>
+<script src="/js/blog-common.js?v=foundation-plus-5"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       BlogCommon.initAll({
-        markdownPath: '/blog/knowledge-sidecar/knowledge-sidecar.md?v=20260812',
-        backgroundSwitcher: true,
+
         scrollProgress: true,
         readingTime: true,
         lazyImages: true,

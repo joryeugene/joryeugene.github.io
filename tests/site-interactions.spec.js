@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 const coreRoutes = ['/', '/process/', '/blog/', '/contact/', '/blog/ai-engineer-verification/'];
 const georgieRoutes = [
-  { route: '/', selector: '.georgie-egg--home', target: '[data-featured-project="phalene-vim"] .project-media', asset: 'georgie-home-v2-pair.png' },
-  { route: '/process/', selector: '.georgie-egg--process', target: '.process-stage', asset: 'georgie-process-pair.webp' },
+  { route: '/', selector: '.georgie-egg--home', target: '[data-featured-project="phalene-vim"] .project-media', asset: 'georgie-home-v2-pair.webp' },
+  { route: '/process/', selector: '[data-case-panel]:not([hidden]) .georgie-egg--process', target: '[data-case-panel]:not([hidden]) .process-case-shot', asset: 'georgie-process-pair.webp' },
   { route: '/blog/', selector: '.georgie-egg--writing', target: '.writing-feature', asset: 'georgie-writing-pair.webp' },
   { route: '/contact/', selector: '.georgie-egg--contact', target: '.contact-grid', asset: 'georgie-contact-pair.webp' }
 ];
@@ -72,12 +72,20 @@ test('homepage gallery keeps keyboard order, Georgie state, and four viewport co
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
-  const expectedOrder = ['Open walkthrough', 'View source', 'View source', 'Read privacy', 'Try the editor', 'View source'];
-  const projectActions = page.locator('[data-featured-project] .project-links a');
-  for (let index = 0; index < expectedOrder.length; index += 1) {
+  const expectedOrder = [
+    page.getByRole('link', { name: 'Open the Dadbod Grip interface at full size' }),
+    page.getByRole('link', { name: 'Open walkthrough' }),
+    page.locator('[data-featured-project="dadbod-grip"]').getByRole('link', { name: 'View source' }),
+    page.getByRole('link', { name: 'Open the Flight Deck Calendar interface at full size' }),
+    page.locator('[data-featured-project="flight-deck"]').getByRole('link', { name: 'View source' }),
+    page.getByRole('link', { name: 'Read privacy' }),
+    page.getByRole('link', { name: 'Open the Phalene-Vim dashboard at full size' }),
+    page.getByRole('link', { name: 'Try the editor' }),
+    page.locator('[data-featured-project="phalene-vim"]').getByRole('link', { name: 'View source' })
+  ];
+  for (const action of expectedOrder) {
     await page.keyboard.press('j');
-    await expect(projectActions.nth(index)).toHaveText(expectedOrder[index]);
-    await expect(projectActions.nth(index)).toBeFocused();
+    await expect(action).toBeFocused();
   }
   await page.keyboard.press('k');
   await expect(page.getByRole('link', { name: 'Try the editor' })).toBeFocused();
@@ -318,31 +326,22 @@ test('Georgie stays clipped to Phalene while the other route mascots keep their 
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/process/');
-  const processEgg = page.locator('.georgie-egg--process');
+  const processEgg = page.locator('[data-case-panel]:visible .georgie-egg--process');
   const processDog = await processEgg.boundingBox();
-  const processRailLocator = page.locator('.layer-rail');
-  const processPanelLocator = page.locator('.process-panel');
-  const processRail = await processRailLocator.boundingBox();
-  const processPanel = await processPanelLocator.boundingBox();
-  const processScrollY = await page.evaluate(() => window.scrollY);
-  const processHeading = await page.locator('.process-deep-dive h2').boundingBox();
-  const processSeam = (processRail.x + processRail.width + processPanel.x) / 2;
-  expect(Math.abs(processDog.x + processDog.width / 2 - processSeam)).toBeLessThanOrEqual(2);
-  expect(processDog.y + processDog.height - processPanel.y).toBeGreaterThanOrEqual(13);
-  expect(processDog.y + processDog.height - processPanel.y).toBeLessThanOrEqual(18);
-  expect(processPanel.y - processHeading.y - processHeading.height).toBeLessThanOrEqual(102);
+  const processShot = page.locator('[data-case-panel]:visible .process-case-shot');
+  const processShotBox = await processShot.boundingBox();
+  expect(processDog.x).toBeGreaterThanOrEqual(processShotBox.x);
+  expect(processDog.x + processDog.width).toBeLessThanOrEqual(processShotBox.x + processShotBox.width + 1);
+  expect(processDog.y).toBeGreaterThanOrEqual(processShotBox.y);
+  expect(await processShot.evaluate((shot) => getComputedStyle(shot).overflow)).toBe('hidden');
+  const processBottomOverlap = processDog.y + processDog.height - (processShotBox.y + processShotBox.height);
+  expect(processBottomOverlap).toBeGreaterThan(0);
+  expect(processBottomOverlap).toBeLessThanOrEqual(8);
 
   await processEgg.hover();
-  await page.waitForTimeout(450);
-  const activeProcessRail = await processRailLocator.boundingBox();
-  const activeProcessPanel = await processPanelLocator.boundingBox();
-  const activeProcessScrollY = await page.evaluate(() => window.scrollY);
-  expect(Math.abs(activeProcessRail.y - activeProcessPanel.y)).toBeLessThanOrEqual(1);
-  expect(Math.abs(
-    (activeProcessRail.y + activeProcessScrollY) - (processRail.y + processScrollY)
-  )).toBeLessThanOrEqual(0.5);
-  expect(await processPanelLocator.evaluate((element) => getComputedStyle(element).transform)).toBe('none');
-  expect(await processPanelLocator.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe('none');
+  await expect(processEgg).toHaveClass(/is-georgie-active/);
+  await expect(processEgg.locator('.georgie-egg__sprite')).toHaveCSS('background-position-x', '100%');
+  await expect(processShot).toHaveClass(/is-georgie-active/);
 
   await page.goto('/blog/');
   const writingDog = page.locator('.georgie-egg--writing');
@@ -405,6 +404,8 @@ test('homepage static projects, keyboard passage, and command palette work witho
 
   await expect(page.locator('[data-featured-project]')).toHaveCount(3);
   await expect(page.locator('.depth-drawer, [data-project-inspect]')).toHaveCount(0);
+  await page.keyboard.press('j');
+  await expect(page.getByRole('link', { name: 'Open the Dadbod Grip interface at full size' })).toBeFocused();
   await page.keyboard.press('j');
   await expect(page.getByRole('link', { name: 'Open walkthrough' })).toBeFocused();
   await page.keyboard.press('j');
@@ -480,8 +481,8 @@ test('shared portfolio actions respond to keyboard focus without moving', async 
 test('Process summaries show local product evidence in a stable landscape frame', async ({ page }) => {
   const cases = [
     ['Totally Reliable', '/jpg/process/totally-reliable-ragdoll-chain.jpg', 'Four Totally Reliable Delivery Service ragdolls hanging in a chain beneath a flying jetpack.'],
-    ['Workhelix', '/jpg/process/nucleus-ai-assessment.png', 'Nucleus AI Assessment dashboard with opportunity metrics, a business-unit chart, and a use-case treemap.'],
-    ['Dadbod Grip', '/jpg/process/dadbod-grip-live.png', 'Dadbod Grip in Neovim with schema navigation, a query editor, staged grid changes, and generated SQL.'],
+    ['Workhelix', '/jpg/process/nucleus-ai-assessment.png', 'Nucleus AI ROI dashboard with opportunity metrics, a business-unit chart, and a use-case treemap.'],
+    ['Dadbod Grip', '/jpg/process/dadbod-grip-live.png', 'Dadbod Grip federated DuckDB session with Softrear and attached supplier schemas, cross-source SQL, attached-schema completion, and a joined result grid.'],
     ['Pray Orthodox', '/jpg/process/pray-orthodox-reader.png', 'Pray Orthodox showing the selected church day beside the Third Hour Reader office with its sources collapsed.']
   ];
 
@@ -525,82 +526,32 @@ test('Process stacked summaries do not reserve blank space below the selected ev
   }
 });
 
-test('every Process case updates its summary, destination, deep dive, layers, and wrong turns', async ({ page }) => {
+test('every Process case updates its narrative and supports keyboard tab selection', async ({ page }) => {
   await page.goto('/process/');
   const failures = collectRuntimeFailures(page);
   const caseTabs = page.getByRole('tablist', { name: 'Process case studies' }).getByRole('tab');
-  const layerTabs = page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab');
 
   await expect(page.getByRole('tab', { name: 'Totally Reliable' })).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByRole('tab', { name: /Changes/ })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('tab', { name: 'Workhelix' }).hover();
-  await expect(page.getByRole('tab', { name: 'Workhelix' })).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByRole('tab', { name: /Changes/ })).toHaveAttribute('aria-selected', 'true');
-  await page.getByRole('tab', { name: /Tests/ }).hover();
-  await expect(page.getByRole('tab', { name: /Tests/ })).toHaveAttribute('aria-selected', 'true');
-
-  await page.keyboard.press('j');
-  await expect(page.getByRole('tab', { name: 'Totally Reliable' })).toBeFocused();
-  await page.keyboard.press('j');
+  await expect(page.getByRole('tab', { name: 'Totally Reliable' })).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('tab', { name: 'Totally Reliable' }).focus();
+  await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('tab', { name: 'Workhelix' })).toBeFocused();
-  await page.getByRole('tab', { name: /Changes/ }).focus();
-  await page.keyboard.press('j');
-  await expect(page.getByRole('tab', { name: /Tests/ })).toBeFocused();
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('tab', { name: /Tests/ })).toHaveAttribute('aria-selected', 'true');
-  await page.keyboard.press('k');
-  await expect(page.getByRole('tab', { name: /Changes/ })).toBeFocused();
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('tab', { name: /Changes/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('tab', { name: 'Workhelix' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page).toHaveURL(/#workhelix$/);
 
   for (let caseIndex = 0; caseIndex < await caseTabs.count(); caseIndex += 1) {
     const caseTab = caseTabs.nth(caseIndex);
     await caseTab.click();
     await expect(caseTab).toHaveAttribute('aria-selected', 'true');
     await expect(page.locator('[data-case-panel]:visible .case-destinations a').first()).toBeVisible();
-    const caseName = await page.locator('.wrong-turns').getAttribute('data-active-case');
-    expect(caseName).toBeTruthy();
-
-    for (let layerIndex = 0; layerIndex < await layerTabs.count(); layerIndex += 1) {
-      const layerTab = layerTabs.nth(layerIndex);
-      await layerTab.click();
-      await expect(layerTab).toHaveAttribute('aria-selected', 'true');
-      await expect(page.locator('[data-layer-content]:visible h2')).toBeVisible();
-    }
-
-    const paragraph = page.locator('[data-layer-content]:visible > p').last();
-    const decision = page.locator('[data-layer-content]:visible > .decision-note');
-    if (await paragraph.count() && await decision.count()) {
-      const gap = await page.evaluate(({ paragraph, decision }) => (
-        decision.getBoundingClientRect().top - paragraph.getBoundingClientRect().bottom
-      ), { paragraph: await paragraph.elementHandle(), decision: await decision.elementHandle() });
-      expect(gap).toBeGreaterThanOrEqual(24);
-    }
+    await expect(page.locator('[data-case-panel]:visible .case-narrative h3')).toHaveText(['Problem', 'Decision', 'Build', 'Result']);
   }
 
   expect(failures).toEqual([]);
 });
 
-test('Process keyboard selection ignores hover until the pointer moves again', async ({ page }) => {
-  await page.goto('/process/');
-  const changes = page.getByRole('tab', { name: /Changes/ });
-  const tests = page.getByRole('tab', { name: /Tests/ });
-
-  await tests.hover();
-  await expect(tests).toHaveAttribute('aria-selected', 'true');
-  await page.keyboard.press('j');
-  await tests.focus();
-  await page.keyboard.press('Enter');
-
-  await changes.dispatchEvent('pointerenter', { pointerType: 'mouse', isPrimary: true });
-  await expect(tests).toHaveAttribute('aria-selected', 'true');
-
-  await changes.dispatchEvent('pointermove', { pointerType: 'mouse', isPrimary: true, bubbles: true });
-  await changes.dispatchEvent('pointerenter', { pointerType: 'mouse', isPrimary: true });
-  await expect(changes).toHaveAttribute('aria-selected', 'true');
-});
-
-test('mobile Process cursor passage does not switch tabs before a completed tap', async ({ browser }) => {
+test('mobile Process selection changes only after a completed tap', async ({ browser }) => {
   const context = await browser.newContext({
     hasTouch: true,
     viewport: { width: 390, height: 844 }
@@ -620,54 +571,20 @@ test('mobile Process cursor passage does not switch tabs before a completed tap'
     await page.goto(`/process/?touch=${width}#totally-reliable`);
     const totallyReliable = page.getByRole('tab', { name: 'Totally Reliable' });
     const theosis = page.getByRole('tab', { name: 'Pray Orthodox' });
-    const changes = page.getByRole('tab', { name: /Changes/ });
-    const tests = page.getByRole('tab', { name: /Tests/ });
 
     await theosis.dispatchEvent('pointerenter', { pointerType: 'touch', isPrimary: true });
-    await tests.dispatchEvent('pointerenter', { pointerType: 'touch', isPrimary: true });
     await theosis.dispatchEvent('pointerenter', { pointerType: 'mouse', isPrimary: true });
-    await tests.dispatchEvent('pointerenter', { pointerType: 'mouse', isPrimary: true });
     await page.evaluate(() => window.scrollBy({ top: 480, behavior: 'instant' }));
     await expect(totallyReliable).toHaveAttribute('aria-selected', 'true');
-    await expect(changes).toHaveAttribute('aria-selected', 'true');
     await expect(page).toHaveURL(/#totally-reliable$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
 
     await tap(theosis);
     await expect(theosis).toHaveAttribute('aria-selected', 'true');
     await expect(page).toHaveURL(/#theosis$/);
-    await tap(tests);
-    await expect(tests).toHaveAttribute('aria-selected', 'true');
   }
 
   await context.close();
-});
-
-test('Process tabbed surfaces reserve their layout height across content changes', async ({ page }) => {
-  const documentTop = (selector) => page.locator(selector).evaluate((element) => (
-    element.getBoundingClientRect().top + window.scrollY
-  ));
-
-  for (const width of [320, 390, 768, 994, 1280, 1440]) {
-    await page.setViewportSize({ width, height: 844 });
-    await page.goto('/process/');
-    const deepDiveTop = await documentTop('.process-deep-dive');
-    const processStageTop = await documentTop('.process-stage');
-
-    for (const name of ['Totally Reliable', 'Workhelix', 'Dadbod Grip', 'Pray Orthodox']) {
-      await page.getByRole('tab', { name, exact: true }).click();
-      if (width > 1120) {
-        expect(
-          Math.abs((await documentTop('.process-deep-dive')) - deepDiveTop),
-          `${name} moved the Deep dive heading at ${width}px`
-        ).toBeLessThanOrEqual(1);
-        expect(
-          Math.abs((await documentTop('.process-stage')) - processStageTop),
-          `${name} moved the Process stage at ${width}px`
-        ).toBeLessThanOrEqual(1);
-      }
-    }
-  }
 });
 
 test('Writing search, reveal, keyboard selection, and article navigation all work', async ({ page }) => {

@@ -24,6 +24,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import vm from 'node:vm';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -32,11 +33,25 @@ const PATHS = {
   blogIndex: join(ROOT, 'blog/index.html'),
   feed: join(ROOT, 'blog/feed.xml'),
   blogCommon: join(ROOT, 'js/blog-common.js'),
-  readme: join(ROOT, 'README.md')
+  readme: join(ROOT, 'README.md'),
+  marked: join(ROOT, 'js/marked.min.js'),
+  sitemap: join(ROOT, 'sitemap.xml'),
+  robots: join(ROOT, 'robots.txt')
 };
 
 const CHECK_MODE = process.argv.includes('--check');
 const normalizeNewlines = text => text.replace(/\r\n/g, '\n');
+const SITE = 'https://jorypestorious.com';
+const CORE_ROUTES = ['/', '/process/', '/blog/', '/contact/', '/vim/'];
+
+async function readOrEmpty(path) {
+  try {
+    return await readFile(path, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') return '';
+    throw error;
+  }
+}
 
 // Parse blog/index.html to an ordered list of { slug, title, summary, date }.
 async function readPosts() {
@@ -178,6 +193,103 @@ async function rewriteReadme(posts) {
   return src.slice(0, beginIdx) + section + src.slice(endIdx + WRITING_END.length);
 }
 
+async function loadMarked() {
+  const context = {};
+  vm.createContext(context);
+  vm.runInContext(await readFile(PATHS.marked, 'utf8'), context, { filename: PATHS.marked });
+  if (typeof context.marked?.parse !== 'function') throw new Error('Unable to load the bundled Marked parser.');
+  return context.marked;
+}
+
+function markdownSourceFromHtml(html, slug) {
+  const authored = html.match(/data-markdown-source=["']([^"']+)["']/)?.[1];
+  const legacy = html.match(/markdownPath:\s*["']([^"']+)["']/)?.[1];
+  if (!authored && !legacy && slug === 'ai-dev-tooling-presentation') return null;
+  const source = (authored || legacy || '').split('?')[0];
+  const prefix = `/blog/${slug}/`;
+  if (!source.startsWith(prefix) || !source.endsWith('.md') || source.includes('..')) {
+    throw new Error(`Missing or unsafe Markdown source for ${slug}.`);
+  }
+  return source;
+}
+
+function indentHtml(html, spaces = 6) {
+  const prefix = ' '.repeat(spaces);
+  return html.trim().split('\n').map((line) => {
+    const clean = line.trimEnd();
+    return clean ? prefix + clean : '';
+  }).join('\n');
+}
+
+function articleSchema(post, html) {
+  const image = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/)?.[1]
+    || `${SITE}/jpg/jory-georgie-social.png`;
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.summary,
+    image,
+    datePublished: post.date,
+    dateModified: post.date,
+    mainEntityOfPage: `${SITE}/blog/${post.slug}/`,
+    author: {
+      '@type': 'Person',
+      name: 'Jory Pestorious',
+      url: `${SITE}/`
+    }
+  }, null, 2).replace(/</g, '\\u003c');
+}
+
+function rewriteArticle(post, html, source, rendered) {
+  const articleRe = /<article\b([^>]*\bid=["']content["'][^>]*)>[\s\S]*?<\/article>/;
+  if (!articleRe.test(html)) throw new Error(`Missing article#content for ${post.slug}.`);
+
+  let next = html.replace(articleRe, (_match, attributes) => {
+    const clean = attributes.replace(/\s+data-markdown-source=["'][^"']+["']/, '');
+    return `<article${clean} data-markdown-source="${source}">\n${indentHtml(rendered)}\n    </article>`;
+  });
+  next = next.replace(/\s*<svg\b[\s\S]*?\bid=["']change["'][\s\S]*?<\/svg>\s*/g, '\n');
+  next = next.replace(/\s*<script\s+src=["']\/js\/marked\.min\.js["']><\/script>\s*/g, '\n');
+  next = next.replace(/^\s*markdownPath:\s*["'][^"']+["'],?\s*$/gm, '');
+  next = next.replace(/^\s*backgroundSwitcher:\s*(?:true|false),?\s*$/gm, '');
+
+  const schema = `  <script type="application/ld+json" data-article-schema>\n${indentHtml(articleSchema(post, next), 4)}\n  </script>`;
+  if (/<script\b[^>]*data-article-schema[^>]*>[\s\S]*?<\/script>/.test(next)) {
+    next = next.replace(/\s*<script\b[^>]*data-article-schema[^>]*>[\s\S]*?<\/script>/, `\n${schema}`);
+  } else {
+    next = next.replace(/\s*<\/head>/, `\n${schema}\n</head>`);
+  }
+  return next;
+}
+
+async function rewriteArticles(posts) {
+  const marked = await loadMarked();
+  const rewrites = [];
+  for (const post of posts) {
+    const path = join(ROOT, 'blog', post.slug, 'index.html');
+    const html = await readFile(path, 'utf8');
+    const source = markdownSourceFromHtml(html, post.slug);
+    if (!source) continue;
+    const markdown = await readFile(join(ROOT, source.slice(1)), 'utf8');
+    rewrites.push({ path, label: `blog/${post.slug}/index.html`, old: html, next: rewriteArticle(post, html, source, marked.parse(markdown)) });
+  }
+  return rewrites;
+}
+
+function buildSitemap(posts) {
+  const urls = [
+    ...CORE_ROUTES.map(route => ({ route, date: posts[0]?.date })),
+    ...posts.map(post => ({ route: `/blog/${post.slug}/`, date: post.date }))
+  ];
+  const body = urls.map(({ route, date }) => `  <url>\n    <loc>${SITE}${route}</loc>\n    <lastmod>${date}</lastmod>\n  </url>`).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
+}
+
+function buildRobots() {
+  return `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`;
+}
+
 async function main() {
   const posts = await readPosts();
   const existingDates = await readExistingDates();
@@ -196,17 +308,27 @@ async function main() {
   const newFeed = buildFeed(posts);
   const newBlogCommon = await rewritePostNav(posts);
   const newReadme = await rewriteReadme(posts);
+  const articleRewrites = await rewriteArticles(posts);
+  const newSitemap = buildSitemap(posts);
+  const newRobots = buildRobots();
 
-  const [oldFeed, oldBlogCommon, oldReadme] = await Promise.all([
+  const [oldFeed, oldBlogCommon, oldReadme, oldSitemap, oldRobots] = await Promise.all([
     readFile(PATHS.feed, 'utf8'),
     readFile(PATHS.blogCommon, 'utf8'),
-    readFile(PATHS.readme, 'utf8')
+    readFile(PATHS.readme, 'utf8'),
+    readOrEmpty(PATHS.sitemap),
+    readOrEmpty(PATHS.robots)
   ]);
 
   const changed = [];
   if (normalizeNewlines(newFeed) !== normalizeNewlines(oldFeed)) changed.push('blog/feed.xml');
   if (normalizeNewlines(newBlogCommon) !== normalizeNewlines(oldBlogCommon)) changed.push('js/blog-common.js');
   if (normalizeNewlines(newReadme) !== normalizeNewlines(oldReadme)) changed.push('README.md');
+  if (normalizeNewlines(newSitemap) !== normalizeNewlines(oldSitemap)) changed.push('sitemap.xml');
+  if (normalizeNewlines(newRobots) !== normalizeNewlines(oldRobots)) changed.push('robots.txt');
+  for (const article of articleRewrites) {
+    if (normalizeNewlines(article.next) !== normalizeNewlines(article.old)) changed.push(article.label);
+  }
 
   if (CHECK_MODE) {
     if (changed.length) {
@@ -222,7 +344,10 @@ async function main() {
   await Promise.all([
     writeFile(PATHS.feed, newFeed),
     writeFile(PATHS.blogCommon, newBlogCommon),
-    writeFile(PATHS.readme, newReadme)
+    writeFile(PATHS.readme, newReadme),
+    writeFile(PATHS.sitemap, newSitemap),
+    writeFile(PATHS.robots, newRobots),
+    ...articleRewrites.map(article => writeFile(article.path, article.next))
   ]);
   console.log(`Regenerated: ${changed.join(', ')}`);
 }

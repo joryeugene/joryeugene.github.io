@@ -20,9 +20,9 @@ test.describe('homepage asymmetric gallery', () => {
     ]);
 
     for (const project of await projects.all()) {
-      await expect(project.locator('.project-facts > div')).toHaveCount(3);
-      await expect(project.locator('.project-facts dt')).toHaveCount(3);
-      await expect(project.locator('.project-facts dd')).toHaveCount(3);
+      await expect(project.locator('.project-facts > div')).toHaveCount(1);
+      await expect(project.locator('.project-facts dt')).toHaveCount(1);
+      await expect(project.locator('.project-facts dd')).toHaveCount(1);
       await expect(project.locator('.project-links a')).toHaveCount(2);
     }
 
@@ -69,7 +69,7 @@ test.describe('homepage asymmetric gallery', () => {
     const georgie = page.locator('.georgie-egg--home');
     await expect(georgie).toHaveCount(1);
     await expect(phalene.locator('.project-media > .georgie-egg--home')).toHaveCount(1);
-    await expect(georgie.locator('.georgie-egg__sprite')).toHaveCSS('background-image', /georgie-home-v2-pair\.png/);
+    await expect(georgie.locator('.georgie-egg__sprite')).toHaveCSS('background-image', /georgie-home-v2-pair\.webp/);
     await expect(page.locator('img[src*="vim-preview-current"], img[src*="phalene-vim-teacher"]')).toHaveCount(0);
   });
 });
@@ -126,10 +126,10 @@ test.describe('portfolio shell', () => {
     await expect(page.getByRole('navigation', { name: 'Primary' })).toContainText('Contact');
   });
 
-  test('keeps the selected history evidence beneath the static project gallery', async ({ page }) => {
+  test('keeps selected work beneath the static project gallery', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: 'Selected history' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Selected work' })).toBeVisible();
     await expect(page.locator('.archive-card h3')).toHaveText([
       'Totally Reliable Delivery Service',
       'Workhelix Nucleus',
@@ -138,13 +138,13 @@ test.describe('portfolio shell', () => {
       'Pray Orthodox'
     ]);
     await expect(page.getByText(/four online ragdolls can form a flying chain beneath a jetpack/i)).toBeVisible();
-    await expect(page.getByText(/Orthodox prayer book and Scripture reader for daily prayer/i)).toBeVisible();
+    await expect(page.getByText(/resolves each day.*Midnight Office, Matins, Hours, Typika, Vespers, and Compline/i)).toBeVisible();
     await expect(page.locator('.archive-section')).not.toContainText(/4,017|39,891|saints|fasting guidance|85 books/i);
-    await expect(page.getByText('Live web product', { exact: true })).toBeVisible();
+    await expect(page.getByText('Daily prayer reader', { exact: true })).toBeVisible();
     await expect(page.getByText(/HRIS, AI-usage, and prompt data/i)).toBeVisible();
     await expect(page.getByText(/15\+?.*ECharts|more than 15.*ECharts/i)).toHaveCount(0);
     await expect(page.getByText(/built (its )?interactive analytics and assessment workflows/i)).toHaveCount(0);
-    await expect(page.getByText(/data science team's assessment outputs/i)).toBeVisible();
+    await expect(page.getByText(/company-wide ROI picture/i)).toBeVisible();
     await expect(page.getByText(/Nine Claude Code hooks capture facts and decisions/i)).toBeVisible();
     await expect(page.getByText(/hive verify/)).toBeVisible();
     await expect(page.locator('a[href="/blog/knowledge-sidecar/"]')).toBeVisible();
@@ -308,84 +308,24 @@ test.describe('portfolio shell', () => {
 });
 
 test.describe('portfolio pages', () => {
-  test('process page exposes inspectable layers and rejected paths', async ({ page }) => {
+  test('process page exposes four concise case narratives', async ({ page }) => {
     await page.goto('/process/');
-
-    const processGeorgie = page.getByRole('button', { name: 'Let Georgie inspect this case study' });
-    await processGeorgie.hover();
-    await expect(processGeorgie).toHaveClass(/is-georgie-active/);
-
-    await expect(page.getByText(/A closer look at selected projects/)).toBeVisible();
-    await expect(page.getByText(/Four shipped systems/)).toHaveCount(0);
-    await expect(page.getByText(/15\+?.*ECharts|more than 15.*ECharts/i)).toHaveCount(0);
-    await expect(page.getByText(/built (its )?interactive analytics and assessment workflows/i)).toHaveCount(0);
-    await expect(page.locator('body')).not.toContainText(/immutable deployment|content-addressed|source-audited|Jest tests across|passing journeys|intentional skips|cache-bypassing|linked CI run|\d[\d,]* assertions|does not prove every database|Softrear fixture/i);
+    await expect(page.locator('.process-deep-dive, .layer-rail, .wrong-turns')).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Process', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('tablist', { name: 'Process case studies' }).getByRole('tab')).toHaveText([
+    const caseTabs = page.getByRole('tablist', { name: 'Process case studies' }).getByRole('tab');
+    await expect(caseTabs).toHaveText([
       'Totally Reliable',
       'Workhelix',
       'Dadbod Grip',
       'Pray Orthodox'
     ]);
     await expect(page.getByRole('tab', { name: 'Totally Reliable' })).toHaveAttribute('aria-selected', 'true');
-    await page.getByRole('tab', { name: 'Dadbod Grip' }).click();
-    await page.getByRole('tab', { name: 'Tests' }).click();
-    await expect(page.getByText(/test matrix covers editing state.*generated SQL.*adapters/i)).toBeVisible();
-    await expect(page.getByText('Separate desktop app')).toBeVisible();
-    await expect(page.locator('.wrong-turn').first()).toHaveCSS('border-left-style', 'solid');
-
-    const cases = [
-      ['Totally Reliable', /four live ragdolls stay connected in flight/i, 'https://www.totallyreliable.com/'],
-      ['Workhelix', /presents AI-opportunity estimates to enterprise leaders/i, 'https://www.workhelix.com/platform'],
-      ['Dadbod Grip', /Neovim into a data workbench/i, 'https://jorypestorious.com/dadbod-grip-web/'],
-      ['Pray Orthodox', /builds a daily prayer book from sourced Church texts/i, 'https://prayorthodox.com/']
-    ];
-
-    for (const [tabName, deepDiveTitle, destination] of cases) {
-      const tab = page.getByRole('tab', { name: tabName });
+    for (const tab of await caseTabs.all()) {
       await tab.click();
-      await expect(page.locator('.process-deep-dive h2')).toContainText(deepDiveTitle);
-      await expect(page.locator('[data-case-panel]:visible')).toContainText(/open|visit|view/i);
-      await expect(page.locator(`[data-case-panel]:visible a[href="${destination}"]`)).toBeVisible();
-      await expect(page.locator('.wrong-turns')).toHaveAttribute('data-active-case', /.+/);
-      for (const layerName of ['Brief', 'Constraints', 'Changes', 'Tests', 'Visual QA']) {
-        await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: new RegExp(layerName) }).click();
-        await expect(page.locator('[data-layer-content]:visible')).not.toBeEmpty();
-      }
-    }
-
-    await page.getByRole('tab', { name: 'Pray Orthodox' }).click();
-    const theosisPanel = page.locator('#case-theosis');
-    await expect(page.getByRole('heading', { name: 'An Orthodox prayer book and Scripture reader for daily prayer.' })).toBeVisible();
-    await expect(theosisPanel).toContainText('source-pinned appointment engine');
-    await expect(theosisPanel).toContainText('Incomplete required material stays out of the public schedule');
-    await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Tests/ }).click();
-    await expect(page.getByText(/resolve each public service and role across the supported calendar range/i)).toBeVisible();
-    await expect(page.getByText(/reject unresolved material, unknown sources, missing locators/i)).toBeVisible();
-    await expect(page.getByText(/Browser checks open the prayer reader on phone and desktop/i)).toBeVisible();
-    await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Visual QA/ }).click();
-    await expect(page.getByText(/Prayer, directions, roles, and explanatory text remain visually distinct/i)).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Open the live product', exact: true })).toHaveAttribute('href', 'https://prayorthodox.com/');
-    await expect(page.locator('a[href="https://github.com/joryeugene/theosis"]')).toHaveCount(0);
-    await expect(page).toHaveURL(/#theosis$/);
-    await expect(page.getByRole('tab', { name: 'Pray Orthodox' })).toHaveAttribute('href', '#theosis');
-
-    const caseNavigationTop = await page.locator('.case-navigation').evaluate((element) => element.getBoundingClientRect().top + scrollY);
-    const processStageTop = await page.locator('.process-stage').evaluate((element) => element.getBoundingClientRect().top + scrollY);
-    expect(caseNavigationTop).toBeLessThan(processStageTop);
-  });
-
-  test('process Changes layers do not use full-width proof strips', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.goto('/process/');
-
-    const caseTabs = page.getByRole('tablist', { name: 'Process case studies' }).getByRole('tab');
-    const changesTab = page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab', { name: /Changes/ });
-
-    for (let caseIndex = 0; caseIndex < await caseTabs.count(); caseIndex += 1) {
-      await caseTabs.nth(caseIndex).click();
-      await changesTab.click();
-      await expect(page.locator('#layer-changes .proof-strip')).toHaveCount(0);
+      const panel = page.locator('[data-case-panel]:visible');
+      await expect(panel.locator('.case-narrative h3')).toHaveText(['Problem', 'Decision', 'Build', 'Result']);
+      await expect(panel.locator('.case-destinations a').first()).toBeVisible();
+      await expect(panel.locator('.process-case-shot > .georgie-egg--process')).toHaveCount(1);
     }
   });
 
@@ -529,7 +469,7 @@ test.describe('portfolio responsive behavior', () => {
     }));
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
 
-    const buttons = await page.getByRole('tablist', { name: 'Project evidence layers' }).getByRole('tab').all();
+    const buttons = await page.getByRole('tablist', { name: 'Process case studies' }).getByRole('tab').all();
     for (const button of buttons) {
       const box = await button.boundingBox();
       expect(box).not.toBeNull();
@@ -553,19 +493,12 @@ test.describe('portfolio at 320px', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
 
     await page.goto('/process/#workhelix');
-    const constraints = page.getByRole('tab', { name: /Constraints/ }).locator('span').last();
-    const labelLineCount = await constraints.evaluate((element) => {
-      const range = document.createRange();
-      range.selectNodeContents(element.childNodes[0]);
-      return range.getClientRects().length;
-    });
-    expect(labelLineCount).toBe(1);
-    await page.getByRole('tab', { name: /Changes/ }).click();
-    expect(await page.locator('#layer-changes').evaluate((element) => element.getBoundingClientRect().height)).toBeLessThan(600);
+    await expect(page.getByRole('tab', { name: 'Workhelix' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('[data-case-panel]:visible .case-narrative h3')).toHaveText(['Problem', 'Decision', 'Build', 'Result']);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   });
 
-  test('keeps the email on one line while Georgie touches its edge', async ({ page }) => {
+  test('keeps the email on one line while Georgie presses its right edge', async ({ page }) => {
     await page.goto('/contact/');
     const emailCard = page.locator('.contact-path').first();
     const email = emailCard.locator('p');
@@ -581,7 +514,9 @@ test.describe('portfolio at 320px', () => {
     ]);
     expect(card).not.toBeNull();
     expect(georgie).not.toBeNull();
-    expect(Math.abs((georgie.y + georgie.height) - card.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs((georgie.x + georgie.width) - (card.x + card.width))).toBeLessThanOrEqual(1);
+    expect(georgie.y).toBeGreaterThanOrEqual(card.y);
+    expect(georgie.y + georgie.height).toBeLessThanOrEqual(card.y + card.height);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   });
 });

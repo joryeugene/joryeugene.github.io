@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Jory Pestorious builds AI agents, developer tools, high-performance interfaces, and multiplayer systems.">
+  <meta name="description" content="Jory Pestorious builds developer tools, product interfaces, and multiplayer systems.">
   <meta name="author" content="Jory Pestorious">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jorypestorious.com/">
-  <meta property="og:title" content="Jory Pestorious | Developer tools, agents, and interfaces">
-  <meta property="og:description" content="Selected developer tools, AI agents, multiplayer systems, and interfaces built by Jory Pestorious.">
+  <meta property="og:title" content="Jory Pestorious | Software engineer and product builder">
+  <meta property="og:description" content="Selected developer tools, product interfaces, and multiplayer systems built by Jory Pestorious.">
   <meta property="og:image" content="https://jorypestorious.com/jpg/jory-georgie-social.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -16,10 +16,26 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://jorypestorious.com/jpg/jory-georgie-social.png">
   <meta name="twitter:image:alt" content="Jory Pestorious with Georgie, a lounging pixel-art Phalene">
-  <title>Jory Pestorious | Developer tools, agents, and interfaces</title>
+  <title>Jory Pestorious | Software engineer and product builder</title>
+  <link rel="canonical" href="https://jorypestorious.com/">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-9">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      "mainEntity": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/",
+        "sameAs": [
+          "https://github.com/joryeugene",
+          "https://www.linkedin.com/in/jory-fullstack-engineer/"
+        ]
+      }
+    }
+  </script>
 </head>
 <body class="portfolio-page page-work">
   <a class="skip-link" href="#main">Skip to work</a>
@@ -44,23 +60,23 @@
       <section class="intro" aria-labelledby="work-intro">
         <h1 id="work-intro" class="page-title">Useful systems with a pulse.</h1>
         <p>I build ambitious software where the interface and the engineering carry equal weight.</p>
+        <a class="vim-cta vim-cta--mobile" href="/vim/">Open Vim</a>
       </section>
 
       <section class="project-gallery" aria-label="Featured projects">
         <article class="project-feature project-feature--dadbod" data-featured-project="dadbod-grip">
           <figure class="project-media project-media--hero">
-            <img src="/jpg/process/dadbod-grip-full-workspace.png?v=consumer-triage-1" alt="Dadbod Grip consumer incident triage with an expanded schema, filtered query pad, editable grid, staged delete, update, and clone rows, and generated Live SQL in Neovim" width="2560" height="1440">
+            <a href="/jpg/process/dadbod-grip-full-workspace.png?v=consumer-triage-1" aria-label="Open the Dadbod Grip interface at full size">
+              <img src="/jpg/process/dadbod-grip-full-workspace.png?v=consumer-triage-1" alt="Dadbod Grip consumer incident triage with an expanded schema, filtered query pad, editable grid, staged delete, update, and clone rows, and generated Live SQL in Neovim" width="2560" height="1440">
+            </a>
           </figure>
           <div class="project-rail">
             <header class="project-rail__heading">
-              <p class="project-index">01 / Flagship</p>
               <h2>Dadbod Grip</h2>
-              <p>Edit database tables, preview every SQL change, and query across databases and files without leaving Neovim.</p>
+              <p>Dadbod Grip turns Neovim into a standalone database workspace. It discovers connections, keeps schema navigation and SQL notebooks beside the result grid, and renders every staged write before execution.</p>
             </header>
             <dl class="project-facts">
-              <div><dt>Workflow</dt><dd>Browse a schema, query a table, edit the result grid, and review every staged statement without leaving Neovim.</dd></div>
-              <div><dt>Safety</dt><dd>Changes remain staged until the generated DELETE, UPDATE, and INSERT statements are visible.</dd></div>
-              <div><dt>In this frame</dt><dd>This incident-triage frame shows one deletion, one multi-field correction, and one cloned row queued together.</dd></div>
+              <div><dt>Mutation model</dt><dd>Cell edits, row clones, and deletions remain reversible editor state until the exact SQL batch is reviewed and applied.</dd></div>
             </dl>
             <nav class="project-links" aria-label="Dadbod Grip links">
               <a href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>Open walkthrough</a>
@@ -72,18 +88,17 @@
         <div class="project-gallery__pair">
           <article class="project-feature project-feature--flight-deck" data-featured-project="flight-deck">
             <figure class="project-media project-media--calendar">
-              <img src="/jpg/process/flight-deck-calendar-week.png" alt="Flight Deck Calendar Week view with Google and Outlook events, an all-day lane, overlapping meetings, and current-time context" width="1352" height="940" loading="lazy" decoding="async">
+              <a href="/jpg/process/flight-deck-calendar-week.png" aria-label="Open the Flight Deck Calendar interface at full size">
+                <img src="/jpg/process/flight-deck-calendar-week.png" alt="Flight Deck Calendar Week view with Google and Outlook events, an all-day lane, overlapping meetings, and current-time context" width="1352" height="940" loading="lazy" decoding="async">
+              </a>
             </figure>
             <div class="project-rail">
               <header class="project-rail__heading">
-                <p class="project-index">02 / Local first</p>
                 <h2>Flight Deck Calendar</h2>
-                <p>Flight Deck brings Google and Outlook into one keyboard-first Omarchy panel while keeping access read-only, caching events locally, and running without a hosted backend.</p>
+                <p>Flight Deck brings Google and Outlook into one read-only Omarchy calendar without sending event data through another hosted service.</p>
               </header>
               <dl class="project-facts">
-                <div><dt>Workflow</dt><dd>Scan the week, jump to now, move between events with the keyboard, and open a meeting from the Omarchy bar.</dd></div>
                 <div><dt>Privacy</dt><dd>Google and Outlook tokens stay in the system keyring, events remain in a local cache, and no hosted calendar service receives them.</dd></div>
-                <div><dt>In this frame</dt><dd>The Week view shows both providers, all-day events, overlapping meetings, and the current time in one scan.</dd></div>
               </dl>
               <nav class="project-links" aria-label="Flight Deck Calendar links">
                 <a href="https://github.com/joryeugene/omarchy-calendar" data-jelly>View source</a>
@@ -94,21 +109,20 @@
 
           <article class="project-feature project-feature--phalene" data-featured-project="phalene-vim">
             <figure class="project-media project-media--phalene" data-georgie-surface>
-              <img src="/jpg/process/phalene-vim-dashboard.jpg" alt="Phalene-Vim main dashboard with Georgie and keyboard guidance" width="1280" height="720" loading="lazy" decoding="async">
+              <a href="/jpg/process/phalene-vim-dashboard.jpg" aria-label="Open the Phalene-Vim dashboard at full size">
+                <img src="/jpg/process/phalene-vim-dashboard.jpg" alt="Phalene-Vim main dashboard with Georgie and keyboard guidance" width="1280" height="720" loading="lazy" decoding="async">
+              </a>
               <button class="georgie-egg georgie-egg--home" type="button" aria-label="Play peekaboo with Georgie" data-georgie-egg>
                 <span class="georgie-egg__sprite" aria-hidden="true"></span>
               </button>
             </figure>
             <div class="project-rail">
               <header class="project-rail__heading">
-                <p class="project-index">03 / Playable</p>
                 <h2>Phalene-Vim</h2>
-                <p>Phalene-Vim teaches Vim inside a real browser editor with modes, motions, macros, search, undo, and guided practice.</p>
+                <p>Phalene-Vim teaches real Vim motions inside a browser editor that checks what the learner changed.</p>
               </header>
               <dl class="project-facts">
-                <div><dt>Practice</dt><dd>Use normal-mode motions, edit text, search, undo changes, split windows, and run commands against one browser editor.</dd></div>
                 <div><dt>Teaching</dt><dd>Guided lessons validate the change you make in the editor instead of asking you to memorize answers.</dd></div>
-                <div><dt>In this frame</dt><dd>The launch dashboard links directly to movement practice, command reference, tutor paths, and games.</dd></div>
               </dl>
               <nav class="project-links" aria-label="Phalene-Vim links">
                 <a href="/vim/" data-jelly>Try the editor</a>
@@ -123,34 +137,34 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">More work</p>
-            <h2 id="history-title">Selected history</h2>
+            <h2 id="history-title">Selected work</h2>
           </div>
         </div>
 
         <div class="archive-grid">
           <article class="archive-card">
-            <div class="archive-meta"><span>Shipped at scale</span><span>Unity, C#, Photon, PlayFab</span></div>
+            <div class="archive-meta"><span>Online physics sandbox</span><span>More than 50 million downloads</span></div>
             <h3><a href="https://www.totallyreliable.com/">Totally Reliable Delivery Service</a></h3>
             <p>I co-founded We're Five Games and led Unity and C# multiplayer for a sandbox where four online ragdolls can form a flying chain beneath a jetpack. I led the multiplayer work that kept those grips, bodies, joints, vehicles, and collisions in the shared simulation. The game passed 50 million downloads; launch week peaked above 32,000 concurrent Twitch viewers.</p>
             <div class="archive-links">
               <a href="https://www.totallyreliable.com/">Visit the official site</a>
-              <a href="/process/#totally-reliable">See the engineering trace</a>
+              <a href="/process/#totally-reliable">Read the case study</a>
               <a href="https://streamscharts.com/games/totally-reliable-delivery-service/release-stats">See the launch audience</a>
             </div>
           </article>
 
           <article class="archive-card">
-            <div class="archive-meta"><span>Product platform</span><span>React, TypeScript, ECharts</span></div>
+            <div class="archive-meta"><span>AI ROI platform</span><span>Opportunities ranked by business impact</span></div>
             <h3><a href="https://www.workhelix.com/platform">Workhelix Nucleus</a></h3>
-            <p>Nucleus combines HRIS, AI-usage, and prompt data so leaders can see adoption, review estimated opportunities and savings, and find workflows worth improving. I replaced its Bubble prototype with the production React and TypeScript platform, translated Figma designs into reusable components, and built the product experience that presented the data science team's assessment outputs.</p>
+            <p>Nucleus combines HRIS, AI-usage, and prompt data to rank opportunities, expose adoption gaps, and estimate time and money saved. I built the production interface that lets leaders move from the company-wide ROI picture into the roles, use cases, and behaviors behind it.</p>
             <div class="archive-links">
               <a href="https://www.workhelix.com/platform">Explore Nucleus</a>
-              <a href="/process/#workhelix">See the engineering trace</a>
+              <a href="/process/#workhelix">Read the case study</a>
             </div>
           </article>
 
           <article class="archive-card">
-            <div class="archive-meta"><span>Archived agent workflow CLI</span><span>Node.js, Claude Code</span></div>
+            <div class="archive-meta"><span>Archived agent workflow CLI</span><span>Background runs with inspectable progress</span></div>
             <h3><a href="https://github.com/joryeugene/calmhive-cli">Calmhive</a></h3>
             <p>Calmhive ran Claude Code jobs in background iterations and kept session progress available for later review. I built the process controls, retry path for a known usage-limit response, scheduler, terminal session view, and voice command flow.</p>
             <div class="archive-links">
@@ -160,7 +174,7 @@
           </article>
 
           <article class="archive-card">
-            <div class="archive-meta"><span>Agent memory</span><span>Python, MCP, SQLite FTS5</span></div>
+            <div class="archive-meta"><span>Agent memory</span><span>One inspectable store across coding agents</span></div>
             <h3><a href="https://github.com/joryeugene/keephive">keephive</a></h3>
             <p>Keephive gives coding agents persistent, inspectable memory. Nine Claude Code hooks capture facts and decisions. MCP and lightweight shims give Claude, Codex, and Gemini access to the same store; <code>hive verify</code> can ask a model to inspect claims against repository evidence.</p>
             <div class="archive-links">
@@ -171,12 +185,12 @@
           </article>
 
           <article class="archive-card archive-card--wide">
-            <div class="archive-meta"><span>Live web product</span><span>React Native, Expo, TypeScript</span></div>
+            <div class="archive-meta"><span>Daily prayer reader</span><span>Source-verified services</span></div>
             <h3><a href="https://prayorthodox.com/">Pray Orthodox</a></h3>
-            <p>Pray Orthodox is an Orthodox prayer book and Scripture reader for daily prayer. I built its shared Expo interface and a Python pipeline that prepares calendar and Scripture data as static files. Cloudflare&rsquo;s CDN serves the selected content without a runtime API or live database query.</p>
+            <p>Pray Orthodox resolves each day&rsquo;s Midnight Office, Matins, Hours, Typika, Vespers, and Compline from the Paschal cycle, fixed feasts, and annual appointments. Every prayer and physical direction carries a source; unresolved slots remain visible instead of being guessed.</p>
             <div class="archive-links">
               <a href="https://prayorthodox.com/">Open Pray Orthodox</a>
-              <a href="/process/#theosis">See the product trace</a>
+              <a href="/process/#theosis">Read the case study</a>
             </div>
           </article>
         </div>
@@ -189,7 +203,7 @@
     </footer>
   </div>
 
-  <div id="command-palette" class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+  <dialog id="command-palette" class="command-palette" aria-label="Command palette">
     <div class="palette-panel">
       <div class="palette-head">
         <span>Commands</span>
@@ -197,7 +211,7 @@
       </div>
       <div data-site-command-palette></div>
     </div>
-  </div>
+  </dialog>
 
   <script src="/js/blog-common.js?v=foundation-plus-5"></script>
   <script src="/js/portfolio.js?v=foundation-plus-8"></script>

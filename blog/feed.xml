@@ -64,7 +64,7 @@
     <link href="https://jorypestorious.com/blog/dadbod-grip/" rel="alternate" type="text/html"/>
     <id>https://jorypestorious.com/blog/dadbod-grip/</id>
     <updated>2026-03-06T00:00:00Z</updated>
-    <summary>Follow a bad product through dadbod-grip v3.3.3&apos;s Softrear database, stage the correction in Neovim, inspect the generated SQL, and send the batch through the active database CLI. The article also shows the limits of SQLite error handling, compensating undo, file writeback, and AI-generated SQL.</summary>
+    <summary>Dadbod Grip keeps the connection, schema, query, result, staged edits, and generated SQL inside one Neovim workspace. The article follows a consumer incident through its relationships, then crosses database boundaries without hiding the write path.</summary>
   </entry>
 
   <entry>

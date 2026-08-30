@@ -75,83 +75,6 @@ const HeaderIDGenerator = {
   }
 };
 
-// Markdown Content Loader
-const MarkdownLoader = {
-  // Load markdown content
-  async load(markdownPath, contentElementId = 'content', showSkeleton = true) {
-    try {
-      const contentElement = document.getElementById(contentElementId);
-      if (!contentElement) return;
-      
-      // Show skeleton loader if enabled
-      if (showSkeleton) {
-        SkeletonLoader.show(`#${contentElementId}`);
-      }
-      
-      const response = await fetch(markdownPath);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const markdownText = await response.text();
-      
-      // Check if marked library is available
-      if (typeof marked === 'undefined') {
-        throw new Error('Markdown library (marked) not loaded');
-      }
-      
-      const html = marked.parse(markdownText);
-      
-      // Hide skeleton and insert content
-      if (showSkeleton) {
-        SkeletonLoader.hide(`#${contentElementId}`);
-      }
-      
-      // Preserve reading-time element if it exists
-      const existingReadingTime = contentElement.querySelector('.reading-time');
-      let readingTimeHTML = '';
-      if (existingReadingTime) {
-        readingTimeHTML = existingReadingTime.outerHTML;
-      }
-      
-      contentElement.innerHTML = html;
-      
-      // Re-add reading-time element if it existed
-      if (readingTimeHTML) {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = readingTimeHTML;
-        const readingTimeEl = tempDiv.firstChild;
-        contentElement.insertBefore(readingTimeEl, contentElement.firstChild);
-      }
-      
-      // Process headers
-      HeaderIDGenerator.process();
-      
-      // Reading time disabled per user request
-      // setTimeout(() => {
-      //   ReadingTime.display();
-      // }, 100);
-      
-      // Dispatch custom event
-      document.dispatchEvent(new CustomEvent('markdownLoaded', { detail: { content: html } }));
-      
-      // Return promise for chaining
-      return { success: true, content: html };
-    } catch (error) {
-      console.error('Error loading markdown:', error);
-      const contentElement = document.getElementById(contentElementId);
-      if (contentElement) {
-        if (showSkeleton) {
-          SkeletonLoader.hide(`#${contentElementId}`);
-        }
-        contentElement.innerHTML = '<p class="error">Error loading content. Please try again later.</p>';
-        contentElement.classList.add('loaded');
-      }
-      return { success: false, error };
-    }
-  }
-};
-
 // Reading Time Calculator
 const ReadingTime = {
   // Calculate reading time for content
@@ -351,57 +274,6 @@ const BlogButtonScroll = {
     };
     
     window.addEventListener('scroll', throttledScroll, { passive: true });
-  }
-};
-
-// Skeleton Loader Module
-const SkeletonLoader = {
-  // Create skeleton template
-  createSkeleton() {
-    return `
-      <div class="skeleton-content">
-        <div class="skeleton-title skeleton-loader"></div>
-        <div class="skeleton-meta skeleton-loader"></div>
-        <div class="skeleton-paragraph skeleton-loader"></div>
-        <div class="skeleton-paragraph skeleton-loader"></div>
-        <div class="skeleton-paragraph skeleton-loader"></div>
-        <div class="skeleton-paragraph skeleton-loader"></div>
-        <div class="skeleton-paragraph skeleton-loader"></div>
-        <div class="skeleton-paragraph skeleton-loader"></div>
-        <div class="skeleton-paragraph skeleton-loader"></div>
-        <div class="skeleton-paragraph skeleton-loader"></div>
-        <div class="skeleton-paragraph skeleton-loader"></div>
-        <div class="skeleton-paragraph skeleton-loader"></div>
-      </div>
-    `;
-  },
-  
-  // Show skeleton loader
-  show(containerSelector = '.markdown-body') {
-    const container = document.querySelector(containerSelector);
-    if (!container) return;
-    
-    // Add loading class
-    container.classList.add('loading');
-    
-    // Insert skeleton HTML
-    container.innerHTML = this.createSkeleton();
-  },
-  
-  // Hide skeleton loader
-  hide(containerSelector = '.markdown-body') {
-    const container = document.querySelector(containerSelector);
-    if (!container) return;
-    
-    // Remove skeleton content
-    const skeleton = container.querySelector('.skeleton-content');
-    if (skeleton) {
-      skeleton.remove();
-    }
-    
-    // Remove loading class and add loaded class
-    container.classList.remove('loading');
-    container.classList.add('loaded');
   }
 };
 
@@ -725,7 +597,6 @@ const ReaderShell = {
     this.bindControls(palette, sheet, mobileTrigger);
     this.bindGeorgie(georgie, main);
     this.enhanceArticle();
-    document.addEventListener('markdownLoaded', () => this.enhanceArticle());
   },
 
   bindGeorgie(georgie, main) {
@@ -1825,8 +1696,6 @@ const VimHUD = {
 // Export modules for use
 window.BlogCommon = {
   HeaderIDGenerator,
-  MarkdownLoader,
-  SkeletonLoader,
   ReadingTime,
   ScrollProgress,
   BlogButtonScroll,
@@ -1847,13 +1716,13 @@ window.BlogCommon = {
       return;
     }
     
-    // Build the shared reader before the feature modules attach controls.
-    ReaderShell.init();
-
     // Initialize modules
     if (options.headerIds !== false) {
       HeaderIDGenerator.process();
     }
+
+    // Build the reader after the static article has headings and anchors.
+    ReaderShell.init();
     
     // Reading time disabled per user request
     // if (options.readingTime !== false) {
@@ -1880,26 +1749,11 @@ window.BlogCommon = {
     }
     
     if (options.tableOfContents !== false) {
-      // Initialize after markdown is loaded
-      document.addEventListener('markdownLoaded', () => {
-        // Add a small delay to ensure headers have IDs
-        setTimeout(() => {
-          TableOfContents.init();
-        }, 100);
-      });
+      TableOfContents.init();
     }
-    
-    
-    // Load markdown if specified
-    if (options.markdownPath) {
-      MarkdownLoader.load(options.markdownPath, options.contentElementId)
-        .then(() => {
-          // Initialize lazy loading for images in loaded content
-          if (options.lazyImages !== false) {
-            LazyImageLoader.init(options.lazyImages || {});
-          }
-        });
-    }
+
+    // Keep the compatibility event for the two articles with custom image enhancements.
+    document.dispatchEvent(new CustomEvent('markdownLoaded'));
   },
   
   // Initialize subtle parallax effect

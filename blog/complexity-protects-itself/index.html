@@ -68,59 +68,103 @@
     <link rel="alternate" type="application/atom+xml" title="Engineering Notes" href="/blog/feed.xml">
     <link rel="stylesheet" href="/css/blog-common.css" />
     <link rel="stylesheet" href="/css/blog-reader.css?v=foundation-plus-7" />
-  </head>
+  <script type="application/ld+json" data-article-schema>
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Complexity Protects Itself",
+      "description": "A working path can become harder to operate when its replacement gathers too many responsibilities. Three tests help decide when custom infrastructure is worth owning.",
+      "image": "https://jorypestorious.com/jpg/jory-georgie-social.png",
+      "datePublished": "2026-04-16",
+      "dateModified": "2026-04-16",
+      "mainEntityOfPage": "https://jorypestorious.com/blog/complexity-protects-itself/",
+      "author": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
+</head>
 
   <body>
     <div id="bg"></div>
     <a href="/blog/" class="home-link">&#8592; Blog</a>
     <div class="container">
-      <article class="markdown-body" id="content">
-      </article>
+      <article class="markdown-body" id="content" data-markdown-source="/blog/complexity-protects-itself/complexity-protects-itself.md">
+      <h1>Complexity Protects Itself</h1>
+      <p><em>By Jory Pestorious | April 2026</em></p>
+      <hr>
+      <h2>The Pattern</h2>
+      <p>Netscape spent nearly three years between major browser releases while it rewrote the codebase. <a href="https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/">Joel Spolsky wrote</a> that its market share plummeted during that gap. He called a rewrite from scratch &quot;the single worst strategic mistake that any software company can make&quot; because the working code held years of fixes and production knowledge that the replacement had not earned yet. The old code was ugly. It worked.</p>
+      <p>That does not mean every rewrite fails or every custom platform is a mistake. I care about a narrower pattern: a working path is replaced before the team understands its constraints, and the replacement gathers more responsibilities as it grows. It may look cleaner while becoming more coupled/fragile. The question is whether that new ownership solves a product problem worth owning.</p>
+      <p><a href="https://catholiclibrary.org/library/view?chunk.id=00000011&docId=%2FContemporary-EN%2FXCT.165.html">G.K. Chesterton described the first test in 1929</a>: before removing a fence or gate across a road, understand why it was put there. In software, the fence may be an awkward branch, duplicated check, or boring service that already encodes a failure the replacement has not seen.</p>
+      <p><a href="https://openlibrary.org/books/OL5044740M/The_mythical_man-month">Fred Brooks</a> described the ambition that follows. He called it the Second System Effect: the architect of the first system, having been restrained by budgets and deadlines, pours the deferred ideas into the second. &quot;The general tendency is to over-design the second system, using all the ideas and frills that were cautiously sidetracked on the first one.&quot;</p>
+      <p><a href="https://mcfunley.com/choose-boring-technology">Dan McKinley asks readers</a> to imagine that a company gets about three innovation tokens. He calls the number approximate, a way to describe limited attention rather than a measured budget. Spend those tokens on a novel database, deployment system, and secrets layer, and the team must learn how each fails while it is also trying to build the product. Spend all three, and even an outage can become a research project.</p>
+      <hr>
+      <h2>What Gets Complected</h2>
+      <p><a href="https://www.infoq.com/presentations/Simple-Made-Easy/">Rich Hickey&#39;s &quot;Simple Made Easy&quot;</a> gives the mechanism a name. Hickey contrasts <em>simplex</em>, one twist, with <em>complexus</em>, braided together, and uses <em>complect</em> for concerns that have been interleaved. Simple and easy are different properties: easy is familiar to a person, while simple describes a system whose concerns are not intertwined. A complected system can feel easy to its builders because they already carry the missing context.</p>
+      <p>A deployment platform might handle infrastructure state, secrets, CI orchestration, tenant configuration, and approvals in one codebase. Putting them together expands what an engineer must understand and change at once. Narrower tools can shrink that reasoning boundary even when they still depend on one another at runtime.</p>
+      <p><a href="https://sandimetz.com/blog/2016/1/20/the-wrong-abstraction">Sandi Metz reached the same problem through abstraction</a>: &quot;Duplication is far cheaper than the wrong abstraction.&quot; A unified platform may remove duplicated code, then recover every real difference through another conditional. Each exception makes the shared abstraction harder to change than the separate code it replaced.</p>
+      <p>Each conditional also increases how much of the system the team must hold in mind. <a href="https://margaretstorey.com/blog/2026/02/09/cognitive-debt/">Margaret-Anne Storey applied the existing term <em>cognitive debt</em> to software teams</a> in February 2026: system complexity can grow faster than the team&#39;s understanding of it. <a href="https://addyosmani.com/blog/comprehension-debt/">Addy Osmani calls the related gap <em>comprehension debt</em></a>, especially when AI increases the amount of code faster than anyone can explain it.</p>
+      <hr>
+      <h2>Stress Exposes the Ownership Model</h2>
+      <p>Nassim Taleb&#39;s <a href="https://www.penguinrandomhouse.com/books/176227/antifragile-by-nassim-nicholas-taleb/"><em>Antifragile</em></a> distinguishes systems that are harmed by stress, resist it, or gain from it. That taxonomy does not make a managed service antifragile or an internal platform fragile by definition. Whether either system gets stronger depends on what happens after a failure.</p>
+      <p>A managed service can improve when customer incidents become tested fixes for every tenant, but it can also spread one defect across them. An internal platform can improve if incidents produce structural checks, shared documentation, and ownership that survives the original team. It becomes fragile when each incident adds another exception while the required context concentrates in fewer people.</p>
+      <p>Brooks&#39;s communication formula helps explain one part of that risk. A team of <em>n</em> people can have <em>n</em>(<em>n</em> - 1) / 2 pairwise communication channels, so ten people can have 45 and one hundred can have 4,950. The formula describes pairwise coordination, not whether a one-person system can transfer knowledge. A bus factor of one becomes dangerous when that person&#39;s context is not documented or shared.</p>
+      <p>The <a href="https://www.computerworld.com/article/1725198/an-introduction-to-visible-ops.html"><em>Visible Ops Handbook</em></a> cites Gartner analysis that 80 percent of unplanned downtime came from people and process issues, including poor change management. That figure does not measure opacity. My concern is that opaque systems give reviewers less chance to see the effect of a change and responders fewer ways to recover without the original author.</p>
+      <p>The <a href="https://dora.dev/research/2024/dora-report/2024-dora-accelerate-state-of-devops-report.pdf">2024 DORA report</a> also undercuts the idea that slower change is automatically safer. Its elite cluster deployed on demand, reported a 5 percent change-fail rate, and recovered from failed deployments in under an hour. Its low-performing cluster deployed between monthly and twice yearly, reported a 40 percent change-fail rate, and recovered in one week to one month. The report does not blame complexity for the gap. It does show that the low-performing cluster delivered less often and was not safer.</p>
+      <hr>
+      <h2>Before You Build It</h2>
+      <p>Before building a deployment platform, I want one question answered: who already built the parts we would now own? Products such as <a href="https://spacelift.io/about-us">Spacelift</a>, <a href="https://github.com/features/actions">GitHub Actions</a>, and <a href="https://developer.hashicorp.com/terraform">Terraform</a> already cover parts of that stack. None is automatically the right fit. A custom build should still name the product-specific requirement those options cannot meet, along with the failures and maintenance the team is choosing to absorb.</p>
+      <p><a href="https://danluu.com/simple-architectures/">Dan Luu&#39;s case studies of billion-dollar companies with comparatively simple architectures</a> are a useful counterweight to the assumption that growth automatically demands a platform. Scale can justify custom infrastructure, but it does not do so by itself.</p>
+      <p>For a company whose product is not infrastructure, I would require a concrete advantage before spending scarce engineering attention on it. <a href="https://www.honeycomb.io/blog/future-ops-platform-engineering">Charity Majors calls developer cycles the scarcest resource in a company</a>, so outsourcing infrastructure can keep them on the product. A vendor may amortize reliability work across customers, but the team still has to verify that the vendor&#39;s incentives and boundaries match its own.</p>
+      <p>AI lowers the cost of starting a build while leaving the team responsible for maintaining the result. In a <a href="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/">2025 randomized trial</a>, 16 experienced open-source developers completed 246 tasks in mature repositories they knew well. With early-2025 AI tools, they took 19 percent longer while estimating that AI had made them 20 percent faster. METR warns against generalizing beyond that setting, and later tools may behave differently. The result still gives me a reason to measure the maintenance cost instead of assuming generated code removed it.</p>
+      <p>The <a href="https://dora.dev/research/2025/dora-report/">2025 DORA report</a> describes AI as an amplifier of organizational strengths and weaknesses. DORA uses a different capability set than Hickey, but the finding gives me a practical check: is AI accelerating a system with clear boundaries and executable checks, or merely producing more code around an unclear one?</p>
+      <p><a href="https://github.com/tgogos/kelsey-hightower-wisdom">Kelsey Hightower put the social cost plainly</a>: &quot;We tend to build overly complex solutions and dedicate our careers justifying their existence.&quot; Once a platform becomes the path to production, replacing it can threaten the work, status, and routines built around it. That is one way complexity starts protecting itself.</p>
+      <hr>
+      <h2>Convention and Structure</h2>
+      <p>In <a href="../knowledge-sidecar/">Verified Context Is the Moat</a>, I argued that a rule people must remember is weaker than one the system enforces. Consider a deployment pipeline where every code path must call a function that injects required configuration. The rule can be documented and understood, yet one missed call still ships a deployment without the configuration.</p>
+      <p>Now change the design so every deployment is validated for required variables before it can proceed. The implementation could be custom or managed. What matters is that the invalid state is rejected at the boundary instead of relying on every caller to remember the rule.</p>
+      <p>I see a related asymmetry between protection and verification in the <a href="../emergent-religion/">agent experiments I wrote about earlier</a>. Those experiments produced protection mechanisms without spontaneous verification. In an organization, sunk cost and operational dependency protect a platform automatically; checking whether it still earns its cost takes deliberate work.</p>
+      <hr>
+      <h2>Three Tests</h2>
+      <p><strong>Does more stress make this stronger?</strong> Name what changes after an incident. Tested fixes and shared context can strengthen the system; another undocumented exception and narrower ownership make it more fragile.</p>
+      <p><strong>What am I braiding together that should be separate?</strong> List the concerns that must be understood or changed together. If a secrets change requires tracing provisioning, tenant configuration, CI, and approvals, the reasoning boundary is already too wide.</p>
+      <p><strong>Who already solved this?</strong> List the managed and open-source options, then state the exact product requirement each one cannot meet. &quot;More flexibility&quot; is not enough unless the team prices the ownership that flexibility creates.</p>
+      <p>A custom platform can pass all three tests, and when it does, build it with explicit ownership. Without those answers, do not let it become the only path to production.</p>
+      <hr>
+      <h2>Sources</h2>
+      <h3>Foundational</h3>
+      <p>Chesterton, G.K. (1929). <a href="https://catholiclibrary.org/library/view?chunk.id=00000011&docId=%2FContemporary-EN%2FXCT.165.html"><em>The Thing</em>, &quot;The Drift from Domesticity.&quot;</a> The fence or gate example and the requirement to understand a structure before removing it.</p>
+      <p>Brooks, F. (1975). <a href="https://openlibrary.org/books/OL5044740M/The_mythical_man-month"><em>The Mythical Man-Month: Essays on Software Engineering</em>.</a> Addison-Wesley. The Second System Effect and pairwise communication channels.</p>
+      <p>Hickey, R. (2011). <a href="https://www.infoq.com/presentations/Simple-Made-Easy/">&quot;Simple Made Easy.&quot;</a> Strange Loop Conference. Simple versus easy and the cost of complecting concerns.</p>
+      <p>Taleb, N.N. (2012). <a href="https://www.penguinrandomhouse.com/books/176227/antifragile-by-nassim-nicholas-taleb/"><em>Antifragile: Things That Gain from Disorder</em>.</a> Random House. Fragile, robust, and antifragile systems.</p>
+      <h3>Software Engineering</h3>
+      <p>Spolsky, J. (2000). <a href="https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/">&quot;Things You Should Never Do, Part I.&quot;</a> Joel on Software. Netscape&#39;s rewrite and the production knowledge held in old code.</p>
+      <p>McKinley, D. (2015). <a href="https://mcfunley.com/choose-boring-technology">&quot;Choose Boring Technology.&quot;</a> Innovation tokens and the operational cost of novelty.</p>
+      <p>Metz, S. (2016). <a href="https://sandimetz.com/blog/2016/1/20/the-wrong-abstraction">&quot;The Wrong Abstraction.&quot;</a> &quot;Duplication is far cheaper than the wrong abstraction.&quot;</p>
+      <p>Luu, D. (2022). <a href="https://danluu.com/simple-architectures/">&quot;In Defense of Simple Architectures.&quot;</a> Case studies of billion-dollar companies running on comparatively simple technical foundations.</p>
+      <h3>Data and Reports</h3>
+      <p>DORA Team, Google Cloud. (2024). <a href="https://dora.dev/research/2024/dora-report/2024-dora-accelerate-state-of-devops-report.pdf"><em>Accelerate State of DevOps Report.</em></a> Software delivery performance clusters and their throughput and stability measures.</p>
+      <p>DORA Team, Google Cloud. (2025). <a href="https://dora.dev/research/2025/dora-report/"><em>State of AI-Assisted Software Development.</em></a> AI as an amplifier of existing organizational strengths and weaknesses.</p>
+      <p>METR. (2025). <a href="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/">&quot;Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity.&quot;</a> A randomized trial of 16 experienced developers completing 246 tasks in familiar open-source repositories.</p>
+      <p>Kim, G., Behr, K., &amp; Spafford, G. (2004). <a href="https://www.computerworld.com/article/1725198/an-introduction-to-visible-ops.html"><em>The Visible Ops Handbook.</em></a> People, process, and change-management sources of unplanned downtime.</p>
+      <h3>Complexity and Cognitive Load</h3>
+      <p>Storey, M.-A. (2026). <a href="https://margaretstorey.com/blog/2026/02/09/cognitive-debt/">&quot;Cognitive Debt.&quot;</a> Applying cognitive debt to the gap between software complexity and team understanding.</p>
+      <p>Osmani, A. (2026). <a href="https://addyosmani.com/blog/comprehension-debt/">&quot;Comprehension Debt.&quot;</a> The gap between code volume and human understanding.</p>
+      <h3>Industry Voices</h3>
+      <p>Hightower, K. (2019). <a href="https://github.com/tgogos/kelsey-hightower-wisdom">&quot;We tend to build overly complex solutions and dedicate our careers justifying their existence.&quot;</a></p>
+      <p>Majors, C. (2022). <a href="https://www.honeycomb.io/blog/future-ops-platform-engineering">&quot;The Future of Ops Is Platform Engineering.&quot;</a> Developer cycles as a scarce resource and the case for outsourcing infrastructure.</p>
+      <p>Grugbrain.dev. (2022). <a href="https://grugbrain.dev/">&quot;The Grug Brained Developer.&quot;</a> A developer-voice treatment of complexity, Chesterton&#39;s Fence, and premature abstraction.</p>
+    </article>
       <div class="footer">&#169; 2026 Jory Pestorious</div>
     </div>
-
-    <svg
-      version="1.1"
-      id="change"
-      role="img"
-      aria-label="Change background image"
-      tabindex="0"
-      xmlns="http://www.w3.org/2000/svg"
-      xmlns:xlink="http://www.w3.org/1999/xlink"
-      x="0px"
-      y="0px"
-      viewBox="0 0 452.025 452.025"
-      style="enable-background: new 0 0 452.025 452.025"
-      xml:space="preserve"
-    >
-      <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
-      <path d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
-      <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
-      <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
-      <path d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
-      <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
-      <path d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S154.412,24.025,161.012,24.025z" />
-      <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
-      <path d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
-      <path d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
-      <path d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
-      <path d="M210.312,197.125c-3.2,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
-      <path d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
-      <path d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
-      <path d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
-      <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
-      <path d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,171.925,13.212,171.925z" />
-      <path d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
-      <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,73.325,13.212,73.325z" />
-    </svg>
-
-    <script src="/js/marked.min.js"></script>
-    <script src="/js/blog-common.js?v=foundation-plus-5"></script>
+<script src="/js/blog-common.js?v=foundation-plus-5"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         BlogCommon.initAll({
-          markdownPath: "/blog/complexity-protects-itself/complexity-protects-itself.md",
-          backgroundSwitcher: true,
+
           scrollProgress: true,
           readingTime: false,
           lazyImages: true,

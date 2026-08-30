@@ -39,62 +39,72 @@
   <link rel="alternate" type="application/atom+xml" title="Engineering Notes" href="/blog/feed.xml">
   <link rel="stylesheet" href="/css/blog-common.css">
   <link rel="stylesheet" href="/css/blog-reader.css?v=foundation-plus-7">
+  <script type="application/ld+json" data-article-schema>
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "AI Engineer World's Fair 2025: Takeaways & Spec",
+      "description": "A June 2025 field note on Sean Grove's specification argument and a practical SPEC, EXPOSURE, TASK DELTA loop for turning observed product gaps into reviewable work.",
+      "image": "https://jorypestorious.com/jpg/jory-georgie-social.png",
+      "datePublished": "2025-06-15",
+      "dateModified": "2025-06-15",
+      "mainEntityOfPage": "https://jorypestorious.com/blog/ai-engineer-spec/",
+      "author": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
 </head>
 
 <body>
   <div id="bg"></div>
   <a href="/blog/" class="home-link">Blog</a>
   <div class="container">
-    <article class="markdown-body" id="content">
-      <!-- Reading time will be displayed here -->
-      <div class="reading-time text-muted mb-2"></div>
-      <!-- Content will be loaded here -->
+    <article class="markdown-body" id="content" data-markdown-source="/blog/ai-engineer-spec/2025-ai-engineers-world-fair-takeaways-spec.md">
+      <h1>AI Engineer World&#39;s Fair 2025: Takeaways &amp; Spec</h1>
+      <p><em>By Jory Pestorious | San Francisco, June 2025</em></p>
+      <p>At the AI Engineer World&#39;s Fair in San Francisco, Sean Grove&#39;s argument about specifications gave me a better way to describe the work around generated code. In <a href="https://www.riseos.com/blog/2025-06-15-the-new-code/">“The New Code”</a>, his essay based on the talk, Grove estimates that coding occupies 10 to 20 percent of his time. He spends the rest talking with users, distilling what he learns, planning, sharing the plan, and checking the result. His point is that structured communication becomes the bottleneck.</p>
+      <p>I came home with three labels for that loop: SPEC, EXPOSURE, and TASK DELTA. They are my synthesis, not a result measured at the conference. The framework records what a team intends to build, what users can actually observe, and the work required to close the difference.</p>
+      <h2>SPEC, EXPOSURE, and TASK DELTA</h2>
+      <p><strong>SPEC</strong> is the intended behavior. The spec names the user, the action, the constraints, and the evidence that will count as success. A useful spec can live in version-controlled Markdown. When discussion needs comments or sketches, a collaborative document can feed the final record, but the approved decision still needs one durable home.</p>
+      <p><strong>EXPOSURE</strong> is the behavior a customer can observe. Exposure includes the interface, errors, latency, permissions, and recovery path. Source code can explain an implementation, but it does not replace checking the running product.</p>
+      <p><strong>TASK DELTA</strong> is a specific difference between the two. If the spec requires keyboard operation and the product traps focus, that mismatch becomes a task with a reproducible check. A passing check closes the task; another tool or architecture does not create work by itself.</p>
+      <p>Together, the three labels form a five-step loop. The loop stops when the product meets the recorded success criteria:</p>
+      <ol>
+      <li>Write the behavior and success criteria.</li>
+      <li>Build or change the product.</li>
+      <li>Observe the result under the stated conditions.</li>
+      <li>Record each mismatch as a bounded task.</li>
+      <li>Recheck the product after the task lands.</li>
+      </ol>
+      <p>The comparison does not prove that a specification improves productivity. No measured before-and-after result exists for this framework. This method gives the team a reviewable basis for deciding whether generated output is correct.</p>
+      <h2>Put evidence beside the decision</h2>
+      <p>Teams should put the evidence needed to understand a decision in the spec, not every artifact they can collect. Customer feedback can establish the problem. A design can establish the intended interaction. A bug report, test failure, or production trace can establish the observed behavior. Each source needs an owner, access boundary, and retention rule before it is copied into an AI system. Slack messages, meeting transcripts, customer data, credentials, and internal logs do not become safe to share because they might improve context.</p>
+      <p>Start with shared Markdown because teammates can inspect and diff it. Add temporal memory, semantic retrieval, or graph relationships only when a concrete retrieval failure justifies them. A memory system that no one can audit can make stale context harder to find instead of easier.</p>
+      <h2>Parallel work still needs ownership</h2>
+      <p>Git worktrees let separate processes work on separate branches without sharing a working directory. Containers can provide a repeatable environment and one useful isolation boundary. A secrets manager such as <a href="https://1password.com/">1Password</a> can keep credentials out of prompts and repository files. None of these controls decides which changes belong together.</p>
+      <p>Parallel work is easiest to review when the spec divides it along clear interfaces. One branch can change the implementation, another can add the acceptance test, and a third can update the documentation, provided one person owns integration and checks the combined behavior. When tasks overlap in the same files or assumptions, running more agents creates merge and review work instead of removing it.</p>
+      <p>Static analysis catches classes of syntax and type errors. Tests check stated examples and invariants. A comparison against the spec checks whether the requested behavior survived implementation.</p>
+      <p>Production monitoring and user reports reveal conditions the earlier checks missed. An LLM can help locate a mismatch, but its review is another input, not proof that the product is correct. My conference note, <code>Bug prevention &gt; Bug squashing</code>, means comparing the implementation with the spec before users have to report the difference.</p>
+      <h2>The conference WiFi test</h2>
+      <p>When the conference WiFi failed during workshops, I watched cloud-dependent demonstrations stop. The failure did not show that local models were better, or that every team needed one. The outage showed that a workshop relying on a network service needed a tested fallback. For a demonstration, that might be a recording, a cached result, or a local path that has already been exercised on the presentation machine.</p>
+      <p>Simon Willison&#39;s <a href="https://simonwillison.net/2025/Jun/6/six-months-in-llms/">pelicans-on-bicycles comparison</a> makes a related point about evaluation. A fixed, inspectable task tells me more than a general claim that one model or tool is better. The same discipline applies to a specification: hold the requested behavior steady, then compare the product with it.</p>
+      <h2>What the framework changes</h2>
+      <p>The conference does not establish a productivity gain or return-on-investment multiple, and it does not identify a winning tool stack. Tool names, prices, and model rankings change too quickly to carry the argument. The durable part is the comparison between a recorded decision and observable behavior.</p>
+      <p>Someone must be able to use the specification to judge the product. SPEC records the decision. EXPOSURE supplies the evidence. TASK DELTA names the next piece of work. The comparison record lets a team change the code without losing the reason for the change.</p>
     </article>
     <div class="footer">© 2026 Jory Pestorious</div>
   </div>
   
   <!-- Background switcher SVG -->
-  <svg version="1.1" id="change" role="img" aria-label="Change background image" tabindex="0" xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
-    style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve">
-    <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5
-        s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65
-        v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
-    <path d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1
-        C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
-    <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3
-        c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5
-        s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
-    <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
-    <path d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
-    <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
-    <path d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S154.412,24.025,161.012,24.025z" />
-    <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
-    <path d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
-    <path d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
-    <path d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
-    <path d="M210.312,197.125c-3.2,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
-    <path d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
-    <path d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
-    <path d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
-    <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
-    <path d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,171.925,13.212,171.925z" />
-    <path d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
-    <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,73.325,13.212,73.325z" />
-  </svg>
-
-  <!-- Scripts -->
-  <script src="/js/marked.min.js"></script>
-  <script src="/js/blog-common.js?v=foundation-plus-5"></script>
+<!-- Scripts -->
+<script src="/js/blog-common.js?v=foundation-plus-5"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       BlogCommon.initAll({
-        markdownPath: '/blog/ai-engineer-spec/2025-ai-engineers-world-fair-takeaways-spec.md',
-        backgroundSwitcher: true,
+
         scrollProgress: true,
         readingTime: true,
         lazyImages: true,

@@ -40,6 +40,23 @@
   <link rel="alternate" type="application/atom+xml" title="Engineering Notes" href="/blog/feed.xml">
   <link rel="stylesheet" href="/css/blog-common.css">
   <link rel="stylesheet" href="/css/blog-reader.css?v=foundation-plus-7">
+  <script type="application/ld+json" data-article-schema>
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Friction Economy: Unconscious Productivity Drains in Development Workflows",
+      "description": "Prompt retrieval, directory recall, code search, Git review, permission scopes, and background jobs each get one inspectable test: remove mechanical steps without weakening the result or its decision boundaries.",
+      "image": "https://jorypestorious.com/blog/friction-economy/def-foo-efficiency-spectrum-optimized.png",
+      "datePublished": "2025-10-15",
+      "dateModified": "2025-10-15",
+      "mainEntityOfPage": "https://jorypestorious.com/blog/friction-economy/",
+      "author": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
 </head>
 
 <body>
@@ -47,59 +64,114 @@
   <a href="/blog/" class="home-link">Blog</a>
   
   <div class="container">
-    <article class="markdown-body" id="content">
-      <!-- Reading time will be displayed here -->
-      <div class="reading-time text-muted mb-2"></div>
-      <!-- Content will be loaded here -->
+    <article class="markdown-body" id="content" data-markdown-source="/blog/friction-economy/friction-economy-vim-philosophy.md">
+      <h1>Friction Economy: Unconscious Productivity Drains in Development Workflows</h1>
+      <p><strong>A test for removing repeated steps without weakening review, permissions, or results</strong></p>
+      <p><em>By Jory Pestorious</em></p>
+      <p>In a 1999 interview quoted by <em>The Register</em>, Bill Joy said he wrote vi over several months while using a home terminal and a 300-baud modem. The slow connection made every screen update and round trip visible. Vi answered that constraint with a compact command language for moving through and changing text. For current development work, ask which repeated steps a command can remove without removing a decision the work still needs.</p>
+      <p>A code review, a permission decision, and confirmation before a destructive command carry information and responsibility. The friction worth removing is mechanical work that begins after the decision is already made: rebuilding a directory path, reconstructing search flags, finding the same prompt, or translating a schedule into cron syntax.</p>
+      <p><img src="def-foo-efficiency-spectrum-optimized.png" alt="Developer at a keyboard with Vim, React, FastAPI, and a permission dialog around the workstation">
+      <em>A developer works at a keyboard while editing, framework, and permission tools surround the workstation.</em></p>
+      <h2>What vi makes visible</h2>
+      <p>Classic vi combines counts, operators, and motions. <code>$</code> moves to the end of a line, <code>5w</code> moves five words, and <code>d$</code> deletes from the cursor to the line ending. Modern Vim adds text objects such as <code>ci&quot;</code> for changing text inside quotes and <code>da(</code> for deleting a parenthesized expression. Macro recording can replay a verified edit when the same transformation appears again.</p>
+      <p>Vi and Vim commands replace cursor choreography with a description of the intended edit. The commands do not prove that Vim makes every developer faster. They show exactly which operations a command removes, so the user can compare the old and new paths.</p>
+      <p>Apply the same comparison to each workflow below. Name the repeated operation, show the replacement, define the expected result, and preserve any check that protects the work.</p>
+      <h2>Retrieving a prompt</h2>
+      <p>Prompt reuse often involves two separate decisions: which prompt applies and what task data belongs in it. Reopening a browser conversation does not improve either decision. The browser search only retrieves text.</p>
+      <p><a href="https://docs.rs/crate/prompthive/0.2.8">PromptHive 0.2.8</a> stores prompts locally and exposes them through <code>ph</code>. A standalone <code>ph use</code> copies the rendered prompt. In a pipeline, it writes the prompt to standard output:</p>
+      <pre><code class="language-bash">ph use essentials/debug &quot;timeout error in auth service&quot;
+      ph use essentials/debug &quot;timeout error in auth service&quot; | claude -p
+      </code></pre>
+      <p>The versioned documentation reports core operations under 15 milliseconds, but that is the project documentation&#39;s measurement. I did not reproduce its benchmark here. The inspectable change is simpler: the named prompt and its task text move from one command into the next process without a browser search or clipboard round trip.</p>
+      <p>The pipeline still needs a trusted working directory and reviewed input. Claude Code print mode skips the workspace-trust dialog, and a prompt can carry secrets or untrusted instructions just as any other input can.</p>
+      <h2>Recalling a directory</h2>
+      <p>A long <code>cd</code> command makes the user reconstruct from memory a full path they have already visited. The destination is known; only the path recall repeats:</p>
+      <pre><code class="language-bash">cd ~/projects/backend/src/services/auth
+      # Where was I going again?
+      </code></pre>
+      <p><a href="https://github.com/ajeetdsouza/zoxide/releases/tag/v0.9.8">zoxide 0.9.8</a> ranks visited directories using frequency and recency. After it has learned the path, the same destination can be requested with a few distinguishing terms:</p>
+      <pre><code class="language-bash">z auth
+      z proj be
+      z -
+      </code></pre>
+      <p>Zoxide replaces path reconstruction with a lookup in its directory database. Zoxide can choose the wrong match when names overlap, so <code>pwd</code> remains useful before a command that changes or deletes data.</p>
+      <h2>Searching the intended files</h2>
+      <p>A search command is only shorter if it preserves the intended result set. <a href="https://github.com/BurntSushi/ripgrep/tree/14.1.1">ripgrep 14.1.1</a> searches recursively with parallel traversal. Ripgrep respects ignore files by default:</p>
+      <pre><code class="language-bash">rg authenticate -g &#39;*.js&#39; -g &#39;*.ts&#39;
+      rg authenticate | fzf
+      </code></pre>
+      <p>Ripgrep&#39;s defaults are useful in a repository, but they are not identical to <code>grep -r</code>. Ripgrep skips hidden and ignored files unless asked otherwise. A comparison must first define the intended file set, including whether ignored or hidden files belong in the answer.</p>
+      <p>The ripgrep project publishes several benchmarks and warns that one benchmark is not enough. Search the same corpus with the same pattern and output requirements before making a speed claim.</p>
+      <p>For syntax-aware searches, <a href="https://github.com/ast-grep/ast-grep/releases/tag/0.39.6">ast-grep 0.39.6</a> matches abstract syntax tree patterns instead of plain text. Use it when the question depends on code structure.</p>
+      <h2>Reviewing Git state</h2>
+      <p>One Git path uses a separate command for each stage. The staging command presents each hunk for a decision. The commit message and push destination remain visible at their decision points:</p>
+      <pre><code class="language-bash">git add -p
+      git commit -m &quot;fix: resolve auth timeout&quot;
+      git push origin feature/auth-fix
+      </code></pre>
+      <p><a href="https://github.com/jesseduffield/lazygit/releases/tag/v0.55.1">lazygit 0.55.1</a> puts file state, patches, branches, commits, and push actions in one terminal interface. Lazygit can remove flag recall and window switching. The interface must preserve patch review before a commit and the branch check before a push.</p>
+      <pre><code class="language-text">lazygit
+      Space  stage the selected file or hunk
+      c      commit
+      P      push
+      </code></pre>
+      <p>Compare whether the candidate makes the changed lines and destination branch easier to verify. If it saves typing while making the patch less visible, it has moved the cost into review risk.</p>
+      <h2>Permission prompts carry decisions</h2>
+      <p>Operating-system privacy dialogs and Claude Code tool approvals are different systems. <code>--allowedTools</code> can change Claude Code&#39;s approval behavior. The flag cannot dismiss a macOS prompt that asks whether Python may access Documents.</p>
+      <p>Claude Code 2.0.17 accepts narrow tool patterns. A test-report task can allow the existing Cargo test command without granting arbitrary shell commands or edit tools:</p>
+      <pre><code class="language-bash">claude --allowedTools &quot;Bash(cargo test:*)&quot; -p \
+        &quot;Run cargo test and report failures. Do not edit source files.&quot;
+      </code></pre>
+      <p>Run print mode only in a trusted directory. <code>cargo test</code> compiles and executes repository code and can write build artifacts. Check the input for credentials, customer data, proprietary material, internal URLs, and instructions copied from an untrusted source. The allowlist removes arbitrary Bash and edit tools; it does not make repository code safe or validate the final conclusion.</p>
+      <p>The broad <code>Bash,Read,Write</code> form grants arbitrary shell and write access for a task that only needs a test report. <code>--dangerously-skip-permissions</code> is not a shortcut for ordinary work. In this release, its own help text recommends use only inside a sandbox without internet access.</p>
+      <h2>Moving work into the background</h2>
+      <p><a href="/blog/calmhive/">Calmhive 15.2.0</a> can run Claude Code iterations outside the foreground terminal and report session progress while the developer works elsewhere. The AFK request below asks for a read-only inventory:</p>
+      <pre><code class="language-bash">calmhive afk &quot;inspect the test suite and list duplicated setup; do not edit files&quot; --iterations 3
+      calmhive progress afk-01234567-abcd1234
+      </code></pre>
+      <p>Calmhive prints the session ID; replace the example ID on the second line with that value. The background process moves waiting out of the terminal. Background iterations do not prove that the task is finished or correct. Review the repository diff and final report.</p>
+      <p>The same release accepts natural language for schedule time while keeping an executable command as the scheduled action. The command below creates a disabled test schedule for inspection:</p>
+      <pre><code class="language-bash">calmhive schedule create &quot;every weekday at 9am&quot; \
+        &quot;cd /path/to/project &amp;&amp; npm test&quot; \
+        --disabled --name &quot;Integration tests&quot;
+      calmhive schedule list
+      </code></pre>
+      <p>The release calls Claude Code to interpret the schedule. The parser is not a deterministic local conversion from English to cron. The second argument is a shell command that the scheduler executes verbatim. The schedule record does not store a working directory, so put the project directory in the command. Create it disabled, inspect the generated schedule and command, then enable it.</p>
+      <p>Calmhive&#39;s bundled allowlist includes all 15 core tools and roughly 70 MCP tools, including unrestricted Bash and Write. Calmhive therefore supplies broad preapproval, not a safety review. Use it only where every granted capability is acceptable, and keep credentials and untrusted content outside the run.</p>
+      <h2>Run one comparison</h2>
+      <p>I did not compare the listed tools against one another. Before treating one as an improvement, run the same task against the same repository and input with pinned tool versions.</p>
+      <ol>
+      <li>Write the acceptable result before changing the workflow.</li>
+      <li>Record the current path from lookup through result checking, including any approval or recovery step.</li>
+      <li>Change one layer at a time.</li>
+      <li>Compare the result and elapsed time. Include the time spent on corrections and permission review.</li>
+      <li>Keep the change only if it removes mechanical work without weakening the result or its decision boundaries.</li>
+      </ol>
+      <p>A faster search may inspect a different file set. A prompt shortcut may retrieve stale instructions. A background agent may finish after making edits that cost more to review than the foreground work it replaced.</p>
+      <p>Vi remains useful here because its command language makes the removed operation visible. Apply that test to the rest of the workflow. If a shortcut hides a permission decision, changes the result set, or adds more review than it removes, the shortcut has moved friction into review or risk.</p>
+      <h2>Sources</h2>
+      <ul>
+      <li><a href="https://www.theregister.com/2003/09/11/bill_joys_greatest_gift/">Bill Joy&#39;s 1999 account of writing vi over a 300-baud connection</a>, quoted by <em>The Register</em> in 2003</li>
+      <li><a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/vi.html">POSIX vi command reference</a> and <a href="https://vimhelp.org/usr_10.txt.html">Vim command recording documentation</a></li>
+      <li><a href="https://docs.rs/crate/prompthive/0.2.8">PromptHive 0.2.8 documentation</a>, July 9, 2025</li>
+      <li><a href="https://www.npmjs.com/package/@anthropic-ai/claude-code">Claude Code on npm</a>, version 2.0.17 used for the permission examples</li>
+      <li><a href="https://www.npmjs.com/package/@calmhive/calmhive-cli">Calmhive on npm</a>, version 15.2.0 used for the background and schedule examples</li>
+      <li><a href="https://github.com/ajeetdsouza/zoxide/releases/tag/v0.9.8">zoxide 0.9.8</a>, <a href="https://github.com/BurntSushi/ripgrep/tree/14.1.1">ripgrep 14.1.1</a>, <a href="https://github.com/jesseduffield/lazygit/releases/tag/v0.55.1">lazygit 0.55.1</a>, and <a href="https://github.com/ast-grep/ast-grep/releases/tag/0.39.6">ast-grep 0.39.6</a></li>
+      </ul>
     </article>
     <div class="footer">© 2026 Jory Pestorious</div>
   </div>
   
   <!-- Background switcher SVG -->
-  <svg version="1.1" id="change" role="img" aria-label="Change background image" tabindex="0" xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
-    style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve">
-    <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5
-        s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65
-        v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
-    <path d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1
-        C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
-    <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3
-        c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5
-        s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
-    <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
-    <path d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
-    <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
-    <path d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S154.412,24.025,161.012,24.025z" />
-    <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
-    <path d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
-    <path d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
-    <path d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
-    <path d="M210.312,197.125c-3.2,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
-    <path d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
-    <path d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
-    <path d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
-    <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
-    <path d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,171.925,13.212,171.925z" />
-    <path d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
-    <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,73.325,13.212,73.325z" />
-  </svg>
-
-  <!-- Preload critical resources -->
+<!-- Preload critical resources -->
   <link rel="preload" href="/blog/friction-economy/friction-economy-vim-philosophy.md" as="fetch" crossorigin>
   
   <!-- Scripts -->
-  <script src="/js/marked.min.js"></script>
-  <script src="/js/blog-common.js?v=foundation-plus-5"></script>
+<script src="/js/blog-common.js?v=foundation-plus-5"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       BlogCommon.initAll({
-        markdownPath: '/blog/friction-economy/friction-economy-vim-philosophy.md',
-        backgroundSwitcher: true,
+
         scrollProgress: true,
         readingTime: true,
         lazyImages: true,

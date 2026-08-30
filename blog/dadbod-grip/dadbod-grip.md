@@ -1,116 +1,85 @@
 # Edit Database Tables Like Vim Buffers
 
-**dadbod-grip v3.3.3 keeps database investigation inside Neovim while making row mutations visible before execution.**
+**Dadbod Grip is a standalone database client for Neovim. It follows relationships, runs SQL, edits result grids, and shows the exact mutation batch before it reaches the database.**
 
-*By Jory Pestorious | March 2026*
+*By Jory Pestorious | March 2026; updated August 2026*
 
-> **Now Available**: [GitHub](https://github.com/joryeugene/dadbod-grip.nvim) | [Documentation](https://jorypestorious.com/dadbod-grip-web/)
+Dadbod Grip is available on [GitHub](https://github.com/joryeugene/dadbod-grip.nvim), and the [interactive walkthrough](https://jorypestorious.com/dadbod-grip-web/) covers the complete workspace.
 
 <p align="center">
-<img src="mascot.gif" width="140" alt="Chonk, the dadbod-grip mascot"><br>
+<img src="mascot.gif" width="140" alt="Chonk, the Dadbod Grip mascot"><br>
 <sub><b>Chonk</b></sub>
 </p>
 
-## Start With the Bad Roll
+## Start With the Incident
 
-`ULTRA_BUDGET_XTRM` has a softness score of 0.0, a tensile strength of 2.1, and a `discontinued` flag set to false. It is the first bad fact in dadbod-grip's bundled [Softrear Analyst Portal](https://github.com/joryeugene/dadbod-grip.nvim/blob/d250cfdbcb7af47ba6142c034d9442bb6efbe40e/demo/softrear-internal.md), a fictional seventeen-table SQLite database built to exercise the plugin without touching a real system. It also has a consumer incidents table with something in it that should not be there.
+`ULTRA_BUDGET_XTRM` has a softness score of 0.0, a tensile strength of 2.1, and a `discontinued` flag set to false. It is the first bad fact in Dadbod Grip's bundled [Softrear demo database](https://github.com/joryeugene/dadbod-grip.nvim/blob/main/demo/softrear-internal.md). The same roll appears in a severity 9 consumer incident: "Open floor plan. No music. The third floor is now the second floor people."
 
-The next query finds a severity 9 incident for the same roll: "Open floor plan. No music. The third floor is now the second floor people." Four foreign keys lead from that incident to a recalled production batch, a facility with a 3.2 vibe score, and a supplier called Bamboo Don whose relationship status is `embargo`.
+The incident points to a recalled production batch, the batch points to a facility with a 3.2 vibe score, and the supplier relationship is marked `embargo`. I can follow that chain without leaving the database workspace. `<C-CR>` runs the query block under my cursor. `f` filters by the current cell, `gf` follows a foreign key, and `<C-o>` returns to the previous table. `K` turns the row into a vertical record, while `4` opens the entity-relationship map.
 
-I can investigate that chain without leaving one Neovim workspace. `<C-CR>` runs the query block under my cursor. `f` filters the grid by the current cell, `gf` follows a foreign key, and `<C-o>` returns to the prior table. `K` turns the current row into a vertical record, while `4` opens the complete entity-relationship map. The motion follows Vim's `:find` rhythm: follow the reference, explore, come back.
-
-I can open `rolls`, press `i` on the `discontinued` cell, and stage `true`. The row turns violet, but the database has not changed. `gs` shows the generated `UPDATE`; `a` sends the staged batch to the active database CLI.
+Once the evidence reaches `rolls`, I can press `i` on the `discontinued` cell and stage `true`. The row changes color, but the database does not change. `gs` renders the pending `UPDATE`, and `a` applies the same reviewed batch.
 
 <p align="center">
-<img src="live.png" alt="dadbod-grip: schema sidebar, query pad, and editable grid with color-coded mutations" width="900">
+<a href="/jpg/process/dadbod-grip-full-workspace.png"><img src="/jpg/process/dadbod-grip-full-workspace.png" alt="Dadbod Grip showing an expanded schema, a filtered query, staged delete, update, and clone rows, and the exact generated SQL in Neovim" width="900"></a>
 </p>
 
-The records, relationships, and generated SQL stay in one workspace, with no copy-paste circuit between exploration and mutation. I wanted database work to feel keyboard-native and reviewable: follow the evidence quickly, then slow down where exploration becomes a write.
+The point is not that a terminal grid can imitate a spreadsheet. The record, its relationships, the query that found it, the proposed edits, and the SQL those edits produce remain in one navigable workspace.
 
-## The Mutation Stays Visible
+## A Write Begins as Editor State
 
-The grid uses a small set of editing actions:
+Dadbod Grip treats a cell edit, row clone, insertion, or deletion as reversible Neovim state. `i` edits a cell, `d` stages a deletion, `o` inserts a row, and `c` clones the current row with its primary key cleared. None of those actions writes to the database.
 
-```
-:GripConnect    -> pick a connection -> schema sidebar + query pad open
-<CR>            -> open a table in an editable grid
-i               -> edit a cell (row turns violet)
-d               -> stage a delete (row turns red)
-o               -> insert a new row (row turns green)
-c               -> clone the current row as a staged INSERT (PKs cleared)
-gs              -> preview the staged UPDATE / DELETE / INSERT statements
-a               -> send the staged batch to the active database CLI
-```
+`gs` opens the complete `UPDATE`, `DELETE`, and `INSERT` batch. `gl` keeps that SQL visible in a live preview while the staged state changes. The preview and apply paths call the same statement builders in [`sql.lua`](https://github.com/joryeugene/dadbod-grip.nvim/blob/main/lua/dadbod-grip/sql.lua), so the batch under review is the batch Grip sends through the selected adapter.
 
-`gl` enables a floating preview that updates as I stage edits. Without that float, `gs` shows the pending batch on demand. Query-pad mutations use a separate parser. It can show affected rows for supported `UPDATE`, `DELETE`, and literal `INSERT` forms, but `INSERT ... SELECT` does not produce a reliable row preview. I review the statement itself when the parser cannot show its effect.
+Local undo reaches fifty staged changes, and redo uses `<C-r>`. After a successful apply, Grip can also generate compensating statements for recent batches. That second path is deliberately best effort. An autogenerated key may not identify an inserted row later, and database output may not preserve the difference between `NULL` and an empty string.
 
-At the publication-era [`d250cfd` revision](https://github.com/joryeugene/dadbod-grip.nvim/tree/d250cfdbcb7af47ba6142c034d9442bb6efbe40e), [`data.lua`](https://github.com/joryeugene/dadbod-grip.nvim/blob/d250cfdbcb7af47ba6142c034d9442bb6efbe40e/lua/dadbod-grip/data.lua) returns a new top-level state for each edit and copies its mutable change collections. [`sql.lua`](https://github.com/joryeugene/dadbod-grip.nvim/blob/d250cfdbcb7af47ba6142c034d9442bb6efbe40e/lua/dadbod-grip/sql.lua) turns that state into escaped `UPDATE`, `DELETE`, and `INSERT` strings. The apply path in [`init.lua`](https://github.com/joryeugene/dadbod-grip.nvim/blob/d250cfdbcb7af47ba6142c034d9442bb6efbe40e/lua/dadbod-grip/init.lua) calls the same statement builders, adds `BEGIN` and `COMMIT`, and passes the script to the selected CLI adapter.
+The engine still defines transaction behavior. Grip wraps a mutation batch in a transaction, but an adapter or database client can handle statement errors differently. I reproduced an SQLite case where an earlier valid statement remained committed after a later constraint failure. After any apply error, I inspect the database before retrying the batch.
 
-Shared builders keep the reviewed DML and the sent DML tied to the same staged state. They cannot guarantee that every CLI treats an error as an all-or-nothing batch. I reproduced that limit with SQLite: one valid `INSERT`, followed by an `INSERT` that violated a `NOT NULL` constraint, printed an error while the first row remained committed. dadbod-grip then kept the full staged batch because the CLI returned an error. Retrying that batch unchanged could repeat a statement that already ran.
+## One Client Owns the Whole Investigation
 
-I inspect the database after any apply error instead of trusting the rollback message. I also review the SQL and keep a real backup before changing data. The confirmation prompt does not provide either protection.
+Dadbod Grip does not wrap vim-dadbod or hand query execution to another Neovim database plugin. It discovers labeled Docker databases, reads saved connection profiles, selects its own command-line adapter, and opens the schema sidebar, query pad, and result grid together. Existing `g:db` and `g:dbs` values are optional compatibility inputs.
 
-Local staging undo goes fifty changes deep, with `<C-r>` for redo. After an apply that the CLI reports as successful, dadbod-grip records up to ten batches of compensating statements. That second undo path is best effort: an autogenerated key can make an inserted row hard to identify later, and some CLI output cannot preserve the difference between `NULL` and an empty string.
+The workspace carries the investigation beyond the first query. `gf` follows foreign keys, reverse relationships remain available, and `4` maps the schema. Views `5` through `9` show statistics, columns, foreign keys, indexes, and constraints. Query Doctor formats an `EXPLAIN` plan, `gD` compares two tables by primary key, and exports can leave as CSV, TSV, JSON, SQL, Markdown, or a boxed table.
 
-## Follow the Record, Then Change It
+Saved SQL lives in `.grip/queries/`, and Markdown files can run selected SQL blocks or the block under the cursor. Built-in completion understands tables, columns, aliases, and attached schemas. The same completion can feed nvim-cmp or blink.cmp when either is already present.
 
-The workspace has three main surfaces: `1` opens the schema sidebar, `2` opens the query pad, and `3` returns to the grid. Keys `5` through `9` replace the grid with statistics, column definitions, foreign keys, indexes, or constraints for the current table. Key `4` opens the full ER map. Its tree-spine layout arranges tables by foreign-key depth and shows primary keys, foreign keys, and a column summary. The map supports `j`/`k`, `Tab`/`Shift-Tab`, `<CR>` to open a table, `f` to follow a relationship, and `H` to move back through its breadcrumb trail.
+The complete command surface is in the [keymap reference](https://github.com/joryeugene/dadbod-grip.nvim/blob/main/KEYMAPS.md).
 
-`f` adds a filter for the current cell, `<C-f>` accepts a freeform `WHERE` clause, and `gF` opens a builder with operators including `LIKE`, `NOT LIKE`, `IS NULL`, `IS NOT NULL`, and `>=`. `gp` loads a saved filter preset; `gP` saves the current filters. `s` toggles the current column between ascending and descending, while `S` adds another sort tier.
+## DuckDB Joins the Sources That Belong Together
 
-`c` clones a row as a staged insert with its primary keys cleared. Visual mode can set, delete, or null several rows at once. Negative numbers render red, booleans render green or red, and past timestamps dim. `-` hides a grid column, `g-` restores hidden columns, and `gH` opens a visibility picker.
+A database investigation rarely respects one connection boundary. A shipment can live in PostgreSQL while its supplier record sits in SQLite, and the analyst may receive a Parquet file that belongs in the same query. With DuckDB active, `:GripAttach` adds PostgreSQL, MySQL, SQLite, or MotherDuck catalogs to the session. `:GripOpen` opens Parquet, CSV, TSV, JSON, NDJSON, JSONL, XLSX, and supported HTTPS sources.
 
-`:GripCreate` opens the table designer. In the properties view, `R` renames a column, `+` adds one, and `D` starts the drop-column flow. Dropping a table from the schema browser also uses `D`, requires typed confirmation, and shows dependency information before execution.
-
-`gS` shows distinct values, nulls, min/max, and top values for the current column. `gR` profiles every column with completeness, cardinality, distributions, and top values where they apply. Query Doctor (`gx`) formats an `EXPLAIN` plan with cost bars and heuristic index suggestions, while `gD` compares two tables by primary key. `gE` copies the current result as CSV, TSV, JSON, SQL `INSERT`, Markdown, or Grip Table box drawing; `gX` writes an export file.
-
-Saved queries live under `.grip/queries/` for the project. `:GripHistory` reads timestamped SQL from `.grip/history.jsonl`. Those files can contain query literals, and saved connection URLs in `.grip/connections.json` can contain embedded credentials. I keep `.grip/` out of version control and do not save passwords in connection URLs. SQL completion covers tables, columns, aliases, and keywords, with an optional `dadbod_grip` source for nvim-cmp.
-
-The complete command surface is in the publication-era [keymap reference](https://github.com/joryeugene/dadbod-grip.nvim/blob/d250cfdbcb7af47ba6142c034d9442bb6efbe40e/KEYMAPS.md).
-
-## DuckDB Connects the Edges
-
-When the active connection is DuckDB, `:GripAttach` can add PostgreSQL, MySQL, SQLite, or MotherDuck catalogs to the session. The PostgreSQL and SQLite paths load their DuckDB scanner extensions as needed. Ordinary SQL can then join across those catalogs:
+The query remains ordinary SQL:
 
 ```sql
-SELECT pg.customers.name, legacy.orders.total, cloud.analytics.ltv
-FROM pg.customers
-JOIN legacy.orders ON pg.customers.id = legacy.orders.customer_id
-JOIN cloud.analytics ON pg.customers.id = cloud.analytics.user_id
+SELECT
+  shipment.shipment_date,
+  shipment.status,
+  supplier.real_name,
+  supplier.relationship_status
+FROM supplier.shipments AS shipment
+JOIN softrear.bamboo_cartel_members AS supplier
+  ON supplier.real_name = shipment.supplier_name
+ORDER BY shipment.shipment_date DESC;
 ```
 
-```vim
-:GripAttach postgres:dbname=production host=localhost user=me  prod
-:GripAttach sqlite:legacy.db  legacy
-:GripAttach md:cloud_analytics  cloud
-```
+<p align="center">
+<a href="/jpg/process/dadbod-grip-live.png"><img src="/jpg/process/dadbod-grip-live.png" alt="Dadbod Grip joining shipment records from an attached supplier database with Softrear supplier records while schema-qualified completion remains open" width="900"></a>
+</p>
 
-`:GripAttach` updates the active session. When a DuckDB connection is saved in the project's `.grip/connections.json`, dadbod-grip records its attachments there and restores them on reconnect. That file stores the connection URL as written, so it belongs outside the repository and should not contain a password.
+The attachment, both schemas, schema-qualified completion, the query, and the joined result remain visible in the same session. Project connections can remember attachments in `.grip/connections.json`. Because that file can contain connection URLs, it belongs outside version control and should never carry an embedded password.
 
-Files and HTTPS URLs enter through `:GripOpen`, not `:GripAttach`:
+Local files can also open in write mode. Grip stages the grid edits, asks for destructive confirmation, and has DuckDB rewrite the file. That is an export-and-overwrite operation, not a byte-preserving edit. HTTPS sources stay read-only, and watch mode pauses whenever the grid contains staged changes.
 
-```vim
-:GripOpen ~/data/report.parquet
-:GripOpen https://raw.githubusercontent.com/plotly/datasets/master/2014_usa_states.csv
-```
+## Install Dadbod Grip
 
-Local write mode accepts Parquet, CSV, TSV, JSON, NDJSON, and JSONL paths. `:Grip /path/to/data.csv --write` stages edits in the grid, asks for destructive confirmation, then has DuckDB rewrite the file. This is an export-and-overwrite path, not a promise to preserve every byte or serialization choice in the original file. HTTPS sources remain read-only.
-
-Watch mode reruns a file query on a timer. `:Grip /path/to/data.csv --watch` uses a five-second interval, while `--watch=10s` changes it. The timer pauses when the grid has staged edits, so a refresh does not replace work waiting for review.
-
-## AI Generates SQL, Not Approval
-
-`A` from the grid or `gA` from the query pad sends a natural-language request with cached schema context to Anthropic, OpenAI, Gemini, or Ollama. When the query pad already contains SQL, the request includes that SQL and asks the provider to revise it. The result returns to the editable query pad; it does not bypass the normal run and review path.
-
-The hosted-provider path sends table and column metadata, the request, and any existing query to that provider. The March implementation invokes `curl` with headers, the JSON request body, and the request URL in process arguments; the Gemini URL includes its API key. I do not use that path for a schema or query I am not authorized to disclose, and I do not treat the generated SQL as trusted. A local Ollama endpoint changes the recipient, but the same review requirement remains.
-
-## Install the March Release
+The stable release requires Neovim 0.10 or newer and the command-line client for the database you plan to use. PostgreSQL uses `psql`, MySQL uses `mysql`, SQLite uses `sqlite3`, DuckDB and file workflows use `duckdb`, and SQL Server support is read-only through `sqlcmd`.
 
 ```lua
 -- lazy.nvim
 {
   "joryeugene/dadbod-grip.nvim",
-  commit = "d250cfdbcb7af47ba6142c034d9442bb6efbe40e",
+  version = "*",
   keys = {
     { "<leader>db", "<cmd>GripConnect<cr>", desc = "DB connect" },
     { "<leader>dg", "<cmd>Grip<cr>",        desc = "DB grid" },
@@ -121,17 +90,13 @@ The hosted-provider path sends table and column metadata, the request, and any e
 }
 ```
 
-dadbod-grip v3.3.3 requires Neovim 0.10 or newer and at least one database CLI in `PATH`: `psql`, `sqlite3`, `mysql`, or `duckdb`. AI SQL generation also requires `curl`. The plugin does not require Node, Python, or another Neovim plugin. If vim-dadbod is installed, dadbod-grip can read its `g:db` and `g:dbs` values as a compatibility path; query execution still goes through dadbod-grip's CLI adapters. vim-dadbod-ui remains a separate schema and query interface.
+Run `:checkhealth dadbod-grip` to verify the required local clients. `:GripConnect` opens your connections, and `:GripStart` creates the Softrear demo in the current project so the complete workflow can be explored without a production database.
 
-Run `:checkhealth dadbod-grip` to verify the local tools. Run `:GripStart` only from a disposable project directory: the command reseeds its demo database and deletes then recreates `<current-working-directory>/.grip/supplier_intel.db` when `sqlite3` is available. It opens the Softrear workspace and prints the walkthrough path.
-
-At the pinned revision, the successful March 6 [GitHub Actions run](https://github.com/joryeugene/dadbod-grip.nvim/actions/runs/22752160056) started 29 spec files on both Neovim stable and Neovim 0.10.0. The DuckDB federation spec skipped because the runner did not install DuckDB; the other 28 files reported 682 passing assertions. That matrix exercises the state, SQL, adapter, UI, and regression paths behind this workflow, but it does not prove every database and CLI combination.
-
-DataGrip, TablePlus, DBeaver, and VS Code database extensions still make sense when I want a separate GUI. dadbod-grip is for the investigation already happening in my editor. By the time I press `a`, I have followed the record and reviewed the generated SQL. The database CLI still decides what commits.
+Dadbod Grip is for the investigation that already started in Neovim. It keeps the connection, schema, notebook, result, edit state, and generated write close enough to inspect as one operation.
 
 ---
 
 **Links:**
-- [GitHub Repository](https://github.com/joryeugene/dadbod-grip.nvim)
-- [Documentation](https://jorypestorious.com/dadbod-grip-web/)
-- [Demo walkthrough](https://jorypestorious.com/dadbod-grip-web/)
+- [GitHub repository](https://github.com/joryeugene/dadbod-grip.nvim)
+- [Interactive documentation](https://jorypestorious.com/dadbod-grip-web/)
+- [Softrear walkthrough](https://github.com/joryeugene/dadbod-grip.nvim/blob/main/demo/softrear-internal.md)

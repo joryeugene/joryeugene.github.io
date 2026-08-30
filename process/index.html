@@ -3,19 +3,33 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="How Jory Pestorious works through product constraints, implementation, tests, and visual evidence.">
+  <meta name="description" content="Four case studies on the engineering decisions behind networked physics, an AI ROI platform, a standalone Neovim database client, and a source-verified prayer reader.">
   <meta name="author" content="Jory Pestorious">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jorypestorious.com/process/">
   <meta property="og:title" content="Process | Jory Pestorious">
-  <meta property="og:description" content="How Jory Pestorious works through product constraints, implementation, tests, and visual evidence.">
+  <meta property="og:description" content="Four case studies on the engineering decisions behind networked physics, an AI ROI platform, a standalone Neovim database client, and a source-verified prayer reader.">
   <meta property="og:image" content="https://jorypestorious.com/jpg/jory-georgie-social.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://jorypestorious.com/jpg/jory-georgie-social.png">
   <title>Process | Jory Pestorious</title>
+  <link rel="canonical" href="https://jorypestorious.com/process/">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-7">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "Process",
+      "url": "https://jorypestorious.com/process/",
+      "about": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
 </head>
 <body class="portfolio-page page-process">
   <a class="skip-link" href="#main">Skip to process</a>
@@ -39,7 +53,7 @@
     <main id="main">
       <section aria-labelledby="process-title">
         <h1 id="process-title" class="page-title">Process</h1>
-        <p class="page-lede">A closer look at selected projects, their constraints, implementation details, tests, and visual checks.</p>
+        <p class="page-lede">Each case study starts with the constraint that shaped the product.</p>
 
         <div class="case-navigation">
           <p class="eyebrow">Choose a case study</p>
@@ -51,115 +65,76 @@
           </div>
         </div>
 
-        <section class="process-case-detail" aria-live="polite">
+        <section class="process-case-detail">
           <article id="case-totally-reliable" data-case-panel>
             <div class="process-case-copy">
-              <p class="eyebrow">Shipped at scale</p>
-              <h2>Four networked ragdolls can form one flying chain.</h2>
-              <p>I led Unity and C# multiplayer with Photon and PlayFab. Four players can grip into a live chain while one flies a jetpack, so its bodies, joints, and collisions remain part of the shared simulation. The game passed 50 million downloads; launch week peaked above 32,000 concurrent Twitch viewers.</p>
+              <p class="eyebrow">Networked rigid-body physics</p>
+              <h2>Moving from four players toward eight multiplied the state, not just the headcount.</h2>
+              <div class="case-narrative">
+                <section><h3>Problem</h3><p>Totally Reliable synchronizes real ragdolls, grips, joints, vehicles, and collisions. Moving from four-player toward eight-player online play put twice as many unpredictable rigid bodies inside the same bandwidth and stability budget.</p></section>
+                <section><h3>Decision</h3><p>I used the <a href="https://www.gafferongames.com/post/state_synchronization/">Gaffer on Games</a> budget: relevant bodies × update rate × bits per update. We applied spatial filtering, lower send rates, delta compression, and quantization, then used interpolation and bounded extrapolation to preserve believable motion between updates.</p></section>
+                <section><h3>Build</h3><p>I led more than five engineers through profiling and implementation. When ordinary debugging stopped explaining failures, I worked with the networking provider, inspected its compiled C++ binary, and traced deallocation defects below our code.</p></section>
+                <section><h3>Result</h3><p>The work protected the physical interaction that made the game distinct as the team moved toward eight-player online play. Totally Reliable shipped across console, PC, and mobile, passed 50 million downloads, and the team cut release cycles from eight weeks to four.</p></section>
+              </div>
               <div class="case-destinations"><a href="https://www.totallyreliable.com/" data-jelly>Visit the official site</a><a href="https://streamscharts.com/games/totally-reliable-delivery-service/release-stats" data-jelly>See launch-week Twitch data</a></div>
             </div>
-            <figure class="process-case-shot">
+            <figure class="process-case-shot" data-georgie-surface>
               <img src="/jpg/process/totally-reliable-ragdoll-chain.jpg" alt="Four Totally Reliable Delivery Service ragdolls hanging in a chain beneath a flying jetpack." width="2560" height="1440" loading="lazy" decoding="async">
+              <button class="georgie-egg georgie-egg--process" type="button" aria-label="Let Georgie inspect Totally Reliable Delivery Service" data-georgie-egg><span class="georgie-egg__sprite" aria-hidden="true"></span></button>
             </figure>
           </article>
           <article id="case-workhelix" data-case-panel hidden>
             <div class="process-case-copy">
-              <p class="eyebrow">Founding engineering</p>
-              <h2>Show estimated AI opportunities and savings alongside adoption gaps.</h2>
-              <p>Nucleus shows leaders adoption, estimated opportunities and savings, workflow gaps, and where to consider further investment. I replaced the Bubble prototype with the production React and TypeScript platform, translated Figma designs into reusable components, and built the product experience that presented the data science team's assessment outputs. My scope later expanded into backend, data, infrastructure, authentication, and release work.</p>
+              <p class="eyebrow">AI ROI platform</p>
+              <h2>AI ROI is not the same as AI adoption.</h2>
+              <div class="case-narrative">
+                <section><h3>Problem</h3><p>Leaders needed to see where AI could create value, where employees already used it, and whether that use saved enough time and money to matter.</p></section>
+                <section><h3>Decision</h3><p>Potential value, observed adoption, and realized savings remain separate measures linked to the roles, tasks, and use cases beneath them. A high adoption rate cannot masquerade as high ROI.</p></section>
+                <section><h3>Build</h3><p>I built the production interface that moves from the company-wide ROI picture into business units, roles, and use cases without losing the underlying measure. I also owned tenant isolation, authentication, deployment, and releases.</p></section>
+                <section><h3>Result</h3><p>Leaders can rank opportunities by potential impact, find teams underusing high-value cases, and test whether observed usage produces meaningful time and money savings.</p></section>
+              </div>
               <div class="case-destinations"><a href="https://www.workhelix.com/platform" data-jelly>Explore Nucleus</a><a href="https://www.workhelix.com/resources/nucleus-product-overview" data-jelly>Read the product overview</a></div>
             </div>
-            <figure class="process-case-shot">
-              <img src="/jpg/process/nucleus-ai-assessment.png" alt="Nucleus AI Assessment dashboard with opportunity metrics, a business-unit chart, and a use-case treemap." width="1448" height="1325" loading="lazy" decoding="async">
+            <figure class="process-case-shot" data-georgie-surface>
+              <img src="/jpg/process/nucleus-ai-assessment.png" alt="Nucleus AI ROI dashboard with opportunity metrics, a business-unit chart, and a use-case treemap." width="1448" height="1325" loading="lazy" decoding="async">
+              <button class="georgie-egg georgie-egg--process" type="button" aria-label="Let Georgie inspect Workhelix Nucleus" data-georgie-egg><span class="georgie-egg__sprite" aria-hidden="true"></span></button>
             </figure>
           </article>
           <article id="case-dadbod" data-case-panel hidden>
             <div class="process-case-copy">
-              <p class="eyebrow">Open source tool</p>
-              <h2>Edit database tables and join data across sources without leaving Neovim.</h2>
-              <p>Dadbod Grip stages table edits, exposes generated SQL for review, and sends the batch as one transaction script. A CLI error can leave an earlier statement committed, so the database must be inspected before retry. DuckDB can join PostgreSQL, MySQL, SQLite, MotherDuck, and local or HTTPS files in one query.</p>
+              <p class="eyebrow">Standalone Neovim database client</p>
+              <h2>A database grid should expose the write, not hide it behind Save.</h2>
+              <div class="case-narrative">
+                <section><h3>Problem</h3><p>Neovim could execute SQL, but following relationships, editing rows, and understanding the resulting writes still meant changing tools or hand-writing every mutation.</p></section>
+                <section><h3>Decision</h3><p>Every cell edit, row clone, and deletion remains reversible editor state. Grip renders the exact UPDATE, INSERT, and DELETE statements from that state before Apply sends the reviewed batch.</p></section>
+                <section><h3>Build</h3><p>Grip is a standalone client, not a vim-dadbod skin. I built its connection discovery and CLI adapters alongside the schema graph, query pad, Markdown notebook runner, editable grid, and DuckDB federation.</p></section>
+                <section><h3>Result</h3><p>One session can start from a discovered Docker database or local Parquet file, follow foreign keys, join attached sources, stage mutations, and inspect the SQL without leaving Neovim.</p></section>
+              </div>
               <div class="case-destinations"><a href="https://jorypestorious.com/dadbod-grip-web/" data-jelly>Open the walkthrough</a><a href="https://github.com/joryeugene/dadbod-grip.nvim" data-jelly>View source</a></div>
             </div>
-            <figure class="process-case-shot">
-              <img src="/jpg/process/dadbod-grip-live.png" alt="Dadbod Grip in Neovim with schema navigation, a query editor, staged grid changes, and generated SQL." width="3436" height="2078" loading="lazy" decoding="async">
+            <figure class="process-case-shot" data-georgie-surface>
+              <img src="/jpg/process/dadbod-grip-live.png" alt="Dadbod Grip federated DuckDB session with Softrear and attached supplier schemas, cross-source SQL, attached-schema completion, and a joined result grid." width="2560" height="1440" loading="lazy" decoding="async">
+              <button class="georgie-egg georgie-egg--process" type="button" aria-label="Let Georgie inspect Dadbod Grip" data-georgie-egg><span class="georgie-egg__sprite" aria-hidden="true"></span></button>
             </figure>
           </article>
           <article id="case-theosis" data-case-panel hidden>
             <div class="process-case-copy">
-              <p class="eyebrow">Live prayer book</p>
-              <h2>An Orthodox prayer book and Scripture reader for daily prayer.</h2>
-              <p>I built a source-pinned appointment engine that prepares each day's services while retaining source locators. Incomplete required material stays out of the public schedule.</p>
-              <p>Python prepares the calendar and Scripture data as static files. Expo builds the shared interface for web and native. The web reader loads the selected content without a runtime API or live database query.</p>
+              <p class="eyebrow">Source-verified Orthodox services</p>
+              <h2>The system would rather show a gap than invent a prayer.</h2>
+              <div class="case-narrative">
+                <section><h3>Problem</h3><p>The text for an Orthodox service changes with the date, Paschal cycle, feast, office, reader role, and annual appointments. A prayer can fit the shape of a service and still be wrong for that day.</p></section>
+                <section><h3>Decision</h3><p>The system never fills a gap by borrowing the shape of a nearby service. Every prayer and physical direction must point to a source that appoints it for that date, office, and role. If the evidence stops, the service stops.</p></section>
+                <section><h3>Build</h3><p>For each of 4,017 dates, the resolver evaluates Midnight Office, Matins, the four Hours, Typika, Vespers, and Compline in reader and priest views. Paschal dates, fixed feasts, annual OCA appointments, service-family rules, and source locations determine the text and physical instructions shown.</p></section>
+                <section><h3>Result</h3><p>The app opens the appointed service as static data, with no runtime API and a source trail for every admitted choice. When evidence is incomplete, it names the gap instead of guessing.</p></section>
+              </div>
               <div class="case-destinations"><a href="https://prayorthodox.com/" data-jelly>Open Pray Orthodox</a></div>
             </div>
-            <figure class="process-case-shot">
+            <figure class="process-case-shot" data-georgie-surface>
               <img src="/jpg/process/pray-orthodox-reader.png" alt="Pray Orthodox showing the selected church day beside the Third Hour Reader office with its sources collapsed." width="1439" height="810" loading="lazy" decoding="async">
+              <button class="georgie-egg georgie-egg--process" type="button" aria-label="Let Georgie inspect Pray Orthodox" data-georgie-egg><span class="georgie-egg__sprite" aria-hidden="true"></span></button>
             </figure>
           </article>
         </section>
-
-        <div class="process-deep-dive">
-          <p class="eyebrow">Deep dive</p>
-          <h2 data-process-deep-title>How four live ragdolls stay connected in flight</h2>
-        </div>
-
-        <div class="process-stage" data-georgie-surface>
-          <button class="georgie-egg georgie-egg--process" type="button" aria-label="Let Georgie inspect this case study" data-georgie-egg>
-            <span class="georgie-egg__sprite" aria-hidden="true"></span>
-          </button>
-          <div class="layer-rail" role="tablist" aria-label="Project evidence layers">
-            <button class="layer-button" type="button" role="tab" data-layer-button aria-controls="layer-brief" aria-selected="false"><span>01</span><span>Brief<small>Define the user need.</small></span></button>
-            <button class="layer-button" type="button" role="tab" data-layer-button aria-controls="layer-constraints" aria-selected="false"><span>02</span><span>Constraints<small>List the system limits.</small></span></button>
-            <button class="layer-button" type="button" role="tab" data-layer-button aria-controls="layer-changes" aria-selected="true"><span>03</span><span>Changes<small>Review the implementation.</small></span></button>
-            <button class="layer-button" type="button" role="tab" data-layer-button aria-controls="layer-tests" aria-selected="false"><span>04</span><span>Tests<small>Run behavior checks.</small></span></button>
-            <button class="layer-button" type="button" role="tab" data-layer-button aria-controls="layer-visual" aria-selected="false"><span>05</span><span>Visual QA<small>Check what people see.</small></span></button>
-          </div>
-
-          <section class="process-panel" aria-live="polite">
-            <p class="process-kicker" data-process-kicker>Case: Totally Reliable Delivery Service</p>
-
-            <div id="layer-brief" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Keep every grip, body, joint, and vehicle live online.</h2>
-              <p>Four players can grab one another into a physical chain while one flies a jetpack. The mechanic only works when the shared simulation stays responsive.</p>
-            </div>
-
-            <div id="layer-constraints" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Network real ragdolls instead of canned reactions.</h2>
-              <p>Rigid bodies, joints, collisions, players, and vehicles affect one another continuously. Synchronization cost grows with every connected body and moving object.</p>
-            </div>
-
-            <div id="layer-changes" class="layer-content" role="tabpanel" data-layer-content>
-              <h2>Profile the interactions players can feel.</h2>
-              <p>I led the Unity and C# multiplayer architecture with Photon and PlayFab.</p>
-              <div class="decision-note"><strong>Decision</strong>Spend network work on the bodies and interactions visible to players.</div>
-              <p class="proof-line"><a href="https://www.totallyreliable.com/post/pc-mac-2-03-03-update">Read a shipped update</a></p>
-            </div>
-
-            <div id="layer-tests" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Test the combinations players create.</h2>
-              <p>I tested four-player grip chains, moving vehicles, joints, collisions, and physics objects in live multiplayer sessions under real network conditions.</p>
-              <div class="proof-strip"><span>Four live players</span><span>Grip chains</span><span>Moving physics</span></div>
-            </div>
-
-            <div id="layer-visual" class="layer-content" role="tabpanel" data-layer-content hidden>
-              <h2>Judge the chain as a player sees it.</h2>
-              <p>The captured scene keeps the jetpack wearer, three hanging ragdolls, their grips, and the delivery objective legible in one frame.</p>
-            </div>
-          </section>
-
-          <aside class="wrong-turns" aria-labelledby="wrong-turns-title" data-active-case="totally-reliable">
-            <h2 id="wrong-turns-title">Rejected approaches</h2>
-            <article class="wrong-turn">
-              <h3>Fake the ragdolls with canned animation</h3>
-              <p>It would remove the live grip, chain, collision, and vehicle interactions that define the game.</p>
-            </article>
-            <article class="wrong-turn">
-              <h3>Synchronize every object equally</h3>
-              <p>It spends the same bandwidth on sleeping scenery and the bodies players are actively controlling.</p>
-            </article>
-          </aside>
-        </div>
 
       </section>
     </main>
@@ -170,12 +145,12 @@
     </footer>
   </div>
 
-  <div id="command-palette" class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+  <dialog id="command-palette" class="command-palette" aria-label="Command palette">
     <div class="palette-panel">
       <div class="palette-head"><span>Commands</span><button class="palette-close" type="button" data-close-palette>Close</button></div>
       <div data-site-command-palette></div>
     </div>
-  </div>
+  </dialog>
 
   <script src="/js/blog-common.js?v=foundation-plus-5"></script>
   <script src="/js/portfolio.js?v=foundation-plus-6"></script>

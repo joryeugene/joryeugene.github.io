@@ -40,6 +40,23 @@
   <link rel="alternate" type="application/atom+xml" title="Engineering Notes" href="/blog/feed.xml">
   <link rel="stylesheet" href="/css/blog-common.css">
   <link rel="stylesheet" href="/css/blog-reader.css?v=foundation-plus-7">
+  <script type="application/ld+json" data-article-schema>
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Before Building Complex Architectures, Try Natural Language",
+      "description": "Plain-language rules specify evidence reporting, tool fallback, tone, and task order. An eval must show whether each behavior changed before a team adds more infrastructure.",
+      "image": "https://jorypestorious.com/blog/natural-language-first/ai-agent-friend-optimized.png",
+      "datePublished": "2025-12-01",
+      "dateModified": "2025-12-01",
+      "mainEntityOfPage": "https://jorypestorious.com/blog/natural-language-first/",
+      "author": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
 </head>
 
 <body>
@@ -47,59 +64,66 @@
   <a href="/blog/" class="home-link">Blog</a>
   
   <div class="container">
-    <article class="markdown-body" id="content">
-      <!-- Reading time will be displayed here -->
-      <div class="reading-time text-muted mb-2"></div>
-      <!-- Content will be loaded here -->
+    <article class="markdown-body" id="content" data-markdown-source="/blog/natural-language-first/confidence-bug-natural-language.md">
+      <h1>Before Building Complex Architectures, Try Natural Language</h1>
+      <p><strong>Use plain-language rules for observable behavior, then test whether the behavior changed.</strong></p>
+      <p><em>By Jory Pestorious | December 1, 2025</em></p>
+      <p><img src="ai-agent-friend-optimized.png" alt="Developer collaborating with an AI agent through plain-language instructions"></p>
+      <h2>Start with the failure you can see</h2>
+      <p>After months of writing rules for Claude Code, I keep finding problems that do not need a new service first. The agent may declare success before running tests or stop after one tool fails. Another answer may bury a direct response in corporate language. Each failure is visible enough to describe in one instruction and score in the next run.</p>
+      <p>I can change a sentence, rerun the same task, and inspect the output without adding a vector database, retrieval pipeline, or another agent. The instruction does not make the model truthful. The instruction gives the evaluation a behavior to check.</p>
+      <h2>Keep the failure classes separate</h2>
+      <p>OpenAI&#39;s April 2025 <a href="https://deploymentsafety.openai.com/o3/appendix#hallucinations">o3 and o4-mini system card</a> reports hallucination rates on two fact-seeking evaluations. On PersonQA, o3 scored 33 percent and o4-mini scored 48 percent. On SimpleQA, the rates were 51 and 79 percent. The four rates describe particular models, datasets, and scoring rules. They do not measure whether a response sounds certain or whether a system prompt changes the result.</p>
+      <p>Hallucination is fabricated or unsupported content. Incorrectness is broader. Calibration concerns whether expressed confidence matches observed accuracy. The <a href="https://arxiv.org/abs/2403.08819">Thermometer paper</a> treats calibration as its own problem and trains an auxiliary model across tasks.</p>
+      <p>Prompt compliance asks whether the model follows an instruction. Tone, tool fallback, evidence reporting, and task order are observable behaviors. Changing one does not establish an improvement in the others.</p>
+      <h2>What my instruction file asks for</h2>
+      <p>The publication-era <a href="https://github.com/joryeugene/calmhive-cli/blob/2cd9ad26ffe3903a4005c2fc143a45345c62800a/CLAUDE.md"><code>CLAUDE.md</code></a> asks the agent to show command output, before-and-after comparisons, tests, and specific measurements before declaring completion. The file also asks for direct language, parallel work when tasks are independent, and correction when the agent notices that it is about to violate a rule.</p>
+      <p>For an evidence rule, the useful test is whether the agent runs the relevant check and reproduces its output. A polished sentence that says “all tests pass” can still be fabricated. The verifier must inspect the command, output, exit status, and changed behavior. I start with four rules because each has a visible pass condition.</p>
+      <h3>Require completion evidence</h3>
+      <pre><code class="language-text">Do not claim that the task is complete until you show:
+      - the exact change
+      - the relevant command and exit status
+      - the output that verifies the changed behavior
+      - the largest remaining gap
+      </code></pre>
+      <h3>Continue after a tool failure</h3>
+      <pre><code class="language-text">If one tool fails, state the failure and try an available equivalent.
+      Stop when the alternatives would change scope, require new permission,
+      or risk damaging data.
+      </code></pre>
+      <h3>Name the language to remove</h3>
+      <pre><code class="language-text">Avoid comprehensive, revolutionary, industry-leading, and best-in-class.
+      Name the actor, action, evidence, and limitation in direct language.
+      </code></pre>
+      <h3>Correct the current action</h3>
+      <pre><code class="language-text">When you notice a rule violation, identify it, correct the current work,
+      and suggest a durable instruction change. Do not call the suggestion
+      learning until a later run shows that the behavior changed.
+      </code></pre>
+      <h2>Instructions still need a runtime</h2>
+      <p>An agent in OpenAI&#39;s archived <a href="https://github.com/openai/swarm/tree/0c82d7d868bb8e2d380dfd2a319b5c3a1f4c0cb9">Swarm</a> has instructions and functions. Swarm converts the active instructions into a system prompt, while its run loop executes tool calls, handles handoffs, updates context variables, and returns when no new function calls remain.</p>
+      <p>Swarm also tells developers to bring evaluation suites. A rule earns its place when a repeated task shows that it changes the target behavior without reducing correctness elsewhere.</p>
+      <p>For a small comparison, hold the model, task set, repository state, tools, and settings constant. Run the tasks without the new rule, add one rule, then run them again. Score the behavior named by the rule and the correctness of the final result.</p>
+      <p>A tone rule needs a tone check. A tool-fallback rule needs recorded failures and alternatives. An evidence rule needs real commands and outputs. None of those scores can stand in for a hallucination or calibration evaluation.</p>
+      <h2>Know when an instruction is the wrong layer</h2>
+      <p>Use retrieval when the model needs private or changing facts. Use storage when work must survive between runs. Use schemas and programmatic checks when the output must be deterministic. Use explicit permission controls around consequential tools. Use tests and independent review for correctness. Add orchestration when one prompt and one tool loop cannot reliably represent the workflow.</p>
+      <p>Plain instructions are useful because they are cheap to change and easy for a team to read. Start with one when the failure is observable in the agent&#39;s behavior. Keep it when the comparison shows an improvement. Build another layer when the failure is knowledge, state, permissions, deterministic validation, or execution.</p>
+      <p><strong>lets bee friends</strong></p>
+      <p><strong>Sources:</strong> <a href="https://deploymentsafety.openai.com/o3/appendix#hallucinations">OpenAI o3 and o4-mini system card</a> | <a href="https://arxiv.org/abs/2403.08819">Thermometer paper</a> | <a href="https://github.com/joryeugene/calmhive-cli/blob/2cd9ad26ffe3903a4005c2fc143a45345c62800a/CLAUDE.md">pinned <code>CLAUDE.md</code></a> | <a href="https://github.com/openai/swarm/tree/0c82d7d868bb8e2d380dfd2a319b5c3a1f4c0cb9">OpenAI Swarm</a></p>
     </article>
     <div class="footer">© 2026 Jory Pestorious</div>
   </div>
   
   <!-- Background switcher SVG -->
-  <svg version="1.1" id="change" role="img" aria-label="Change background image" tabindex="0" xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
-    style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve">
-    <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5
-        s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65
-        v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
-    <path d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1
-        C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
-    <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3
-        c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5
-        s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
-    <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
-    <path d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
-    <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
-    <path d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S154.412,24.025,161.012,24.025z" />
-    <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
-    <path d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
-    <path d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
-    <path d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
-    <path d="M210.312,197.125c-3.2,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
-    <path d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
-    <path d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
-    <path d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
-    <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
-    <path d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,171.925,13.212,171.925z" />
-    <path d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
-    <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,73.325,13.212,73.325z" />
-  </svg>
-
-  <!-- Preload critical resources -->
+<!-- Preload critical resources -->
   <link rel="preload" href="/blog/natural-language-first/confidence-bug-natural-language.md" as="fetch" crossorigin>
   
   <!-- Scripts -->
-  <script src="/js/marked.min.js"></script>
-  <script src="/js/blog-common.js?v=foundation-plus-5"></script>
+<script src="/js/blog-common.js?v=foundation-plus-5"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       BlogCommon.initAll({
-        markdownPath: '/blog/natural-language-first/confidence-bug-natural-language.md',
-        backgroundSwitcher: true,
+
         scrollProgress: true,
         readingTime: true,
         lazyImages: true,

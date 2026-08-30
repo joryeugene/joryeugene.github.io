@@ -17,10 +17,24 @@
   <meta name="twitter:image" content="https://jorypestorious.com/jpg/jory-georgie-social.png">
   <meta name="twitter:image:alt" content="Jory Pestorious with Georgie, a lounging pixel-art Phalene">
   <title>Writing | Jory Pestorious</title>
+  <link rel="canonical" href="https://jorypestorious.com/blog/">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="alternate" type="application/atom+xml" title="Engineering Notes" href="/blog/feed.xml">
   <link rel="stylesheet" href="/css/portfolio.css?v=foundation-plus-6">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "Writing",
+      "url": "https://jorypestorious.com/blog/",
+      "author": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
 </head>
 <body class="portfolio-page page-writing">
   <a class="skip-link" href="#main">Skip to writing</a>
@@ -45,7 +59,7 @@
       <div class="writing-toolbar">
         <div>
           <h1 class="page-title">Writing</h1>
-          <p class="page-lede">Engineering notes and field reports. <a href="/blog/feed.xml">RSS</a></p>
+          <p class="page-lede">I write about AI systems, developer tools, and what it takes to make them useful. <a href="/blog/feed.xml">RSS</a></p>
         </div>
         <div class="writing-search">
           <label for="writing-search">/</label>
@@ -86,7 +100,7 @@
           <span class="writing-row__number">05</span><span class="writing-row__title">Verified Context Is the Moat</span><span class="writing-row__excerpt">Keephive carries context across agent sessions. Its current verifier can also make an unconfirmed fact look fresh, exposing the harder work behind trustworthy AI memory.</span><span aria-hidden="true">›</span>
         </a>
         <a class="writing-row" href="/blog/dadbod-grip/" data-pub-date="2026-03-06">
-          <span class="writing-row__number">06</span><span class="writing-row__title">Edit Database Tables Like Vim Buffers</span><span class="writing-row__excerpt">Follow a bad product through dadbod-grip v3.3.3's Softrear database, stage the correction in Neovim, inspect the generated SQL, and send the batch through the active database CLI. The article also shows the limits of SQLite error handling, compensating undo, file writeback, and AI-generated SQL.</span><span aria-hidden="true">›</span>
+          <span class="writing-row__number">06</span><span class="writing-row__title">Edit Database Tables Like Vim Buffers</span><span class="writing-row__excerpt">Dadbod Grip keeps the connection, schema, query, result, staged edits, and generated SQL inside one Neovim workspace. The article follows a consumer incident through its relationships, then crosses database boundaries without hiding the write path.</span><span aria-hidden="true">›</span>
         </a>
         <a class="writing-row" href="/blog/emergent-religion/" data-pub-date="2026-02-15">
           <span class="writing-row__number">07</span><span class="writing-row__title">Protection Emerged. Verification Did Not.</span><span class="writing-row__excerpt">Project Sid's role analysis identified guards but no epistemic verifier. Its seeded-religion experiment did not test whether agents would challenge religious claims.</span><span aria-hidden="true">›</span>
@@ -133,12 +147,12 @@
     </footer>
   </div>
 
-  <div id="command-palette" class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+  <dialog id="command-palette" class="command-palette" aria-label="Command palette">
     <div class="palette-panel">
       <div class="palette-head"><span>Commands</span><button class="palette-close" type="button" data-close-palette>Close</button></div>
       <div data-site-command-palette></div>
     </div>
-  </div>
+  </dialog>
 
   <script src="/js/blog-common.js?v=foundation-plus-5"></script>
   <script src="/js/portfolio.js?v=foundation-plus-5"></script>

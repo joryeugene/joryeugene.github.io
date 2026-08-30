@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description"
-    content="dadbod-grip v3.3.3 keeps database investigation inside Neovim: follow foreign keys, stage row edits, inspect generated SQL, and send the batch to the active database CLI.">
+    content="Dadbod Grip keeps database connections, schema navigation, SQL, editable results, and reviewed mutation batches inside one Neovim workspace.">
   <meta name="keywords" content="Jory Pestorious, dadbod-grip, Neovim, database, vim, DuckDB, PostgreSQL, SQLite, ER diagram, database client">
   <meta name="author" content="Jory Pestorious">
 
@@ -20,15 +20,15 @@
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://jorypestorious.com/blog/dadbod-grip/">
   <meta property="og:title" content="Edit Database Tables Like Vim Buffers">
-  <meta property="og:description" content="Follow database records in dadbod-grip v3.3.3, stage row edits, inspect generated SQL, and see where the active database CLI still controls the result.">
-  <meta property="og:image" content="https://jorypestorious.com/blog/dadbod-grip/live.png">
+  <meta property="og:description" content="Follow a consumer incident through its database relationships, stage the correction, and inspect the exact SQL before it executes.">
+  <meta property="og:image" content="https://jorypestorious.com/jpg/process/dadbod-grip-full-workspace.png">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://jorypestorious.com/blog/dadbod-grip/">
   <meta property="twitter:title" content="Edit Database Tables Like Vim Buffers">
-  <meta property="twitter:description" content="Follow database records in dadbod-grip v3.3.3, stage row edits, inspect generated SQL, and see where the active database CLI still controls the result.">
-  <meta property="twitter:image" content="https://jorypestorious.com/blog/dadbod-grip/live.png">
+  <meta property="twitter:description" content="Follow a consumer incident through its database relationships, stage the correction, and inspect the exact SQL before it executes.">
+  <meta property="twitter:image" content="https://jorypestorious.com/jpg/process/dadbod-grip-full-workspace.png">
 
   <title>Edit Database Tables Like Vim Buffers - Jory Pestorious</title>
   <link rel="icon" type="image/png" href="/favicon.png">
@@ -39,59 +39,109 @@
   <link rel="alternate" type="application/atom+xml" title="Engineering Notes" href="/blog/feed.xml">
   <link rel="stylesheet" href="/css/blog-common.css">
   <link rel="stylesheet" href="/css/blog-reader.css?v=foundation-plus-7">
+  <script type="application/ld+json" data-article-schema>
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Edit Database Tables Like Vim Buffers",
+      "description": "Dadbod Grip keeps the connection, schema, query, result, staged edits, and generated SQL inside one Neovim workspace. The article follows a consumer incident through its relationships, then crosses database boundaries without hiding the write path.",
+      "image": "https://jorypestorious.com/jpg/process/dadbod-grip-full-workspace.png",
+      "datePublished": "2026-03-06",
+      "dateModified": "2026-03-06",
+      "mainEntityOfPage": "https://jorypestorious.com/blog/dadbod-grip/",
+      "author": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
 </head>
 
 <body>
   <div id="bg"></div>
   <a href="/blog/" class="home-link">Blog</a>
   <div class="container">
-    <article class="markdown-body" id="content">
-      <!-- Reading time will be displayed here -->
-      <div class="reading-time text-muted mb-2"></div>
-      <!-- Content will be loaded here -->
+    <article class="markdown-body" id="content" data-markdown-source="/blog/dadbod-grip/dadbod-grip.md">
+      <h1>Edit Database Tables Like Vim Buffers</h1>
+      <p><strong>Dadbod Grip is a standalone database client for Neovim. It follows relationships, runs SQL, edits result grids, and shows the exact mutation batch before it reaches the database.</strong></p>
+      <p><em>By Jory Pestorious | March 2026; updated August 2026</em></p>
+      <p>Dadbod Grip is available on <a href="https://github.com/joryeugene/dadbod-grip.nvim">GitHub</a>, and the <a href="https://jorypestorious.com/dadbod-grip-web/">interactive walkthrough</a> covers the complete workspace.</p>
+      <p align="center">
+      <img src="mascot.gif" width="140" alt="Chonk, the Dadbod Grip mascot"><br>
+      <sub><b>Chonk</b></sub>
+      </p>
+
+      <h2>Start With the Incident</h2>
+      <p><code>ULTRA_BUDGET_XTRM</code> has a softness score of 0.0, a tensile strength of 2.1, and a <code>discontinued</code> flag set to false. It is the first bad fact in Dadbod Grip&#39;s bundled <a href="https://github.com/joryeugene/dadbod-grip.nvim/blob/main/demo/softrear-internal.md">Softrear demo database</a>. The same roll appears in a severity 9 consumer incident: &quot;Open floor plan. No music. The third floor is now the second floor people.&quot;</p>
+      <p>The incident points to a recalled production batch, the batch points to a facility with a 3.2 vibe score, and the supplier relationship is marked <code>embargo</code>. I can follow that chain without leaving the database workspace. <code>&lt;C-CR&gt;</code> runs the query block under my cursor. <code>f</code> filters by the current cell, <code>gf</code> follows a foreign key, and <code>&lt;C-o&gt;</code> returns to the previous table. <code>K</code> turns the row into a vertical record, while <code>4</code> opens the entity-relationship map.</p>
+      <p>Once the evidence reaches <code>rolls</code>, I can press <code>i</code> on the <code>discontinued</code> cell and stage <code>true</code>. The row changes color, but the database does not change. <code>gs</code> renders the pending <code>UPDATE</code>, and <code>a</code> applies the same reviewed batch.</p>
+      <p align="center">
+      <a href="/jpg/process/dadbod-grip-full-workspace.png"><img src="/jpg/process/dadbod-grip-full-workspace.png" alt="Dadbod Grip showing an expanded schema, a filtered query, staged delete, update, and clone rows, and the exact generated SQL in Neovim" width="900"></a>
+      </p>
+
+      <p>The point is not that a terminal grid can imitate a spreadsheet. The record, its relationships, the query that found it, the proposed edits, and the SQL those edits produce remain in one navigable workspace.</p>
+      <h2>A Write Begins as Editor State</h2>
+      <p>Dadbod Grip treats a cell edit, row clone, insertion, or deletion as reversible Neovim state. <code>i</code> edits a cell, <code>d</code> stages a deletion, <code>o</code> inserts a row, and <code>c</code> clones the current row with its primary key cleared. None of those actions writes to the database.</p>
+      <p><code>gs</code> opens the complete <code>UPDATE</code>, <code>DELETE</code>, and <code>INSERT</code> batch. <code>gl</code> keeps that SQL visible in a live preview while the staged state changes. The preview and apply paths call the same statement builders in <a href="https://github.com/joryeugene/dadbod-grip.nvim/blob/main/lua/dadbod-grip/sql.lua"><code>sql.lua</code></a>, so the batch under review is the batch Grip sends through the selected adapter.</p>
+      <p>Local undo reaches fifty staged changes, and redo uses <code>&lt;C-r&gt;</code>. After a successful apply, Grip can also generate compensating statements for recent batches. That second path is deliberately best effort. An autogenerated key may not identify an inserted row later, and database output may not preserve the difference between <code>NULL</code> and an empty string.</p>
+      <p>The engine still defines transaction behavior. Grip wraps a mutation batch in a transaction, but an adapter or database client can handle statement errors differently. I reproduced an SQLite case where an earlier valid statement remained committed after a later constraint failure. After any apply error, I inspect the database before retrying the batch.</p>
+      <h2>One Client Owns the Whole Investigation</h2>
+      <p>Dadbod Grip does not wrap vim-dadbod or hand query execution to another Neovim database plugin. It discovers labeled Docker databases, reads saved connection profiles, selects its own command-line adapter, and opens the schema sidebar, query pad, and result grid together. Existing <code>g:db</code> and <code>g:dbs</code> values are optional compatibility inputs.</p>
+      <p>The workspace carries the investigation beyond the first query. <code>gf</code> follows foreign keys, reverse relationships remain available, and <code>4</code> maps the schema. Views <code>5</code> through <code>9</code> show statistics, columns, foreign keys, indexes, and constraints. Query Doctor formats an <code>EXPLAIN</code> plan, <code>gD</code> compares two tables by primary key, and exports can leave as CSV, TSV, JSON, SQL, Markdown, or a boxed table.</p>
+      <p>Saved SQL lives in <code>.grip/queries/</code>, and Markdown files can run selected SQL blocks or the block under the cursor. Built-in completion understands tables, columns, aliases, and attached schemas. The same completion can feed nvim-cmp or blink.cmp when either is already present.</p>
+      <p>The complete command surface is in the <a href="https://github.com/joryeugene/dadbod-grip.nvim/blob/main/KEYMAPS.md">keymap reference</a>.</p>
+      <h2>DuckDB Joins the Sources That Belong Together</h2>
+      <p>A database investigation rarely respects one connection boundary. A shipment can live in PostgreSQL while its supplier record sits in SQLite, and the analyst may receive a Parquet file that belongs in the same query. With DuckDB active, <code>:GripAttach</code> adds PostgreSQL, MySQL, SQLite, or MotherDuck catalogs to the session. <code>:GripOpen</code> opens Parquet, CSV, TSV, JSON, NDJSON, JSONL, XLSX, and supported HTTPS sources.</p>
+      <p>The query remains ordinary SQL:</p>
+      <pre><code class="language-sql">SELECT
+        shipment.shipment_date,
+        shipment.status,
+        supplier.real_name,
+        supplier.relationship_status
+      FROM supplier.shipments AS shipment
+      JOIN softrear.bamboo_cartel_members AS supplier
+        ON supplier.real_name = shipment.supplier_name
+      ORDER BY shipment.shipment_date DESC;
+      </code></pre>
+      <p align="center">
+      <a href="/jpg/process/dadbod-grip-live.png"><img src="/jpg/process/dadbod-grip-live.png" alt="Dadbod Grip joining shipment records from an attached supplier database with Softrear supplier records while schema-qualified completion remains open" width="900"></a>
+      </p>
+
+      <p>The attachment, both schemas, schema-qualified completion, the query, and the joined result remain visible in the same session. Project connections can remember attachments in <code>.grip/connections.json</code>. Because that file can contain connection URLs, it belongs outside version control and should never carry an embedded password.</p>
+      <p>Local files can also open in write mode. Grip stages the grid edits, asks for destructive confirmation, and has DuckDB rewrite the file. That is an export-and-overwrite operation, not a byte-preserving edit. HTTPS sources stay read-only, and watch mode pauses whenever the grid contains staged changes.</p>
+      <h2>Install Dadbod Grip</h2>
+      <p>The stable release requires Neovim 0.10 or newer and the command-line client for the database you plan to use. PostgreSQL uses <code>psql</code>, MySQL uses <code>mysql</code>, SQLite uses <code>sqlite3</code>, DuckDB and file workflows use <code>duckdb</code>, and SQL Server support is read-only through <code>sqlcmd</code>.</p>
+      <pre><code class="language-lua">-- lazy.nvim
+      {
+        &quot;joryeugene/dadbod-grip.nvim&quot;,
+        version = &quot;*&quot;,
+        keys = {
+          { &quot;&lt;leader&gt;db&quot;, &quot;&lt;cmd&gt;GripConnect&lt;cr&gt;&quot;, desc = &quot;DB connect&quot; },
+          { &quot;&lt;leader&gt;dg&quot;, &quot;&lt;cmd&gt;Grip&lt;cr&gt;&quot;,        desc = &quot;DB grid&quot; },
+          { &quot;&lt;leader&gt;dt&quot;, &quot;&lt;cmd&gt;GripTables&lt;cr&gt;&quot;,  desc = &quot;DB tables&quot; },
+          { &quot;&lt;leader&gt;dq&quot;, &quot;&lt;cmd&gt;GripQuery&lt;cr&gt;&quot;,   desc = &quot;DB query pad&quot; },
+          { &quot;&lt;leader&gt;ds&quot;, &quot;&lt;cmd&gt;GripSchema&lt;cr&gt;&quot;,  desc = &quot;DB schema&quot; },
+        },
+      }
+      </code></pre>
+      <p>Run <code>:checkhealth dadbod-grip</code> to verify the required local clients. <code>:GripConnect</code> opens your connections, and <code>:GripStart</code> creates the Softrear demo in the current project so the complete workflow can be explored without a production database.</p>
+      <p>Dadbod Grip is for the investigation that already started in Neovim. It keeps the connection, schema, notebook, result, edit state, and generated write close enough to inspect as one operation.</p>
+      <hr>
+      <p><strong>Links:</strong></p>
+      <ul>
+      <li><a href="https://github.com/joryeugene/dadbod-grip.nvim">GitHub repository</a></li>
+      <li><a href="https://jorypestorious.com/dadbod-grip-web/">Interactive documentation</a></li>
+      <li><a href="https://github.com/joryeugene/dadbod-grip.nvim/blob/main/demo/softrear-internal.md">Softrear walkthrough</a></li>
+      </ul>
     </article>
     <div class="footer">© 2026 Jory Pestorious</div>
   </div>
-  <svg version="1.1" id="change" role="img" aria-label="Change background image" tabindex="0" xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 452.025 452.025"
-    style="enable-background:new 0 0 452.025 452.025;" xml:space="preserve">
-    <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5
-        s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65
-        v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
-    <path d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1
-        C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
-    <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3
-        c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5
-        s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
-    <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
-    <path d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
-    <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
-    <path d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S154.412,24.025,161.012,24.025z" />
-    <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
-    <path d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
-    <path d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
-    <path d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
-    <path d="M210.312,197.125c-3.2,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5
-        s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
-    <path d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
-    <path d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
-    <path d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
-    <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5
-        s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
-    <path d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,171.925,13.212,171.925z" />
-    <path d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
-    <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,73.325,13.212,73.325z" />
-  </svg>
-
-  <script src="/js/marked.min.js"></script>
-  <script src="/js/blog-common.js?v=foundation-plus-5"></script>
+<script src="/js/blog-common.js?v=foundation-plus-5"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       BlogCommon.initAll({
-        markdownPath: '/blog/dadbod-grip/dadbod-grip.md?v=20260813',
-        backgroundSwitcher: true,
+
         scrollProgress: true,
         readingTime: true,
         lazyImages: true,

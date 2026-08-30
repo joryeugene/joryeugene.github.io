@@ -68,59 +68,76 @@
     <link rel="alternate" type="application/atom+xml" title="Engineering Notes" href="/blog/feed.xml">
     <link rel="stylesheet" href="/css/blog-common.css" />
     <link rel="stylesheet" href="/css/blog-reader.css?v=foundation-plus-7" />
-  </head>
+  <script type="application/ld+json" data-article-schema>
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "I Wanted to Own the Harness. Then Codex Desktop Won.",
+      "description": "I staged a manifesto about owning my AI harness. Then I canceled Claude Max and moved into Codex Desktop. Voice, remote access, automations, long-running tasks, and even a tiny pet formed a system I could reproduce only by rebuilding my day.",
+      "image": "https://jorypestorious.com/blog/portable-agent-factory/codex-desktop-won.png",
+      "datePublished": "2026-08-09",
+      "dateModified": "2026-08-09",
+      "mainEntityOfPage": "https://jorypestorious.com/blog/portable-agent-factory/",
+      "author": {
+        "@type": "Person",
+        "name": "Jory Pestorious",
+        "url": "https://jorypestorious.com/"
+      }
+    }
+  </script>
+</head>
 
   <body>
     <div id="bg"></div>
     <a href="/blog/" class="home-link">&#8592; Blog</a>
     <div class="container">
-      <article class="markdown-body" id="content">
-      </article>
+      <article class="markdown-body" id="content" data-markdown-source="/blog/portable-agent-factory/portable-agent-factory.md">
+      <h1>I Wanted to Own the Harness. Then Codex Desktop Won.</h1>
+      <p><strong>By Jory Pestorious | August 9, 2026</strong></p>
+      <p><img src="codex-desktop-won.png" alt="A cartoon developer using Codex across desktop and phone while down-eared Georgie floats beside the screens"></p>
+      <p>I had a different article staged for this URL. The draft was called “Own the Harness, Rent the Intelligence.” I argued that my rules, skills, and tools should move with me when I changed models or subscriptions.</p>
+      <p>I still believe that because portability is what let me cancel <a href="https://support.claude.com/en/articles/11049741-what-is-the-max-plan">Claude Max</a> without abandoning my rules. Once I moved, I stopped optimizing for the next harness and kept opening Codex Desktop. A few months earlier, leaving Claude would have sounded impossible.</p>
+      <p>I was a diehard <a href="https://code.claude.com/docs/en/overview">Claude Code</a> fanboy. Each new feature sent me into another Anthropic rabbit hole, from managed-agent <a href="https://www.anthropic.com/engineering/managed-agents">“dreaming”</a> to the <a href="https://www.anthropic.com/research/global-workspace">J-space paper</a>. I kept imagining what the next hook, agent mode, or memory idea might make possible. I still wanted Claude to win even as I opened <a href="https://learn.chatgpt.com/docs/app">Codex Desktop</a> instead.</p>
+      <p>Codex became the window I kept open. My work sat in visible tasks instead of terminal sessions I had to remember. Remote setup took a QR code. I could talk through an idea, pick up the work from my phone, and let a scheduled task return to the conversation where it began.</p>
+      <p>A little animated dog floated near the edge of my screen and told me when something needed me. I liked it enough to build <a href="https://github.com/joryeugene/georgie-phalene-codex-pet">a custom version of Georgie, my Phalène</a>.</p>
+      <h2>I Was Optimizing the Exit</h2>
+      <p><a href="/blog/terminal-velocity/">Terminal Velocity</a> said that a terminal-first workflow raised the ceiling. Then I built <a href="/blog/calmhive/">Calmhive</a> around Claude Code background jobs, voice, process control, and a TUI.</p>
+      <p>Claude Code was excellent, but the skills, commands, hooks, and habits I built around it did not travel cleanly. An instruction file may copy to a new agent while its behavior does not. The new harness has different tools, permissions, and ideas about what the instruction means.</p>
+      <p>I run <a href="https://github.com/can1357/oh-my-pi">Oh My Pi</a>, or OMP, with <a href="https://github.com/can1357/oh-my-pi/blob/main/docs/providers.md">Codex OAuth</a>. The same <a href="https://chatgpt.com/pricing/">ChatGPT subscription</a> works in Codex Desktop and the terminal without a separate per-token API bill. I also use <a href="https://opencode.ai/docs/go/">DeepSeek V4 Pro and Flash through my OpenCode Go plan</a>.</p>
+      <p>Claude Max did not give Pi the same clean subscription path. <a href="https://support.claude.com/en/articles/13189465-log-in-to-your-claude-account">Anthropic directs third-party tools toward API keys or usage credits</a>, which made canceling easier. My rules still live in plain files that work across Codex and OMP, so I can leave when a subscription stops fitting.</p>
+      <p>I&#39;ve built the rest myself more than once. One version combined a terminal harness, a provider, <a href="https://modelcontextprotocol.io/">MCP servers</a>, editor integration, remote access, a scheduler, notifications, voice, and the code connecting them.</p>
+      <p>A task started in one tool could not see the context in another. An update broke a path I had forgotten was fragile. The pieces worked, but keeping them connected became its own project. “You can build it yourself” is true in the same way that “you can change your own oil” is true. The missing number is what I wanted to do with that Saturday. The old draft called integration a convenience, but I use the integrated parts every day and reach for the extra control when something breaks.</p>
+      <h2>I Opened Prime Agent&#39;s Code</h2>
+      <p>I wanted to try <a href="https://www.primeintellect.ai/blog/prime-agent">Prime Agent</a>, so I sent the launch post to <a href="https://aisocratic.org/">Federico Ulfo</a>, founder of AI Socratic. He challenged Prime&#39;s depth-one <a href="https://arxiv.org/abs/2512.24601">RLM</a> and continual-learning claims, then sent me the RLM and <a href="https://arxiv.org/abs/2603.28052">Meta-Harness</a> papers plus <a href="https://aisocratic.org/blog/ai-socratic-february-2026#recursive-language-models">AI Socratic&#39;s February write-up on RLM and Google&#39;s ADK experiment</a>. Federico also built <a href="https://aisocratic.github.io/clippy/">Clippy</a>, a beta macOS pet for Claude Code and Codex that does the useful part of <a href="https://learn.chatgpt.com/docs/pets">Codex pets</a>: it stays quiet until an agent needs attention, and he is looking for <a href="https://github.com/aisocratic/clippy/issues">feedback</a>.</p>
+      <p>Prime Agent is closer to OMP&#39;s terminal-agent paradigm than to Codex Desktop, so I opened the papers and Prime&#39;s source to see whether RLM and <code>/refine</code> improved on what OMP already gave me. The persistent IPython kernel gives the parent agent somewhere to keep and search input, child sessions can run asynchronously, and users can edit or roll back stored state. I still wanted receipts for the RLM result and the claim that <code>/refine</code> improves the agent over time.</p>
+      <p>Alex Zhang, Tim Kraska, and Omar Khattab introduced Recursive Language Models at MIT CSAIL. An RLM puts long input in an external environment, lets the model inspect and slice it with code, then makes model calls over selected pieces. The clearest separation came on OOLONG-Pairs, which required aggregating pairs across a 32,000-token input. The depth-one RLM used GPT-5 at the root and GPT-5-mini for recursive calls; it scored 58 F1 at an average cost of $0.33 per run. Claude Code 2.0.0 with context offloading and Opus 4.1 scored 6.5 F1 at $2.99.</p>
+      <p>The OOLONG-Pairs result came from the RLM in the paper. Prime&#39;s <a href="https://github.com/PrimeIntellect-ai/prime-agent/blob/a18809e00ea30638584d87b3afea7285a9d7296c/prime-agent-runtime/src/rlm/__init__.py"><code>rlm()</code> bridge</a> spawns a child session and returns its handle. Prime defaults to one recursion level, while OMP&#39;s task agents default to two; both limits can be raised. I could not find the same long-context comparison for Prime&#39;s implementation.</p>
+      <p>Prime&#39;s memory pitch cites the <a href="https://arxiv.org/abs/2605.09998">Continual Harness paper</a>, not Meta-Harness. In the code, <code>/refine</code> asks a model to create, update, or delete prompt notes, memories, skills, and subagent definitions stored in JSON. Prime versions those files and can roll them back.</p>
+      <p>In Prime&#39;s code, <a href="https://github.com/PrimeIntellect-ai/prime-agent/blob/a18809e00ea30638584d87b3afea7285a9d7296c/packages/coding-agent/src/core/refinement/refinement.ts"><code>/refine</code> writes the model&#39;s <code>expectedOutcome</code> into a field named <code>outcome</code></a>. The stored outcome is a prediction, not the result of a run. <code>/refine</code> never tests the old setup against the new one. I might still get a useful lesson from it, but I cannot tell whether the lesson helped, whether it will return for the right task, or whether it taught the agent something false.</p>
+      <p>Meta-Harness runs its candidates instead of saving an expected outcome. The proposer can inspect candidate code, scores, and traces before generating the next candidates. Across held-out test sets from three online text-classification datasets using GPT-OSS-120B, the selected Meta-Harness reached 48.6 percent average accuracy versus ACE&#39;s 40.9 percent, a difference of 7.7 percentage points. The selected Meta-Harness used 11,400 additional input tokens versus ACE&#39;s 50,800. Its task-specific state still resets between tasks. I found no comparable before-and-after test of Prime&#39;s <code>/refine</code>, so I&#39;m staying with Codex Desktop and OMP.</p>
+      <h2>What Changed My Work</h2>
+      <p><a href="https://github.com/DietrichGebert/ponytail">Ponytail</a> changes how the agent writes code, and <a href="https://github.com/JuliusBrussee/caveman">Caveman</a> changes how it talks. In its own <a href="https://github.com/DietrichGebert/ponytail/blob/2ed6c52c9d7e5e56942508591085fd45dea277d3/benchmarks/results/2026-06-18-agentic.md">agentic benchmark</a>, Ponytail ran twelve Haiku 4.5 feature tasks four times per arm with Claude Code 2.1.177 and Haiku 4.5 on a pinned FastAPI and React repository. The benchmark&#39;s rounded aggregate fell from 191 added lines per no-skill task to about 88 with Ponytail, a 54 percent reduction. On the date-picker task, Ponytail averaged 23 added lines versus the no-skill arm&#39;s 404 by using a native HTML date input.</p>
+      <p>Tokens fell from 349,000 to about 272,000 per task, a 22 percent reduction. Average cost fell from $0.097 to about $0.078, a 20 percent reduction. Time fell from 69 to about 50 seconds, a 27 percent reduction.</p>
+      <p>Across five adversarial checks repeated four times, the no-skill, Caveman, and Ponytail arms each passed 20 of 20 runs; the one-line YAGNI prompt passed 19 of 20. The five checks test known guards, not general code security.</p>
+      <p><a href="https://blog.jetbrains.com/ai/2026/07/speak-to-ai-agents-like-cavemen-tosave-tokens/">Across 82 paired SkillsBench coding tasks, Caveman cut output from the no-skill arm&#39;s 592,000 tokens to 542,000</a>, an 8.5 percent reduction. JetBrains enabled Caveman for every reply using Claude Code 2.1.200, Claude Sonnet 5, and low reasoning effort. On task-level tests scored from zero to one, the no-skill arm averaged 0.326 and Caveman averaged 0.311; a paired sign test found no detectable quality difference (p = 0.82). Caveman gives me the trade I wanted: shorter agent output with no detectable loss in completed-task quality.</p>
+      <p>OMP already contains the plumbing I would otherwise have to build: <a href="https://github.com/can1357/oh-my-pi/blob/45e12e5bb758198a920c6070e7e64cb33b21beac/packages/ai/src/registry/oauth/openai-codex.ts">ChatGPT OAuth</a>, <a href="https://github.com/can1357/oh-my-pi/blob/45e12e5bb758198a920c6070e7e64cb33b21beac/packages/ai/src/registry/oauth/opencode.ts">OpenCode Go credentials</a>, provider routing, extensions, and task agents. Its <a href="https://github.com/can1357/oh-my-pi/blob/45e12e5bb758198a920c6070e7e64cb33b21beac/packages/coding-agent/src/lsp/tool.ts">LSP runs through writes and renames</a>, so broken imports surface during the edit. <a href="https://github.com/can1357/oh-my-pi/blob/45e12e5bb758198a920c6070e7e64cb33b21beac/packages/coding-agent/src/dap/session.ts">DAP drives a real debugger</a> instead of print-statement debugging, while <a href="https://github.com/can1357/oh-my-pi/blob/45e12e5bb758198a920c6070e7e64cb33b21beac/packages/coding-agent/src/task/isolation-runner.ts">subagents work in isolated worktrees</a> so sibling agents do not collide before returning structured results.</p>
+      <p>I can use the same subscriptions, models, and rules from the desktop or terminal. I send work to those child agents every day. I compare harnesses on the same work with the same model and provider, and I do not give one side more context or budget. None has made me switch yet.</p>
+      <h2>I Kept Reaching for the Same App</h2>
+      <p>My last article described <a href="/blog/ai-engineer-verification/#interfaces-acp-and-the-agent-browser">the split I was already living</a>: I ran work through the CLI while Codex Desktop kept parallel tasks, local files, browser work, tools, and long-running jobs together in a GUI. Its <a href="https://learn.chatgpt.com/docs/changelog#codex-2026-05-21">in-app browser</a> keeps frontend TDD inside the task: Codex can reproduce the failure, change the page, and verify the fix against the rendered UI. When I annotate the page, the exact spacing or styling problem goes back into the conversation. I had built versions of that browser-and-agent loop myself, but I still had to connect the browser to the agent and test runner. In <a href="https://support.claude.com/en/articles/10065433-install-claude-desktop">Claude Desktop</a>, chat, <a href="https://support.claude.com/en/articles/13345190-get-started-with-claude-cowork">Cowork</a>, and design work felt like separate destinations, so I had to carry context between them. Codex leaves the test result beside the code and conversation, so I spend less attention remembering where the work lives.</p>
+      <p>I connected my Windows machine to <a href="https://learn.chatgpt.com/docs/remote">Codex Remote</a> by scanning a QR code. The phone view means I can start work, check progress, approve an action, change direction, and review the result. I no longer needed a separate remote-control setup. The phone became another view of the task on my desk.</p>
+      <p><a href="/blog/endgame-keyboard/">Twelve Keyboards Later</a> ended with voice as the other input endgame. <a href="https://learn.chatgpt.com/docs/features/voice">Codex Voice</a> lets me talk directly to the agent. I can talk until an idea has shape, interrupt when the answer drifts, and send the work into separate tasks before the thought goes cold.</p>
+      <p>On my phone, I can send work to OMP on my Windows machine and steer it by voice while I am outside or in the bath. Codex invokes OMP through CLI calls and returns the result in the conversation, not a terminal or TUI.</p>
+      <p><a href="https://learn.chatgpt.com/docs/automations">Scheduled tasks</a> return to the same conversation with its context and tools. Together, those features removed the chores of reconnecting tools, repeating context, and checking whether a task needs me.</p>
+      <h2>The Setup I Actually Use</h2>
+      <p>Claude Max is gone. My rules still travel, I can still swap providers, and OMP is one voice instruction away. Codex Desktop stays open because it asks for less of my attention. Georgie waits at the edge of the screen until something needs me.</p>
+    </article>
       <div class="footer">&#169; 2026 Jory Pestorious</div>
     </div>
-
-    <svg
-      version="1.1"
-      id="change"
-      role="img"
-      aria-label="Change background image"
-      tabindex="0"
-      xmlns="http://www.w3.org/2000/svg"
-      xmlns:xlink="http://www.w3.org/1999/xlink"
-      x="0px"
-      y="0px"
-      viewBox="0 0 452.025 452.025"
-      style="enable-background: new 0 0 452.025 452.025"
-      xml:space="preserve"
-    >
-      <path d="M362.612,34.125h-55.2l13.6-13.6c4.7-4.7,4.7-12.3,0-17s-12.3-4.7-17,0l-34,34.1c-2.3,2.3-3.5,5.3-3.5,8.5s1.3,6.2,3.5,8.5l34.1,34.1c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5c4.7-4.7,4.7-12.3,0-17l-13.6-13.6h55.2c35.9,0,65,29.2,65,65v40.3c0,6.6,5.4,12,12,12s12-5.4,12-12v-40.3C451.712,74.025,411.712,34.125,362.612,34.125z" />
-      <path d="M438.812,230.925h-197.1c-6.6,0-12,5.4-12,12v197.1c0,6.6,5.4,12,12,12h197.1c6.6,0,12-5.4,12-12v-197.1C450.812,236.225,445.412,230.925,438.812,230.925z M426.812,428.025h-173.1v-173.1h173.1L426.812,428.025L426.812,428.025z" />
-      <path d="M147.912,363.325c-4.7-4.7-12.3-4.7-17,0c-4.7,4.7-4.7,12.3,0,17l13.6,13.6h-55.2c-35.9,0-65-29.2-65-65v-40.3c0-6.6-5.4-12-12-12s-12,5.4-12,12v40.3c0,49.1,39.9,89,89,89h55.2l-13.6,13.6c-4.7,4.7-4.7,12.3,0,17c2.3,2.3,5.4,3.5,8.5,3.5s6.1-1.2,8.5-3.5l34.1-34.1c4.7-4.7,4.7-12.3,0-17L147.912,363.325z" />
-      <path d="M13.212,24.025c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5c0-3.1-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5C7.012,22.725,10.012,24.025,13.212,24.025z" />
-      <path d="M111.812,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S105.112,24.025,111.812,24.025z" />
-      <path d="M62.512,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S55.912,24.025,62.512,24.025z" />
-      <path d="M161.012,24.025c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S154.412,24.025,161.012,24.025z" />
-      <path d="M210.312,0.025c-3.1,0-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5s1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5S213.512,0.025,210.312,0.025z" />
-      <path d="M210.312,147.925c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,153.225,217.012,147.925,210.312,147.925z" />
-      <path d="M210.312,98.625c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,103.925,217.012,98.625,210.312,98.625z" />
-      <path d="M210.312,49.325c-6.6,0-12,5.4-12,12s5.4,12,12,12s12-5.4,12-12C222.312,54.725,217.012,49.325,210.312,49.325z" />
-      <path d="M210.312,197.125c-3.2,0-6.3-1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5s5.3,3.5,8.5,3.5s6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5C216.613,198.425,213.512,197.125,210.312,197.125z" />
-      <path d="M161.012,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C149.012,215.825,154.412,221.125,161.012,221.125z" />
-      <path d="M111.812,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C99.812,215.825,105.112,221.125,111.812,221.125z" />
-      <path d="M62.512,221.125c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C50.512,215.825,55.912,221.125,62.512,221.125z" />
-      <path d="M13.212,221.125c3.2,0,6.3-1.3,8.5-3.5s3.5-5.3,3.5-8.5s-1.3-6.3-3.5-8.5s-5.3-3.5-8.5-3.5s-6.3,1.3-8.5,3.5s-3.5,5.3-3.5,8.5c0,3.1,1.3,6.3,3.5,8.5C7.012,219.825,10.012,221.125,13.212,221.125z" />
-      <path d="M13.212,171.925c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,171.925,13.212,171.925z" />
-      <path d="M13.212,122.625c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12C1.212,117.225,6.612,122.625,13.212,122.625z" />
-      <path d="M13.212,73.325c6.6,0,12-5.4,12-12s-5.4-12-12-12s-12,5.4-12,12S6.612,73.325,13.212,73.325z" />
-    </svg>
-
-    <script src="/js/marked.min.js"></script>
-    <script src="/js/blog-common.js?v=foundation-plus-5"></script>
+<script src="/js/blog-common.js?v=foundation-plus-5"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         BlogCommon.initAll({
-          markdownPath: "/blog/portable-agent-factory/portable-agent-factory.md",
-          backgroundSwitcher: true,
+
           scrollProgress: true,
           readingTime: false,
           lazyImages: true,

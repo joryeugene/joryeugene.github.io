@@ -1,93 +1,6 @@
 (function () {
   'use strict';
 
-  const processCases = {
-    'dadbod-grip': {
-      title: 'How Dadbod Grip turns Neovim into a data workbench',
-      kicker: 'Case: dadbod-grip.nvim',
-      layers: {
-        brief: '<h2>Edit, query, and analyze data without leaving Neovim.</h2><p>Dadbod Grip adds editable grids, generated SQL previews, cross-database queries, schema navigation, profiling, notebooks, and schema-aware AI to the editor.</p>',
-        constraints: '<h2>Keep the database and existing connection tools authoritative.</h2><p>Dadbod manages connections. DuckDB joins databases and files. Dadbod Grip adds workflows without hiding the SQL or replacing either system.</p>',
-        changes: '<h2>Make edits and federation inspectable.</h2><pre class="code-window" aria-label="Example staged SQL change"><code><span class="remove">- ALTER TABLE users ADD last_seen_at TIMESTAMP;</span>\n<span class="add">+ ALTER TABLE users ADD last_seen_at TIMESTAMPTZ;</span>\n<span class="add">+ CREATE INDEX idx_users_last_seen_at</span>\n<span class="add">+   ON users (last_seen_at DESC);</span></code></pre><div class="decision-note"><strong>Decision</strong>Show the generated mutation SQL before apply, then inspect database state after any CLI error.</div>',
-        tests: '<h2>Run the workbench on both supported Neovim targets.</h2><p>The test matrix covers editing state, generated SQL, adapters, the interface, and regression paths on Neovim stable and 0.10 with DuckDB installed.</p><p class="proof-line"><a href="/blog/dadbod-grip/">Read the build story</a> · <a href="https://github.com/joryeugene/dadbod-grip.nvim">View source</a></p>',
-        visual: '<h2>Keep the investigation visible in one frame.</h2><p>The Softrear demo database puts a 17-table schema tree, query editor, staged grid markers, and the generated Live SQL in one Neovim view. Review checks that the selected table, pending edits, and exact statement remain legible together before apply.</p>'
-      },
-      wrongTurns: [['Separate desktop app', 'It breaks editor flow and adds another interface to install, learn, and maintain.'], ['Hide generated SQL', 'Users need to inspect generated query or mutation SQL before it reaches a database.']]
-    },
-    'totally-reliable': {
-      title: 'How four live ragdolls stay connected in flight',
-      kicker: 'Case: Totally Reliable Delivery Service',
-      layers: {
-        brief: '<h2>Keep every grip, body, joint, and vehicle live online.</h2><p>Four players can grab one another into a physical chain while one flies a jetpack. The mechanic only works when the shared simulation stays responsive.</p>',
-        constraints: '<h2>Network real ragdolls instead of canned reactions.</h2><p>Rigid bodies, joints, collisions, players, and vehicles affect one another continuously. Synchronization cost grows with every connected body and moving object.</p>',
-        changes: '<h2>Profile the interactions players can feel.</h2><p>I led the Unity and C# multiplayer architecture with Photon and PlayFab.</p><div class="decision-note"><strong>Decision</strong>Spend network work on the bodies and interactions visible to players.</div><p class="proof-line"><a href="https://www.totallyreliable.com/post/pc-mac-2-03-03-update">Read a shipped update</a></p>',
-        tests: '<h2>Test the combinations players create.</h2><p>I tested four-player grip chains, moving vehicles, joints, collisions, and physics objects in live multiplayer sessions under real network conditions.</p><div class="proof-strip"><span>Four live players</span><span>Grip chains</span><span>Moving physics</span></div>',
-        visual: '<h2>Judge the chain as a player sees it.</h2><p>The captured scene keeps the jetpack wearer, three hanging ragdolls, their grips, and the delivery objective legible in one frame.</p>'
-      },
-      wrongTurns: [['Fake the ragdolls with canned animation', 'It would remove the live grip, chain, collision, and vehicle interactions that define the game.'], ['Synchronize every object equally', 'It spends the same bandwidth on sleeping scenery and the bodies players are actively controlling.']]
-    },
-    theosis: {
-      title: 'How Pray Orthodox builds a daily prayer book from sourced Church texts',
-      kicker: 'Case: Pray Orthodox',
-      layers: {
-        brief: '<h2>Support daily prayer in one focused reader.</h2><p>Pray Orthodox is an Orthodox prayer book and Scripture reader for daily prayer. The selected date opens the appointed services and readings in a calm reading surface.</p>',
-        constraints: '<h2>Keep the calendar, sources, and reader roles accurate.</h2><p>The calendar changes the required material by date. Each spoken line needs a source and locator. The same content must work offline in the native apps and load in small files on the public web without a live application server.</p>',
-        changes: '<h2>Compile sourced Church texts before publication.</h2><p>A source manifest records authority, checksum, rights, scope, and locator requirements. Importers prepare fixed services, changing calendar material, and Scripture. The resolver selects the required form while preserving source and role data. Publication stops when required material is unresolved or unsourced.</p><p>Python emits static calendar and Scripture files. Expo exports the shared interface, and the web reader loads the selected content without a runtime API.</p><div class="decision-note"><strong>Decision</strong>Publish only complete, sourced services and keep runtime delivery read-only.</div>',
-        tests: '<h2>Keep incomplete services out of the public schedule.</h2><p>Publication checks resolve each public service and role across the supported calendar range. They reject unresolved material, unknown sources, missing locators, incorrect roles, and unappointed substitutions. Browser checks open the prayer reader on phone and desktop.</p>',
-        visual: '<h2>Judge the result as a prayer book.</h2><p>Phone uses one focused reading column. Desktop places the church day beside the selected service. Reviews check date hierarchy, reading measure, touch controls, source display, and horizontal overflow. Prayer, directions, roles, and explanatory text remain visually distinct.</p><p class="proof-line"><a href="https://prayorthodox.com/">Open the live product</a></p>'
-      },
-      wrongTurns: [['Publish incomplete services', 'Unsupported appointments stay hidden until every required section resolves from a source.'], ['Send readers to source documents', 'The prayer book keeps the authorized text in the reader with its source and locator.'], ['Resolve the calendar at runtime', 'Building the files before publication lets checks inspect the same content readers receive and removes a server availability boundary during prayer.']]
-    },
-    workhelix: {
-      title: 'How Nucleus presents AI-opportunity estimates to enterprise leaders',
-      kicker: 'Workhelix · pre-seed to Series A',
-      layers: {
-        brief: '<h2>Show enterprise leaders estimated AI opportunities, savings, and gaps.</h2><p>Nucleus combines HRIS, AI-usage, prompt, assessment, and business-impact data to show adoption, rank estimated opportunities, identify effective users, estimate savings, expose gaps, and help leaders prioritize AI investment.</p>',
-        constraints: '<h2>Replace the prototype while the product and customer work continued.</h2><p>I joined pre-seed as the sole frontend engineer. The production platform needed tenant-safe data, authentication, interfaces for analytics and assessment results, admin tools, and releases while the migration continued.</p>',
-        changes: '<h2>Replace Bubble, then own the production path.</h2><p>I replaced Bubble with React and TypeScript, turned Figma designs into reusable components, and used ECharts to present the data science team\'s assessment outputs. I later owned FastAPI, PostgreSQL performance and migrations, authentication, admin tools, AWS, Terraform, and releases.</p>',
-        tests: '<h2>Build review, release, and security checks into delivery.</h2><p>I built GitHub Actions and agent workflows for code review and releases, then implemented engineering controls that supported SOC 2 Type II. Authentication covered OAuth, WorkOS SSO, JWT, and multi-tenant isolation.</p><div class="proof-strip"><span>Review</span><span>Release</span><span>Tenant isolation</span></div>',
-        visual: '<h2>Keep the opportunity model readable in one view.</h2><p>The current screenshot keeps the HRIS-powered baseline, three summary metrics, a business-unit opportunity chart with hover detail, and a measure-selectable use-case treemap visible in one view.</p>'
-      },
-      sidebarTitle: 'Scope of ownership',
-      wrongTurns: [['Product migration', 'The React and TypeScript application replaced Bubble and remained in production through Series A.'], ['Backend and data', 'The work expanded into FastAPI, SQLAlchemy, PostgreSQL performance, and production data migrations.'], ['Delivery and trust', 'AWS, Terraform, GitHub Actions, authentication, tenant isolation, and SOC 2 controls became part of the same ownership path.']]
-    }
-  };
-
-  let hoverSelectionEnabled = true;
-  document.addEventListener('keydown', () => {
-    hoverSelectionEnabled = false;
-  }, true);
-  document.addEventListener('pointermove', (event) => {
-    if (event.pointerType === 'mouse') hoverSelectionEnabled = true;
-  }, { capture: true, passive: true });
-
-  function shouldSelectOnHover(event) {
-    return hoverSelectionEnabled
-      && event.pointerType === 'mouse'
-      && !window.matchMedia('(max-width: 760px)').matches;
-  }
-
-  function initializeProcessLayers() {
-    const buttons = Array.from(document.querySelectorAll('[data-layer-button]'));
-    if (!buttons.length) return;
-
-    function selectLayer(button) {
-      const panelId = button.getAttribute('aria-controls');
-      buttons.forEach((item) => item.setAttribute('aria-selected', String(item === button)));
-      document.querySelectorAll('[data-layer-content]').forEach((panel) => {
-        panel.hidden = panel.id !== panelId;
-      });
-    }
-
-    buttons.forEach((button) => {
-      button.addEventListener('pointerenter', (event) => {
-        if (shouldSelectOnHover(event)) selectLayer(button);
-      });
-      button.addEventListener('focus', () => selectLayer(button));
-      button.addEventListener('click', () => selectLayer(button));
-    });
-  }
-
   function initializeCommandPalette() {
     const palette = document.getElementById('command-palette');
     const openButtons = Array.from(document.querySelectorAll('[data-open-palette]'));
@@ -100,13 +13,13 @@
 
     function openPalette() {
       previousFocus = document.activeElement;
-      palette.hidden = false;
+      if (!palette.open) palette.showModal();
       document.body.style.overflow = 'hidden';
       commands?.open(palette);
     }
 
     function closePalette() {
-      palette.hidden = true;
+      if (palette.open) palette.close();
       document.body.style.overflow = '';
       previousFocus?.focus?.();
     }
@@ -120,17 +33,17 @@
     document.addEventListener('keydown', (event) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        palette.hidden ? openPalette() : closePalette();
+        palette.open ? closePalette() : openPalette();
         return;
       }
 
-      if (!palette.hidden && event.key === 'Escape') {
+      if (palette.open && event.key === 'Escape') {
         event.preventDefault();
         closePalette();
         return;
       }
 
-      if (!palette.hidden) commands?.handleKeydown(palette, event);
+      if (palette.open) commands?.handleKeydown(palette, event);
     }, true);
   }
 
@@ -278,7 +191,7 @@
   function initializePageKeyboardShortcuts() {
     const isBlocked = (event) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return true;
-      if (!document.getElementById('command-palette')?.hidden) return true;
+      if (document.getElementById('command-palette')?.open) return true;
       const target = event.target;
       return target instanceof HTMLElement
         && (target.matches('input, textarea, select') || target.isContentEditable);
@@ -405,37 +318,16 @@
     const tabs = Array.from(document.querySelectorAll('[data-case-tab]'));
     if (!tabs.length) return;
 
-    function renderProcessCase(key) {
-      const processCase = processCases[key];
-      if (!processCase) return;
-      document.querySelector('[data-process-deep-title]').textContent = processCase.title;
-      document.querySelector('[data-process-kicker]').textContent = processCase.kicker;
-      Object.entries(processCase.layers).forEach(([layerName, content]) => {
-        const layer = document.getElementById(`layer-${layerName}`);
-        if (layer) layer.innerHTML = content;
-      });
-
-      const wrongTurns = document.querySelector('.wrong-turns');
-      if (wrongTurns) {
-        wrongTurns.dataset.activeCase = key;
-        wrongTurns.innerHTML = `<h2 id="wrong-turns-title">${processCase.sidebarTitle || 'Rejected approaches'}</h2>${processCase.wrongTurns.map(([title, body]) => `<article class="wrong-turn"><h3>${title}</h3><p>${body}</p></article>`).join('')}`;
-      }
-
-      document.querySelectorAll('[data-layer-button]').forEach((button) => {
-        button.setAttribute('aria-selected', String(button.getAttribute('aria-controls') === 'layer-changes'));
-      });
-      document.querySelectorAll('[data-layer-content]').forEach((panel) => {
-        panel.hidden = panel.id !== 'layer-changes';
-      });
-    }
-
     function selectCase(tab, updateHash = false) {
-      tabs.forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
+      tabs.forEach((item) => {
+        const selected = item === tab;
+        item.setAttribute('aria-selected', String(selected));
+        item.tabIndex = selected ? 0 : -1;
+      });
       const panelId = tab.getAttribute('aria-controls');
       document.querySelectorAll('[data-case-panel]').forEach((panel) => {
         panel.hidden = panel.id !== panelId;
       });
-      renderProcessCase(tab.dataset.caseHash);
       if (updateHash) {
         const hash = tab.dataset.caseHash;
         if (hash) history.replaceState(null, '', `#${hash}`);
@@ -443,13 +335,22 @@
     }
 
     tabs.forEach((tab) => {
-      tab.addEventListener('pointerenter', (event) => {
-        if (shouldSelectOnHover(event)) selectCase(tab);
-      });
-      tab.addEventListener('focus', () => selectCase(tab));
       tab.addEventListener('click', (event) => {
         event.preventDefault();
         selectCase(tab, true);
+      });
+      tab.addEventListener('keydown', (event) => {
+        const currentIndex = tabs.indexOf(tab);
+        let nextIndex = null;
+        if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+        if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        if (event.key === 'Home') nextIndex = 0;
+        if (event.key === 'End') nextIndex = tabs.length - 1;
+        if (nextIndex === null) return;
+        event.preventDefault();
+        const nextTab = tabs[nextIndex];
+        selectCase(nextTab, true);
+        nextTab.focus();
       });
     });
 
@@ -475,7 +376,6 @@
 
   function init() {
     initializeCopyrightYears();
-    initializeProcessLayers();
     initializeCommandPalette();
     initializeWritingIndex();
     initializePageKeyboardShortcuts();
