@@ -23,13 +23,14 @@ test.describe('homepage asymmetric gallery', () => {
       await expect(project.locator('.project-facts > div')).toHaveCount(1);
       await expect(project.locator('.project-facts dt')).toHaveCount(1);
       await expect(project.locator('.project-facts dd')).toHaveCount(1);
-      await expect(project.locator('.project-links a')).toHaveCount(2);
+      const expectedLinks = await project.getAttribute('data-featured-project') === 'flight-deck' ? 4 : 2;
+      await expect(project.locator('.project-links a')).toHaveCount(expectedLinks);
     }
 
     await expect(page.locator('.depth-drawer, .depth-tabs, [data-project-inspect], [data-project-card], .is-selected')).toHaveCount(0);
   });
 
-  test('uses the audited Dadbod, Flight Deck Week, and Phalene dashboard images', async ({ page }) => {
+  test('uses the audited Dadbod, Flight Deck editor, and Phalene dashboard images', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
 
@@ -54,11 +55,13 @@ test.describe('homepage asymmetric gallery', () => {
 
     const flightDeck = page.locator('[data-featured-project="flight-deck"]');
     const flightDeckImage = flightDeck.locator('.project-media img');
-    await expect(flightDeckImage).toHaveAttribute('src', '/jpg/process/flight-deck-calendar-week.png');
-    await expect(flightDeckImage).toHaveAttribute('alt', /Week.*Google and Outlook.*all-day.*overlapping.*current-time/i);
+    await expect(flightDeckImage).toHaveAttribute('src', '/jpg/process/flight-deck-calendar-editor.png');
+    await expect(flightDeckImage).toHaveAttribute('alt', /Week.*right-side editor/i);
     await expect(flightDeckImage).toHaveCSS('object-fit', 'contain');
     await expect(flightDeck.getByRole('link', { name: 'View source' })).toHaveAttribute('href', 'https://github.com/joryeugene/omarchy-calendar');
     await expect(flightDeck.getByRole('link', { name: 'Open Flight Deck' })).toHaveAttribute('href', 'https://calendar.pestorious.com/');
+    await expect(flightDeck.getByRole('link', { name: 'v1.1.0' })).toHaveAttribute('href', 'https://github.com/joryeugene/omarchy-calendar/releases/tag/v1.1.0');
+    await expect(flightDeck.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://calendar.pestorious.com/privacy/');
 
     const phalene = page.locator('[data-featured-project="phalene-vim"]');
     await expect(phalene.locator('.project-media img')).toHaveAttribute('src', '/jpg/process/phalene-vim-dashboard.jpg');

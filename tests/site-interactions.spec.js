@@ -78,6 +78,8 @@ test('homepage gallery keeps keyboard order, Georgie state, and four viewport co
     page.locator('[data-featured-project="dadbod-grip"]').getByRole('link', { name: 'View source' }),
     page.getByRole('link', { name: 'Open the Flight Deck Calendar interface at full size' }),
     page.getByRole('link', { name: 'Open Flight Deck' }),
+    page.locator('[data-featured-project="flight-deck"]').getByRole('link', { name: 'v1.1.0' }),
+    page.locator('[data-featured-project="flight-deck"]').getByRole('link', { name: 'Privacy' }),
     page.locator('[data-featured-project="flight-deck"]').getByRole('link', { name: 'View source' }),
     page.getByRole('link', { name: 'Open the Phalene-Vim dashboard at full size' }),
     page.getByRole('link', { name: 'Open Phalene-Vim' }),
